@@ -5,35 +5,39 @@ import { RangeSetBuilder } from '@codemirror/state'
 
 const MAX_CHARS = 10
 
-const buildOverflowDecorations = (view: EditorView) => {
-  const builder = new RangeSetBuilder<Decoration>()
-  const doc = view.state.doc
+const highlightOverflow = ViewPlugin.fromClass(
+  class {
+    decorations: any
 
-  for (let i = 1; i <= doc.lines; i++) {
-    const line = doc.line(i)
-    if (line.length <= MAX_CHARS) continue
+    constructor(view: EditorView) {
+      this.decorations = this.build(view)
+    }
 
-    const from = line.from + MAX_CHARS
-    const to = line.to
+    update(update: any) {
+      if (update.docChanged || update.viewportChanged) {
+        this.decorations = this.build(update.view)
+      }
+    }
 
-    builder.add(from, to, Decoration.mark({ class: 'cm-too-long' }))
-  }
+    build(view: EditorView) {
+      const builder = new RangeSetBuilder<Decoration>()
+      const doc = view.state.doc
 
-  return builder.finish()
-}
+      for (let i = 1; i <= doc.lines; i++) {
+        const line = doc.line(i)
+        if (line.length <= MAX_CHARS) continue
 
-const highlightOverflow = ViewPlugin.define(
-  (view: EditorView) => {
-    return {
-      decorations: buildOverflowDecorations(view),
-      update(update: any) {
-        if (update.docChanged || update.viewportChanged) {
-          this.decorations = buildOverflowDecorations(update.view)
-        }
-      },
+        // Highlight only the overflow range (after MAX_CHARS)
+        const from = line.from + MAX_CHARS
+        const to = line.to
+
+        builder.add(from, to, Decoration.mark({ class: 'cm-too-long' }))
+      }
+
+      return builder.finish()
     }
   },
-  { decorations: (v: any) => v.decorations }
+  { decorations: (v) => v.decorations }
 )
 
 export default function App() {

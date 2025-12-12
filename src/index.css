@@ -1,0 +1,17 @@
+.cm-editor, .cm-scroller, .cm-content {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  pointer-events: auto !important;
+}
+
+.cm-scroller {
+  touch-action: pan-y;
+}
+
+.cm-content {
+  touch-action: pan-y;
+}
+
+.cm-too-long {
+  background-color: rgba(255, 0, 0, 0.12);
+}

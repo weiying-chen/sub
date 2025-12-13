@@ -8,7 +8,7 @@ export default function App() {
       'This line is definitely going to exceed fifty-five characters easily.\n'
   )
 
-  const extensions = useMemo(() => [overflowRule("10")], [])
+  const extensions = useMemo(() => [overflowRule(30)], [])
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
@@ -17,7 +17,7 @@ export default function App() {
         onChange={setValue}
         height="100vh"
         width="100vw"
-        basicSetup={{ lineWrapping: true, drawSelection: false }}
+        basicSetup={{ drawSelection: false }}
         extensions={extensions}
       />
     </div>

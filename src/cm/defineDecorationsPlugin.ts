@@ -1,6 +1,11 @@
-import { EditorView, ViewPlugin, type ViewUpdate } from '@codemirror/view'
+import {
+  EditorView,
+  ViewPlugin,
+  ViewUpdate,
+  type DecorationSet,
+} from '@codemirror/view'
 
-export const defineDecorationsPlugin = <Decs>(
+export const defineDecorationsPlugin = <Decs extends DecorationSet>(
   build: (view: EditorView) => Decs
 ) =>
   ViewPlugin.define(
@@ -18,5 +23,7 @@ export const defineDecorationsPlugin = <Decs>(
         },
       }
     },
-    { decorations: (v: any) => v.decorations }
+    {
+      decorations: (v) => v.decorations,
+    }
   )

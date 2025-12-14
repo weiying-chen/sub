@@ -7,7 +7,7 @@ export type LineContext = {
   getLine: (index: number) => string | undefined
 }
 
-export type MaxCharsViolation = {
+export type MaxCharsFinding = {
   type: 'MAX_CHARS'
   lineIndex: number
   text: string
@@ -15,7 +15,7 @@ export type MaxCharsViolation = {
   actual: number
 }
 
-export type CPSViolation = {
+export type CPSFinding = {
   type: 'CPS'
   lineIndex: number
   text: string
@@ -25,6 +25,6 @@ export type CPSViolation = {
   charCount: number
 }
 
-export type Violation = MaxCharsViolation | CPSViolation
+export type Finding = MaxCharsFinding | CPSFinding
 
-export type Rule = (ctx: LineContext) => Violation[]
+export type Rule = (ctx: LineContext) => Finding[]

@@ -1,8 +1,8 @@
-import type { Rule, Violation } from './types'
+import type { Rule, Finding } from './types'
 
-export function analyzeLines(text: string, rules: Rule[]): Violation[] {
+export function analyzeLines(text: string, rules: Rule[]): Finding[] {
   const lines = text.split('\n')
-  const violations: Violation[] = []
+  const findings: Finding[] = []
 
   const getLine = (index: number) => lines[index]
 
@@ -15,9 +15,9 @@ export function analyzeLines(text: string, rules: Rule[]): Violation[] {
     }
 
     for (const rule of rules) {
-      violations.push(...rule(ctx))
+      findings.push(...rule(ctx))
     }
   })
 
-  return violations
+  return findings
 }

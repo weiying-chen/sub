@@ -4,7 +4,7 @@ import CodeMirror from '@uiw/react-codemirror'
 import { analyzeLines } from './analysis/analyzeLines'
 import { maxCharsRule } from './analysis/maxCharsRule'
 import { cpsRule } from './analysis/cpsRule'
-import { violationsDecorations } from './cm/violationsDecorations'
+import { findingsDecorations } from './cm/findingsDecorations'
 
 export default function App() {
   const [value, setValue] = useState(
@@ -24,7 +24,7 @@ export default function App() {
     ].join('\n')
   )
 
-  const violations = useMemo(() => {
+  const findings = useMemo(() => {
     return analyzeLines(value, [
       maxCharsRule(30),
       cpsRule(), // now should return CPS entries for timestamp blocks
@@ -32,16 +32,16 @@ export default function App() {
   }, [value])
 
   const cpsViolations = useMemo(() => {
-    return violations.filter((v) => v.type === 'CPS')
-  }, [violations])
+    return findings.filter((v) => v.type === 'CPS')
+  }, [findings])
 
   useEffect(() => {
-    console.log('CPS violations:', cpsViolations)
+    console.log('CPS findings:', cpsViolations)
   }, [cpsViolations])
 
   const extensions = useMemo(() => {
-    return [violationsDecorations(violations)]
-  }, [violations])
+    return [findingsDecorations(findings)]
+  }, [findings])
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>

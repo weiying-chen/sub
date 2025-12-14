@@ -1,4 +1,4 @@
-import type { Rule, CPSViolation } from './types'
+import type { Rule, CPSFinding } from './types'
 
 const FPS = 30
 const MAX_CPS_DEFAULT = 17
@@ -121,7 +121,7 @@ export function cpsRule(
         ? Infinity
         : (charCount * FPS) / durationFrames
 
-    const v: CPSViolation = {
+    const v: CPSFinding = {
       type: 'CPS',
       lineIndex: cur.englishLineIndex,
       text: cur.text,

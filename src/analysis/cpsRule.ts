@@ -9,15 +9,22 @@ const TSV_RE =
 
 function parseTimecodeToFrames(tc: string): number | null {
   const m = tc.trim().match(TIME_RE)
-  if (!m || !m.groups) return null
+  if (!m?.groups) return null
 
   const h = Number(m.groups.h)
   const mn = Number(m.groups.m)
   const s = Number(m.groups.s)
   const f = Number(m.groups.f)
 
-  if (!Number.isFinite(h) || !Number.isFinite(mn) ||
-      !Number.isFinite(s) || !Number.isFinite(f)) return null
+  if (
+    !Number.isFinite(h) ||
+    !Number.isFinite(mn) ||
+    !Number.isFinite(s) ||
+    !Number.isFinite(f)
+  ) {
+    return null
+  }
+
   if (f < 0 || f >= FPS) return null
 
   return h * 108000 + mn * 1800 + s * 30 + f
@@ -52,8 +59,7 @@ function parseBlockAt(lines: string[], tsLineIndex: number): Block | null {
   const end = parseTimecodeToFrames(m.groups.end)
   if (start == null || end == null || end < start) return null
 
-  const englishLineIndex =
-    findNextNonEmptyLineIndex(lines, tsLineIndex)
+  const englishLineIndex = findNextNonEmptyLineIndex(lines, tsLineIndex)
   if (englishLineIndex == null) return null
 
   const text = lines[englishLineIndex]
@@ -68,25 +74,27 @@ function parseBlockAt(lines: string[], tsLineIndex: number): Block | null {
   }
 }
 
-export function cpsRule(
-  maxCps: number = MAX_CPS_DEFAULT
-): Rule {
+export function cpsRule(maxCps: number = MAX_CPS_DEFAULT): Rule {
   return ({ lineIndex, lines }) => {
     const cur = parseBlockAt(lines, lineIndex)
     if (!cur) return []
 
-    // skip if continuation of identical previous block
+    // Skip if this timestamp block is a continuation of an identical contiguous block.
+    // (The first block in the run will handle the merged duration.)
     for (let i = cur.tsLineIndex - 1; i >= 0; i--) {
       const prev = parseBlockAt(lines, i)
       if (!prev) continue
-      if (
-        prev.text === cur.text &&
-        prev.endFrames === cur.startFrames
-      ) return []
+
+      const isContinuation =
+        prev.text === cur.text && prev.endFrames === cur.startFrames
+
+      if (isContinuation) return []
+
+      // We found a real previous block that isn't a continuation; stop scanning.
       break
     }
 
-    // merge forward
+    // Merge forward: exact same text + contiguous timing.
     let mergedStart = cur.startFrames
     let mergedEnd = cur.endFrames
     let scan = cur.tsLineIndex
@@ -102,28 +110,26 @@ export function cpsRule(
       if (nextTs == null) break
 
       const next = parseBlockAt(lines, nextTs)
-      if (
-        next &&
-        next.text === cur.text &&
-        next.startFrames === mergedEnd
-      ) {
+      if (next && next.text === cur.text && next.startFrames === mergedEnd) {
         mergedEnd = next.endFrames
         scan = next.tsLineIndex
         continue
       }
+
       break
     }
 
     const durationFrames = mergedEnd - mergedStart
     const charCount = cur.text.length
     const cps =
-      durationFrames === 0
-        ? Infinity
-        : (charCount * FPS) / durationFrames
+      durationFrames === 0 ? Infinity : (charCount * FPS) / durationFrames
 
-    const v: CPSFinding = {
+    // ✅ Only return a finding when it's actually over the limit.
+    if (!(cps > maxCps)) return []
+
+    const f: CPSFinding = {
       type: 'CPS',
-      lineIndex: cur.englishLineIndex,
+      lineIndex: cur.tsLineIndex, // anchor to the timestamp line (where the dot should appear)
       text: cur.text,
       cps,
       maxCps,
@@ -131,6 +137,6 @@ export function cpsRule(
       charCount,
     }
 
-    return [v]
+    return [f]
   }
 }

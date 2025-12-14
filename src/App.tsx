@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import CodeMirror from '@uiw/react-codemirror'
 
 import { analyzeLines } from './analysis/analyzeLines'
@@ -8,16 +8,36 @@ import { violationsDecorations } from './cm/violationsDecorations'
 
 export default function App() {
   const [value, setValue] = useState(
-    'This line is short.\n' +
-      'This line is definitely going to exceed fifty-five characters easily.\n'
+    [
+      '00:00:00:00\t00:00:02:00\t',
+      'This line is way too long for two seconds.',
+      '',
+      '00:00:02:00\t00:00:04:00\t',
+      'Short line.',
+      '',
+      '00:00:04:00\t00:00:06:00\t',
+      // same text + contiguous timing to test your merge logic:
+      'Short line.',
+      '',
+      '00:00:06:00\t00:00:08:00\t',
+      'Short line.',
+    ].join('\n')
   )
 
   const violations = useMemo(() => {
     return analyzeLines(value, [
       maxCharsRule(30),
-      cpsRule(), // stub for now
+      cpsRule(), // now should return CPS entries for timestamp blocks
     ])
   }, [value])
+
+  const cpsViolations = useMemo(() => {
+    return violations.filter((v) => v.type === 'CPS')
+  }, [violations])
+
+  useEffect(() => {
+    console.log('CPS violations:', cpsViolations)
+  }, [cpsViolations])
 
   const extensions = useMemo(() => {
     return [violationsDecorations(violations)]

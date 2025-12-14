@@ -1,6 +1,10 @@
 export type LineContext = {
   line: string
   lineIndex: number
+
+  // for multi-line rules (CPS)
+  lines: string[]
+  getLine: (index: number) => string | undefined
 }
 
 export type MaxCharsViolation = {
@@ -17,10 +21,10 @@ export type CPSViolation = {
   text: string
   cps: number
   maxCps: number
+  durationFrames: number
+  charCount: number
 }
 
-export type Violation =
-  | MaxCharsViolation
-  | CPSViolation
+export type Violation = MaxCharsViolation | CPSViolation
 
 export type Rule = (ctx: LineContext) => Violation[]

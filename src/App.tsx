@@ -5,6 +5,7 @@ import { analyzeLines } from './analysis/analyzeLines'
 import { maxCharsRule } from './analysis/maxCharsRule'
 import { cpsRule } from './analysis/cpsRule'
 import { findingsDecorations } from './cm/findingsDecorations'
+import type { Metric, Finding } from './analysis/types'
 
 export default function App() {
   const [value, setValue] = useState(
@@ -24,20 +25,43 @@ export default function App() {
     ].join('\n')
   )
 
-  const findings = useMemo(() => {
-    return analyzeLines(value, [
-      maxCharsRule(30),
-      cpsRule(), // now should return CPS entries for timestamp blocks
-    ])
+  // 1) ALL metrics (for logging / future UI)
+  const metrics = useMemo<Metric[]>(() => {
+    return analyzeLines(value, [maxCharsRule(30), cpsRule()])
   }, [value])
 
-  const cpsViolations = useMemo(() => {
-    return findings.filter((v) => v.type === 'CPS')
+  // 2) Findings (violations only; for UI decorations)
+  const findings = useMemo<Finding[]>(() => {
+    const out: Finding[] = []
+
+    for (const m of metrics) {
+      if (m.type === 'MAX_CHARS') {
+        if (m.actual > m.maxAllowed) out.push(m)
+        continue
+      }
+
+      if (m.type === 'CPS') {
+        if (m.cps > m.maxCps) out.push(m)
+        continue
+      }
+    }
+
+    return out
+  }, [metrics])
+
+  // Optional: log everything (ALL metrics)
+  useEffect(() => {
+    console.log('ALL metrics:', metrics)
+  }, [metrics])
+
+  // Optional: log CPS findings only
+  const cpsFindings = useMemo(() => {
+    return findings.filter((f) => f.type === 'CPS')
   }, [findings])
 
   useEffect(() => {
-    console.log('CPS findings:', cpsViolations)
-  }, [cpsViolations])
+    console.log('CPS findings:', cpsFindings)
+  }, [cpsFindings])
 
   const extensions = useMemo(() => {
     return [findingsDecorations(findings)]

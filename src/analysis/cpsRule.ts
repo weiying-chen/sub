@@ -1,4 +1,4 @@
-import type { Rule, CPSFinding } from './types'
+import type { Rule, CPSMetric } from './types'
 
 const FPS = 30
 const MAX_CPS_DEFAULT = 17
@@ -80,7 +80,7 @@ export function cpsRule(maxCps: number = MAX_CPS_DEFAULT): Rule {
     if (!cur) return []
 
     // Skip if this timestamp block is a continuation of an identical contiguous block.
-    // (The first block in the run will handle the merged duration.)
+    // (Only the first block in the run should emit a metric.)
     for (let i = cur.tsLineIndex - 1; i >= 0; i--) {
       const prev = parseBlockAt(lines, i)
       if (!prev) continue
@@ -90,7 +90,6 @@ export function cpsRule(maxCps: number = MAX_CPS_DEFAULT): Rule {
 
       if (isContinuation) return []
 
-      // We found a real previous block that isn't a continuation; stop scanning.
       break
     }
 
@@ -124,12 +123,9 @@ export function cpsRule(maxCps: number = MAX_CPS_DEFAULT): Rule {
     const cps =
       durationFrames === 0 ? Infinity : (charCount * FPS) / durationFrames
 
-    // ✅ Only return a finding when it's actually over the limit.
-    if (!(cps > maxCps)) return []
-
-    const f: CPSFinding = {
+    const metric: CPSMetric = {
       type: 'CPS',
-      lineIndex: cur.tsLineIndex, // anchor to the timestamp line (where the dot should appear)
+      lineIndex: cur.tsLineIndex, // anchor to the timestamp line
       text: cur.text,
       cps,
       maxCps,
@@ -137,6 +133,6 @@ export function cpsRule(maxCps: number = MAX_CPS_DEFAULT): Rule {
       charCount,
     }
 
-    return [f]
+    return [metric]
   }
 }

@@ -1,8 +1,9 @@
-import type { Rule, Finding } from './types'
+// src/analysis/analyzeLines.ts
+import type { Rule, Metric } from './types'
 
-export function analyzeLines(text: string, rules: Rule[]): Finding[] {
+export function analyzeLines(text: string, rules: Rule[]): Metric[] {
   const lines = text.split('\n')
-  const findings: Finding[] = []
+  const metrics: Metric[] = []
 
   const getLine = (index: number) => lines[index]
 
@@ -15,9 +16,9 @@ export function analyzeLines(text: string, rules: Rule[]): Finding[] {
     }
 
     for (const rule of rules) {
-      findings.push(...rule(ctx))
+      metrics.push(...rule(ctx))
     }
   })
 
-  return findings
+  return metrics
 }

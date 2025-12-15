@@ -1,13 +1,19 @@
-export type LineContext = {
+// src/analysis/types.ts
+
+// ---- Rule context ----
+
+export type RuleCtx = {
   line: string
   lineIndex: number
-
-  // for multi-line rules (CPS)
   lines: string[]
-  getLine: (index: number) => string | undefined
+  getLine: (index: number) => string
 }
 
-export type MaxCharsFinding = {
+export type Rule = (ctx: RuleCtx) => Metric[]
+
+// ---- Metrics (ALL results, always returned by rules) ----
+
+export type MaxCharsMetric = {
   type: 'MAX_CHARS'
   lineIndex: number
   text: string
@@ -15,16 +21,20 @@ export type MaxCharsFinding = {
   actual: number
 }
 
-export type CPSFinding = {
+export type CPSMetric = {
   type: 'CPS'
-  lineIndex: number
+  lineIndex: number // timestamp line index
   text: string
-  cps: number
   maxCps: number
+  cps: number
   durationFrames: number
   charCount: number
 }
 
-export type Finding = MaxCharsFinding | CPSFinding
+export type Metric = MaxCharsMetric | CPSMetric
 
-export type Rule = (ctx: LineContext) => Finding[]
+// ---- Findings (violations only; derived from metrics) ----
+// For now, Finding is just "a Metric that failed its threshold".
+// Same shape, different meaning.
+
+export type Finding = Metric

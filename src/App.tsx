@@ -27,7 +27,7 @@ export default function App() {
 
   // 1) ALL metrics (for logging / future UI)
   const metrics = useMemo<Metric[]>(() => {
-    return analyzeLines(value, [maxCharsRule(30), cpsRule()])
+    return analyzeLines(value, [maxCharsRule(55), cpsRule()])
   }, [value])
 
   // 1.5) ALL CPS metrics (not only violations)

@@ -30,6 +30,11 @@ export default function App() {
     return analyzeLines(value, [maxCharsRule(30), cpsRule()])
   }, [value])
 
+  // 1.5) ALL CPS metrics (not only violations)
+  const cpsMetrics = useMemo(() => {
+    return metrics.filter((m) => m.type === 'CPS')
+  }, [metrics])
+
   // 2) Findings (violations only; for UI decorations)
   const findings = useMemo<Finding[]>(() => {
     const out: Finding[] = []
@@ -53,6 +58,11 @@ export default function App() {
   useEffect(() => {
     console.log('ALL metrics:', metrics)
   }, [metrics])
+
+  // Optional: log ALL CPS metrics (not only violations)
+  useEffect(() => {
+    console.log('ALL CPS metrics:', cpsMetrics)
+  }, [cpsMetrics])
 
   // Optional: log CPS findings only
   const cpsFindings = useMemo(() => {

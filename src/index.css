@@ -23,3 +23,41 @@
   margin-left: 4px;
   vertical-align: middle; /* ← key fix */
 }
+
+/* Gutter container */
+.cm-ts-link-gutter {
+  width: 1.2em;
+}
+
+/* Each gutter cell */
+.cm-ts-link-gutter .cm-gutterElement {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cm-ts-link {
+  width: 1ch;
+  text-align: center;
+  user-select: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+  /* Stronger "OK" */
+  color: #6b7280; /* gray-500 */
+  opacity: 1;
+}
+
+.cm-ts-link--bad {
+  color: #dc2626; /* red-600 */
+  opacity: 1;
+}
+
+/* Optional: make the vertical segments read as one line */
+.cm-ts-link--mid {
+  font-weight: 700;
+}
+
+.cm-ts-link--start,
+.cm-ts-link--end {
+  font-weight: 600;
+}

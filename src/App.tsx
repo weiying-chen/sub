@@ -5,6 +5,7 @@ import { analyzeLines } from './analysis/analyzeLines'
 import { maxCharsRule } from './analysis/maxCharsRule'
 import { cpsRule } from './analysis/cpsRule'
 import { findingsDecorations } from './cm/findingsDecorations'
+import { timestampLinkGutter } from './cm/timestampLinkGutter'
 import type { Metric, Finding } from './analysis/types'
 
 export default function App() {
@@ -17,7 +18,6 @@ export default function App() {
       'Short line.',
       '',
       '00:00:04:00\t00:00:06:00\t',
-      // same text + contiguous timing to test your merge logic:
       'Short line.',
       '',
       '00:00:06:00\t00:00:08:00\t',
@@ -25,17 +25,14 @@ export default function App() {
     ].join('\n')
   )
 
-  // 1) ALL metrics (for logging / future UI)
   const metrics = useMemo<Metric[]>(() => {
-    return analyzeLines(value, [maxCharsRule(55), cpsRule()])
+    return analyzeLines(value, [maxCharsRule(54), cpsRule()])
   }, [value])
 
-  // 1.5) ALL CPS metrics (not only violations)
   const cpsMetrics = useMemo(() => {
     return metrics.filter((m) => m.type === 'CPS')
   }, [metrics])
 
-  // 2) Findings (violations only; for UI decorations)
   const findings = useMemo<Finding[]>(() => {
     const out: Finding[] = []
 
@@ -54,17 +51,14 @@ export default function App() {
     return out
   }, [metrics])
 
-  // Optional: log everything (ALL metrics)
   useEffect(() => {
     console.log('ALL metrics:', metrics)
   }, [metrics])
 
-  // Optional: log ALL CPS metrics (not only violations)
   useEffect(() => {
     console.log('ALL CPS metrics:', cpsMetrics)
   }, [cpsMetrics])
 
-  // Optional: log CPS findings only
   const cpsFindings = useMemo(() => {
     return findings.filter((f) => f.type === 'CPS')
   }, [findings])
@@ -74,8 +68,11 @@ export default function App() {
   }, [cpsFindings])
 
   const extensions = useMemo(() => {
-    return [findingsDecorations(findings)]
-  }, [findings])
+    return [
+      timestampLinkGutter(findings),
+      findingsDecorations(findings),
+    ]
+  }, [value, findings])
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>

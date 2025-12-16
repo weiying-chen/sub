@@ -5,18 +5,7 @@ import type { Finding } from '../analysis/types'
 const TSV_RE =
   /^(?<start>\d{2}:\d{2}:\d{2}:\d{2})\t+(?<end>\d{2}:\d{2}:\d{2}:\d{2})\t+.*$/
 
-function findNextNonEmptyLineIndex(
-  doc: EditorView['state']['doc'],
-  fromIndexExclusive: number
-): number | null {
-  for (let i = fromIndexExclusive + 1; i < doc.lines; i++) {
-    const line = doc.line(i + 1).text
-    if (line.trim() !== '') return i
-  }
-  return null
-}
-
-type LinkPart = 'start' | 'mid' | 'end'
+type LinkPart = 'start' | 'end'
 
 class LinkMarker extends GutterMarker {
   private part: LinkPart
@@ -33,8 +22,7 @@ class LinkMarker extends GutterMarker {
     span.className = `cm-ts-link cm-ts-link--${this.part} ${
       this.isBad ? 'cm-ts-link--bad' : 'cm-ts-link--ok'
     }`
-    span.textContent =
-      this.part === 'start' ? '┌' : this.part === 'end' ? '└' : '│'
+    span.textContent = this.part === 'start' ? '┌' : '└'
     return span
   }
 }
@@ -53,21 +41,21 @@ export function timestampLinkGutter(findings: Finding[]) {
       const tsText = doc.line(tsIndex + 1).text
       if (!TSV_RE.test(tsText)) continue
 
-      const englishIndex = findNextNonEmptyLineIndex(doc, tsIndex)
-      if (englishIndex == null) continue
+      // Only link to the *immediate* next line.
+      const englishIndex = tsIndex + 1
+      if (englishIndex >= doc.lines) continue
 
       const englishText = doc.line(englishIndex + 1).text
       if (englishText.trim() === '') continue
 
       const isBad = cpsBad.has(tsIndex)
 
-      for (let i = tsIndex; i <= englishIndex; i++) {
-        const part: LinkPart =
-          i === tsIndex ? 'start' : i === englishIndex ? 'end' : 'mid'
+      // Add the two markers only (no spanning over blank lines).
+      const tsLine = doc.line(tsIndex + 1)
+      b.add(tsLine.from, tsLine.from, new LinkMarker('start', isBad))
 
-        const line = doc.line(i + 1)
-        b.add(line.from, line.from, new LinkMarker(part, isBad))
-      }
+      const enLine = doc.line(englishIndex + 1)
+      b.add(enLine.from, enLine.from, new LinkMarker('end', isBad))
     }
 
     return b.finish()

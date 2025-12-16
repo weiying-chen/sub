@@ -72,7 +72,7 @@ export default function App() {
       timestampLinkGutter(findings),
       findingsDecorations(findings),
     ]
-  }, [value, findings])
+  }, [findings])
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>

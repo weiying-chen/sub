@@ -5,6 +5,8 @@ import type { Finding } from '../analysis/types'
 const FPS = 30
 
 const TIME_RE = /^(?<h>\d{2}):(?<m>\d{2}):(?<s>\d{2}):(?<f>\d{2})$/
+
+// Timestamp line: start<TAB>end<TAB>anything
 const TSV_RE =
   /^(?<start>\d{2}:\d{2}:\d{2}:\d{2})\t+(?<end>\d{2}:\d{2}:\d{2}:\d{2})\t+.*$/
 
@@ -31,12 +33,29 @@ function parseTimecodeToFrames(tc: string): number | null {
   return h * 108000 + mn * 1800 + s * 30 + f
 }
 
+type PayloadInfo = {
+  payloadIndex: number | null
+  payloadText: string
+}
+
+function findPayloadBelow(
+  doc: EditorView['state']['doc'],
+  tsIndex: number
+): PayloadInfo {
+  for (let i = tsIndex + 1; i < doc.lines; i++) {
+    const t = doc.line(i + 1).text
+    if (TSV_RE.test(t)) break
+    if (t.trim() !== '') return { payloadIndex: i, payloadText: t }
+  }
+  return { payloadIndex: null, payloadText: '' }
+}
+
 type Block = {
   tsIndex: number
-  textIndex: number
-  text: string
   startFrames: number
   endFrames: number
+  payloadIndex: number | null
+  payloadText: string
 }
 
 function parseBlockImmediate(
@@ -51,18 +70,14 @@ function parseBlockImmediate(
   const end = parseTimecodeToFrames(m.groups.end)
   if (start == null || end == null || end < start) return null
 
-  const textIndex = tsIndex + 1
-  if (textIndex >= doc.lines) return null
-
-  const text = doc.line(textIndex + 1).text
-  if (text.trim() === '') return null
+  const { payloadIndex, payloadText } = findPayloadBelow(doc, tsIndex)
 
   return {
     tsIndex,
-    textIndex,
-    text,
     startFrames: start,
     endFrames: end,
+    payloadIndex,
+    payloadText,
   }
 }
 
@@ -94,11 +109,8 @@ class LinkMarker extends GutterMarker {
     span.className = `cm-ts-link cm-ts-link--${this.part} ${
       this.isBad ? 'cm-ts-link--bad' : 'cm-ts-link--ok'
     }`
-
-    // start: ┌  mid: │  end: └
     span.textContent =
       this.part === 'start' ? '┌' : this.part === 'end' ? '└' : '│'
-
     return span
   }
 }
@@ -125,10 +137,13 @@ export function timestampLinkGutter(findings: Finding[]) {
       const first = parseBlockImmediate(doc, tsIndex)
       if (!first) continue
 
-      // Build a merged run by scanning forward across timestamp blocks.
+      // If there's no payload below, we do not start anything and we do not show a broken marker.
+      if (first.payloadIndex == null) continue
+
       const runStart = first.tsIndex
-      let runEndText = first.textIndex
-      const runText = first.text
+      let runEndTs = first.tsIndex
+      let runEndDraw = first.payloadIndex // end marker should land on payload
+      const runText = first.payloadText
 
       let scanTs = first.tsIndex
       let scanEndFrames = first.endFrames
@@ -140,39 +155,45 @@ export function timestampLinkGutter(findings: Finding[]) {
         const next = parseBlockImmediate(doc, nextTs)
         if (!next) break
 
+        // For a continuation merge:
+        // - next timestamp must start exactly where previous ended
+        // - payload text (below) must match the first payload text
+        // - next must also have payload (otherwise don't extend the run)
         const isMerged =
-          next.text === runText && next.startFrames === scanEndFrames
+          next.payloadIndex != null &&
+          next.startFrames === scanEndFrames &&
+          next.payloadText === runText
 
         if (!isMerged) break
 
-        // Mark this timestamp as part of this run so we don't start a new run from it later.
+        // TS still thinks payloadIndex might be null here unless you force it to narrow:
+        if (next.payloadIndex == null) break
+
         seenTs.add(next.tsIndex)
 
-        // Extend run to include everything down to next text line.
-        runEndText = next.textIndex
+        runEndTs = next.tsIndex
+        runEndDraw = next.payloadIndex
         scanTs = next.tsIndex
         scanEndFrames = next.endFrames
       }
 
-      // If it did NOT merge with anything, keep the simple 2-line "staple".
-      if (runEndText === first.textIndex) {
-        const isBad = cpsBad.has(first.tsIndex)
+      const runIsBad = cpsBad.has(runStart)
 
-        const tsLine = doc.line(first.tsIndex + 1)
-        b.add(tsLine.from, tsLine.from, new LinkMarker('start', isBad))
+      // Single block: staple from TS line to payload line.
+      if (runEndTs === runStart) {
+        const tsLine = doc.line(runStart + 1)
+        b.add(tsLine.from, tsLine.from, new LinkMarker('start', runIsBad))
 
-        const enLine = doc.line(first.textIndex + 1)
-        b.add(enLine.from, enLine.from, new LinkMarker('end', isBad))
+        const endLine = doc.line(runEndDraw + 1)
+        b.add(endLine.from, endLine.from, new LinkMarker('end', runIsBad))
 
         continue
       }
 
-      // Merged run: draw a continuous column from the first timestamp to the last text.
-      const runIsBad = cpsBad.has(runStart)
-
-      for (let i = runStart; i <= runEndText; i++) {
+      // Merged run: draw a continuous column from first TS down to the final payload line.
+      for (let i = runStart; i <= runEndDraw; i++) {
         const part: LinkPart =
-          i === runStart ? 'start' : i === runEndText ? 'end' : 'mid'
+          i === runStart ? 'start' : i === runEndDraw ? 'end' : 'mid'
 
         const line = doc.line(i + 1)
         b.add(line.from, line.from, new LinkMarker(part, runIsBad))

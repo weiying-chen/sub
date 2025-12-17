@@ -54,8 +54,18 @@
   font-size: 14px;
   line-height: 1;
 
+  /* default */
   color: #6b7280; /* gray-500 */
   opacity: 1;
+}
+
+.cm-ts-link--ok {
+  color: #6b7280; /* gray-500 */
+  opacity: 1;
+}
+
+.cm-ts-link--warn {
+  color: #a16207; /* amber-700, slightly brown/olive */
 }
 
 .cm-ts-link--bad {

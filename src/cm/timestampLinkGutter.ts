@@ -2,68 +2,11 @@ import { RangeSetBuilder } from '@codemirror/state'
 import { EditorView, GutterMarker, gutter } from '@codemirror/view'
 import type { Finding } from '../analysis/types'
 
-import { MAX_CPS, TSV_RE, parseTimecodeToFrames } from '../shared/subtitles'
+import { MAX_CPS, TSV_RE } from '../shared/subtitles'
+import { type LineSource, parseBlockAt, mergeForward } from '../shared/tsvRuns'
 
 type LinkState = 'ok' | 'flagged'
-
-type PayloadInfo = {
-  payloadIndex: number | null
-  payloadText: string
-}
-
-function findPayloadBelow(
-  doc: EditorView['state']['doc'],
-  tsIndex: number
-): PayloadInfo {
-  for (let i = tsIndex + 1; i < doc.lines; i++) {
-    const t = doc.line(i + 1).text
-    if (TSV_RE.test(t)) break
-    if (t.trim() !== '') return { payloadIndex: i, payloadText: t }
-  }
-  return { payloadIndex: null, payloadText: '' }
-}
-
-type Block = {
-  tsIndex: number
-  startFrames: number
-  endFrames: number
-  payloadIndex: number | null
-  payloadText: string
-}
-
-function parseBlockImmediate(
-  doc: EditorView['state']['doc'],
-  tsIndex: number
-): Block | null {
-  const tsLine = doc.line(tsIndex + 1).text
-  const m = tsLine.match(TSV_RE)
-  if (!m?.groups) return null
-
-  const start = parseTimecodeToFrames(m.groups.start)
-  const end = parseTimecodeToFrames(m.groups.end)
-  if (start == null || end == null || end < start) return null
-
-  const { payloadIndex, payloadText } = findPayloadBelow(doc, tsIndex)
-
-  return {
-    tsIndex,
-    startFrames: start,
-    endFrames: end,
-    payloadIndex,
-    payloadText,
-  }
-}
-
-function findNextTimestampIndex(
-  doc: EditorView['state']['doc'],
-  fromIndexExclusive: number
-): number | null {
-  for (let i = fromIndexExclusive + 1; i < doc.lines; i++) {
-    const t = doc.line(i + 1).text
-    if (TSV_RE.test(t)) return i
-  }
-  return null
-}
+type LinkPart = 'start' | 'mid' | 'end'
 
 function isCpsFindingFlagged(f: Finding): boolean {
   if (f.type !== 'CPS') return false
@@ -76,8 +19,6 @@ function isCpsFindingFlagged(f: Finding): boolean {
 
   return true
 }
-
-type LinkPart = 'start' | 'mid' | 'end'
 
 class LinkMarker extends GutterMarker {
   private part: LinkPart
@@ -109,6 +50,11 @@ export function timestampLinkGutter(findings: Finding[]) {
     const b = new RangeSetBuilder<GutterMarker>()
     const doc = view.state.doc
 
+    const src: LineSource = {
+      lineCount: doc.lines,
+      getLine: (i) => doc.line(i + 1).text,
+    }
+
     const seenTs = new Set<number>()
 
     for (let tsIndex = 0; tsIndex < doc.lines; tsIndex++) {
@@ -117,45 +63,28 @@ export function timestampLinkGutter(findings: Finding[]) {
       const tsText = doc.line(tsIndex + 1).text
       if (!TSV_RE.test(tsText)) continue
 
-      const first = parseBlockImmediate(doc, tsIndex)
+      const first = parseBlockAt(src, tsIndex)
       if (!first) continue
 
-      if (first.payloadIndex == null) continue
+      const run = mergeForward(src, first)
 
-      const runStart = first.tsIndex
-      let runEndDraw = first.payloadIndex
-      const runText = first.payloadText
-
-      let scanTs = first.tsIndex
-      let scanEndFrames = first.endFrames
-
-      while (true) {
-        const nextTs = findNextTimestampIndex(doc, scanTs)
-        if (nextTs == null) break
-
-        const next = parseBlockImmediate(doc, nextTs)
-        if (!next) break
-
-        const isMerged =
-          next.payloadIndex != null &&
-          next.startFrames === scanEndFrames &&
-          next.payloadText === runText
-
-        if (!isMerged) break
-        if (next.payloadIndex == null) break
-
-        seenTs.add(next.tsIndex)
-
-        runEndDraw = next.payloadIndex
-        scanTs = next.tsIndex
-        scanEndFrames = next.endFrames
+      // Mark all timestamp indices inside this run as seen
+      for (let i = run.startTsIndex; i <= run.endTsIndex; i++) {
+        seenTs.add(i)
       }
 
-      const runState: LinkState = flaggedRuns.has(runStart) ? 'flagged' : 'ok'
+      const runState: LinkState = flaggedRuns.has(run.startTsIndex)
+        ? 'flagged'
+        : 'ok'
 
-      for (let i = runStart; i <= runEndDraw; i++) {
+      // Draw from first timestamp line down to the last payload line of the run
+      for (let i = run.startTsIndex; i <= run.payloadIndexEnd; i++) {
         const part: LinkPart =
-          i === runStart ? 'start' : i === runEndDraw ? 'end' : 'mid'
+          i === run.startTsIndex
+            ? 'start'
+            : i === run.payloadIndexEnd
+              ? 'end'
+              : 'mid'
 
         const line = doc.line(i + 1)
         b.add(line.from, line.from, new LinkMarker(part, runState))

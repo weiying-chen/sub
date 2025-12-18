@@ -2,41 +2,9 @@ import { RangeSetBuilder } from '@codemirror/state'
 import { EditorView, GutterMarker, gutter } from '@codemirror/view'
 import type { Finding } from '../analysis/types'
 
-const FPS = 30
-
-// Rule: CPS is OK when cps <= 17. Flagged only when cps > 17.
-const MAX_CPS = 17
+import { MAX_CPS, TSV_RE, parseTimecodeToFrames } from '../shared/subtitles'
 
 type LinkState = 'ok' | 'flagged'
-
-const TIME_RE = /^(?<h>\d{2}):(?<m>\d{2}):(?<s>\d{2}):(?<f>\d{2})$/
-
-// Timestamp line: start<TAB>end<TAB>anything
-const TSV_RE =
-  /^(?<start>\d{2}:\d{2}:\d{2}:\d{2})\t+(?<end>\d{2}:\d{2}:\d{2}:\d{2})\t+.*$/
-
-function parseTimecodeToFrames(tc: string): number | null {
-  const m = tc.trim().match(TIME_RE)
-  if (!m?.groups) return null
-
-  const h = Number(m.groups.h)
-  const mn = Number(m.groups.m)
-  const s = Number(m.groups.s)
-  const f = Number(m.groups.f)
-
-  if (
-    !Number.isFinite(h) ||
-    !Number.isFinite(mn) ||
-    !Number.isFinite(s) ||
-    !Number.isFinite(f)
-  ) {
-    return null
-  }
-
-  if (f < 0 || f >= FPS) return null
-
-  return h * 108000 + mn * 1800 + s * 30 + f
-}
 
 type PayloadInfo = {
   payloadIndex: number | null
@@ -100,16 +68,12 @@ function findNextTimestampIndex(
 function isCpsFindingFlagged(f: Finding): boolean {
   if (f.type !== 'CPS') return false
 
-  // With your current types, CPS findings always have a numeric cps.
-  // Still defensive for future changes.
   const anyF = f as unknown as Record<string, unknown>
   const cps = anyF.cps
   if (typeof cps === 'number' && Number.isFinite(cps)) {
     return cps > MAX_CPS
   }
 
-  // If something claims it's CPS but we can't read cps, treat as flagged
-  // so it isn't silently ignored.
   return true
 }
 
@@ -135,8 +99,6 @@ class LinkMarker extends GutterMarker {
 }
 
 export function timestampLinkGutter(findings: Finding[]) {
-  // CPS findings are anchored to the FIRST timestamp line of a merged run.
-  // Store only flagged; absence means ok.
   const flaggedRuns = new Set<number>()
 
   for (const f of findings) {
@@ -158,11 +120,10 @@ export function timestampLinkGutter(findings: Finding[]) {
       const first = parseBlockImmediate(doc, tsIndex)
       if (!first) continue
 
-      // If there's no payload below, we do not start anything and we do not show a broken marker.
       if (first.payloadIndex == null) continue
 
       const runStart = first.tsIndex
-      let runEndDraw = first.payloadIndex // end marker should land on payload
+      let runEndDraw = first.payloadIndex
       const runText = first.payloadText
 
       let scanTs = first.tsIndex
@@ -175,18 +136,12 @@ export function timestampLinkGutter(findings: Finding[]) {
         const next = parseBlockImmediate(doc, nextTs)
         if (!next) break
 
-        // For a continuation merge:
-        // - next timestamp must start exactly where previous ended
-        // - payload text (below) must match the first payload text
-        // - next must also have payload (otherwise don't extend the run)
         const isMerged =
           next.payloadIndex != null &&
           next.startFrames === scanEndFrames &&
           next.payloadText === runText
 
         if (!isMerged) break
-
-        // isMerged already implies payloadIndex != null, keep explicit for clarity
         if (next.payloadIndex == null) break
 
         seenTs.add(next.tsIndex)
@@ -198,8 +153,6 @@ export function timestampLinkGutter(findings: Finding[]) {
 
       const runState: LinkState = flaggedRuns.has(runStart) ? 'flagged' : 'ok'
 
-      // Always draw a continuous column from the TS line down to the payload line,
-      // even for a single block (so blank lines don't "break" the connector).
       for (let i = runStart; i <= runEndDraw; i++) {
         const part: LinkPart =
           i === runStart ? 'start' : i === runEndDraw ? 'end' : 'mid'

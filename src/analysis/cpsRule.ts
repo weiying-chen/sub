@@ -1,7 +1,7 @@
 import type { Rule, CPSMetric } from './types'
 
 const FPS = 30
-const MAX_CPS_DEFAULT = 17
+const MAX_CPS = 17
 
 const TIME_RE = /^(?<h>\d{2}):(?<m>\d{2}):(?<s>\d{2}):(?<f>\d{2})$/
 const TSV_RE =
@@ -74,7 +74,7 @@ function parseBlockAt(lines: string[], tsLineIndex: number): Block | null {
   }
 }
 
-export function cpsRule(maxCps: number = MAX_CPS_DEFAULT): Rule {
+export function cpsRule(maxCps: number = MAX_CPS): Rule {
   return ({ lineIndex, lines }) => {
     const cur = parseBlockAt(lines, lineIndex)
     if (!cur) return []

@@ -100,7 +100,7 @@ function findNextTimestampIndex(
 function isCpsFindingFlagged(f: Finding): boolean {
   if (f.type !== 'CPS') return false
 
-  // Your current Finding type is Metric, so CPS findings always have cps/maxCps.
+  // With your current types, CPS findings always have a numeric cps.
   // Still defensive for future changes.
   const anyF = f as unknown as Record<string, unknown>
   const cps = anyF.cps
@@ -162,7 +162,6 @@ export function timestampLinkGutter(findings: Finding[]) {
       if (first.payloadIndex == null) continue
 
       const runStart = first.tsIndex
-      let runEndTs = first.tsIndex
       let runEndDraw = first.payloadIndex // end marker should land on payload
       const runText = first.payloadText
 
@@ -187,32 +186,20 @@ export function timestampLinkGutter(findings: Finding[]) {
 
         if (!isMerged) break
 
-        // (redundant due to isMerged, kept for clarity)
+        // isMerged already implies payloadIndex != null, keep explicit for clarity
         if (next.payloadIndex == null) break
-        const payloadIndex = next.payloadIndex
 
         seenTs.add(next.tsIndex)
 
-        runEndTs = next.tsIndex
-        runEndDraw = payloadIndex
+        runEndDraw = next.payloadIndex
         scanTs = next.tsIndex
         scanEndFrames = next.endFrames
       }
 
       const runState: LinkState = flaggedRuns.has(runStart) ? 'flagged' : 'ok'
 
-      // Single block: staple from TS line to payload line.
-      if (runEndTs === runStart) {
-        const tsLine = doc.line(runStart + 1)
-        b.add(tsLine.from, tsLine.from, new LinkMarker('start', runState))
-
-        const endLine = doc.line(runEndDraw + 1)
-        b.add(endLine.from, endLine.from, new LinkMarker('end', runState))
-
-        continue
-      }
-
-      // Merged run: draw a continuous column from first TS down to the final payload line.
+      // Always draw a continuous column from the TS line down to the payload line,
+      // even for a single block (so blank lines don't "break" the connector).
       for (let i = runStart; i <= runEndDraw; i++) {
         const part: LinkPart =
           i === runStart ? 'start' : i === runEndDraw ? 'end' : 'mid'

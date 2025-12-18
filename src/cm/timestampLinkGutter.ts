@@ -4,10 +4,10 @@ import type { Finding } from '../analysis/types'
 
 const FPS = 30
 
-const CPS_WARN = 17
-const CPS_BAD = 20
+// Rule: CPS is OK when cps <= 17. Flagged only when cps > 17.
+const CPS_MAX = 17
 
-type Severity = 'ok' | 'warn' | 'bad'
+type LinkState = 'ok' | 'flagged'
 
 const TIME_RE = /^(?<h>\d{2}):(?<m>\d{2}):(?<s>\d{2}):(?<f>\d{2})$/
 
@@ -97,44 +97,37 @@ function findNextTimestampIndex(
   return null
 }
 
-function getCpsFromFinding(f: Finding): number | null {
-  // Keep this defensive because Finding can vary.
+function isCpsFindingFlagged(f: Finding): boolean {
+  if (f.type !== 'CPS') return false
+
+  // Your current Finding type is Metric, so CPS findings always have cps/maxCps.
+  // Still defensive for future changes.
   const anyF = f as unknown as Record<string, unknown>
-
-  const direct = anyF.cps ?? anyF.value
-  if (typeof direct === 'number' && Number.isFinite(direct)) return direct
-
-  const meta = anyF.meta
-  if (meta && typeof meta === 'object') {
-    const anyMeta = meta as Record<string, unknown>
-    const v = anyMeta.cps ?? anyMeta.value
-    if (typeof v === 'number' && Number.isFinite(v)) return v
+  const cps = anyF.cps
+  if (typeof cps === 'number' && Number.isFinite(cps)) {
+    return cps > CPS_MAX
   }
 
-  return null
-}
-
-function cpsToSeverity(cps: number): Severity {
-  if (cps >= CPS_BAD) return 'bad'
-  if (cps > CPS_WARN) return 'warn'
-  return 'ok'
+  // If something claims it's CPS but we can't read cps, treat as flagged
+  // so it isn't silently ignored.
+  return true
 }
 
 type LinkPart = 'start' | 'mid' | 'end'
 
 class LinkMarker extends GutterMarker {
   private part: LinkPart
-  private severity: Severity
+  private state: LinkState
 
-  constructor(part: LinkPart, severity: Severity) {
+  constructor(part: LinkPart, state: LinkState) {
     super()
     this.part = part
-    this.severity = severity
+    this.state = state
   }
 
   toDOM() {
     const span = document.createElement('span')
-    span.className = `cm-ts-link cm-ts-link--${this.part} cm-ts-link--${this.severity}`
+    span.className = `cm-ts-link cm-ts-link--${this.part} cm-ts-link--${this.state}`
     span.textContent =
       this.part === 'start' ? '┌' : this.part === 'end' ? '└' : '│'
     return span
@@ -142,19 +135,12 @@ class LinkMarker extends GutterMarker {
 }
 
 export function timestampLinkGutter(findings: Finding[]) {
-  // CPS violations are anchored to the FIRST timestamp line of a merged run.
-  // Store only warn/bad; absence means ok.
-  const cpsSeverity = new Map<number, Severity>()
+  // CPS findings are anchored to the FIRST timestamp line of a merged run.
+  // Store only flagged; absence means ok.
+  const flaggedRuns = new Set<number>()
 
   for (const f of findings) {
-    if (f.type !== 'CPS') continue
-
-    const cps = getCpsFromFinding(f)
-
-    // If we cannot read the numeric cps, still mark it (as warn) so it is not silently ignored.
-    const sev = cps == null ? 'warn' : cpsToSeverity(cps)
-
-    if (sev !== 'ok') cpsSeverity.set(f.lineIndex, sev)
+    if (isCpsFindingFlagged(f)) flaggedRuns.add(f.lineIndex)
   }
 
   const markers = (view: EditorView) => {
@@ -201,6 +187,7 @@ export function timestampLinkGutter(findings: Finding[]) {
 
         if (!isMerged) break
 
+        // (redundant due to isMerged, kept for clarity)
         if (next.payloadIndex == null) break
         const payloadIndex = next.payloadIndex
 
@@ -212,15 +199,15 @@ export function timestampLinkGutter(findings: Finding[]) {
         scanEndFrames = next.endFrames
       }
 
-      const runSeverity = cpsSeverity.get(runStart) ?? 'ok'
+      const runState: LinkState = flaggedRuns.has(runStart) ? 'flagged' : 'ok'
 
       // Single block: staple from TS line to payload line.
       if (runEndTs === runStart) {
         const tsLine = doc.line(runStart + 1)
-        b.add(tsLine.from, tsLine.from, new LinkMarker('start', runSeverity))
+        b.add(tsLine.from, tsLine.from, new LinkMarker('start', runState))
 
         const endLine = doc.line(runEndDraw + 1)
-        b.add(endLine.from, endLine.from, new LinkMarker('end', runSeverity))
+        b.add(endLine.from, endLine.from, new LinkMarker('end', runState))
 
         continue
       }
@@ -231,7 +218,7 @@ export function timestampLinkGutter(findings: Finding[]) {
           i === runStart ? 'start' : i === runEndDraw ? 'end' : 'mid'
 
         const line = doc.line(i + 1)
-        b.add(line.from, line.from, new LinkMarker(part, runSeverity))
+        b.add(line.from, line.from, new LinkMarker(part, runState))
       }
     }
 

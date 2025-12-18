@@ -64,11 +64,7 @@
   opacity: 1;
 }
 
-.cm-ts-link--warn {
-  color: #a16207; /* amber-700, slightly brown/olive */
-}
-
-.cm-ts-link--bad {
+.cm-ts-link--flagged {
   color: #dc2626; /* red-600 */
   opacity: 1;
 }

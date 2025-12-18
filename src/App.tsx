@@ -7,23 +7,10 @@ import { cpsRule } from './analysis/cpsRule'
 import { findingsDecorations } from './cm/findingsDecorations'
 import { timestampLinkGutter } from './cm/timestampLinkGutter'
 import type { Metric, Finding } from './analysis/types'
+import { sampleSubtitles } from './fixtures/subtitles'
 
 export default function App() {
-  const [value, setValue] = useState(
-    [
-      '00:00:00:00\t00:00:02:00\tThis line is way too long for two seconds.',
-      'This line is way too long for two seconds.',
-      '',
-      '00:00:02:00\t00:00:04:00\tShort line.',
-      'Short line.',
-      '',
-      '00:00:04:00\t00:00:06:00\tShort line.',
-      'Short line.',
-      '',
-      '00:00:06:00\t00:00:08:00\tShort line.',
-      'Short line.',
-    ].join('\n')
-  )
+  const [value, setValue] = useState(sampleSubtitles)
 
   const metrics = useMemo<Metric[]>(() => {
     return analyzeLines(value, [maxCharsRule(54), cpsRule()])
@@ -68,10 +55,7 @@ export default function App() {
   }, [cpsFindings])
 
   const extensions = useMemo(() => {
-    return [
-      timestampLinkGutter(findings),
-      findingsDecorations(findings),
-    ]
+    return [timestampLinkGutter(findings), findingsDecorations(findings)]
   }, [findings])
 
   return (

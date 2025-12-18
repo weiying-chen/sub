@@ -1,4 +1,3 @@
-// src/analysis/analyzeLines.ts
 import type { Rule, Metric } from './types'
 
 export function analyzeLines(text: string, rules: Rule[]): Metric[] {

@@ -5,7 +5,7 @@ import type { Finding } from '../analysis/types'
 const FPS = 30
 
 // Rule: CPS is OK when cps <= 17. Flagged only when cps > 17.
-const CPS_MAX = 17
+const MAX_CPS = 17
 
 type LinkState = 'ok' | 'flagged'
 
@@ -105,7 +105,7 @@ function isCpsFindingFlagged(f: Finding): boolean {
   const anyF = f as unknown as Record<string, unknown>
   const cps = anyF.cps
   if (typeof cps === 'number' && Number.isFinite(cps)) {
-    return cps > CPS_MAX
+    return cps > MAX_CPS
   }
 
   // If something claims it's CPS but we can't read cps, treat as flagged

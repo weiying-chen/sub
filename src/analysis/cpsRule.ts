@@ -42,8 +42,8 @@ function findNextNonEmptyLineIndex(
 
 type Block = {
   tsLineIndex: number
-  englishLineIndex: number
-  text: string
+  payloadIndex: number
+  payloadText: string
   startFrames: number
   endFrames: number
 }
@@ -55,22 +55,23 @@ function parseBlockAt(lines: string[], tsLineIndex: number): Block | null {
   const m = tsLine.match(TSV_RE)
   if (!m?.groups) return null
 
-  const start = parseTimecodeToFrames(m.groups.start)
-  const end = parseTimecodeToFrames(m.groups.end)
-  if (start == null || end == null || end < start) return null
+  const startFrames = parseTimecodeToFrames(m.groups.start)
+  const endFrames = parseTimecodeToFrames(m.groups.end)
+  if (startFrames == null || endFrames == null || endFrames < startFrames)
+    return null
 
-  const englishLineIndex = findNextNonEmptyLineIndex(lines, tsLineIndex)
-  if (englishLineIndex == null) return null
+  const payloadIndex = findNextNonEmptyLineIndex(lines, tsLineIndex)
+  if (payloadIndex == null) return null
 
-  const text = lines[englishLineIndex]
-  if (!text || text.trim() === '') return null
+  const payloadText = lines[payloadIndex]
+  if (!payloadText || payloadText.trim() === '') return null
 
   return {
     tsLineIndex,
-    englishLineIndex,
-    text,
-    startFrames: start,
-    endFrames: end,
+    payloadIndex,
+    payloadText,
+    startFrames,
+    endFrames,
   }
 }
 
@@ -86,15 +87,16 @@ export function cpsRule(maxCps: number = MAX_CPS): Rule {
       if (!prev) continue
 
       const isContinuation =
-        prev.text === cur.text && prev.endFrames === cur.startFrames
+        prev.payloadText === cur.payloadText &&
+        prev.endFrames === cur.startFrames
 
       if (isContinuation) return []
 
       break
     }
 
-    // Merge forward: exact same text + contiguous timing.
-    let mergedStart = cur.startFrames
+    // Merge forward: exact same payload + contiguous timing.
+    const mergedStart = cur.startFrames
     let mergedEnd = cur.endFrames
     let scan = cur.tsLineIndex
 
@@ -109,7 +111,11 @@ export function cpsRule(maxCps: number = MAX_CPS): Rule {
       if (nextTs == null) break
 
       const next = parseBlockAt(lines, nextTs)
-      if (next && next.text === cur.text && next.startFrames === mergedEnd) {
+      if (
+        next &&
+        next.payloadText === cur.payloadText &&
+        next.startFrames === mergedEnd
+      ) {
         mergedEnd = next.endFrames
         scan = next.tsLineIndex
         continue
@@ -119,14 +125,14 @@ export function cpsRule(maxCps: number = MAX_CPS): Rule {
     }
 
     const durationFrames = mergedEnd - mergedStart
-    const charCount = cur.text.length
+    const charCount = cur.payloadText.length
     const cps =
       durationFrames === 0 ? Infinity : (charCount * FPS) / durationFrames
 
     const metric: CPSMetric = {
       type: 'CPS',
       lineIndex: cur.tsLineIndex, // anchor to the timestamp line
-      text: cur.text,
+      text: cur.payloadText,
       cps,
       maxCps,
       durationFrames,

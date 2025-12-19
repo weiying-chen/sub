@@ -1,16 +1,30 @@
 import type { Rule, MaxCharsMetric } from './types'
 
+import { type LineSource, parseBlockAt } from '../shared/tsvRuns'
+
 export const maxCharsRule = (maxChars: number): Rule => {
-  return ({ line, lineIndex }) => {
-    // Keep empty lines silent for now
-    if (line.trim() === '') return []
+  return ({ lineIndex, lines }) => {
+    const src: LineSource = {
+      lineCount: lines.length,
+      getLine: (i) => lines[i] ?? '',
+    }
+
+    const block = parseBlockAt(src, lineIndex)
+    if (!block) return []
+
+    const text = block.payloadText
+    if (text.trim() === '') return []
+
+    // Anchor the finding to the payload line when it exists.
+    // If the payload only exists inline on the timestamp line, fall back to tsIndex.
+    const anchorIndex = block.payloadIndex ?? block.tsIndex
 
     const metric: MaxCharsMetric = {
       type: 'MAX_CHARS',
-      lineIndex,
-      text: line,
+      lineIndex: anchorIndex,
+      text,
       maxAllowed: maxChars,
-      actual: line.length,
+      actual: text.length,
     }
 
     return [metric]

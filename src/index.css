@@ -27,12 +27,16 @@ body,
   touch-action: pan-y;
 }
 
+/* ---- Semantic highlights (tuned for dark + light) ---- */
+
 .cm-too-long {
-  background-color: rgba(255, 0, 0, 0.12);
+  /* Slightly stronger so it stays visible on dark backgrounds */
+  background-color: rgba(239, 68, 68, 0.18);
 }
 
 .cm-cps-dot {
-  color: #d97706;
+  /* Slightly brighter so it doesn't look muddy on dark backgrounds */
+  color: #f59e0b; /* amber-500 */
   font-size: 14px;
   line-height: 1;
   margin-left: 4px;
@@ -70,17 +74,18 @@ body,
   font-size: 14px;
   line-height: 1;
 
-  /* default */
-  color: #6b7280; /* gray-500 */
+  /* Neutral glyph color that reads nicely on dark + light */
+  color: #64748b; /* slate-500 */
   opacity: 1;
 }
 
 .cm-ts-link--ok {
-  color: #6b7280; /* gray-500 */
+  color: #64748b; /* slate-500 */
   opacity: 1;
 }
 
 .cm-ts-link--flagged {
-  color: #dc2626; /* red-600 */
+  /* Slightly less harsh than red-600 on dark themes */
+  color: #ef4444; /* red-500 */
   opacity: 1;
 }

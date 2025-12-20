@@ -7,14 +7,17 @@ import { maxCharsRule } from './analysis/maxCharsRule'
 import { cpsRule } from './analysis/cpsRule'
 import { findingsDecorations } from './cm/findingsDecorations'
 import { timestampLinkGutter } from './cm/timestampLinkGutter'
+import { darkTheme } from './cm/themeDark'
+import { lightTheme } from './cm/themeLight'
 import { getSelectedInlineText } from './cm/selection'
 import type { Metric, Finding } from './analysis/types'
 import { sampleSubtitles } from './fixtures/subtitles'
 
 export default function App() {
+  const isDark = true
+
   const [value, setValue] = useState(sampleSubtitles)
   const [view, setView] = useState<EditorView | null>(null)
-
   const [extracted, setExtracted] = useState('')
 
   const metrics = useMemo<Metric[]>(() => {
@@ -43,6 +46,10 @@ export default function App() {
     return out
   }, [metrics])
 
+  const cpsFindings = useMemo(() => {
+    return findings.filter((f) => f.type === 'CPS')
+  }, [findings])
+
   useEffect(() => {
     console.log('ALL metrics:', metrics)
   }, [metrics])
@@ -51,17 +58,17 @@ export default function App() {
     console.log('ALL CPS metrics:', cpsMetrics)
   }, [cpsMetrics])
 
-  const cpsFindings = useMemo(() => {
-    return findings.filter((f) => f.type === 'CPS')
-  }, [findings])
-
   useEffect(() => {
     console.log('CPS findings:', cpsFindings)
   }, [cpsFindings])
 
   const extensions = useMemo(() => {
-    return [timestampLinkGutter(findings), findingsDecorations(findings)]
-  }, [findings])
+    return [
+      isDark ? darkTheme : lightTheme,
+      timestampLinkGutter(findings),
+      findingsDecorations(findings),
+    ]
+  }, [isDark, findings])
 
   const handleExtract = useCallback(() => {
     if (!view) return

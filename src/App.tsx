@@ -16,6 +16,10 @@ import { sampleSubtitles } from './fixtures/subtitles'
 export default function App() {
   const isDark = true
 
+  useEffect(() => {
+    document.documentElement.dataset.theme = isDark ? 'dark' : 'light'
+  }, [isDark])
+
   const [value, setValue] = useState(sampleSubtitles)
   const [view, setView] = useState<EditorView | null>(null)
   const [extracted, setExtracted] = useState('')
@@ -90,6 +94,8 @@ export default function App() {
         height: '100vh',
         display: 'flex',
         flexDirection: 'column',
+        background: 'var(--bg)',
+        color: 'var(--text)',
       }}
     >
       <div style={{ flex: 1, minHeight: 0 }}>
@@ -106,7 +112,8 @@ export default function App() {
 
       <div
         style={{
-          borderTop: '1px solid #333',
+          borderTop: '1px solid var(--border)',
+          background: 'var(--panel)',
           padding: 12,
           display: 'flex',
           flexDirection: 'column',
@@ -126,7 +133,14 @@ export default function App() {
           value={extracted}
           onChange={(e) => setExtracted(e.target.value)}
           placeholder="Selected inline subtitle text will appear here..."
-          style={{ width: '100%', height: 120, resize: 'none' }}
+          style={{
+            width: '100%',
+            height: 120,
+            resize: 'none',
+            background: 'var(--bg)',
+            color: 'var(--text)',
+            border: '1px solid var(--border)',
+          }}
         />
       </div>
     </div>

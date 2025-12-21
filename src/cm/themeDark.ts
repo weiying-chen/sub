@@ -3,30 +3,30 @@ import { EditorView } from '@codemirror/view'
 export const darkTheme = EditorView.theme(
   {
     '&': {
-      color: '#e5e7eb',           // text
-      backgroundColor: '#111827', // gray-900 (softer than slate-900)
+      color: 'var(--text)',
+      backgroundColor: 'var(--bg)',
     },
 
     '.cm-scroller': {
-      backgroundColor: '#111827',
+      backgroundColor: 'var(--bg)',
     },
 
     '.cm-content': {
-      caretColor: '#e5e7eb',
-      backgroundColor: '#111827',
+      caretColor: 'var(--text)',
+      backgroundColor: 'var(--bg)',
     },
 
     '.cm-cursor, .cm-dropCursor': {
-      borderLeftColor: '#e5e7eb',
+      borderLeftColor: 'var(--text)',
     },
 
     '&.cm-focused .cm-selectionBackground, ::selection': {
-      backgroundColor: '#374151', // gray-700 (slightly softer than slate-700)
+      backgroundColor: 'var(--cm-selection)',
     },
 
     '.cm-gutters': {
-      backgroundColor: '#0b1220', // softer than slate-950, not pitch black
-      color: '#9ca3af',           // gray-400 for better readability
+      backgroundColor: 'var(--cm-gutter-bg)',
+      color: 'var(--cm-gutter-text)',
       border: 'none',
     },
   },

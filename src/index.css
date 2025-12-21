@@ -1,3 +1,39 @@
+/* ---- Theme tokens ---- */
+
+:root {
+  --bg: #ffffff;
+  --panel: #f3f4f6;
+  --text: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+
+  /* CodeMirror-specific */
+  --cm-gutter-bg: #f8fafc;
+  --cm-gutter-text: #6b7280;
+  --cm-selection: #d1d5db;
+
+  /* Semantic */
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --ts-link: #64748b;
+}
+
+[data-theme="dark"] {
+  --bg: #111827;
+  --panel: #0b1220;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --border: #374151;
+
+  --cm-gutter-bg: #0b1220;
+  --cm-gutter-text: #9ca3af;
+  --cm-selection: #374151;
+
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --ts-link: #64748b;
+}
+
 /* ---- Global layout reset ---- */
 *,
 *::before,
@@ -27,6 +63,25 @@ body,
   touch-action: pan-y;
 }
 
+/* ---- CodeMirror focus outline fix (Chrome dotted outline) ---- */
+
+/* Remove Chrome's default focus outline */
+.cm-editor:focus,
+.cm-editor:focus-visible {
+  outline: none !important;
+}
+
+/* Base editor border */
+.cm-editor {
+  border: 1px solid var(--border);
+}
+
+/* Custom, consistent focus state */
+.cm-editor.cm-focused {
+  outline: 2px solid var(--border);
+  outline-offset: -1px;
+}
+
 /* ---- Semantic highlights (tuned for dark + light) ---- */
 
 .cm-too-long {
@@ -36,7 +91,7 @@ body,
 
 .cm-cps-dot {
   /* Slightly brighter so it doesn't look muddy on dark backgrounds */
-  color: #f59e0b; /* amber-500 */
+  color: var(--warning);
   font-size: 14px;
   line-height: 1;
   margin-left: 4px;
@@ -75,17 +130,17 @@ body,
   line-height: 1;
 
   /* Neutral glyph color that reads nicely on dark + light */
-  color: #64748b; /* slate-500 */
+  color: var(--ts-link);
   opacity: 1;
 }
 
 .cm-ts-link--ok {
-  color: #64748b; /* slate-500 */
+  color: var(--ts-link);
   opacity: 1;
 }
 
 .cm-ts-link--flagged {
   /* Slightly less harsh than red-600 on dark themes */
-  color: #ef4444; /* red-500 */
+  color: var(--danger);
   opacity: 1;
 }

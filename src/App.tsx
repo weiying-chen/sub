@@ -5,6 +5,7 @@ import type { EditorView } from '@codemirror/view'
 import { analyzeLines } from './analysis/analyzeLines'
 import { maxCharsRule } from './analysis/maxCharsRule'
 import { cpsRule } from './analysis/cpsRule'
+import { tokenizeText } from './analysis/tokenize'
 import { findingsDecorations } from './cm/findingsDecorations'
 import { timestampLinkGutter } from './cm/timestampLinkGutter'
 import { darkTheme } from './cm/themeDark'
@@ -79,6 +80,11 @@ export default function App() {
     setExtracted(getSelectedInlineText(view))
   }, [view])
 
+  const handleTokenize = useCallback(() => {
+    const tokens = tokenizeText(extracted)
+    console.log('TOKENS:', tokens)
+  }, [extracted])
+
   const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(extracted)
@@ -123,6 +129,9 @@ export default function App() {
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={handleExtract} disabled={!view}>
             Extract selection
+          </button>
+          <button onClick={handleTokenize} disabled={!extracted.trim()}>
+            Tokenize textarea
           </button>
           <button onClick={handleCopy} disabled={!extracted}>
             Copy

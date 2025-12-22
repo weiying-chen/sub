@@ -3,24 +3,23 @@ import {
   ViewPlugin,
   ViewUpdate,
   type DecorationSet,
-} from '@codemirror/view'
+} from "@codemirror/view"
 
 export const defineDecorationsPlugin = <Decs extends DecorationSet>(
   build: (view: EditorView) => Decs
 ) =>
-  ViewPlugin.define(
-    (view) => {
-      let decorations = build(view)
+  ViewPlugin.fromClass(
+    class {
+      decorations: Decs
 
-      return {
-        get decorations() {
-          return decorations
-        },
-        update(update: ViewUpdate) {
-          if (update.docChanged || update.viewportChanged) {
-            decorations = build(update.view)
-          }
-        },
+      constructor(view: EditorView) {
+        this.decorations = build(view)
+      }
+
+      update(update: ViewUpdate) {
+        if (update.docChanged || update.viewportChanged) {
+          this.decorations = build(update.view)
+        }
       }
     },
     {

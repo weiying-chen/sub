@@ -1,16 +1,19 @@
 /* ---- Theme tokens ---- */
 
 :root {
-  --bg: #ffffff;
-  --panel: #f3f4f6;
-  --text: #111827;
-  --muted: #6b7280;
-  --border: #e5e7eb;
+  /* Surfaces */
+  --bg: #f8fafc;        /* cool-neutral off-white */
+  --panel: #f1f5f9;     /* subtle depth, not gray */
+  --border: #e2e8f0;
 
-  /* CodeMirror-specific */
-  --cm-gutter-bg: #f8fafc;
-  --cm-gutter-text: #6b7280;
-  --cm-selection: #e5e7eb;
+  /* Text */
+  --text: #0f172a;      /* slightly cooler, sharper */
+  --muted: #64748b;
+
+  /* CodeMirror */
+  --cm-gutter-bg: #eef2f7;   /* visible but quiet */
+  --cm-gutter-text: #64748b;
+  --cm-selection: #e2e8f0;
 
   /* Semantic */
   --danger: #ef4444;
@@ -25,7 +28,7 @@
   --muted: #9ca3af;
   --border: #374151;
 
-  --cm-gutter-bg: #0b1220;
+  --cm-gutter-bg: #070f1d;   /* slightly darker than panel */
   --cm-gutter-text: #9ca3af;
   --cm-selection: #334155;
 

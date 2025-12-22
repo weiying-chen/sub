@@ -116,6 +116,7 @@ export default function App() {
           height="100%"
           width="100%"
           basicSetup={{
+            lineNumbers: false,
             drawSelection: true,
             highlightActiveLine: false,
             highlightActiveLineGutter: false,

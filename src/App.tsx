@@ -11,11 +11,12 @@ import { timestampLinkGutter } from './cm/timestampLinkGutter'
 import { darkTheme } from './cm/themeDark'
 import { lightTheme } from './cm/themeLight'
 import { getSelectedInlineText } from './cm/selection'
+import { selectLineOnTripleClick } from './cm/selectLineOnTripleClick'
 import type { Metric, Finding } from './analysis/types'
 import { sampleSubtitles } from './fixtures/subtitles'
 
 export default function App() {
-  const isDark = true
+  const isDark = false
 
   useEffect(() => {
     document.documentElement.dataset.theme = isDark ? 'dark' : 'light'
@@ -70,6 +71,7 @@ export default function App() {
   const extensions = useMemo(() => {
     return [
       isDark ? darkTheme : lightTheme,
+      selectLineOnTripleClick,
       timestampLinkGutter(findings),
       findingsDecorations(findings),
     ]
@@ -110,7 +112,12 @@ export default function App() {
           onChange={setValue}
           height="100%"
           width="100%"
-          basicSetup={{ drawSelection: false }}
+          basicSetup={{
+            drawSelection: true,
+            highlightActiveLine: false,
+            highlightActiveLineGutter: false,
+            highlightSelectionMatches: false,
+          }}
           extensions={extensions}
           onCreateEditor={(v) => setView(v)}
         />

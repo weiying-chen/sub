@@ -10,7 +10,7 @@
   /* CodeMirror-specific */
   --cm-gutter-bg: #f8fafc;
   --cm-gutter-text: #6b7280;
-  --cm-selection: #d1d5db;
+  --cm-selection: #e5e7eb;
 
   /* Semantic */
   --danger: #ef4444;
@@ -27,7 +27,7 @@
 
   --cm-gutter-bg: #0b1220;
   --cm-gutter-text: #9ca3af;
-  --cm-selection: rgba(148, 163, 184, 0.2);
+  --cm-selection: #334155;
 
   --danger: #ef4444;
   --warning: #f59e0b;
@@ -71,12 +71,12 @@ body,
   outline: none !important;
 }
 
-/* Base editor border */
-.cm-editor {
-  border: 1px solid var(--border);
-}
+/* NOTE:
+   Border is handled in cmTheme (EditorView.theme). If you want border in CSS instead,
+   re-add:
+   .cm-editor { border: 1px solid var(--border); }
+*/
 
-/* Custom, consistent focus state */
 .cm-editor.cm-focused {
   outline: 2px solid var(--border);
   outline-offset: -1px;
@@ -85,12 +85,10 @@ body,
 /* ---- Semantic highlights (tuned for dark + light) ---- */
 
 .cm-too-long {
-  /* Slightly stronger so it stays visible on dark backgrounds */
   background-color: rgba(239, 68, 68, 0.18);
 }
 
 .cm-cps-dot {
-  /* Slightly brighter so it doesn't look muddy on dark backgrounds */
   color: var(--warning);
   font-size: 14px;
   line-height: 1;
@@ -100,23 +98,18 @@ body,
 
 /* ---- Timestamp link gutter ---- */
 
-/* Gutter container */
 .cm-ts-link-gutter {
   width: 1.1em;
 }
 
-/* Each gutter cell */
 .cm-ts-link-gutter .cm-gutterElement {
   display: flex;
   align-items: center;
   justify-content: center;
-
-  /* Keep the glyph vertically centered and consistent */
   line-height: 1;
   padding: 0;
 }
 
-/* The glyph itself */
 .cm-ts-link {
   width: 1ch;
   text-align: center;
@@ -125,11 +118,9 @@ body,
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", monospace;
 
-  /* Make box drawing characters look consistent */
   font-size: 14px;
   line-height: 1;
 
-  /* Neutral glyph color that reads nicely on dark + light */
   color: var(--ts-link);
   opacity: 1;
 }
@@ -140,16 +131,13 @@ body,
 }
 
 .cm-ts-link--flagged {
-  /* Slightly less harsh than red-600 on dark themes */
   color: var(--danger);
   opacity: 1;
 }
 
-/* Ensure selection is always visible */
-.cm-editor .cm-selectionLayer .cm-selectionBackground {
-  background-color: var(--cm-selection) !important;
-}
-
+/* ---- Browser selection fallback ---- */
+/* CM-drawn selection is styled in cmTheme.
+   This only handles native ::selection cases. */
 .cm-editor .cm-content ::selection {
   background-color: var(--cm-selection) !important;
 }

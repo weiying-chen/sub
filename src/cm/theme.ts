@@ -1,32 +1,26 @@
+
+// cm/theme.ts
 import { EditorView } from "@codemirror/view"
 
-export const lightTheme = EditorView.theme(
+export const cmTheme = EditorView.theme(
   {
     "&": {
       color: "var(--text)",
       backgroundColor: "var(--bg)",
+      border: "1px solid var(--border)",
     },
 
-    ".cm-scroller": {
-      backgroundColor: "var(--bg)",
-    },
-
+    ".cm-scroller": { backgroundColor: "var(--bg)" },
     ".cm-content": {
-      caretColor: "var(--text)",
       backgroundColor: "var(--bg)",
+      caretColor: "var(--text)",
     },
 
     ".cm-cursor, .cm-dropCursor": {
       borderLeftColor: "var(--text)",
     },
 
-    /* CodeMirror-drawn selection */
     ".cm-selectionLayer .cm-selectionBackground": {
-      backgroundColor: "var(--cm-selection)",
-    },
-
-    /* Native browser selection fallback (scoped) */
-    ".cm-content ::selection": {
       backgroundColor: "var(--cm-selection)",
     },
 
@@ -36,5 +30,5 @@ export const lightTheme = EditorView.theme(
       border: "none",
     },
   },
-  { dark: false }
+  { dark: true } // irrelevant, vars control everything
 )

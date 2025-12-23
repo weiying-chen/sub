@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState, useCallback } from "react"
 import CodeMirror from "@uiw/react-codemirror"
 import type { EditorView } from "@codemirror/view"
+import { keymap } from "@codemirror/view"
+import { Prec } from "@codemirror/state"
+import { insertTab } from "@codemirror/commands"
 
 import { analyzeLines } from "./analysis/analyzeLines"
 import { maxCharsRule } from "./analysis/maxCharsRule"
@@ -29,47 +32,36 @@ export default function App() {
     return analyzeLines(value, [maxCharsRule(54), cpsRule()])
   }, [value])
 
-  const cpsMetrics = useMemo(() => {
-    return metrics.filter((m) => m.type === "CPS")
-  }, [metrics])
-
   const findings = useMemo<Finding[]>(() => {
     const out: Finding[] = []
-
     for (const m of metrics) {
       if (m.type === "MAX_CHARS") {
         if (m.actual > m.maxAllowed) out.push(m)
         continue
       }
-
       if (m.type === "CPS") {
         if (m.cps > m.maxCps) out.push(m)
         continue
       }
     }
-
     return out
   }, [metrics])
-
-  const cpsFindings = useMemo(() => {
-    return findings.filter((f) => f.type === "CPS")
-  }, [findings])
-
-  useEffect(() => {
-    console.log("ALL metrics:", metrics)
-  }, [metrics])
-
-  useEffect(() => {
-    console.log("ALL CPS metrics:", cpsMetrics)
-  }, [cpsMetrics])
-
-  useEffect(() => {
-    console.log("CPS findings:", cpsFindings)
-  }, [cpsFindings])
 
   const extensions = useMemo(() => {
     return [
       cmTheme,
+
+      // Hard override: Tab ALWAYS inserts a tab character.
+      // This prevents any other CM keymap from indenting lines.
+      Prec.highest(
+        keymap.of([
+          { key: "Tab", run: insertTab, preventDefault: true },
+          // Optional: keep Shift+Tab as a tab too (so it never "unindents").
+          // If you prefer Shift+Tab to unindent, tell me and I will wire indentLess instead.
+          { key: "Shift-Tab", run: insertTab, preventDefault: true },
+        ])
+      ),
+
       selectLineOnTripleClick,
       timestampLinkGutter(findings),
       findingsDecorations(findings),
@@ -148,10 +140,7 @@ export default function App() {
             Copy
           </button>
 
-          <button
-            onClick={handleToggleTheme}
-            style={{ marginLeft: "auto" }}
-          >
+          <button onClick={handleToggleTheme} style={{ marginLeft: "auto" }}>
             Theme: {theme}
           </button>
         </div>

@@ -1,6 +1,10 @@
 /* ---- Theme tokens ---- */
 
 :root {
+  /* Fonts */
+  --font-mono: "Cousine", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", monospace;
+
   /* Surfaces */
   --bg: #f8fafc;        /* cool-neutral off-white */
   --panel: #f1f5f9;     /* subtle depth, not gray */
@@ -53,6 +57,12 @@ body,
   padding: 0;
 }
 
+/* ---- Base typography ---- */
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+/* ---- CodeMirror interaction fixes ---- */
 .cm-editor,
 .cm-scroller,
 .cm-content {
@@ -73,12 +83,6 @@ body,
 .cm-editor:focus-visible {
   outline: none !important;
 }
-
-/* NOTE:
-   Border is handled in cmTheme (EditorView.theme). If you want border in CSS instead,
-   re-add:
-   .cm-editor { border: 1px solid var(--border); }
-*/
 
 .cm-editor.cm-focused {
   outline: 2px solid var(--border);
@@ -118,9 +122,7 @@ body,
   text-align: center;
   user-select: none;
 
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", monospace;
-
+  font-family: var(--font-mono);
   font-size: 14px;
   line-height: 1;
 

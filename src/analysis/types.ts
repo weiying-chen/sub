@@ -31,7 +31,18 @@ export type CPSMetric = {
   charCount: number
 }
 
-export type Metric = MaxCharsMetric | CPSMetric
+export type CPSBalanceMetric = {
+  type: 'CPS_BALANCE'
+  lineIndex: number // timestamp line index (faster run)
+  cps: number
+  neighborCps: number
+  deltaCps: number
+}
+
+export type Metric =
+  | MaxCharsMetric
+  | CPSMetric
+  | CPSBalanceMetric
 
 // ---- Findings (violations only; derived from metrics) ----
 // For now, Finding is just "a Metric that failed its threshold".

@@ -8,6 +8,7 @@ import { insertTab } from "@codemirror/commands"
 import { analyzeLines } from "./analysis/analyzeLines"
 import { maxCharsRule } from "./analysis/maxCharsRule"
 import { cpsRule } from "./analysis/cpsRule"
+import { cpsBalanceRule } from "./analysis/cpsBalanceRule"
 import { tokenizeText } from "./analysis/tokenize"
 import { findingsDecorations } from "./cm/findingsDecorations"
 import { timestampLinkGutter } from "./cm/timestampLinkGutter"
@@ -29,21 +30,33 @@ export default function App() {
   const [extracted, setExtracted] = useState("")
 
   const metrics = useMemo<Metric[]>(() => {
-    return analyzeLines(value, [maxCharsRule(54), cpsRule()])
+    return analyzeLines(value, [
+      maxCharsRule(54),
+      cpsRule(),
+      cpsBalanceRule(),
+    ])
   }, [value])
 
   const findings = useMemo<Finding[]>(() => {
     const out: Finding[] = []
+
     for (const m of metrics) {
       if (m.type === "MAX_CHARS") {
         if (m.actual > m.maxAllowed) out.push(m)
         continue
       }
+
       if (m.type === "CPS") {
         if (m.cps > m.maxCps) out.push(m)
         continue
       }
+
+      if (m.type === "CPS_BALANCE") {
+        out.push(m) // warn (yellow later)
+        continue
+      }
     }
+
     return out
   }, [metrics])
 
@@ -52,12 +65,9 @@ export default function App() {
       cmTheme,
 
       // Hard override: Tab ALWAYS inserts a tab character.
-      // This prevents any other CM keymap from indenting lines.
       Prec.highest(
         keymap.of([
           { key: "Tab", run: insertTab, preventDefault: true },
-          // Optional: keep Shift+Tab as a tab too (so it never "unindents").
-          // If you prefer Shift+Tab to unindent, tell me and I will wire indentLess instead.
           { key: "Shift-Tab", run: insertTab, preventDefault: true },
         ])
       ),
@@ -91,13 +101,18 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    console.log("METRICS CHECKS:", metrics)
+
     const cpsMetrics = metrics.filter(
       (m): m is Extract<Metric, { type: "CPS" }> => m.type === "CPS"
     )
 
     console.log("CPS CHECKS:", cpsMetrics)
   }, [metrics])
-   
+
+  useEffect(() => {
+    console.log("FINDINGS CHECKS:", findings)
+  }, [findings])
 
   return (
     <div

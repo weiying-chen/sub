@@ -5,7 +5,7 @@ import type { Finding } from '../analysis/types'
 import { TSV_RE } from '../shared/subtitles'
 import { type LineSource, parseBlockAt, mergeForward } from '../shared/tsvRuns'
 
-type LinkState = 'ok' | 'flagged'
+type LinkState = 'ok' | 'warn' | 'flagged'
 type LinkPart = 'start' | 'mid' | 'end'
 
 class LinkMarker extends GutterMarker {
@@ -29,9 +29,20 @@ class LinkMarker extends GutterMarker {
 
 export function timestampLinkGutter(findings: Finding[]) {
   const flaggedRuns = new Set<number>()
+  const warnRuns = new Set<number>()
 
   for (const f of findings) {
-    if (f.type === 'CPS') flaggedRuns.add(f.lineIndex)
+    if (f.type === 'CPS') {
+      // red
+      flaggedRuns.add(f.lineIndex)
+      continue
+    }
+
+    if (f.type === 'CPS_BALANCE') {
+      // yellow
+      warnRuns.add(f.lineIndex)
+      continue
+    }
   }
 
   const markers = (view: EditorView) => {
@@ -61,9 +72,12 @@ export function timestampLinkGutter(findings: Finding[]) {
         seenTs.add(i)
       }
 
+      // Precedence: flagged (red) > warn (yellow) > ok
       const runState: LinkState = flaggedRuns.has(run.startTsIndex)
         ? 'flagged'
-        : 'ok'
+        : warnRuns.has(run.startTsIndex)
+          ? 'warn'
+          : 'ok'
 
       // Draw from first timestamp line down to the last payload line of the run
       for (let i = run.startTsIndex; i <= run.payloadIndexEnd; i++) {

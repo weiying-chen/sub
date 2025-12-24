@@ -95,14 +95,6 @@ body {
   background-color: rgba(239, 68, 68, 0.18);
 }
 
-.cm-cps-dot {
-  color: var(--warning);
-  font-size: 14px;
-  line-height: 1;
-  margin-left: 4px;
-  vertical-align: middle;
-}
-
 /* ---- Timestamp link gutter ---- */
 
 .cm-ts-link-gutter {
@@ -132,6 +124,11 @@ body {
 
 .cm-ts-link--ok {
   color: var(--ts-link);
+  opacity: 1;
+}
+
+.cm-ts-link--warn {
+  color: var(--warning);
   opacity: 1;
 }
 

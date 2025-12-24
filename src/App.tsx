@@ -90,6 +90,15 @@ export default function App() {
     setTheme((t) => (t === "dark" ? "light" : "dark"))
   }, [])
 
+  useEffect(() => {
+    const cpsMetrics = metrics.filter(
+      (m): m is Extract<Metric, { type: "CPS" }> => m.type === "CPS"
+    )
+
+    console.log("CPS CHECKS:", cpsMetrics)
+  }, [metrics])
+   
+
   return (
     <div
       style={{

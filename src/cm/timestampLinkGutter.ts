@@ -2,23 +2,11 @@ import { RangeSetBuilder } from '@codemirror/state'
 import { EditorView, GutterMarker, gutter } from '@codemirror/view'
 import type { Finding } from '../analysis/types'
 
-import { MAX_CPS, TSV_RE } from '../shared/subtitles'
+import { TSV_RE } from '../shared/subtitles'
 import { type LineSource, parseBlockAt, mergeForward } from '../shared/tsvRuns'
 
 type LinkState = 'ok' | 'flagged'
 type LinkPart = 'start' | 'mid' | 'end'
-
-function isCpsFindingFlagged(f: Finding): boolean {
-  if (f.type !== 'CPS') return false
-
-  const anyF = f as unknown as Record<string, unknown>
-  const cps = anyF.cps
-  if (typeof cps === 'number' && Number.isFinite(cps)) {
-    return cps > MAX_CPS
-  }
-
-  return true
-}
 
 class LinkMarker extends GutterMarker {
   private part: LinkPart
@@ -43,7 +31,7 @@ export function timestampLinkGutter(findings: Finding[]) {
   const flaggedRuns = new Set<number>()
 
   for (const f of findings) {
-    if (isCpsFindingFlagged(f)) flaggedRuns.add(f.lineIndex)
+    if (f.type === 'CPS') flaggedRuns.add(f.lineIndex)
   }
 
   const markers = (view: EditorView) => {

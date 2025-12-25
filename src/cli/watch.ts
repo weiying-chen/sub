@@ -9,9 +9,16 @@ import type { Finding } from '../analysis/types'
 // --- ANSI colors (use terminal theme palette) ---
 
 const RESET = '\x1b[0m'
+const BOLD = '\x1b[1m'
 const CYAN = '\x1b[36m'
 const MAGENTA = '\x1b[35m'
 const YELLOW = '\x1b[33m'
+
+// Parse CLI args once
+// Usage: watch <file> [--balance]
+const args = process.argv.slice(2)
+const filePath = args[0]
+const includeBalance = args.includes('--balance')
 
 function debounce<TArgs extends any[]>(
   fn: (...args: TArgs) => void | Promise<void>,
@@ -75,8 +82,8 @@ function formatFinding(f: Finding): string {
         ? (value as number).toFixed(1)
         : String(value)
 
-      // All numeric values in magenta
-      parts.push(`${key}: ${MAGENTA}${asNumber}${RESET}`)
+      // All numeric values in magenta + bold
+      parts.push(`${key}: ${BOLD}${MAGENTA}${asNumber}${RESET}`)
       continue
     }
 
@@ -97,8 +104,8 @@ function formatFinding(f: Finding): string {
     }
   }
 
-  // Line number cyan, type yellow, rest plain (except magenta numbers)
-  const head = `${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}${
+  // Line number cyan+bold, type yellow, rest plain (except magenta numbers)
+  const head = `${BOLD}${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}${
     parts.length ? `  ${parts.join('  ')}` : ''
   }`
 
@@ -110,11 +117,23 @@ function formatFinding(f: Finding): string {
   return head
 }
 
-async function printReport(filePath: string) {
-  const text = await readFile(filePath, 'utf8')
+async function printReport(path: string) {
+  const text = await readFile(path, 'utf8')
 
   const metrics = analyzeLines(text, defaultRules())
-  const findings = getFindings(metrics) as Finding[]
+  const allFindings = getFindings(metrics) as Finding[]
+
+  // Optional filter: hide CPS_BALANCE unless explicitly requested
+  const findings = allFindings.filter((f: any) => {
+    const t =
+      (typeof f.type === 'string' && f.type) ||
+      (typeof f.rule === 'string' && f.rule) ||
+      ''
+    if (!includeBalance && t === 'CPS_BALANCE') {
+      return false
+    }
+    return true
+  })
 
   clearScreen()
 
@@ -123,7 +142,11 @@ async function printReport(filePath: string) {
     return
   }
 
-  console.log(`${findings.length} issues`)
+  console.log(
+    `${findings.length} issues${
+      includeBalance ? '' : '  (CPS_BALANCE hidden, use --balance to show)'
+    }`
+  )
   console.log('')
 
   // Stable ordering: by anchor if possible, then by type string.
@@ -144,10 +167,10 @@ async function printReport(filePath: string) {
   }
 }
 
-export async function watch(filePath: string) {
+export async function watch(path: string) {
   // Lint once immediately
   try {
-    await printReport(filePath)
+    await printReport(path)
   } catch (err) {
     clearScreen()
     const msg = err instanceof Error ? err.message : String(err)
@@ -157,7 +180,7 @@ export async function watch(filePath: string) {
   // Then watch and re-run on changes
   const run = debounce(async () => {
     try {
-      await printReport(filePath)
+      await printReport(path)
     } catch (err) {
       clearScreen()
       const msg = err instanceof Error ? err.message : String(err)
@@ -165,7 +188,7 @@ export async function watch(filePath: string) {
     }
   }, 200)
 
-  const watcher = chokidar.watch(filePath, {
+  const watcher = chokidar.watch(path, {
     ignoreInitial: true,
     awaitWriteFinish: {
       stabilityThreshold: 80,
@@ -179,15 +202,13 @@ export async function watch(filePath: string) {
     console.error(`WATCHER_ERROR ${msg}`)
   })
 
-  console.log(`watching ${filePath}`)
+  console.log(`watching ${path}${includeBalance ? ' (with CPS_BALANCE)' : ''}`)
 }
 
 // --- CLI entry ---
 
-const filePath = process.argv[2]
-
 if (!filePath) {
-  console.error('Usage: watch <file>')
+  console.error('Usage: watch <file> [--balance]')
   process.exit(1)
 }
 

@@ -2,7 +2,7 @@
 This line is short.
 
 00:00:03:00	00:00:05:00	中文二
-Also short
+Also short.
 
 00:00:05:00	00:00:05:10	中文三
 This line is way too long for ten frames, so CPS should explode.

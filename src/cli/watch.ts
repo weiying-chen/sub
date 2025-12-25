@@ -46,18 +46,16 @@ function formatFinding(f: Finding): string {
     (typeof anyF.rule === 'string' && anyF.rule) ||
     'ISSUE'
 
-  // Show everything inline, key: value, no alignment.
-  // But keep the actual subtitle text at the very end.
   const parts: string[] = []
   const previewKeys = ['preview', 'text', 'payloadText', 'line', 'message']
   let previewText: string | null = null
 
   for (const [key, value] of Object.entries(anyF)) {
     if (key === 'type' || key === 'rule') continue
-    if (key === 'lineIndex') continue // redundant with anchor
+    if (key === 'lineIndex') continue // already covered by anchor
     if (value == null) continue
 
-    // Capture text-ish fields but don't print them yet
+    // Collect subtitle-ish text, but print it later
     if (previewKeys.includes(key) && typeof value === 'string') {
       if (!previewText && value.trim() !== '') {
         previewText = value
@@ -82,20 +80,23 @@ function formatFinding(f: Finding): string {
       continue
     }
 
-    // Objects/arrays: one-line JSON, still key: value
     try {
       parts.push(`${key}: ${JSON.stringify(value)}`)
     } catch {
-      // skip non-serializable stuff
+      // ignore non-serializable stuff
     }
   }
 
-  // Always put the main text at the very end if we found any
+  const head = `${anchor}  ${type}${
+    parts.length ? `  ${parts.join('  ')}` : ''
+  }`
+
+  // Subtitle text on its own indented line so it can't be mistaken for another finding
   if (previewText) {
-    parts.push(`text: ${previewText}`)
+    return `${head}\n  text: ${previewText}`
   }
 
-  return `${anchor}  ${type}${parts.length ? `  ${parts.join('  ')}` : ''}`
+  return head
 }
 
 async function printReport(filePath: string) {
@@ -133,6 +134,16 @@ async function printReport(filePath: string) {
 }
 
 export async function watch(filePath: string) {
+  // Lint once immediately
+  try {
+    await printReport(filePath)
+  } catch (err) {
+    clearScreen()
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error(`ERROR ${msg}`)
+  }
+
+  // Then watch and re-run on changes
   const run = debounce(async () => {
     try {
       await printReport(filePath)
@@ -157,7 +168,6 @@ export async function watch(filePath: string) {
     console.error(`WATCHER_ERROR ${msg}`)
   })
 
-  // Print once at start.
   console.log(`watching ${filePath}`)
 }
 

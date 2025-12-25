@@ -1,9 +1,9 @@
 import chokidar from 'chokidar'
 import { readFile } from 'node:fs/promises'
 
-function nowTime() {
-  return new Date().toISOString().slice(11, 19) // HH:MM:SS
-}
+import { analyzeLines } from '../analysis/analyzeLines'
+import { getFindings } from '../shared/findings'
+import type { LineSource } from '../shared/tsvRuns'
 
 function debounce<TArgs extends any[]>(
   fn: (...args: TArgs) => void | Promise<void>,
@@ -20,22 +20,38 @@ function debounce<TArgs extends any[]>(
   }
 }
 
-async function printFileStats(filePath: string) {
+function asLineSource(text: string): LineSource {
+  const lines = text.split(/\r?\n/)
+
+  return {
+    lineCount: lines.length,
+    getLine(index: number) {
+      return lines[index] ?? ''
+    },
+  }
+}
+
+async function printSummary(filePath: string) {
   const text = await readFile(filePath, 'utf8')
 
-  const len = text.length
-  const lines = text === '' ? 0 : text.split(/\r?\n/).length
+  const src = asLineSource(text)
+  const metrics = analyzeLines(src)
+  const findings = getFindings(metrics)
 
-  console.log(`[${nowTime()}] LEN ${len}  LINES ${lines}`)
+  if (findings.length === 0) {
+    console.log('OK')
+  } else {
+    console.log(`${findings.length} issues`)
+  }
 }
 
 export async function watch(filePath: string) {
   const run = debounce(async () => {
     try {
-      await printFileStats(filePath)
+      await printSummary(filePath)
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
-      console.error(`[${nowTime()}] ERROR ${msg}`)
+      console.error(`ERROR ${msg}`)
     }
   }, 200)
 
@@ -50,10 +66,10 @@ export async function watch(filePath: string) {
   watcher.on('change', run)
   watcher.on('error', (err) => {
     const msg = err instanceof Error ? err.message : String(err)
-    console.error(`[${nowTime()}] WATCHER_ERROR ${msg}`)
+    console.error(`WATCHER_ERROR ${msg}`)
   })
 
-  console.log(`[${nowTime()}] watching ${filePath}`)
+  console.log(`watching ${filePath}`)
 }
 
 // --- CLI entry ---

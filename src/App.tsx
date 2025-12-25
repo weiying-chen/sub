@@ -6,9 +6,7 @@ import { Prec } from "@codemirror/state"
 import { insertTab } from "@codemirror/commands"
 
 import { analyzeLines } from "./analysis/analyzeLines"
-import { maxCharsRule } from "./analysis/maxCharsRule"
-import { cpsRule } from "./analysis/cpsRule"
-import { cpsBalanceRule } from "./analysis/cpsBalanceRule"
+import { defaultRules } from "./analysis/defaultRules"
 import { tokenizeText } from "./analysis/tokenize"
 import type { Metric, Finding } from "./analysis/types"
 
@@ -34,11 +32,7 @@ export default function App() {
   const [extracted, setExtracted] = useState("")
 
   const metrics = useMemo<Metric[]>(() => {
-    return analyzeLines(value, [
-      maxCharsRule(54),
-      cpsRule(),
-      cpsBalanceRule(),
-    ])
+    return analyzeLines(value, defaultRules())
   }, [value])
 
   const findings = useMemo<Finding[]>(() => {

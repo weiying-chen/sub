@@ -10,12 +10,16 @@ import { maxCharsRule } from "./analysis/maxCharsRule"
 import { cpsRule } from "./analysis/cpsRule"
 import { cpsBalanceRule } from "./analysis/cpsBalanceRule"
 import { tokenizeText } from "./analysis/tokenize"
+import type { Metric, Finding } from "./analysis/types"
+
+import { getFindings } from "./shared/findings"
+
 import { findingsDecorations } from "./cm/findingsDecorations"
 import { timestampLinkGutter } from "./cm/timestampLinkGutter"
 import { cmTheme } from "./cm/theme"
 import { getSelectedInlineText } from "./cm/selection"
 import { selectLineOnTripleClick } from "./cm/selectLineOnTripleClick"
-import type { Metric, Finding } from "./analysis/types"
+
 import { sampleSubtitles } from "./fixtures/subtitles"
 
 export default function App() {
@@ -38,26 +42,7 @@ export default function App() {
   }, [value])
 
   const findings = useMemo<Finding[]>(() => {
-    const out: Finding[] = []
-
-    for (const m of metrics) {
-      if (m.type === "MAX_CHARS") {
-        if (m.actual > m.maxAllowed) out.push(m)
-        continue
-      }
-
-      if (m.type === "CPS") {
-        if (m.cps > m.maxCps) out.push(m)
-        continue
-      }
-
-      if (m.type === "CPS_BALANCE") {
-        out.push(m) // warn (yellow later)
-        continue
-      }
-    }
-
-    return out
+    return getFindings(metrics)
   }, [metrics])
 
   const extensions = useMemo(() => {

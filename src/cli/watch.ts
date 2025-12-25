@@ -6,6 +6,13 @@ import { defaultRules } from '../analysis/defaultRules'
 import { getFindings } from '../shared/findings'
 import type { Finding } from '../analysis/types'
 
+// --- ANSI colors (use terminal theme palette) ---
+
+const RESET = '\x1b[0m'
+const CYAN = '\x1b[36m'
+const MAGENTA = '\x1b[35m'
+const YELLOW = '\x1b[33m'
+
 function debounce<TArgs extends any[]>(
   fn: (...args: TArgs) => void | Promise<void>,
   ms: number
@@ -64,9 +71,12 @@ function formatFinding(f: Finding): string {
     }
 
     if (typeof value === 'number') {
-      parts.push(
-        `${key}: ${Number.isFinite(value) ? value.toFixed(1) : value}`
-      )
+      const asNumber = Number.isFinite(value)
+        ? (value as number).toFixed(1)
+        : String(value)
+
+      // All numeric values in magenta
+      parts.push(`${key}: ${MAGENTA}${asNumber}${RESET}`)
       continue
     }
 
@@ -87,11 +97,12 @@ function formatFinding(f: Finding): string {
     }
   }
 
-  const head = `${anchor}  ${type}${
+  // Line number cyan, type yellow, rest plain (except magenta numbers)
+  const head = `${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}${
     parts.length ? `  ${parts.join('  ')}` : ''
   }`
 
-  // Subtitle text on its own indented line so it can't be mistaken for another finding
+  // Subtitle text on its own indented line, no extra color
   if (previewText) {
     return `${head}\n  text: ${previewText}`
   }

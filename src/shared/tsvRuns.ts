@@ -76,6 +76,9 @@ export function parseBlockAt(
 /**
  * Check whether this block is a continuation of a previous identical block.
  * Used to suppress duplicate metrics.
+ *
+ * New behavior: if the previous parsed block has the same payload, suppress this one
+ * regardless of whether the timing is contiguous.
  */
 export function isContinuationOfPrevious(
   src: LineSource,
@@ -85,23 +88,19 @@ export function isContinuationOfPrevious(
     const prev = parseBlockAt(src, i)
     if (!prev) continue
 
-    const isContinuation =
-      prev.payloadText === block.payloadText &&
-      prev.endFrames === block.startFrames
-
+    const isContinuation = prev.payloadText === block.payloadText
     return isContinuation
   }
   return false
 }
 
 /**
- * Merge forward from a starting block to form a contiguous run
- * with identical payload and contiguous timing.
+ * Merge forward from a starting block to form a run with identical payload.
+ *
+ * New behavior: merges adjacent timestamp blocks as long as payloadText matches,
+ * regardless of gaps in timing.
  */
-export function mergeForward(
-  src: LineSource,
-  first: ParsedBlock
-): MergedRun {
+export function mergeForward(src: LineSource, first: ParsedBlock): MergedRun {
   let mergedEndFrames = first.endFrames
   let scanTs = first.tsIndex
 
@@ -121,11 +120,7 @@ export function mergeForward(
     if (nextTs == null) break
 
     const next = parseBlockAt(src, nextTs)
-    if (
-      next &&
-      next.payloadText === first.payloadText &&
-      next.startFrames === mergedEndFrames
-    ) {
+    if (next && next.payloadText === first.payloadText) {
       mergedEndFrames = next.endFrames
       scanTs = next.tsIndex
       endTsIndex = next.tsIndex

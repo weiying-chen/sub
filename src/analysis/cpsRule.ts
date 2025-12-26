@@ -18,11 +18,11 @@ export function cpsRule(maxCps: number = MAX_CPS): Rule {
     const cur = parseBlockAt(src, lineIndex)
     if (!cur) return []
 
-    // Skip if this timestamp block is a continuation of an identical contiguous block.
-    // (Only the first block in the run should emit a metric.)
+    // Skip if this timestamp block is a continuation of a previous identical payload.
+    // (Only the first block in the merged run should emit a metric.)
     if (isContinuationOfPrevious(src, cur)) return []
 
-    // Merge forward: exact same payload + contiguous timing.
+    // Merge forward: exact same payload (timing gaps allowed).
     const run = mergeForward(src, cur)
 
     const durationFrames = run.endFrames - run.startFrames

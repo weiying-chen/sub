@@ -7,7 +7,6 @@ import { insertTab } from "@codemirror/commands"
 
 import { analyzeLines } from "./analysis/analyzeLines"
 import { defaultRules } from "./analysis/defaultRules"
-import { tokenizeText } from "./analysis/tokenize"
 import type { Metric, Finding } from "./analysis/types"
 
 import { getFindings } from "./shared/findings"
@@ -17,6 +16,7 @@ import { timestampLinkGutter } from "./cm/timestampLinkGutter"
 import { cmTheme } from "./cm/theme"
 import { getSelectedInlineText } from "./cm/selection"
 import { selectLineOnTripleClick } from "./cm/selectLineOnTripleClick"
+import { fillSelectedTimestampSubs } from "./cm/fillSubs"
 
 import { sampleSubtitles } from "./fixtures/subtitles"
 
@@ -62,10 +62,10 @@ export default function App() {
     setExtracted(getSelectedInlineText(view))
   }, [view])
 
-  const handleTokenize = useCallback(() => {
-    const tokens = tokenizeText(extracted)
-    console.log("TOKENS:", tokens)
-  }, [extracted])
+  const handleFillSubs = useCallback(() => {
+    if (!view) return
+    fillSelectedTimestampSubs(view, extracted)
+  }, [view, extracted])
 
   const handleCopy = useCallback(async () => {
     try {
@@ -136,8 +136,8 @@ export default function App() {
           <button onClick={handleExtract} disabled={!view}>
             Extract selection
           </button>
-          <button onClick={handleTokenize} disabled={!extracted.trim()}>
-            Tokenize textarea
+          <button onClick={handleFillSubs} disabled={!view || !extracted.trim()}>
+            Fill subs
           </button>
           <button onClick={handleCopy} disabled={!extracted}>
             Copy

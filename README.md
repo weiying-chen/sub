@@ -2,6 +2,19 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+## CLI watch
+
+The `watch` CLI supports two reporters:
+
+- `subs` (default): subtitle checks; use `--balance` to include `CPS_BALANCE`
+- `news`: placeholder reporter (not implemented yet)
+
+Example:
+
+```sh
+node src/cli/watch.ts path/to/file.txt --type subs --balance
+```
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh

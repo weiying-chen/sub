@@ -1,0 +1,12 @@
+00:00:01:00	00:00:03:00	Marker
+This is 5 examples.
+00:00:03:00	00:00:05:00	Marker
+This is eleven examples.
+00:00:05:00	00:00:07:00	Marker
+Eleven examples start a sentence.
+00:00:07:00	00:00:09:00	Marker
+It happened at 3:30 yesterday.
+00:00:09:00	00:00:11:00	Marker
+We saw 12 birds.
+00:00:11:00	00:00:13:00	Marker
+Twenty two birds landed.

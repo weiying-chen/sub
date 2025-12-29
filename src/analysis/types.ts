@@ -39,10 +39,21 @@ export type CPSBalanceMetric = {
   deltaCps: number
 }
 
+export type NumberStyleMetric = {
+  type: 'NUMBER_STYLE'
+  lineIndex: number
+  index: number
+  value: number
+  found: 'digits' | 'words'
+  expected: 'digits' | 'words'
+  preview: string
+}
+
 export type Metric =
   | MaxCharsMetric
   | CPSMetric
   | CPSBalanceMetric
+  | NumberStyleMetric
 
 // ---- Findings (violations only; derived from metrics) ----
 // For now, Finding is just "a Metric that failed its threshold".

@@ -18,6 +18,11 @@ export function getFindings(metrics: Metric[]): Finding[] {
       out.push(m) // warn (yellow later)
       continue
     }
+
+    if (m.type === 'NUMBER_STYLE') {
+      out.push(m)
+      continue
+    }
   }
 
   return out

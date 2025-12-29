@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 
 import { analyzeLines } from '../analysis/analyzeLines'
 import { defaultRules } from '../analysis/defaultRules'
+import { numberStyleRule } from '../analysis/numberStyleRule'
 import { getFindings } from '../shared/findings'
 import type { Finding } from '../analysis/types'
 import type { Reporter } from './watch'
@@ -103,7 +104,7 @@ async function printReport(
 ) {
   const text = await readFile(path, 'utf8')
 
-  const metrics = analyzeLines(text, defaultRules())
+  const metrics = analyzeLines(text, [...defaultRules(), numberStyleRule()])
   const allFindings = getFindings(metrics) as Finding[]
 
   // Optional filter: hide CPS_BALANCE unless explicitly requested

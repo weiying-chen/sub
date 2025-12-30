@@ -164,7 +164,7 @@ async function printReport(
   const otherFindings = sorted.filter((f) => !baselineFindings.includes(f))
 
   if (baselineFindings.length > 0) {
-    console.log('Baseline')
+    console.log('[Integrity]')
     for (const f of baselineFindings) {
       console.log(formatFinding(f))
     }
@@ -172,7 +172,7 @@ async function printReport(
   }
 
   if (otherFindings.length > 0) {
-    console.log('Subtitle checks')
+    console.log('[Subtitle checks]')
     for (const f of otherFindings) {
       console.log(formatFinding(f))
     }

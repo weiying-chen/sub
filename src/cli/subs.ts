@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 
 import { analyzeLines } from '../analysis/analyzeLines'
+import { baselineRule } from '../analysis/baselineRule'
 import { defaultRules } from '../analysis/defaultRules'
 import { numberStyleRule } from '../analysis/numberStyleRule'
 import { getFindings } from '../shared/findings'
@@ -17,6 +18,7 @@ const YELLOW = '\x1b[33m'
 
 type SubsOptions = {
   includeBalance: boolean
+  baselinePath?: string
 }
 
 function asNum(v: unknown): number | null {
@@ -103,8 +105,16 @@ async function printReport(
   clearScreen: () => void
 ) {
   const text = await readFile(path, 'utf8')
+  const baselineText = options.baselinePath
+    ? await readFile(options.baselinePath, 'utf8')
+    : null
 
-  const metrics = analyzeLines(text, [...defaultRules(), numberStyleRule()])
+  const rules = [...defaultRules(), numberStyleRule()]
+  if (baselineText != null) {
+    rules.push(baselineRule(baselineText))
+  }
+
+  const metrics = analyzeLines(text, rules)
   const allFindings = getFindings(metrics) as Finding[]
 
   // Optional filter: hide CPS_BALANCE unless explicitly requested
@@ -148,8 +158,24 @@ async function printReport(
     return at.localeCompare(bt)
   })
 
-  for (const f of sorted) {
-    console.log(formatFinding(f))
+  const baselineFindings = sorted.filter(
+    (f: any) => typeof f?.type === 'string' && f.type === 'BASELINE'
+  )
+  const otherFindings = sorted.filter((f) => !baselineFindings.includes(f))
+
+  if (baselineFindings.length > 0) {
+    console.log('Baseline')
+    for (const f of baselineFindings) {
+      console.log(formatFinding(f))
+    }
+    if (otherFindings.length > 0) console.log('')
+  }
+
+  if (otherFindings.length > 0) {
+    console.log('Subtitle checks')
+    for (const f of otherFindings) {
+      console.log(formatFinding(f))
+    }
   }
 }
 

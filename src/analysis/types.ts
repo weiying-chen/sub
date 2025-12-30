@@ -49,11 +49,20 @@ export type NumberStyleMetric = {
   preview: string
 }
 
+export type BaselineMetric = {
+  type: 'BASELINE'
+  lineIndex: number
+  message: string
+  expected?: string
+  actual?: string
+}
+
 export type Metric =
   | MaxCharsMetric
   | CPSMetric
   | CPSBalanceMetric
   | NumberStyleMetric
+  | BaselineMetric
 
 // ---- Findings (violations only; derived from metrics) ----
 // For now, Finding is just "a Metric that failed its threshold".

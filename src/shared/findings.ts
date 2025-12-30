@@ -23,6 +23,11 @@ export function getFindings(metrics: Metric[]): Finding[] {
       out.push(m)
       continue
     }
+
+    if (m.type === 'BASELINE') {
+      out.push(m)
+      continue
+    }
   }
 
   return out

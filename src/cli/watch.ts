@@ -13,9 +13,9 @@ type WatchOptions = {
 }
 
 // Parse CLI args once
-// Usage: watch <file> [--type subs|news] [--balance]
+// Usage: watch <file> [--type subs|news] [--balance] [--baseline path]
 const args = process.argv.slice(2)
-const { filePath, type, includeBalance } = parseArgs(args)
+const { filePath, type, includeBalance, baselinePath } = parseArgs(args)
 
 function debounce<TArgs extends any[]>(
   fn: (...args: TArgs) => void | Promise<void>,
@@ -40,12 +40,22 @@ function parseArgs(argv: string[]) {
   const positionals: string[] = []
   let type = 'subs'
   let includeBalance = false
+  let baselinePath: string | null = null
 
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i]
     if (arg === '--balance') {
       includeBalance = true
       continue
+    }
+
+    if (arg === '--baseline') {
+      const next = argv[i + 1]
+      if (next) {
+        baselinePath = next
+        i += 1
+        continue
+      }
     }
 
     if (arg === '--type') {
@@ -62,11 +72,16 @@ function parseArgs(argv: string[]) {
       continue
     }
 
+    if (arg.startsWith('--baseline=')) {
+      baselinePath = arg.slice('--baseline='.length)
+      continue
+    }
+
     if (arg.startsWith('-')) continue
     positionals.push(arg)
   }
 
-  return { filePath: positionals[0], type, includeBalance }
+  return { filePath: positionals[0], type, includeBalance, baselinePath }
 }
 
 export async function watch(
@@ -115,21 +130,28 @@ export async function watch(
 // --- CLI entry ---
 
 if (!filePath) {
-  console.error('Usage: watch <file> [--type subs|news] [--balance]')
+  console.error('Usage: watch <file> [--type subs|news] [--balance] [--baseline path]')
   process.exit(1)
 }
 
 const normalizedType = type.trim().toLowerCase()
 
 if (normalizedType !== 'subs' && normalizedType !== 'news') {
-  console.error('Usage: watch <file> [--type subs|news] [--balance]')
+  console.error('Usage: watch <file> [--type subs|news] [--balance] [--baseline path]')
   process.exit(1)
+}
+
+if (normalizedType === 'news' && baselinePath) {
+  console.warn('WARN --baseline is only supported with --type subs; ignoring.')
 }
 
 const reporter =
   normalizedType === 'news'
     ? createNewsReporter()
-    : createSubsReporter({ includeBalance })
+    : createSubsReporter({
+        includeBalance,
+        baselinePath: baselinePath ?? undefined,
+      })
 
 const label =
   normalizedType === 'news'

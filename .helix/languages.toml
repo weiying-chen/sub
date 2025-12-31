@@ -1,0 +1,13 @@
+[[language]]
+name = "plain-text"
+scope = "text.plain"
+file-types = ["txt"]
+auto-format = true
+formatter = { command = "/home/wei-ying-chen/python/normalize-quotes/normalize_quotes.py" }
+
+[[language]]
+name = "markdown"
+scope = "source.md"
+file-types = ["md", "markdown"]
+auto-format = true
+formatter = { command = "/home/wei-ying-chen/python/normalize-quotes/normalize_quotes.py" }

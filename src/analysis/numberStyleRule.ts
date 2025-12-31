@@ -1,6 +1,7 @@
-import type { Rule, NumberStyleMetric } from './types'
+import type { Rule, NumberStyleMetric, RuleCtx } from './types'
 
 import { type LineSource, parseBlockAt } from '../shared/tsvRuns'
+import type { SegmentCtx, SegmentRule } from './segments'
 
 const SMALL: Record<string, number> = {
   zero: 0,
@@ -143,20 +144,38 @@ function parseNumberWords(words: string[]): number | null {
   return total + current
 }
 
-export function numberStyleRule(): Rule {
-  return ({ lineIndex, lines }) => {
-    const src: LineSource = {
-      lineCount: lines.length,
-      getLine: (i) => lines[i] ?? '',
-    }
+type NumberStyleRule = Rule & SegmentRule
 
-    const block = parseBlockAt(src, lineIndex)
-    if (!block) return []
+function getTextAndAnchor(
+  ctx: RuleCtx | SegmentCtx
+): { text: string; anchorIndex: number } | null {
+  if ('segment' in ctx) {
+    const text = ctx.segment.text
+    if (text.trim() === '') return null
+    return { text, anchorIndex: ctx.segment.lineIndex }
+  }
 
-    const text = block.payloadText
-    if (text.trim() === '') return []
+  const src: LineSource = {
+    lineCount: ctx.lines.length,
+    getLine: (i) => ctx.lines[i] ?? '',
+  }
 
-    const anchorIndex = block.payloadIndex ?? block.tsIndex
+  const block = parseBlockAt(src, ctx.lineIndex)
+  if (!block) return null
+
+  const text = block.payloadText
+  if (text.trim() === '') return null
+
+  const anchorIndex = block.payloadIndex ?? block.tsIndex
+  return { text, anchorIndex }
+}
+
+export function numberStyleRule(): NumberStyleRule {
+  return ((ctx: RuleCtx | SegmentCtx) => {
+    const extracted = getTextAndAnchor(ctx)
+    if (!extracted) return []
+
+    const { text, anchorIndex } = extracted
     const metrics: NumberStyleMetric[] = []
 
     const digitsRe = /\b\d+\b/g
@@ -201,5 +220,5 @@ export function numberStyleRule(): Rule {
     }
 
     return metrics
-  }
+  }) as NumberStyleRule
 }

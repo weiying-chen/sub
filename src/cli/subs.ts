@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises'
 
-import { analyzeLines } from '../analysis/analyzeLines'
+import { analyzeTextByType } from '../analysis/analyzeTextByType'
 import { baselineRule } from '../analysis/baselineRule'
-import { defaultRules } from '../analysis/defaultRules'
+import { defaultSegmentRules } from '../analysis/defaultRules'
 import { numberStyleRule } from '../analysis/numberStyleRule'
 import { getFindings } from '../shared/findings'
 import type { Finding } from '../analysis/types'
@@ -109,12 +109,12 @@ async function printReport(
     ? await readFile(options.baselinePath, 'utf8')
     : null
 
-  const rules = [...defaultRules(), numberStyleRule()]
+  const rules = [...defaultSegmentRules(), numberStyleRule()]
   if (baselineText != null) {
     rules.push(baselineRule(baselineText))
   }
 
-  const metrics = analyzeLines(text, rules)
+  const metrics = analyzeTextByType(text, 'subs', rules)
   const allFindings = getFindings(metrics) as Finding[]
 
   // Optional filter: hide CPS_BALANCE unless explicitly requested

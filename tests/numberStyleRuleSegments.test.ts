@@ -13,7 +13,12 @@ describe("numberStyleRule (segments)", () => {
       { lineIndex: 9, text: "We saw 12 birds." },
       { lineIndex: 11, text: "12 birds landed." },
       { lineIndex: 13, text: "Twenty two birds landed." },
-    ]
+    ].map((segment) => ({
+      ...segment,
+      candidateLines: [
+        { lineIndex: segment.lineIndex, text: segment.text },
+      ],
+    }))
 
     const metrics = analyzeSegments(segments, [numberStyleRule()])
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
@@ -28,5 +33,33 @@ describe("numberStyleRule (segments)", () => {
     expect(byPreview.get("eleven")?.found).toBe("words")
     expect(byPreview.get("12")?.expected).toBe("words")
     expect(byPreview.get("12")?.found).toBe("digits")
+  })
+
+  it("ignores non-English text blocks", () => {
+    const segments = [
+      { lineIndex: 0, text: "（ 11/16~17 ）", candidateLines: [] },
+      { lineIndex: 1, text: "62歲的雪麗塔希望視力更清晰。", candidateLines: [] },
+      { lineIndex: 2, text: "（ 13 Roberto ）", candidateLines: [] },
+    ]
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    expect(findings).toHaveLength(0)
+  })
+
+  it("ignores age adjectives like twelve-year-old", () => {
+    const segments = [
+      { lineIndex: 0, text: "Twelve-year-old Ken went home." },
+      { lineIndex: 1, text: "She is a twelve year old student." },
+    ].map((segment) => ({
+      ...segment,
+      candidateLines: [
+        { lineIndex: segment.lineIndex, text: segment.text },
+      ],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    expect(findings).toHaveLength(0)
   })
 })

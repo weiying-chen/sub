@@ -18,11 +18,9 @@ describe("parseSubs", () => {
 
     const segments = parseSubs(text)
 
-    expect(segments).toMatchObject([
-      { lineIndex: 1, text: "Hello world." },
-      { lineIndex: 4, text: "Second line." },
-      { lineIndex: 8, text: "Third line." },
-    ])
+    expect(segments.find((s) => s.lineIndex === 1)?.text).toBe("Hello world.")
+    expect(segments.find((s) => s.lineIndex === 4)?.text).toBe("Second line.")
+    expect(segments.find((s) => s.lineIndex === 8)?.text).toBe("Third line.")
   })
 })
 

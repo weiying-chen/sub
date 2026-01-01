@@ -1,7 +1,7 @@
 import type { Rule, MaxCharsMetric, RuleCtx } from './types'
 
 import { type LineSource, parseBlockAt } from '../shared/tsvRuns'
-import type { SegmentCtx, SegmentRule } from './segments'
+import type { Segment, SegmentCtx, SegmentRule } from './segments'
 
 type MaxCharsRule = Rule & SegmentRule
 
@@ -9,6 +9,14 @@ function getTextAndAnchor(
   ctx: RuleCtx | SegmentCtx
 ): { text: string; anchorIndex: number } | null {
   if ('segment' in ctx) {
+    const seg = ctx.segment as Segment
+    if (
+      typeof seg.startFrames !== 'number' ||
+      typeof seg.endFrames !== 'number'
+    ) {
+      return null
+    }
+
     const text = ctx.segment.text
     if (text.trim() === '') return null
     return { text, anchorIndex: ctx.segment.lineIndex }

@@ -101,6 +101,11 @@ function isTimeToken(text: string, index: number, length: number) {
   return before === ':' || after === ':'
 }
 
+function isAgeAdjective(text: string, index: number, length: number) {
+  const tail = text.slice(index + length).toLowerCase()
+  return /^(?:\s*-|\s+)year(?:-|\s+)old\b/.test(tail)
+}
+
 function parseNumberWords(words: string[]): number | null {
   let total = 0
   let current = 0
@@ -170,55 +175,71 @@ function getTextAndAnchor(
   return { text, anchorIndex }
 }
 
-export function numberStyleRule(): NumberStyleRule {
-  return ((ctx: RuleCtx | SegmentCtx) => {
-    const extracted = getTextAndAnchor(ctx)
-    if (!extracted) return []
+function collectMetrics(
+  text: string,
+  anchorIndex: number
+): NumberStyleMetric[] {
+  const metrics: NumberStyleMetric[] = []
 
-    const { text, anchorIndex } = extracted
-    const metrics: NumberStyleMetric[] = []
+  const digitsRe = /\b\d+\b/g
+  let match: RegExpExecArray | null = null
 
-    const digitsRe = /\b\d+\b/g
-    let match: RegExpExecArray | null = null
+  while ((match = digitsRe.exec(text))) {
+    const value = Number.parseInt(match[0], 10)
+    if (!Number.isFinite(value)) continue
+    if (isTimeToken(text, match.index, match[0].length)) continue
+    if (isAgeAdjective(text, match.index, match[0].length)) continue
 
-    while ((match = digitsRe.exec(text))) {
-      const value = Number.parseInt(match[0], 10)
-      if (!Number.isFinite(value)) continue
-      if (isTimeToken(text, match.index, match[0].length)) continue
+    const sentenceStart = isSentenceStart(text, match.index)
 
-      const sentenceStart = isSentenceStart(text, match.index)
-
-      if (value <= 10 || sentenceStart) {
-        metrics.push({
-          type: 'NUMBER_STYLE',
-          lineIndex: anchorIndex,
-          index: match.index,
-          value,
-          found: 'digits',
-          expected: 'words',
-          preview: match[0],
-        })
-      }
-    }
-
-    while ((match = WORD_NUMBER_RE.exec(text))) {
-      const parts = match[0].split(/[\s-]+/).filter(Boolean)
-      const value = parseNumberWords(parts)
-      if (value == null || value <= 10) continue
-
-      if (isSentenceStart(text, match.index)) continue
-
+    if (value <= 10 || sentenceStart) {
       metrics.push({
         type: 'NUMBER_STYLE',
         lineIndex: anchorIndex,
         index: match.index,
         value,
-        found: 'words',
-        expected: 'digits',
+        found: 'digits',
+        expected: 'words',
         preview: match[0],
       })
     }
+  }
 
-    return metrics
+  while ((match = WORD_NUMBER_RE.exec(text))) {
+    const parts = match[0].split(/[\s-]+/).filter(Boolean)
+    const value = parseNumberWords(parts)
+    if (value == null || value <= 10) continue
+    if (isAgeAdjective(text, match.index, match[0].length)) continue
+
+    if (isSentenceStart(text, match.index)) continue
+
+    metrics.push({
+      type: 'NUMBER_STYLE',
+      lineIndex: anchorIndex,
+      index: match.index,
+      value,
+      found: 'words',
+      expected: 'digits',
+      preview: match[0],
+    })
+  }
+
+  return metrics
+}
+
+export function numberStyleRule(): NumberStyleRule {
+  return ((ctx: RuleCtx | SegmentCtx) => {
+    if ('segment' in ctx && ctx.segment.candidateLines) {
+      const candidates = ctx.segment.candidateLines
+      if (candidates.length === 0) return []
+      return candidates.flatMap((candidate) =>
+        collectMetrics(candidate.text, candidate.lineIndex)
+      )
+    }
+
+    const extracted = getTextAndAnchor(ctx)
+    if (!extracted) return []
+
+    return collectMetrics(extracted.text, extracted.anchorIndex)
   }) as NumberStyleRule
 }

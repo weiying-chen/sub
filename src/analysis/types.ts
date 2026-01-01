@@ -55,6 +55,7 @@ export type BaselineMetric = {
   message: string
   expected?: string
   actual?: string
+  baselineLineIndex?: number
 }
 
 export type Metric =

@@ -54,8 +54,32 @@ describe("baselineRule", () => {
     expect(findings).toHaveLength(1)
     expect(findings[0]).toMatchObject({
       type: "BASELINE",
+      lineIndex: 0,
       message: "Missing timestamp line vs baseline",
       expected: "00:00:02:00 -> 00:00:03:00",
+      baselineLineIndex: 1,
+    })
+  })
+
+  it("does not cascade when a timestamp line is missing", () => {
+    const baseline = [
+      "00:00:01:00\t00:00:02:00\tSRC1",
+      "00:00:02:00\t00:00:03:00\tSRC2",
+      "00:00:03:00\t00:00:04:00\tSRC3",
+    ].join("\n")
+    const current = [
+      "00:00:01:00\t00:00:02:00\tSRC1",
+      "00:00:03:00\t00:00:04:00\tSRC3",
+    ].join("\n")
+
+    const findings = getBaselineFindings(baseline, current)
+    expect(findings).toHaveLength(1)
+    expect(findings[0]).toMatchObject({
+      type: "BASELINE",
+      lineIndex: 1,
+      message: "Missing timestamp line vs baseline",
+      expected: "00:00:02:00 -> 00:00:03:00",
+      baselineLineIndex: 1,
     })
   })
 })

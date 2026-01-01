@@ -27,6 +27,109 @@ function parseTimestampLines(lines: string[]): TsEntry[] {
   return out
 }
 
+type MatchPair = { expected: TsEntry; actual: TsEntry }
+type MatchIndex = { expectedIndex: number; actualLineIndex: number }
+
+function entryKey(entry: TsEntry): string {
+  return `${entry.start}\t${entry.end}`
+}
+
+function lcsMatchPairs(
+  expected: TsEntry[],
+  actual: TsEntry[]
+): MatchPair[] {
+  const m = expected.length
+  const n = actual.length
+  const dp: number[][] = Array.from({ length: m + 1 }, () =>
+    Array(n + 1).fill(0)
+  )
+
+  for (let i = 1; i <= m; i += 1) {
+    for (let j = 1; j <= n; j += 1) {
+      if (entryKey(expected[i - 1]) === entryKey(actual[j - 1])) {
+        dp[i][j] = dp[i - 1][j - 1] + 1
+      } else {
+        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1])
+      }
+    }
+  }
+
+  const pairs: MatchPair[] = []
+  let i = m
+  let j = n
+
+  while (i > 0 && j > 0) {
+    if (entryKey(expected[i - 1]) === entryKey(actual[j - 1])) {
+      pairs.push({ expected: expected[i - 1], actual: actual[j - 1] })
+      i -= 1
+      j -= 1
+      continue
+    }
+
+    if (dp[i - 1][j] >= dp[i][j - 1]) {
+      i -= 1
+    } else {
+      j -= 1
+    }
+  }
+
+  return pairs.reverse()
+}
+
+function diffTimestampEntries(
+  expected: TsEntry[],
+  actual: TsEntry[]
+): { matches: MatchPair[]; missing: TsEntry[]; extra: TsEntry[] } {
+  const matches = lcsMatchPairs(expected, actual)
+  const matchedExpected = new Set(matches.map((m) => m.expected))
+  const matchedActual = new Set(matches.map((m) => m.actual))
+
+  return {
+    matches,
+    missing: expected.filter((entry) => !matchedExpected.has(entry)),
+    extra: actual.filter((entry) => !matchedActual.has(entry)),
+  }
+}
+
+function buildMatchIndex(
+  expected: TsEntry[],
+  matches: MatchPair[]
+): MatchIndex[] {
+  const expectedIndex = new Map<TsEntry, number>()
+  expected.forEach((entry, index) => expectedIndex.set(entry, index))
+
+  const indexed: MatchIndex[] = []
+  for (const match of matches) {
+    const index = expectedIndex.get(match.expected)
+    if (index == null) continue
+    indexed.push({
+      expectedIndex: index,
+      actualLineIndex: match.actual.lineIndex,
+    })
+  }
+
+  indexed.sort((a, b) => a.expectedIndex - b.expectedIndex)
+  return indexed
+}
+
+function findMissingAnchor(
+  expectedIndex: number,
+  matchIndex: MatchIndex[],
+  fallbackLineIndex: number
+): number {
+  if (matchIndex.length === 0) return fallbackLineIndex
+
+  let before: MatchIndex | null = null
+  for (const match of matchIndex) {
+    if (match.expectedIndex > expectedIndex) {
+      return match.actualLineIndex
+    }
+    before = match
+  }
+
+  return before ? before.actualLineIndex : fallbackLineIndex
+}
+
 type BaselineRule = Rule & SegmentRule
 
 export function baselineRule(baselineText: string): BaselineRule {
@@ -38,46 +141,40 @@ export function baselineRule(baselineText: string): BaselineRule {
       if (ctx.segmentIndex !== 0) return []
       if (!ctx.lines) return []
 
-      const currentEntries = parseTimestampLines(ctx.lines)
       const metrics: BaselineMetric[] = []
-      const maxLen = Math.max(baselineEntries.length, currentEntries.length)
+      const currentEntries = parseTimestampLines(ctx.lines)
+      const { matches, missing, extra } = diffTimestampEntries(
+        baselineEntries,
+        currentEntries
+      )
+      const matchIndex = buildMatchIndex(baselineEntries, matches)
 
-      for (let i = 0; i < maxLen; i += 1) {
-        const expected = baselineEntries[i]
-        const actual = currentEntries[i]
+      for (const entry of missing) {
+        const expectedIndex = baselineEntries.indexOf(entry)
+        const lineIndex = findMissingAnchor(
+          expectedIndex,
+          matchIndex,
+          Math.max(0, ctx.lines.length - 1)
+        )
+        metrics.push({
+          type: 'BASELINE',
+          lineIndex,
+          message: 'Missing timestamp line vs baseline',
+          expected: `${entry.start} -> ${entry.end}`,
+          baselineLineIndex: entry.lineIndex,
+        })
+      }
 
-        if (!expected && actual) {
-          metrics.push({
-            type: 'BASELINE',
-            lineIndex: actual.lineIndex,
-            message: 'Extra timestamp line vs baseline',
-            actual: `${actual.start} -> ${actual.end}`,
-          })
-          continue
-        }
+      for (const entry of extra) {
+        metrics.push({
+          type: 'BASELINE',
+          lineIndex: entry.lineIndex,
+          message: 'Extra timestamp line vs baseline',
+          actual: `${entry.start} -> ${entry.end}`,
+        })
+      }
 
-        if (expected && !actual) {
-          metrics.push({
-            type: 'BASELINE',
-            lineIndex: Math.min(expected.lineIndex, ctx.lines.length - 1),
-            message: 'Missing timestamp line vs baseline',
-            expected: `${expected.start} -> ${expected.end}`,
-          })
-          continue
-        }
-
-        if (!expected || !actual) continue
-
-        if (expected.start !== actual.start || expected.end !== actual.end) {
-          metrics.push({
-            type: 'BASELINE',
-            lineIndex: actual.lineIndex,
-            message: 'Timestamp mismatch vs baseline',
-            expected: `${expected.start} -> ${expected.end}`,
-            actual: `${actual.start} -> ${actual.end}`,
-          })
-        }
-
+      for (const { expected, actual } of matches) {
         if (expected.inlineText && expected.inlineText !== actual.inlineText) {
           metrics.push({
             type: 'BASELINE',
@@ -94,46 +191,40 @@ export function baselineRule(baselineText: string): BaselineRule {
 
     if (ctx.lineIndex !== 0) return []
 
-    const currentEntries = parseTimestampLines(ctx.lines)
     const metrics: BaselineMetric[] = []
-    const maxLen = Math.max(baselineEntries.length, currentEntries.length)
+    const currentEntries = parseTimestampLines(ctx.lines)
+    const { matches, missing, extra } = diffTimestampEntries(
+      baselineEntries,
+      currentEntries
+    )
+    const matchIndex = buildMatchIndex(baselineEntries, matches)
 
-    for (let i = 0; i < maxLen; i += 1) {
-      const expected = baselineEntries[i]
-      const actual = currentEntries[i]
+    for (const entry of missing) {
+      const expectedIndex = baselineEntries.indexOf(entry)
+      const lineIndex = findMissingAnchor(
+        expectedIndex,
+        matchIndex,
+        Math.max(0, ctx.lines.length - 1)
+      )
+      metrics.push({
+        type: 'BASELINE',
+        lineIndex,
+        message: 'Missing timestamp line vs baseline',
+        expected: `${entry.start} -> ${entry.end}`,
+        baselineLineIndex: entry.lineIndex,
+      })
+    }
 
-      if (!expected && actual) {
-        metrics.push({
-          type: 'BASELINE',
-          lineIndex: actual.lineIndex,
-          message: 'Extra timestamp line vs baseline',
-          actual: `${actual.start} -> ${actual.end}`,
-        })
-        continue
-      }
+    for (const entry of extra) {
+      metrics.push({
+        type: 'BASELINE',
+        lineIndex: entry.lineIndex,
+        message: 'Extra timestamp line vs baseline',
+        actual: `${entry.start} -> ${entry.end}`,
+      })
+    }
 
-      if (expected && !actual) {
-        metrics.push({
-          type: 'BASELINE',
-          lineIndex: Math.min(expected.lineIndex, ctx.lines.length - 1),
-          message: 'Missing timestamp line vs baseline',
-          expected: `${expected.start} -> ${expected.end}`,
-        })
-        continue
-      }
-
-      if (!expected || !actual) continue
-
-      if (expected.start !== actual.start || expected.end !== actual.end) {
-        metrics.push({
-          type: 'BASELINE',
-          lineIndex: actual.lineIndex,
-          message: 'Timestamp mismatch vs baseline',
-          expected: `${expected.start} -> ${expected.end}`,
-          actual: `${actual.start} -> ${actual.end}`,
-        })
-      }
-
+    for (const { expected, actual } of matches) {
       if (expected.inlineText && expected.inlineText !== actual.inlineText) {
         metrics.push({
           type: 'BASELINE',

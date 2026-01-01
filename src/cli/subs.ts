@@ -7,6 +7,7 @@ import { numberStyleRule } from '../analysis/numberStyleRule'
 import { getFindings } from '../shared/findings'
 import type { Finding } from '../analysis/types'
 import type { Reporter } from './watch'
+import { findMarkerScope } from './markerScope'
 
 // --- ANSI colors (use terminal theme palette) ---
 
@@ -105,6 +106,7 @@ async function printReport(
   clearScreen: () => void
 ) {
   const text = await readFile(path, 'utf8')
+  const lines = text.split('\n')
   const baselineText = options.baselinePath
     ? await readFile(options.baselinePath, 'utf8')
     : null
@@ -115,7 +117,13 @@ async function printReport(
   }
 
   const metrics = analyzeTextByType(text, 'subs', rules)
-  const allFindings = getFindings(metrics) as Finding[]
+  const scope = findMarkerScope(lines)
+  const scopedMetrics = scope
+    ? metrics.filter(
+        (m) => m.lineIndex >= scope.start && m.lineIndex <= scope.end
+      )
+    : metrics
+  const allFindings = getFindings(scopedMetrics) as Finding[]
 
   // Optional filter: hide CPS_BALANCE unless explicitly requested
   const findings = allFindings.filter((f: any) => {

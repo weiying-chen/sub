@@ -82,4 +82,27 @@ describe("baselineRule", () => {
       baselineLineIndex: 1,
     })
   })
+
+  it("anchors missing lines to the baseline line index when it exists", () => {
+    const baseline = [
+      "00:00:01:00\t00:00:02:00\tSRC1",
+      "00:00:02:00\t00:00:03:00\tSRC2",
+      "00:00:03:00\t00:00:04:00\tSRC3",
+    ].join("\n")
+    const current = [
+      "00:00:01:00\t00:00:02:00\tSRC1",
+      "00:00:02:00\t00:00:03:00\tSRC2",
+      "Not a timestamp line",
+    ].join("\n")
+
+    const findings = getBaselineFindings(baseline, current)
+    expect(findings).toHaveLength(1)
+    expect(findings[0]).toMatchObject({
+      type: "BASELINE",
+      lineIndex: 2,
+      message: "Missing timestamp line vs baseline",
+      expected: "00:00:03:00 -> 00:00:04:00",
+      baselineLineIndex: 2,
+    })
+  })
 })

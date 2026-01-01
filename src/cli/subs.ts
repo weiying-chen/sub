@@ -87,6 +87,39 @@ function formatFinding(f: Finding): string {
     }
   }
 
+  if (type === 'BASELINE') {
+    const baselineLineIndex = asNum(anyF.baselineLineIndex)
+    const message =
+      typeof anyF.message === 'string' && anyF.message
+        ? anyF.message
+        : 'Baseline mismatch'
+
+    const lines: string[] = []
+    lines.push(
+      `${BOLD}${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}  ${message}`
+    )
+    if (baselineLineIndex != null) {
+      const baselineAnchor = `L${Math.trunc(baselineLineIndex) + 1}`
+      if (baselineAnchor !== anchor) {
+        lines.push(`  current: ${anchor}`)
+      }
+      lines.push(`  baseline: ${baselineAnchor}`)
+    } else {
+      lines.push(`  current: ${anchor}`)
+    }
+    if (typeof anyF.expected === 'string') {
+      lines.push(`  expected: ${anyF.expected}`)
+    }
+    if (typeof anyF.actual === 'string') {
+      lines.push(`  actual: ${anyF.actual}`)
+    }
+    if (previewText) {
+      lines.push(`  text: ${previewText}`)
+    }
+
+    return lines.join('\n')
+  }
+
   // Line number cyan+bold, type yellow, rest plain (except magenta numbers)
   const head = `${BOLD}${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}${
     parts.length ? `  ${parts.join('  ')}` : ''

@@ -115,8 +115,14 @@ function buildMatchIndex(
 function findMissingAnchor(
   expectedIndex: number,
   matchIndex: MatchIndex[],
-  fallbackLineIndex: number
+  fallbackLineIndex: number,
+  preferredLineIndex: number,
+  currentLineCount: number
 ): number {
+  if (preferredLineIndex >= 0 && preferredLineIndex < currentLineCount) {
+    return preferredLineIndex
+  }
+
   if (matchIndex.length === 0) return fallbackLineIndex
 
   let before: MatchIndex | null = null
@@ -154,7 +160,9 @@ export function baselineRule(baselineText: string): BaselineRule {
         const lineIndex = findMissingAnchor(
           expectedIndex,
           matchIndex,
-          Math.max(0, ctx.lines.length - 1)
+          Math.max(0, ctx.lines.length - 1),
+          entry.lineIndex,
+          ctx.lines.length
         )
         metrics.push({
           type: 'BASELINE',
@@ -204,7 +212,9 @@ export function baselineRule(baselineText: string): BaselineRule {
       const lineIndex = findMissingAnchor(
         expectedIndex,
         matchIndex,
-        Math.max(0, ctx.lines.length - 1)
+        Math.max(0, ctx.lines.length - 1),
+        entry.lineIndex,
+        ctx.lines.length
       )
       metrics.push({
         type: 'BASELINE',

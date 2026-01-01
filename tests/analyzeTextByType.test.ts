@@ -15,12 +15,12 @@ describe("analyzeTextByType", () => {
     const metrics = analyzeTextByType(text, "subs", [numberStyleRule()])
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
 
-    const previews = findings.map((f) => f.preview).sort()
-    expect(previews).toEqual(["5", "eleven"])
+    const tokens = findings.map((f) => f.token).sort()
+    expect(tokens).toEqual(["5", "eleven"])
 
-    const byPreview = new Map(findings.map((f) => [f.preview, f]))
-    expect(byPreview.get("5")?.lineIndex).toBe(1)
-    expect(byPreview.get("eleven")?.lineIndex).toBe(3)
+    const byToken = new Map(findings.map((f) => [f.token, f]))
+    expect(byToken.get("5")?.lineIndex).toBe(1)
+    expect(byToken.get("eleven")?.lineIndex).toBe(3)
   })
 
   it("uses news parsing (paragraph anchors)", () => {
@@ -34,12 +34,12 @@ describe("analyzeTextByType", () => {
     const metrics = analyzeTextByType(text, "news", [numberStyleRule()])
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
 
-    const previews = findings.map((f) => f.preview).sort()
-    expect(previews).toEqual(["5", "eleven"])
+    const tokens = findings.map((f) => f.token).sort()
+    expect(tokens).toEqual(["5", "eleven"])
 
-    const byPreview = new Map(findings.map((f) => [f.preview, f]))
-    expect(byPreview.get("5")?.lineIndex).toBe(1)
-    expect(byPreview.get("eleven")?.lineIndex).toBe(3)
+    const byToken = new Map(findings.map((f) => [f.token, f]))
+    expect(byToken.get("5")?.lineIndex).toBe(1)
+    expect(byToken.get("eleven")?.lineIndex).toBe(3)
   })
 
   it("includes free-text lines for subs parsing", () => {
@@ -53,7 +53,7 @@ describe("analyzeTextByType", () => {
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
 
     expect(findings).toHaveLength(1)
-    expect(findings[0]).toMatchObject({ preview: "4", lineIndex: 2 })
+    expect(findings[0]).toMatchObject({ token: "4", lineIndex: 2 })
   })
 
   it("flags English lines inside mixed news paragraphs", () => {
@@ -67,6 +67,6 @@ describe("analyzeTextByType", () => {
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
 
     expect(findings).toHaveLength(1)
-    expect(findings[0]).toMatchObject({ preview: "4", lineIndex: 1 })
+    expect(findings[0]).toMatchObject({ token: "4", lineIndex: 1 })
   })
 })

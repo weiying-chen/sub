@@ -47,7 +47,8 @@ export type NumberStyleMetric = {
   value: number
   found: 'digits' | 'words'
   expected: 'digits' | 'words'
-  preview: string
+  token: string
+  text?: string
 }
 
 export type BaselineMetric = {

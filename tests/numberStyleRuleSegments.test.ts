@@ -23,16 +23,19 @@ describe("numberStyleRule (segments)", () => {
     const metrics = analyzeSegments(segments, [numberStyleRule()])
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
 
-    const previews = findings.map((f) => f.preview).sort()
-    expect(previews).toEqual(["12", "5", "eleven"])
+    const tokens = findings.map((f) => f.token).sort()
+    expect(tokens).toEqual(["12", "5", "eleven"])
 
-    const byPreview = new Map(findings.map((f) => [f.preview, f]))
-    expect(byPreview.get("5")?.expected).toBe("words")
-    expect(byPreview.get("5")?.found).toBe("digits")
-    expect(byPreview.get("eleven")?.expected).toBe("digits")
-    expect(byPreview.get("eleven")?.found).toBe("words")
-    expect(byPreview.get("12")?.expected).toBe("words")
-    expect(byPreview.get("12")?.found).toBe("digits")
+    const byToken = new Map(findings.map((f) => [f.token, f]))
+    expect(byToken.get("5")?.expected).toBe("words")
+    expect(byToken.get("5")?.found).toBe("digits")
+    expect(byToken.get("5")?.text).toBe("This is 5 examples.")
+    expect(byToken.get("eleven")?.expected).toBe("digits")
+    expect(byToken.get("eleven")?.found).toBe("words")
+    expect(byToken.get("eleven")?.text).toBe("This is eleven examples.")
+    expect(byToken.get("12")?.expected).toBe("words")
+    expect(byToken.get("12")?.found).toBe("digits")
+    expect(byToken.get("12")?.text).toBe("12 birds landed.")
   })
 
   it("ignores non-English text blocks", () => {

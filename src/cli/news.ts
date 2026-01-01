@@ -34,8 +34,10 @@ function formatFinding(f: Finding): string {
     'ISSUE'
 
   const parts: string[] = []
-  const previewKeys = ['preview', 'text', 'payloadText', 'line', 'message']
+  const previewKeys = ['text', 'payloadText', 'line', 'message']
+  const tokenKeys = ['token']
   let previewText: string | null = null
+  let tokenText: string | null = null
 
   for (const [key, value] of Object.entries(anyF)) {
     if (key === 'type' || key === 'rule') continue
@@ -46,6 +48,13 @@ function formatFinding(f: Finding): string {
     if (previewKeys.includes(key) && typeof value === 'string') {
       if (!previewText && value.trim() !== '') {
         previewText = value
+      }
+      continue
+    }
+
+    if (tokenKeys.includes(key) && typeof value === 'string') {
+      if (!tokenText && value.trim() !== '') {
+        tokenText = value
       }
       continue
     }
@@ -84,7 +93,13 @@ function formatFinding(f: Finding): string {
 
   // Subtitle text on its own indented line, no extra color
   if (previewText) {
-    return `${head}\n  text: ${previewText}`
+    const lines = [`text: ${previewText}`, head]
+    if (tokenText) lines.push(`  token: ${tokenText}`)
+    return lines.join('\n')
+  }
+
+  if (tokenText) {
+    return `${head}\n  token: ${tokenText}`
   }
 
   return head

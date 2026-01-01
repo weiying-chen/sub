@@ -177,7 +177,8 @@ function getTextAndAnchor(
 
 function collectMetrics(
   text: string,
-  anchorIndex: number
+  anchorIndex: number,
+  fullText?: string
 ): NumberStyleMetric[] {
   const metrics: NumberStyleMetric[] = []
 
@@ -200,7 +201,8 @@ function collectMetrics(
         value,
         found: 'digits',
         expected: 'words',
-        preview: match[0],
+        token: match[0],
+        text: fullText,
       })
     }
   }
@@ -220,7 +222,8 @@ function collectMetrics(
       value,
       found: 'words',
       expected: 'digits',
-      preview: match[0],
+      token: match[0],
+      text: fullText,
     })
   }
 
@@ -233,13 +236,13 @@ export function numberStyleRule(): NumberStyleRule {
       const candidates = ctx.segment.candidateLines
       if (candidates.length === 0) return []
       return candidates.flatMap((candidate) =>
-        collectMetrics(candidate.text, candidate.lineIndex)
+        collectMetrics(candidate.text, candidate.lineIndex, candidate.text)
       )
     }
 
     const extracted = getTextAndAnchor(ctx)
     if (!extracted) return []
 
-    return collectMetrics(extracted.text, extracted.anchorIndex)
+    return collectMetrics(extracted.text, extracted.anchorIndex, extracted.text)
   }) as NumberStyleRule
 }

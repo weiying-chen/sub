@@ -36,7 +36,7 @@ function formatFinding(f: Finding): string {
   const parts: string[] = []
   const previewKeys = ['text', 'payloadText', 'line', 'message']
   const tokenKeys = ['token']
-  let previewText: string | null = null
+  let lineText: string | null = null
   let tokenText: string | null = null
 
   for (const [key, value] of Object.entries(anyF)) {
@@ -46,8 +46,8 @@ function formatFinding(f: Finding): string {
 
     // Collect subtitle-ish text, but print it later
     if (previewKeys.includes(key) && typeof value === 'string') {
-      if (!previewText && value.trim() !== '') {
-        previewText = value
+      if (!lineText && value.trim() !== '') {
+        lineText = value
       }
       continue
     }
@@ -90,10 +90,16 @@ function formatFinding(f: Finding): string {
   const head = `${BOLD}${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}${
     parts.length ? `  ${parts.join('  ')}` : ''
   }`
+  const headNoAnchor = `${YELLOW}${type}${RESET}${
+    parts.length ? `  ${parts.join('  ')}` : ''
+  }`
 
   // Subtitle text on its own indented line, no extra color
-  if (previewText) {
-    const lines = [`text: ${previewText}`, head]
+  if (lineText) {
+    const lines = [
+      `${BOLD}${CYAN}${anchor}${RESET}  ${lineText}`,
+      headNoAnchor,
+    ]
     if (tokenText) lines.push(`  token: ${tokenText}`)
     return lines.join('\n')
   }
@@ -136,8 +142,12 @@ export function createNewsReporter(): Reporter {
     })
 
     console.log('[News checks]')
-    for (const f of sorted) {
+    console.log('')
+    sorted.forEach((f, index) => {
       console.log(formatFinding(f))
-    }
+      if (index < sorted.length - 1) {
+        console.log('')
+      }
+    })
   }
 }

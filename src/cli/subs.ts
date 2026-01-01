@@ -46,7 +46,7 @@ function formatFinding(f: Finding): string {
   const parts: string[] = []
   const previewKeys = ['text', 'payloadText', 'line', 'message']
   const tokenKeys = ['token']
-  let previewText: string | null = null
+  let lineText: string | null = null
   let tokenText: string | null = null
 
   for (const [key, value] of Object.entries(anyF)) {
@@ -56,8 +56,8 @@ function formatFinding(f: Finding): string {
 
     // Collect subtitle-ish text, but print it later
     if (previewKeys.includes(key) && typeof value === 'string') {
-      if (!previewText && value.trim() !== '') {
-        previewText = value
+      if (!lineText && value.trim() !== '') {
+        lineText = value
       }
       continue
     }
@@ -98,36 +98,36 @@ function formatFinding(f: Finding): string {
 
   if (type === 'BASELINE') {
     const baselineLineIndex = asNum(anyF.baselineLineIndex)
-    const message =
-      typeof anyF.message === 'string' && anyF.message
-        ? anyF.message
-        : 'Baseline mismatch'
-
-    const lines: string[] = []
-    lines.push(
-      `${BOLD}${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}  ${message}`
-    )
+    const baselineParts: string[] = []
+    if (typeof anyF.reason === 'string' && anyF.reason) {
+      baselineParts.push(`reason: ${anyF.reason}`)
+    }
     if (baselineLineIndex != null) {
       const baselineAnchor = `L${Math.trunc(baselineLineIndex) + 1}`
       if (baselineAnchor !== anchor) {
-        lines.push(`  current: ${anchor}`)
+        baselineParts.push(`current: ${anchor}`)
       }
-      lines.push(`  baseline: ${baselineAnchor}`)
+      baselineParts.push(`baseline: ${baselineAnchor}`)
     } else {
-      lines.push(`  current: ${anchor}`)
+      baselineParts.push(`current: ${anchor}`)
     }
     if (typeof anyF.expected === 'string') {
-      lines.push(`  expected: ${anyF.expected}`)
+      baselineParts.push(`expected: ${anyF.expected}`)
     }
     if (typeof anyF.actual === 'string') {
-      lines.push(`  actual: ${anyF.actual}`)
+      baselineParts.push(`actual: ${anyF.actual}`)
     }
-    if (previewText) {
-      lines.push(`text: ${previewText}`)
+
+    const head = `${YELLOW}${type}${RESET}${
+      baselineParts.length ? `  ${baselineParts.join('  ')}` : ''
+    }`
+
+    const lines: string[] = []
+    if (typeof anyF.expected === 'string') {
+      lines.push(`${BOLD}${CYAN}${anchor}${RESET}  ${anyF.expected}`)
     }
-    if (tokenText) {
-      lines.push(`  token: ${tokenText}`)
-    }
+    lines.push(head)
+    if (tokenText) lines.push(`token: ${tokenText}`)
 
     return lines.join('\n')
   }
@@ -136,10 +136,16 @@ function formatFinding(f: Finding): string {
   const head = `${BOLD}${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}${
     parts.length ? `  ${parts.join('  ')}` : ''
   }`
+  const headNoAnchor = `${YELLOW}${type}${RESET}${
+    parts.length ? `  ${parts.join('  ')}` : ''
+  }`
 
   // Subtitle text on its own indented line, no extra color
-  if (previewText) {
-    const lines = [`text: ${previewText}`, head]
+  if (lineText) {
+    const lines = [
+      `${BOLD}${CYAN}${anchor}${RESET}  ${lineText}`,
+      headNoAnchor,
+    ]
     if (tokenText) lines.push(`  token: ${tokenText}`)
     return lines.join('\n')
   }
@@ -224,17 +230,25 @@ async function printReport(
 
   if (baselineFindings.length > 0) {
     console.log('[Integrity]')
-    for (const f of baselineFindings) {
+    console.log('')
+    baselineFindings.forEach((f, index) => {
       console.log(formatFinding(f))
-    }
+      if (index < baselineFindings.length - 1) {
+        console.log('')
+      }
+    })
     if (otherFindings.length > 0) console.log('')
   }
 
   if (otherFindings.length > 0) {
     console.log('[Subtitle checks]')
-    for (const f of otherFindings) {
+    console.log('')
+    otherFindings.forEach((f, index) => {
       console.log(formatFinding(f))
-    }
+      if (index < otherFindings.length - 1) {
+        console.log('')
+      }
+    })
   }
 }
 

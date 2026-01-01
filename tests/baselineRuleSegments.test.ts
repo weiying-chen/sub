@@ -21,6 +21,7 @@ describe("baselineRule (segments)", () => {
     expect(findings[0]).toMatchObject({
       type: "BASELINE",
       message: "Inline source text mismatch vs baseline",
+      reason: "inline_text",
       expected: "SRC1",
       actual: "SRC1 EDIT",
     })

@@ -168,6 +168,7 @@ export function baselineRule(baselineText: string): BaselineRule {
           type: 'BASELINE',
           lineIndex,
           message: 'Missing timestamp line vs baseline',
+          reason: 'missing',
           expected: `${entry.start} -> ${entry.end}`,
           baselineLineIndex: entry.lineIndex,
         })
@@ -178,6 +179,7 @@ export function baselineRule(baselineText: string): BaselineRule {
           type: 'BASELINE',
           lineIndex: entry.lineIndex,
           message: 'Extra timestamp line vs baseline',
+          reason: 'extra',
           actual: `${entry.start} -> ${entry.end}`,
         })
       }
@@ -188,6 +190,7 @@ export function baselineRule(baselineText: string): BaselineRule {
             type: 'BASELINE',
             lineIndex: actual.lineIndex,
             message: 'Inline source text mismatch vs baseline',
+            reason: 'inline_text',
             expected: expected.inlineText,
             actual: actual.inlineText || '(empty)',
           })
@@ -220,6 +223,7 @@ export function baselineRule(baselineText: string): BaselineRule {
         type: 'BASELINE',
         lineIndex,
         message: 'Missing timestamp line vs baseline',
+        reason: 'missing',
         expected: `${entry.start} -> ${entry.end}`,
         baselineLineIndex: entry.lineIndex,
       })
@@ -230,6 +234,7 @@ export function baselineRule(baselineText: string): BaselineRule {
         type: 'BASELINE',
         lineIndex: entry.lineIndex,
         message: 'Extra timestamp line vs baseline',
+        reason: 'extra',
         actual: `${entry.start} -> ${entry.end}`,
       })
     }
@@ -240,6 +245,7 @@ export function baselineRule(baselineText: string): BaselineRule {
           type: 'BASELINE',
           lineIndex: actual.lineIndex,
           message: 'Inline source text mismatch vs baseline',
+          reason: 'inline_text',
           expected: expected.inlineText,
           actual: actual.inlineText || '(empty)',
         })

@@ -15,6 +15,12 @@ Example:
 node src/cli/watch.ts path/to/file.txt --type subs --balance
 ```
 
+If you prefer `npx tsx`:
+
+```sh
+npx tsx src/cli/watch.ts path/to/file.txt --type subs --balance
+```
+
 Baseline comparison (timestamps + inline source text):
 
 ```sh

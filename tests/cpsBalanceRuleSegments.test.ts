@@ -21,6 +21,7 @@ describe("cpsBalanceRule (segments)", () => {
       cps: 25,
       neighborCps: 3,
       deltaCps: 22,
+      text: "This is a very long line.",
     })
   })
 })

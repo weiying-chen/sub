@@ -37,6 +37,7 @@ export type CPSBalanceMetric = {
   cps: number
   neighborCps: number
   deltaCps: number
+  text?: string
 }
 
 export type NumberStyleMetric = {

@@ -98,6 +98,7 @@ export function cpsBalanceRule(): CpsBalanceRule {
         cps: faster.cps,
         neighborCps: faster.neighborCps,
         deltaCps,
+        text: faster.run.text,
       }
 
       return [metric]
@@ -167,6 +168,7 @@ export function cpsBalanceRule(): CpsBalanceRule {
       cps: faster.cps,
       neighborCps: faster.neighborCps,
       deltaCps,
+      text: faster.run.payloadText,
     }
 
     return [metric]

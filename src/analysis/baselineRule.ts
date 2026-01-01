@@ -169,6 +169,7 @@ export function baselineRule(baselineText: string): BaselineRule {
           lineIndex,
           message: 'Missing timestamp line vs baseline',
           reason: 'missing',
+          timestamp: `${entry.start} -> ${entry.end}`,
           expected: `${entry.start} -> ${entry.end}`,
           baselineLineIndex: entry.lineIndex,
         })
@@ -180,6 +181,7 @@ export function baselineRule(baselineText: string): BaselineRule {
           lineIndex: entry.lineIndex,
           message: 'Extra timestamp line vs baseline',
           reason: 'extra',
+          timestamp: `${entry.start} -> ${entry.end}`,
           actual: `${entry.start} -> ${entry.end}`,
         })
       }
@@ -191,6 +193,7 @@ export function baselineRule(baselineText: string): BaselineRule {
             lineIndex: actual.lineIndex,
             message: 'Inline source text mismatch vs baseline',
             reason: 'inline_text',
+            timestamp: `${expected.start} -> ${expected.end}`,
             expected: expected.inlineText,
             actual: actual.inlineText || '(empty)',
           })
@@ -224,6 +227,7 @@ export function baselineRule(baselineText: string): BaselineRule {
         lineIndex,
         message: 'Missing timestamp line vs baseline',
         reason: 'missing',
+        timestamp: `${entry.start} -> ${entry.end}`,
         expected: `${entry.start} -> ${entry.end}`,
         baselineLineIndex: entry.lineIndex,
       })
@@ -235,6 +239,7 @@ export function baselineRule(baselineText: string): BaselineRule {
         lineIndex: entry.lineIndex,
         message: 'Extra timestamp line vs baseline',
         reason: 'extra',
+        timestamp: `${entry.start} -> ${entry.end}`,
         actual: `${entry.start} -> ${entry.end}`,
       })
     }
@@ -246,6 +251,7 @@ export function baselineRule(baselineText: string): BaselineRule {
           lineIndex: actual.lineIndex,
           message: 'Inline source text mismatch vs baseline',
           reason: 'inline_text',
+          timestamp: `${expected.start} -> ${expected.end}`,
           expected: expected.inlineText,
           actual: actual.inlineText || '(empty)',
         })

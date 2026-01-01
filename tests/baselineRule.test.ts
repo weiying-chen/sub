@@ -39,6 +39,7 @@ describe("baselineRule", () => {
       type: "BASELINE",
       message: "Inline source text mismatch vs baseline",
       reason: "inline_text",
+      timestamp: "00:00:01:00 -> 00:00:02:00",
       expected: "SRC1",
       actual: "SRC1 EDIT",
     })
@@ -58,6 +59,7 @@ describe("baselineRule", () => {
       lineIndex: 0,
       message: "Missing timestamp line vs baseline",
       reason: "missing",
+      timestamp: "00:00:02:00 -> 00:00:03:00",
       expected: "00:00:02:00 -> 00:00:03:00",
       baselineLineIndex: 1,
     })
@@ -81,6 +83,7 @@ describe("baselineRule", () => {
       lineIndex: 1,
       message: "Missing timestamp line vs baseline",
       reason: "missing",
+      timestamp: "00:00:02:00 -> 00:00:03:00",
       expected: "00:00:02:00 -> 00:00:03:00",
       baselineLineIndex: 1,
     })
@@ -105,6 +108,7 @@ describe("baselineRule", () => {
       lineIndex: 2,
       message: "Missing timestamp line vs baseline",
       reason: "missing",
+      timestamp: "00:00:03:00 -> 00:00:04:00",
       expected: "00:00:03:00 -> 00:00:04:00",
       baselineLineIndex: 2,
     })

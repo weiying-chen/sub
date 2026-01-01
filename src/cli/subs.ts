@@ -100,18 +100,18 @@ function formatFinding(f: Finding): string {
     const baselineLineIndex = asNum(anyF.baselineLineIndex)
     const baselineParts: string[] = []
     if (typeof anyF.reason === 'string' && anyF.reason) {
-      baselineParts.push(`reason: ${anyF.reason}`)
+      baselineParts.push(`reason: ${anyF.reason.replace(/_/g, ' ')}`)
     }
     if (baselineLineIndex != null) {
       const baselineAnchor = `L${Math.trunc(baselineLineIndex) + 1}`
       if (baselineAnchor !== anchor) {
         baselineParts.push(`current: ${anchor}`)
       }
-      baselineParts.push(`baseline: ${baselineAnchor}`)
-    } else {
-      baselineParts.push(`current: ${anchor}`)
+      if (anyF.reason !== 'missing' && baselineAnchor !== anchor) {
+        baselineParts.push(`baselineLine: ${baselineAnchor}`)
+      }
     }
-    if (typeof anyF.expected === 'string') {
+    if (typeof anyF.expected === 'string' && anyF.reason !== 'missing') {
       baselineParts.push(`expected: ${anyF.expected}`)
     }
     if (typeof anyF.actual === 'string') {
@@ -123,8 +123,8 @@ function formatFinding(f: Finding): string {
     }`
 
     const lines: string[] = []
-    if (typeof anyF.expected === 'string') {
-      lines.push(`${BOLD}${CYAN}${anchor}${RESET}  ${anyF.expected}`)
+    if (typeof anyF.timestamp === 'string') {
+      lines.push(`${BOLD}${CYAN}${anchor}${RESET}  ${anyF.timestamp}`)
     }
     lines.push(head)
     if (tokenText) lines.push(`token: ${tokenText}`)

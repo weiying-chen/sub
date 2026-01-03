@@ -4,6 +4,7 @@ import { analyzeTextByType } from '../analysis/analyzeTextByType'
 import { baselineRule } from '../analysis/baselineRule'
 import { defaultSegmentRules } from '../analysis/defaultRules'
 import { numberStyleRule } from '../analysis/numberStyleRule'
+import { punctuationRule } from '../analysis/punctuationRule'
 import { getFindings } from '../shared/findings'
 import type { Finding } from '../analysis/types'
 import type { Reporter } from './watch'
@@ -168,7 +169,11 @@ async function printReport(
     ? await readFile(options.baselinePath, 'utf8')
     : null
 
-  const rules = [...defaultSegmentRules(), numberStyleRule()]
+  const rules = [
+    ...defaultSegmentRules(),
+    numberStyleRule(),
+    punctuationRule(),
+  ]
   if (baselineText != null) {
     rules.push(baselineRule(baselineText))
   }

@@ -24,6 +24,11 @@ export function getFindings(metrics: Metric[]): Finding[] {
       continue
     }
 
+    if (m.type === 'PUNCTUATION') {
+      out.push(m)
+      continue
+    }
+
     if (m.type === 'BASELINE') {
       out.push(m)
       continue

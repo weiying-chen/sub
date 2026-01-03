@@ -51,6 +51,17 @@ export type NumberStyleMetric = {
   text?: string
 }
 
+export type PunctuationMetric = {
+  type: 'PUNCTUATION'
+  lineIndex: number
+  ruleId: number
+  detail: string
+  text: string
+  timestamp?: string
+  prevText?: string
+  prevTimestamp?: string
+}
+
 export type BaselineMetric = {
   type: 'BASELINE'
   lineIndex: number
@@ -67,6 +78,7 @@ export type Metric =
   | CPSMetric
   | CPSBalanceMetric
   | NumberStyleMetric
+  | PunctuationMetric
   | BaselineMetric
 
 // ---- Findings (violations only; derived from metrics) ----

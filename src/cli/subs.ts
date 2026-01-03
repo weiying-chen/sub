@@ -61,7 +61,9 @@ function formatFinding(f: Finding): string {
 
     if (currText) {
       lines.push(`${BOLD}${CYAN}${anchor}${RESET}  ${currText}`)
-      lines.push(`${YELLOW}${type}${RESET}  detail: ${detail}`)
+      const ruleId =
+        typeof anyF.ruleId === 'number' ? `ruleId: ${anyF.ruleId}  ` : ''
+      lines.push(`${YELLOW}${type}${RESET}  ${ruleId}detail: ${detail}`)
     } else {
       const head = `${BOLD}${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}  ${detail}`
       lines.push(head)

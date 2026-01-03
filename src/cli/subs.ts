@@ -44,6 +44,42 @@ function formatFinding(f: Finding): string {
     (typeof anyF.rule === 'string' && anyF.rule) ||
     'ISSUE'
 
+  if (type === 'PUNCTUATION') {
+    const lines: string[] = []
+    const detail =
+      typeof anyF.detail === 'string' && anyF.detail
+        ? anyF.detail
+        : 'Punctuation check failed'
+    const head = `${BOLD}${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}  ${detail}`
+    lines.push(head)
+
+    if (typeof anyF.text === 'string' && anyF.text.trim() !== '') {
+      const currTs =
+        typeof anyF.timestamp === 'string' && anyF.timestamp
+          ? ` (${anyF.timestamp})`
+          : ''
+      lines.push(`CURR${currTs}: ${anyF.text}`)
+    }
+
+    if (typeof anyF.prevText === 'string' && anyF.prevText.trim() !== '') {
+      const prevTs =
+        typeof anyF.prevTimestamp === 'string' && anyF.prevTimestamp
+          ? ` (${anyF.prevTimestamp})`
+          : ''
+      lines.push(`PREV${prevTs}: ${anyF.prevText}`)
+    }
+
+    if (typeof anyF.nextText === 'string' && anyF.nextText.trim() !== '') {
+      const nextTs =
+        typeof anyF.nextTimestamp === 'string' && anyF.nextTimestamp
+          ? ` (${anyF.nextTimestamp})`
+          : ''
+      lines.push(`NEXT${nextTs}: ${anyF.nextText}`)
+    }
+
+    return lines.join('\n')
+  }
+
   const parts: string[] = []
   const previewKeys = ['text', 'payloadText', 'line', 'message']
   const tokenKeys = ['token']

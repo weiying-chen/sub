@@ -49,14 +49,13 @@ function hasUnclosedStartingQuote(s: string): boolean {
   return s.indexOf(open, firstIndex + 1) < 0
 }
 
-function collectCues(lines: string[]): Array<Cue | null> {
-  const cues: Array<Cue | null> = []
+function collectCues(lines: string[]): Cue[] {
+  const cues: Cue[] = []
   let i = 0
 
   while (i < lines.length) {
     const line = lines[i]
     if (line.trim() === '') {
-      cues.push(null)
       i += 1
       continue
     }
@@ -74,7 +73,6 @@ function collectCues(lines: string[]): Array<Cue | null> {
     while (i < lines.length) {
       const next = lines[i]
       if (next.trim() === '') {
-        cues.push(null)
         i += 1
         break
       }
@@ -130,7 +128,6 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
 
   const reportedRule5 = new Set<string>()
   for (const cue of cues) {
-    if (!cue) continue
     if (reportedRule5.has(cue.text)) continue
     if (!hasUnclosedStartingQuote(cue.text)) continue
     reportedRule5.add(cue.text)
@@ -149,7 +146,6 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
   for (let j = 0; j < cues.length - 1; j += 1) {
     const prev = cues[j]
     const next = cues[j + 1]
-    if (!prev || !next) continue
     if (next.text === prev.text) continue
 
     const case1 = firstAlphaCase(next.text)
@@ -178,14 +174,14 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
     ) {
       metrics.push({
         type: 'PUNCTUATION',
-        lineIndex: next.lineIndex,
+        lineIndex: prev.lineIndex,
         ruleId: 2,
         detail:
-          'Prev lacks sentence-ending punctuation and next starts capital.',
-        text: next.text,
-        timestamp: cueTimestamp(next),
-        prevText: prev.text,
-        prevTimestamp: cueTimestamp(prev),
+          'CURR lacks sentence-ending punctuation and NEXT starts capital.',
+        text: prev.text,
+        timestamp: cueTimestamp(prev),
+        nextText: next.text,
+        nextTimestamp: cueTimestamp(next),
       })
     }
 
@@ -209,15 +205,7 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
   }
 
   const reportedRule4 = new Set<string>()
-  let last: Cue | null = null
-  for (const cue of cues) {
-    if (!cue) {
-      if (last) addRule4Metric(last, metrics, reportedRule4)
-      last = null
-      continue
-    }
-    last = cue
-  }
+  const last = cues.at(-1) ?? null
   if (last) addRule4Metric(last, metrics, reportedRule4)
 
   return metrics

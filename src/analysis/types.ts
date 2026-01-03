@@ -60,6 +60,8 @@ export type PunctuationMetric = {
   timestamp?: string
   prevText?: string
   prevTimestamp?: string
+  nextText?: string
+  nextTimestamp?: string
 }
 
 export type BaselineMetric = {

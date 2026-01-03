@@ -8,16 +8,19 @@ describe("punctuationRule", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "Hello.",
+      "",
       "00:00:02:00\t00:00:03:00\tMarker",
       "this should be capitalized.",
       "",
       "00:00:03:00\t00:00:04:00\tMarker",
       "This continues",
+      "",
       "00:00:04:00\t00:00:05:00\tMarker",
       "Next Starts Capital.",
       "",
       "00:00:05:00\t00:00:06:00\tMarker",
       "He said",
+      "",
       "00:00:06:00\t00:00:07:00\tMarker",
       "\"Hello there.\"",
       "",
@@ -37,7 +40,7 @@ describe("punctuationRule", () => {
 
     const byRuleId = new Map(findings.map((f) => [f.ruleId, f]))
     expect(byRuleId.get(1)?.text).toBe("this should be capitalized.")
-    expect(byRuleId.get(2)?.text).toBe("Next Starts Capital.")
+    expect(byRuleId.get(2)?.text).toBe("This continues")
     expect(byRuleId.get(3)?.text).toBe("\"Hello there.\"")
     expect(byRuleId.get(4)?.text).toBe("This line lacks terminal")
     expect(byRuleId.get(5)?.text).toBe("\"Unclosed.")

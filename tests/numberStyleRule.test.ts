@@ -19,6 +19,10 @@ describe("numberStyleRule", () => {
       "12 birds landed.",
       "00:00:07:00\t00:00:08:00\tMarker",
       "Twenty two birds landed.",
+      "00:00:08:00\t00:00:09:00\tMarker",
+      "We raised 1,000 dollars.",
+      "00:00:09:00\t00:00:10:00\tMarker",
+      "About 10,000 people attended.",
     ].join("\n")
 
     const metrics = analyzeLines(text, [numberStyleRule()])

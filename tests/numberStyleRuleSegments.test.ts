@@ -13,6 +13,8 @@ describe("numberStyleRule (segments)", () => {
       { lineIndex: 9, text: "We saw 12 birds." },
       { lineIndex: 11, text: "12 birds landed." },
       { lineIndex: 13, text: "Twenty two birds landed." },
+      { lineIndex: 15, text: "We raised 1,000 dollars." },
+      { lineIndex: 17, text: "About 10,000 people attended." },
     ].map((segment) => ({
       ...segment,
       candidateLines: [

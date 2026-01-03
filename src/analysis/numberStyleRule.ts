@@ -182,14 +182,16 @@ function collectMetrics(
 ): NumberStyleMetric[] {
   const metrics: NumberStyleMetric[] = []
 
-  const digitsRe = /\b\d+\b/g
+  const digitsRe = /\b\d{1,3}(?:,\d{3})+\b|\b\d+\b/g
   let match: RegExpExecArray | null = null
 
   while ((match = digitsRe.exec(text))) {
-    const value = Number.parseInt(match[0], 10)
+    const rawToken = match[0]
+    const normalized = rawToken.replace(/,/g, '')
+    const value = Number.parseInt(normalized, 10)
     if (!Number.isFinite(value)) continue
-    if (isTimeToken(text, match.index, match[0].length)) continue
-    if (isAgeAdjective(text, match.index, match[0].length)) continue
+    if (isTimeToken(text, match.index, rawToken.length)) continue
+    if (isAgeAdjective(text, match.index, rawToken.length)) continue
 
     const sentenceStart = isSentenceStart(text, match.index)
 
@@ -201,7 +203,7 @@ function collectMetrics(
         value,
         found: 'digits',
         expected: 'words',
-        token: match[0],
+        token: rawToken,
         text: fullText,
       })
     }

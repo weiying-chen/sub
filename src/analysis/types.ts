@@ -68,7 +68,7 @@ export type BaselineMetric = {
   type: 'BASELINE'
   lineIndex: number
   message: string
-  reason?: 'missing' | 'extra' | 'inline_text' | 'timestamp_mismatch'
+  reason?: 'missing' | 'extra' | 'inlineText'
   timestamp?: string
   expected?: string
   actual?: string

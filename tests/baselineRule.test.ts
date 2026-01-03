@@ -38,7 +38,7 @@ describe("baselineRule", () => {
     expect(findings[0]).toMatchObject({
       type: "BASELINE",
       message: "Inline source text mismatch vs baseline",
-      reason: "inline_text",
+      reason: "inlineText",
       timestamp: "00:00:01:00 -> 00:00:02:00",
       expected: "SRC1",
       actual: "SRC1 EDIT",

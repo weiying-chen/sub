@@ -149,7 +149,7 @@ function formatFinding(f: Finding): string {
     const baselineLineIndex = asNum(anyF.baselineLineIndex)
     const baselineParts: string[] = []
     if (typeof anyF.reason === 'string' && anyF.reason) {
-      baselineParts.push(`reason: ${anyF.reason.replace(/_/g, ' ')}`)
+      baselineParts.push(`reason: ${anyF.reason}`)
     }
     if (baselineLineIndex != null) {
       const baselineAnchor = `L${Math.trunc(baselineLineIndex) + 1}`

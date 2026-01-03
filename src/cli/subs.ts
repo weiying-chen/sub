@@ -50,15 +50,17 @@ function formatFinding(f: Finding): string {
       typeof anyF.detail === 'string' && anyF.detail
         ? anyF.detail
         : 'Punctuation check failed'
-    const head = `${BOLD}${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}  ${detail}`
-    lines.push(head)
+    const currText =
+      typeof anyF.text === 'string' && anyF.text.trim() !== ''
+        ? anyF.text
+        : null
 
-    if (typeof anyF.text === 'string' && anyF.text.trim() !== '') {
-      const currTs =
-        typeof anyF.timestamp === 'string' && anyF.timestamp
-          ? ` (${anyF.timestamp})`
-          : ''
-      lines.push(`CURR${currTs}: ${anyF.text}`)
+    if (currText) {
+      lines.push(`${BOLD}${CYAN}${anchor}${RESET}  ${currText}`)
+      lines.push(`${YELLOW}${type}${RESET}  ${detail}`)
+    } else {
+      const head = `${BOLD}${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}  ${detail}`
+      lines.push(head)
     }
 
     if (typeof anyF.prevText === 'string' && anyF.prevText.trim() !== '') {
@@ -67,6 +69,14 @@ function formatFinding(f: Finding): string {
           ? ` (${anyF.prevTimestamp})`
           : ''
       lines.push(`PREV${prevTs}: ${anyF.prevText}`)
+    }
+
+    if (currText) {
+      const currTs =
+        typeof anyF.timestamp === 'string' && anyF.timestamp
+          ? ` (${anyF.timestamp})`
+          : ''
+      lines.push(`CURR${currTs}: ${currText}`)
     }
 
     if (typeof anyF.nextText === 'string' && anyF.nextText.trim() !== '') {

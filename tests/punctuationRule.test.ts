@@ -41,7 +41,7 @@ describe("punctuationRule", () => {
     const byRuleId = new Map(findings.map((f) => [f.ruleId, f]))
     expect(byRuleId.get(1)?.text).toBe("this should be capitalized.")
     expect(byRuleId.get(2)?.text).toBe("This continues")
-    expect(byRuleId.get(3)?.text).toBe("\"Hello there.\"")
+    expect(byRuleId.get(3)?.text).toBe("He said")
     expect(byRuleId.get(4)?.text).toBe("This line lacks terminal")
     expect(byRuleId.get(5)?.text).toBe("\"Unclosed.")
   })

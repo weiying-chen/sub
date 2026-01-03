@@ -114,7 +114,7 @@ function addRule4Metric(
     type: 'PUNCTUATION',
     lineIndex: cue.lineIndex,
     ruleId: 4,
-    detail: 'Block-final chunk lacks terminal punctuation.',
+    detail: 'CURR lacks terminal punctuation.',
     text: cue.text,
     timestamp: cueTimestamp(cue),
   })
@@ -137,7 +137,7 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
       lineIndex: cue.lineIndex,
       ruleId: 5,
       detail:
-        'Line starts with an opening quote but does not close it on the same line.',
+        'CURR starts with an opening quote but does not close it on the same line.',
       text: cue.text,
       timestamp: cueTimestamp(cue),
     })
@@ -158,7 +158,7 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
         type: 'PUNCTUATION',
         lineIndex: next.lineIndex,
         ruleId: 1,
-        detail: "Prev ends with '.' but next starts lowercase.",
+        detail: "CURR starts lowercase after PREV ends with '.'.",
         text: next.text,
         timestamp: cueTimestamp(next),
         prevText: prev.text,
@@ -192,14 +192,13 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
     ) {
       metrics.push({
         type: 'PUNCTUATION',
-        lineIndex: next.lineIndex,
+        lineIndex: prev.lineIndex,
         ruleId: 3,
-        detail:
-          "Next starts with an opening quote but prev does not end with ':'.",
-        text: next.text,
-        timestamp: cueTimestamp(next),
-        prevText: prev.text,
-        prevTimestamp: cueTimestamp(prev),
+        detail: "CURR should end with ':' before a quoted NEXT.",
+        text: prev.text,
+        timestamp: cueTimestamp(prev),
+        nextText: next.text,
+        nextTimestamp: cueTimestamp(next),
       })
     }
   }

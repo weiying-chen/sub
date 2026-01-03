@@ -42,4 +42,24 @@ describe("punctuationRule (segments)", () => {
     const ruleIds = findings.map((f) => f.ruleId).sort((a, b) => a - b)
     expect(ruleIds).toEqual([1, 2, 3, 4, 5])
   })
+
+  it("ignores acronyms starting the next cue", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "He missed his first choice,",
+      "",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "NTU's Department of Economics.",
+      "",
+    ].join("\n")
+
+    const segments = parseSubs(text)
+    const metrics = analyzeSegments(segments, [punctuationRule()], {
+      lines: text.split("\n"),
+      sourceText: text,
+    })
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings).toHaveLength(0)
+  })
 })

@@ -45,4 +45,20 @@ describe("punctuationRule", () => {
     expect(byRuleId.get(4)?.text).toBe("This line lacks terminal")
     expect(byRuleId.get(5)?.text).toBe("\"Unclosed.")
   })
+
+  it("ignores acronyms starting the next cue", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "He missed his first choice,",
+      "",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "NTU's Department of Economics.",
+      "",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings).toHaveLength(0)
+  })
 })

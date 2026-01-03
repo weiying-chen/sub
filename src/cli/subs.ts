@@ -54,10 +54,14 @@ function formatFinding(f: Finding): string {
       typeof anyF.text === 'string' && anyF.text.trim() !== ''
         ? anyF.text
         : null
+    const currTs =
+      typeof anyF.timestamp === 'string' && anyF.timestamp
+        ? ` (${anyF.timestamp})`
+        : ''
 
     if (currText) {
       lines.push(`${BOLD}${CYAN}${anchor}${RESET}  ${currText}`)
-      lines.push(`${YELLOW}${type}${RESET}  ${detail}`)
+      lines.push(`${YELLOW}${type}${RESET}  detail: ${detail}`)
     } else {
       const head = `${BOLD}${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}  ${detail}`
       lines.push(head)
@@ -71,20 +75,16 @@ function formatFinding(f: Finding): string {
       lines.push(`PREV${prevTs}: ${anyF.prevText}`)
     }
 
-    if (currText) {
-      const currTs =
-        typeof anyF.timestamp === 'string' && anyF.timestamp
-          ? ` (${anyF.timestamp})`
-          : ''
-      lines.push(`CURR${currTs}: ${currText}`)
-    }
-
     if (typeof anyF.nextText === 'string' && anyF.nextText.trim() !== '') {
       const nextTs =
         typeof anyF.nextTimestamp === 'string' && anyF.nextTimestamp
           ? ` (${anyF.nextTimestamp})`
           : ''
       lines.push(`NEXT${nextTs}: ${anyF.nextText}`)
+    }
+
+    if (currText) {
+      lines.push(`CURR${currTs}: ${currText}`)
     }
 
     return lines.join('\n')

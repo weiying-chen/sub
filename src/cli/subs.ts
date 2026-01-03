@@ -75,16 +75,16 @@ function formatFinding(f: Finding): string {
       lines.push(`PREV${prevTs}: ${anyF.prevText}`)
     }
 
+    if (currText) {
+      lines.push(`CURR${currTs}: ${currText}`)
+    }
+
     if (typeof anyF.nextText === 'string' && anyF.nextText.trim() !== '') {
       const nextTs =
         typeof anyF.nextTimestamp === 'string' && anyF.nextTimestamp
           ? ` (${anyF.nextTimestamp})`
           : ''
       lines.push(`NEXT${nextTs}: ${anyF.nextText}`)
-    }
-
-    if (currText) {
-      lines.push(`CURR${currTs}: ${currText}`)
     }
 
     return lines.join('\n')

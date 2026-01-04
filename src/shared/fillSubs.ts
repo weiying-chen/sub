@@ -2,6 +2,7 @@ import { TIME_RE } from './subtitles'
 
 export type FillSubsOptions = {
   maxChars?: number
+  inline?: boolean
 }
 
 export type FillSubsResult = {
@@ -9,12 +10,14 @@ export type FillSubsResult = {
   remaining: string
 }
 
-const DEFAULT_MAX_CHARS = 55
+const DEFAULT_MAX_CHARS = 54
 
-const SUBORD_RE = /\b(that)\b/i
-const CONJ_RE = /\b(and|but|so|because)\b/i
-const SENT_END = new Set(['.', '?', '!'])
-const CLAUSE_PUNCT = new Set([',', ';', ':', '\u2014'])
+const CONJ_RE = /\b(and|but|or|so|yet|for|nor)\b/i
+const THAT_RE = /\b(that)\b/i
+const STRONG_PUNCT = new Set(['.', '?', '!', ':', '\u2014'])
+const SEMICOLON_PUNCT = new Set([';'])
+const COMMA_PUNCT = new Set([','])
+const QUOTE_CHARS = new Set(['"'])
 
 function normalizeParagraph(text: string): string {
   return text.replace(/\r?\n+/g, ' ').replace(/[ \t]+/g, ' ').trim()
@@ -44,20 +47,20 @@ function isWordChar(ch: string): boolean {
   return /[A-Za-z0-9_]/.test(ch)
 }
 
-function findRightmostSentenceEnd(window: string): number {
-  for (let i = window.length - 1; i >= 0; i--) {
-    const ch = window[i]
-    if (!SENT_END.has(ch)) continue
-
-    const cut = i + 1
-    const left = window.slice(0, cut).trimEnd()
-    const right = window.slice(cut).trimStart()
-    if (left && right) return cut
-  }
-  return -1
+function isQuoteChar(ch: string): boolean {
+  return QUOTE_CHARS.has(ch)
 }
 
-function findRightmostClausePunct(window: string): number {
+function isPunctForQuote(ch: string): boolean {
+  return (
+    STRONG_PUNCT.has(ch) ||
+    SEMICOLON_PUNCT.has(ch) ||
+    COMMA_PUNCT.has(ch) ||
+    ch === '-'
+  )
+}
+
+function findRightmostStrongPunct(window: string): number {
   for (let i = window.length - 1; i >= 0; i--) {
     const ch = window[i]
 
@@ -70,7 +73,23 @@ function findRightmostClausePunct(window: string): number {
       continue
     }
 
-    if (!CLAUSE_PUNCT.has(ch)) continue
+    if (!STRONG_PUNCT.has(ch)) continue
+
+    const cut = i + 1
+    const left = window.slice(0, cut).trimEnd()
+    const right = window.slice(cut).trimStart()
+    if (left && right) return cut
+  }
+  return -1
+}
+
+function findRightmostPunct(
+  window: string,
+  punctSet: Set<string>
+): number {
+  for (let i = window.length - 1; i >= 0; i--) {
+    const ch = window[i]
+    if (!punctSet.has(ch)) continue
 
     const cut = i + 1
     const left = window.slice(0, cut).trimEnd()
@@ -99,9 +118,9 @@ function findRightmostConjunctionStart(window: string): number {
   return best
 }
 
-function findRightmostSubordinatorStart(window: string): number {
+function findRightmostThatStart(window: string): number {
   let best = -1
-  const re = new RegExp(SUBORD_RE.source, 'gi')
+  const re = new RegExp(THAT_RE.source, 'gi')
   let m: RegExpExecArray | null
   while ((m = re.exec(window)) !== null) {
     const start = m.index
@@ -130,18 +149,30 @@ function findRightmostSpace(window: string): number {
   return -1
 }
 
+function adjustCutForTrailingQuote(window: string, cut: number): number {
+  if (cut <= 0) return cut
+  if (!isPunctForQuote(window[cut - 1])) return cut
+
+  let i = cut
+  while (i < window.length && isQuoteChar(window[i])) i++
+  return i
+}
+
 function findBestCut(window: string): number {
-  const sentenceCut = findRightmostSentenceEnd(window)
-  if (sentenceCut >= 0) return sentenceCut
+  const strongCut = findRightmostStrongPunct(window)
+  if (strongCut >= 0) return strongCut
 
-  const clauseCut = findRightmostClausePunct(window)
-  if (clauseCut >= 0) return clauseCut
+  const semicolonCut = findRightmostPunct(window, SEMICOLON_PUNCT)
+  if (semicolonCut >= 0) return semicolonCut
 
-  const subordCut = findRightmostSubordinatorStart(window)
-  if (subordCut >= 0) return subordCut
+  const commaCut = findRightmostPunct(window, COMMA_PUNCT)
+  if (commaCut >= 0) return commaCut
 
   const conjCut = findRightmostConjunctionStart(window)
   if (conjCut >= 0) return conjCut
+
+  const thatCut = findRightmostThatStart(window)
+  if (thatCut >= 0) return thatCut
 
   const spaceCut = findRightmostSpace(window)
   if (spaceCut >= 0) return spaceCut
@@ -158,7 +189,7 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
   }
 
   const window = s.slice(0, limit)
-  const cut = findBestCut(window)
+  const cut = adjustCutForTrailingQuote(window, findBestCut(window))
 
   const line = window.slice(0, cut).trimEnd()
   const rest = (window.slice(cut) + s.slice(limit)).trimStart()
@@ -178,19 +209,42 @@ export function fillSelectedTimestampLines(
   options: FillSubsOptions = {}
 ): FillSubsResult {
   const maxChars = Math.max(1, options.maxChars ?? DEFAULT_MAX_CHARS)
-  const limit = Math.max(1, maxChars - 1)
+  const limit = Math.max(1, maxChars)
+  const inline = options.inline ?? false
 
   let remaining = normalizeParagraph(paragraph)
   if (!remaining) {
     return { lines: [...lines], remaining: '' }
   }
 
-  const outLines: string[] = []
+  if (inline) {
+    const outLines: string[] = []
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      outLines.push(line)
+
+      if (!selectedLineIndices.has(i)) continue
+      if (!isTimestampRow(line)) continue
+
+      const nextLine = findNextNonEmptyLine(lines, i)
+      if (nextLine != null && !isTimestampRow(nextLine)) continue
+
+      if (!remaining) continue
+
+      const { line: fillLine, rest } = takeLine(remaining, limit)
+      remaining = rest
+
+      if (fillLine) outLines.push(fillLine)
+    }
+
+    return { lines: outLines, remaining }
+  }
+
+  const prependLines: string[] = []
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
-    outLines.push(line)
-
     if (!selectedLineIndices.has(i)) continue
     if (!isTimestampRow(line)) continue
 
@@ -202,8 +256,8 @@ export function fillSelectedTimestampLines(
     const { line: fillLine, rest } = takeLine(remaining, limit)
     remaining = rest
 
-    if (fillLine) outLines.push(fillLine)
+    if (fillLine) prependLines.push(fillLine)
   }
 
-  return { lines: outLines, remaining }
+  return { lines: [...prependLines, ...lines], remaining }
 }

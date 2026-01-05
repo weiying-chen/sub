@@ -61,4 +61,75 @@ describe("punctuationRule", () => {
 
     expect(findings).toHaveLength(0)
   })
+
+  it("flags dangling closing quote", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "This ends with a dangling quote.\"",
+      "",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings.some((f) => f.ruleId === 6)).toBe(true)
+  })
+
+  it("flags missing opening quote when quoted speech continues", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "\"it makes me feel like not knowing my way\"",
+      "",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "means there's something wrong with me.",
+      "",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings.some((f) => f.ruleId === 7)).toBe(true)
+  })
+
+  it("does not require ':' when the next quoted line is a continuation", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "\"it makes me feel like not knowing my way\"",
+      "",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "\"means there's something wrong with me.\"",
+      "",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings.some((f) => f.ruleId === 3)).toBe(false)
+  })
+
+  it('flags unclosed opening quote even when it is mid-line', () => {
+    const text = [
+      '00:00:01:00\t00:00:02:00\tMarker',
+      'He said, "hello.',
+      '',
+    ].join('\n')
+
+    const metrics = analyzeLines(text, [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === 'PUNCTUATION')
+
+    expect(findings.some((f) => f.ruleId === 5)).toBe(true)
+  })
+
+  it('flags dangling closing quote even when it is mid-line', () => {
+    const text = [
+      '00:00:01:00\t00:00:02:00\tMarker',
+      'He said hello".',
+      '',
+    ].join('\n')
+
+    const metrics = analyzeLines(text, [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === 'PUNCTUATION')
+
+    expect(findings.some((f) => f.ruleId === 6)).toBe(true)
+  })
 })

@@ -49,10 +49,51 @@ function endsTerminal(s: string): boolean {
 
 function hasUnclosedStartingQuote(s: string): boolean {
   const open = startsWithOpenQuote(s)
+  if (open !== "'") return false
   if (!open) return false
   const firstIndex = s.indexOf(open)
   if (firstIndex < 0) return false
   return s.indexOf(open, firstIndex + 1) < 0
+}
+
+function findMatchingOpeningDoubleQuoteForTrailingQuote(s: string): number | null {
+  const trimmed = s.trimEnd()
+  if (!trimmed.endsWith('"')) return null
+  const endIndex = trimmed.length - 1
+  const openIndex = trimmed.lastIndexOf('"', endIndex - 1)
+  return openIndex >= 0 ? openIndex : null
+}
+
+function startsWithDoubleQuote(s: string): boolean {
+  return /^\s*"/.test(s)
+}
+
+type UnmatchedDoubleQuote = { kind: 'open' | 'close'; index: number }
+
+function findUnmatchedDoubleQuote(s: string): UnmatchedDoubleQuote | null {
+  const quoteIndices: number[] = []
+  for (let i = 0; i < s.length; i += 1) {
+    if (s[i] === '"') quoteIndices.push(i)
+  }
+
+  if (quoteIndices.length === 0) return null
+  if (quoteIndices.length % 2 === 0) return null
+
+  const index = quoteIndices[quoteIndices.length - 1]
+  const prev = index > 0 ? s[index - 1] : ''
+  const next = index + 1 < s.length ? s[index + 1] : ''
+
+  const isWord = (ch: string) => /[\p{L}\p{N}]/u.test(ch)
+  const isSpace = (ch: string) => /\s/u.test(ch)
+  const isPunct = (ch: string) => /[.,!?;:…\)\]\}]/.test(ch)
+
+  if (next && isWord(next)) return { kind: 'open', index }
+  if (!next) return { kind: 'close', index }
+  if (prev && isWord(prev) && (isSpace(next) || isPunct(next))) {
+    return { kind: 'close', index }
+  }
+
+  return { kind: 'open', index }
 }
 
 function collectCues(lines: string[]): Cue[] {
@@ -135,7 +176,11 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
   const reportedRule5 = new Set<string>()
   for (const cue of cues) {
     if (reportedRule5.has(cue.text)) continue
-    if (!hasUnclosedStartingQuote(cue.text)) continue
+    const unmatched = findUnmatchedDoubleQuote(cue.text)
+    const hasUnclosedOpenDoubleQuote = unmatched?.kind === 'open'
+    if (!hasUnclosedOpenDoubleQuote && !hasUnclosedStartingQuote(cue.text)) {
+      continue
+    }
     reportedRule5.add(cue.text)
 
     metrics.push({
@@ -144,6 +189,23 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
       ruleId: 5,
       detail:
         'CURR starts with an opening quote but does not close it on the same line.',
+      text: cue.text,
+      timestamp: cueTimestamp(cue),
+    })
+  }
+
+  const reportedRule6 = new Set<string>()
+  for (const cue of cues) {
+    if (reportedRule6.has(cue.text)) continue
+    const unmatched = findUnmatchedDoubleQuote(cue.text)
+    if (unmatched?.kind !== 'close') continue
+    reportedRule6.add(cue.text)
+
+    metrics.push({
+      type: 'PUNCTUATION',
+      lineIndex: cue.lineIndex,
+      ruleId: 6,
+      detail: 'CURR ends with a quote but does not open it.',
       text: cue.text,
       timestamp: cueTimestamp(cue),
     })
@@ -158,6 +220,8 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
     if (!case1) continue
 
     const prevTrim = prev.text.trimEnd()
+    const prevQuoteOpenIndex =
+      findMatchingOpeningDoubleQuoteForTrailingQuote(prevTrim)
 
     if (prevTrim.endsWith('.') && case1 === 'lower') {
       metrics.push({
@@ -193,9 +257,28 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
     }
 
     if (
+      prevQuoteOpenIndex !== null &&
+      !endsSentenceBoundary(prevTrim) &&
+      !startsWithDoubleQuote(next.text)
+    ) {
+      metrics.push({
+        type: 'PUNCTUATION',
+        lineIndex: next.lineIndex,
+        ruleId: 7,
+        detail:
+          'CURR should start with an opening quote when quoted speech continues from PREV.',
+        text: next.text,
+        timestamp: cueTimestamp(next),
+        prevText: prev.text,
+        prevTimestamp: cueTimestamp(prev),
+      })
+    }
+
+    if (
       startsWithOpenQuote(next.text) &&
       !prevTrim.endsWith(':') &&
-      !endsSentenceBoundary(prevTrim)
+      !endsSentenceBoundary(prevTrim) &&
+      prevQuoteOpenIndex === null
     ) {
       metrics.push({
         type: 'PUNCTUATION',

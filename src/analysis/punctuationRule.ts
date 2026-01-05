@@ -160,8 +160,9 @@ function addRule4Metric(
   metrics.push({
     type: 'PUNCTUATION',
     lineIndex: cue.lineIndex,
-    ruleId: 'MISSING_END_PUNCTUATION',
-    detail: "End this line with terminal punctuation (., ?, !, :, …, or '...').",
+    ruleCode: 'MISSING_END_PUNCTUATION',
+    instruction:
+      "End this line with terminal punctuation (., ?, !, :, …, or '...').",
     text: cue.text,
     timestamp: cueTimestamp(cue),
   })
@@ -186,8 +187,8 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
     metrics.push({
       type: 'PUNCTUATION',
       lineIndex: cue.lineIndex,
-      ruleId: 'MISSING_CLOSING_QUOTE',
-      detail: 'Add a closing " to match the opening quote.',
+      ruleCode: 'MISSING_CLOSING_QUOTE',
+      instruction: 'Add a closing " to match the opening quote.',
       text: cue.text,
       timestamp: cueTimestamp(cue),
     })
@@ -203,8 +204,8 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
     metrics.push({
       type: 'PUNCTUATION',
       lineIndex: cue.lineIndex,
-      ruleId: 'MISSING_OPENING_QUOTE',
-      detail: 'Remove the extra closing " or add a matching opening ".',
+      ruleCode: 'MISSING_OPENING_QUOTE',
+      instruction: 'Remove the extra closing " or add a matching opening ".',
       text: cue.text,
       timestamp: cueTimestamp(cue),
     })
@@ -226,8 +227,8 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
       metrics.push({
         type: 'PUNCTUATION',
         lineIndex: next.lineIndex,
-        ruleId: 'LOWERCASE_AFTER_PERIOD',
-        detail: 'Capitalize the start of this line.',
+        ruleCode: 'LOWERCASE_AFTER_PERIOD',
+        instruction: 'Capitalize the start of this line.',
         text: next.text,
         timestamp: cueTimestamp(next),
         prevText: prev.text,
@@ -245,8 +246,8 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
       metrics.push({
         type: 'PUNCTUATION',
         lineIndex: prev.lineIndex,
-        ruleId: 'MISSING_PUNCTUATION_BEFORE_CAPITAL',
-        detail:
+        ruleCode: 'MISSING_PUNCTUATION_BEFORE_CAPITAL',
+        instruction:
           'End this line with sentence-ending punctuation, or lowercase the next line.',
         text: prev.text,
         timestamp: cueTimestamp(prev),
@@ -263,8 +264,9 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
       metrics.push({
         type: 'PUNCTUATION',
         lineIndex: next.lineIndex,
-        ruleId: 'MISSING_OPENING_QUOTE_CONTINUATION',
-        detail: 'Start this line with " to continue the quote from the previous line.',
+        ruleCode: 'MISSING_OPENING_QUOTE_CONTINUATION',
+        instruction:
+          'Start this line with " to continue the quote from the previous line.',
         text: next.text,
         timestamp: cueTimestamp(next),
         prevText: prev.text,
@@ -281,8 +283,8 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
       metrics.push({
         type: 'PUNCTUATION',
         lineIndex: prev.lineIndex,
-        ruleId: 'MISSING_COLON_BEFORE_QUOTE',
-        detail: "End this line with ':' before the next quoted line.",
+        ruleCode: 'MISSING_COLON_BEFORE_QUOTE',
+        instruction: "End this line with ':' before the next quoted line.",
         text: prev.text,
         timestamp: cueTimestamp(prev),
         nextText: next.text,

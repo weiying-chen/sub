@@ -35,8 +35,8 @@ describe("punctuationRule", () => {
     const metrics = analyzeLines(text, [punctuationRule()])
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
-    const ruleIds = findings.map((f) => f.ruleId).sort()
-    expect(ruleIds).toEqual([
+    const ruleCodes = findings.map((f) => f.ruleCode).sort()
+    expect(ruleCodes).toEqual([
       "LOWERCASE_AFTER_PERIOD",
       "MISSING_CLOSING_QUOTE",
       "MISSING_COLON_BEFORE_QUOTE",
@@ -44,18 +44,18 @@ describe("punctuationRule", () => {
       "MISSING_PUNCTUATION_BEFORE_CAPITAL",
     ])
 
-    const byRuleId = new Map(findings.map((f) => [f.ruleId, f]))
-    expect(byRuleId.get("LOWERCASE_AFTER_PERIOD")?.text).toBe(
+    const byRuleCode = new Map(findings.map((f) => [f.ruleCode, f]))
+    expect(byRuleCode.get("LOWERCASE_AFTER_PERIOD")?.text).toBe(
       "this should be capitalized."
     )
-    expect(byRuleId.get("MISSING_PUNCTUATION_BEFORE_CAPITAL")?.text).toBe(
+    expect(byRuleCode.get("MISSING_PUNCTUATION_BEFORE_CAPITAL")?.text).toBe(
       "This continues"
     )
-    expect(byRuleId.get("MISSING_COLON_BEFORE_QUOTE")?.text).toBe("He said")
-    expect(byRuleId.get("MISSING_END_PUNCTUATION")?.text).toBe(
+    expect(byRuleCode.get("MISSING_COLON_BEFORE_QUOTE")?.text).toBe("He said")
+    expect(byRuleCode.get("MISSING_END_PUNCTUATION")?.text).toBe(
       "This line lacks terminal"
     )
-    expect(byRuleId.get("MISSING_CLOSING_QUOTE")?.text).toBe("\"Unclosed.")
+    expect(byRuleCode.get("MISSING_CLOSING_QUOTE")?.text).toBe("\"Unclosed.")
   })
 
   it("ignores acronyms starting the next cue", () => {
@@ -84,7 +84,7 @@ describe("punctuationRule", () => {
     const metrics = analyzeLines(text, [punctuationRule()])
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
-    expect(findings.some((f) => f.ruleId === "MISSING_OPENING_QUOTE")).toBe(
+    expect(findings.some((f) => f.ruleCode === "MISSING_OPENING_QUOTE")).toBe(
       true
     )
   })
@@ -103,7 +103,7 @@ describe("punctuationRule", () => {
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
     expect(
-      findings.some((f) => f.ruleId === "MISSING_OPENING_QUOTE_CONTINUATION")
+      findings.some((f) => f.ruleCode === "MISSING_OPENING_QUOTE_CONTINUATION")
     ).toBe(true)
   })
 
@@ -120,9 +120,9 @@ describe("punctuationRule", () => {
     const metrics = analyzeLines(text, [punctuationRule()])
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
-    expect(findings.some((f) => f.ruleId === "MISSING_COLON_BEFORE_QUOTE")).toBe(
-      false
-    )
+    expect(
+      findings.some((f) => f.ruleCode === "MISSING_COLON_BEFORE_QUOTE")
+    ).toBe(false)
   })
 
   it('flags unclosed opening quote even when it is mid-line', () => {
@@ -135,7 +135,9 @@ describe("punctuationRule", () => {
     const metrics = analyzeLines(text, [punctuationRule()])
     const findings = metrics.filter((m) => m.type === 'PUNCTUATION')
 
-    expect(findings.some((f) => f.ruleId === 'MISSING_CLOSING_QUOTE')).toBe(true)
+    expect(findings.some((f) => f.ruleCode === 'MISSING_CLOSING_QUOTE')).toBe(
+      true
+    )
   })
 
   it('flags dangling closing quote even when it is mid-line', () => {
@@ -148,6 +150,8 @@ describe("punctuationRule", () => {
     const metrics = analyzeLines(text, [punctuationRule()])
     const findings = metrics.filter((m) => m.type === 'PUNCTUATION')
 
-    expect(findings.some((f) => f.ruleId === 'MISSING_OPENING_QUOTE')).toBe(true)
+    expect(findings.some((f) => f.ruleCode === 'MISSING_OPENING_QUOTE')).toBe(
+      true
+    )
   })
 })

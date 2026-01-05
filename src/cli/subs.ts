@@ -46,10 +46,10 @@ function formatFinding(f: Finding): string {
 
   if (type === 'PUNCTUATION') {
     const lines: string[] = []
-    const detail =
-      typeof anyF.detail === 'string' && anyF.detail
-        ? anyF.detail
-        : 'Punctuation check failed'
+    const instruction =
+      typeof anyF.instruction === 'string' && anyF.instruction
+        ? anyF.instruction
+        : 'Fix punctuation.'
     const currText =
       typeof anyF.text === 'string' && anyF.text.trim() !== ''
         ? anyF.text
@@ -61,13 +61,16 @@ function formatFinding(f: Finding): string {
 
     if (currText) {
       lines.push(`${BOLD}${CYAN}${anchor}${RESET}  ${currText}`)
-      const ruleId =
-        typeof anyF.ruleId === 'string' || typeof anyF.ruleId === 'number'
-          ? `ruleId: ${anyF.ruleId}  `
-          : ''
-      lines.push(`${YELLOW}${type}${RESET}  ${ruleId}detail: ${detail}`)
+      const ruleCode =
+        typeof anyF.ruleCode === 'string' ? `ruleCode: ${anyF.ruleCode}  ` : ''
+      const legacyRuleId =
+        typeof anyF.ruleId === 'number' ? `ruleId: ${anyF.ruleId}  ` : ''
+      const rulePrefix = ruleCode || legacyRuleId
+      lines.push(
+        `${YELLOW}${type}${RESET}  ${rulePrefix}instruction: ${instruction}`
+      )
     } else {
-      const head = `${BOLD}${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}  ${detail}`
+      const head = `${BOLD}${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}  ${instruction}`
       lines.push(head)
     }
 

@@ -39,8 +39,8 @@ describe("punctuationRule (segments)", () => {
     })
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
-    const ruleIds = findings.map((f) => f.ruleId).sort()
-    expect(ruleIds).toEqual([
+    const ruleCodes = findings.map((f) => f.ruleCode).sort()
+    expect(ruleCodes).toEqual([
       "LOWERCASE_AFTER_PERIOD",
       "MISSING_CLOSING_QUOTE",
       "MISSING_COLON_BEFORE_QUOTE",
@@ -83,7 +83,9 @@ describe("punctuationRule (segments)", () => {
     })
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
-    expect(findings.some((f) => f.ruleId === "MISSING_OPENING_QUOTE")).toBe(true)
+    expect(findings.some((f) => f.ruleCode === "MISSING_OPENING_QUOTE")).toBe(
+      true
+    )
   })
 
   it("flags missing opening quote when quoted speech continues", () => {
@@ -104,7 +106,7 @@ describe("punctuationRule (segments)", () => {
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
     expect(
-      findings.some((f) => f.ruleId === "MISSING_OPENING_QUOTE_CONTINUATION")
+      findings.some((f) => f.ruleCode === "MISSING_OPENING_QUOTE_CONTINUATION")
     ).toBe(true)
   })
 
@@ -125,9 +127,9 @@ describe("punctuationRule (segments)", () => {
     })
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
-    expect(findings.some((f) => f.ruleId === "MISSING_COLON_BEFORE_QUOTE")).toBe(
-      false
-    )
+    expect(
+      findings.some((f) => f.ruleCode === "MISSING_COLON_BEFORE_QUOTE")
+    ).toBe(false)
   })
 
   it('flags unclosed opening quote even when it is mid-line', () => {
@@ -144,7 +146,9 @@ describe("punctuationRule (segments)", () => {
     })
     const findings = metrics.filter((m) => m.type === 'PUNCTUATION')
 
-    expect(findings.some((f) => f.ruleId === 'MISSING_CLOSING_QUOTE')).toBe(true)
+    expect(findings.some((f) => f.ruleCode === 'MISSING_CLOSING_QUOTE')).toBe(
+      true
+    )
   })
 
   it('flags dangling closing quote even when it is mid-line', () => {
@@ -161,6 +165,8 @@ describe("punctuationRule (segments)", () => {
     })
     const findings = metrics.filter((m) => m.type === 'PUNCTUATION')
 
-    expect(findings.some((f) => f.ruleId === 'MISSING_OPENING_QUOTE')).toBe(true)
+    expect(findings.some((f) => f.ruleCode === 'MISSING_OPENING_QUOTE')).toBe(
+      true
+    )
   })
 })

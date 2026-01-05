@@ -39,8 +39,14 @@ describe("punctuationRule (segments)", () => {
     })
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
-    const ruleIds = findings.map((f) => f.ruleId).sort((a, b) => a - b)
-    expect(ruleIds).toEqual([1, 2, 3, 4, 5])
+    const ruleIds = findings.map((f) => f.ruleId).sort()
+    expect(ruleIds).toEqual([
+      "LOWERCASE_AFTER_PERIOD",
+      "MISSING_CLOSING_QUOTE",
+      "MISSING_COLON_BEFORE_QUOTE",
+      "MISSING_END_PUNCTUATION",
+      "MISSING_PUNCTUATION_BEFORE_CAPITAL",
+    ])
   })
 
   it("ignores acronyms starting the next cue", () => {
@@ -77,7 +83,7 @@ describe("punctuationRule (segments)", () => {
     })
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
-    expect(findings.some((f) => f.ruleId === 6)).toBe(true)
+    expect(findings.some((f) => f.ruleId === "MISSING_OPENING_QUOTE")).toBe(true)
   })
 
   it("flags missing opening quote when quoted speech continues", () => {
@@ -97,7 +103,9 @@ describe("punctuationRule (segments)", () => {
     })
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
-    expect(findings.some((f) => f.ruleId === 7)).toBe(true)
+    expect(
+      findings.some((f) => f.ruleId === "MISSING_OPENING_QUOTE_CONTINUATION")
+    ).toBe(true)
   })
 
   it("does not require ':' when the next quoted line is a continuation", () => {
@@ -117,7 +125,9 @@ describe("punctuationRule (segments)", () => {
     })
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
-    expect(findings.some((f) => f.ruleId === 3)).toBe(false)
+    expect(findings.some((f) => f.ruleId === "MISSING_COLON_BEFORE_QUOTE")).toBe(
+      false
+    )
   })
 
   it('flags unclosed opening quote even when it is mid-line', () => {
@@ -134,7 +144,7 @@ describe("punctuationRule (segments)", () => {
     })
     const findings = metrics.filter((m) => m.type === 'PUNCTUATION')
 
-    expect(findings.some((f) => f.ruleId === 5)).toBe(true)
+    expect(findings.some((f) => f.ruleId === 'MISSING_CLOSING_QUOTE')).toBe(true)
   })
 
   it('flags dangling closing quote even when it is mid-line', () => {
@@ -151,6 +161,6 @@ describe("punctuationRule (segments)", () => {
     })
     const findings = metrics.filter((m) => m.type === 'PUNCTUATION')
 
-    expect(findings.some((f) => f.ruleId === 6)).toBe(true)
+    expect(findings.some((f) => f.ruleId === 'MISSING_OPENING_QUOTE')).toBe(true)
   })
 })

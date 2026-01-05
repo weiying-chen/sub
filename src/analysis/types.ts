@@ -54,7 +54,7 @@ export type NumberStyleMetric = {
 export type PunctuationMetric = {
   type: 'PUNCTUATION'
   lineIndex: number
-  ruleId: number
+  ruleId: PunctuationRuleId
   detail: string
   text: string
   timestamp?: string
@@ -63,6 +63,15 @@ export type PunctuationMetric = {
   nextText?: string
   nextTimestamp?: string
 }
+
+export type PunctuationRuleId =
+  | 'LOWERCASE_AFTER_PERIOD'
+  | 'MISSING_PUNCTUATION_BEFORE_CAPITAL'
+  | 'MISSING_COLON_BEFORE_QUOTE'
+  | 'MISSING_END_PUNCTUATION'
+  | 'MISSING_CLOSING_QUOTE'
+  | 'MISSING_OPENING_QUOTE'
+  | 'MISSING_OPENING_QUOTE_CONTINUATION'
 
 export type BaselineMetric = {
   type: 'BASELINE'

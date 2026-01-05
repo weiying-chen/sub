@@ -161,7 +161,7 @@ function addRule4Metric(
     type: 'PUNCTUATION',
     lineIndex: cue.lineIndex,
     ruleId: 'MISSING_END_PUNCTUATION',
-    detail: 'CURR lacks terminal punctuation.',
+    detail: "End this line with terminal punctuation (., ?, !, :, …, or '...').",
     text: cue.text,
     timestamp: cueTimestamp(cue),
   })
@@ -187,8 +187,7 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
       type: 'PUNCTUATION',
       lineIndex: cue.lineIndex,
       ruleId: 'MISSING_CLOSING_QUOTE',
-      detail:
-        'CURR starts with an opening quote but does not close it on the same line.',
+      detail: 'Add a closing " to match the opening quote.',
       text: cue.text,
       timestamp: cueTimestamp(cue),
     })
@@ -205,7 +204,7 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
       type: 'PUNCTUATION',
       lineIndex: cue.lineIndex,
       ruleId: 'MISSING_OPENING_QUOTE',
-      detail: 'CURR ends with a quote but does not open it.',
+      detail: 'Remove the extra closing " or add a matching opening ".',
       text: cue.text,
       timestamp: cueTimestamp(cue),
     })
@@ -228,7 +227,7 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
         type: 'PUNCTUATION',
         lineIndex: next.lineIndex,
         ruleId: 'LOWERCASE_AFTER_PERIOD',
-        detail: "CURR starts lowercase after PREV ends with '.'.",
+        detail: 'Capitalize the start of this line.',
         text: next.text,
         timestamp: cueTimestamp(next),
         prevText: prev.text,
@@ -248,7 +247,7 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
         lineIndex: prev.lineIndex,
         ruleId: 'MISSING_PUNCTUATION_BEFORE_CAPITAL',
         detail:
-          'CURR lacks sentence-ending punctuation and NEXT starts capital.',
+          'End this line with sentence-ending punctuation, or lowercase the next line.',
         text: prev.text,
         timestamp: cueTimestamp(prev),
         nextText: next.text,
@@ -265,8 +264,7 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
         type: 'PUNCTUATION',
         lineIndex: next.lineIndex,
         ruleId: 'MISSING_OPENING_QUOTE_CONTINUATION',
-        detail:
-          'CURR should start with an opening quote when quoted speech continues from PREV.',
+        detail: 'Start this line with " to continue the quote from the previous line.',
         text: next.text,
         timestamp: cueTimestamp(next),
         prevText: prev.text,
@@ -284,7 +282,7 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
         type: 'PUNCTUATION',
         lineIndex: prev.lineIndex,
         ruleId: 'MISSING_COLON_BEFORE_QUOTE',
-        detail: "CURR should end with ':' before a quoted NEXT.",
+        detail: "End this line with ':' before the next quoted line.",
         text: prev.text,
         timestamp: cueTimestamp(prev),
         nextText: next.text,

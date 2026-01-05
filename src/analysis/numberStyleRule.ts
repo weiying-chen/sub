@@ -149,6 +149,15 @@ function parseNumberWords(words: string[]): number | null {
   return total + current
 }
 
+function isHyphenatedDigitSequence(raw: string, parts: string[]) {
+  if (!raw.includes('-')) return false
+  if (parts.length < 2) return false
+  return parts.every((part) => {
+    const value = SMALL[part.toLowerCase()]
+    return typeof value === 'number' && value >= 0 && value <= 9
+  })
+}
+
 type NumberStyleRule = Rule & SegmentRule
 
 function getTextAndAnchor(
@@ -211,6 +220,7 @@ function collectMetrics(
 
   while ((match = WORD_NUMBER_RE.exec(text))) {
     const parts = match[0].split(/[\s-]+/).filter(Boolean)
+    if (isHyphenatedDigitSequence(match[0], parts)) continue
     const value = parseNumberWords(parts)
     if (value == null || value <= 10) continue
     if (isAgeAdjective(text, match.index, match[0].length)) continue

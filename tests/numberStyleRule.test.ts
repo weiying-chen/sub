@@ -21,6 +21,8 @@ describe("numberStyleRule", () => {
       "Twenty two birds landed.",
       "00:00:08:00\t00:00:09:00\tMarker",
       "We raised 1,000 dollars.",
+      "00:00:08:10\t00:00:09:10\tMarker",
+      "If we can make it five-two-seven.",
       "00:00:09:00\t00:00:10:00\tMarker",
       "About 10,000 people attended.",
     ].join("\n")

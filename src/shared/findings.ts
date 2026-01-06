@@ -19,6 +19,7 @@ export function getFindings(metrics: Metric[]): Finding[] {
           maxCps: m.maxCps,
           durationFrames: m.durationFrames,
           charCount: m.charCount,
+          severity: 'error',
         })
         continue
       }
@@ -31,6 +32,7 @@ export function getFindings(metrics: Metric[]): Finding[] {
           minCps: m.minCps,
           durationFrames: m.durationFrames,
           charCount: m.charCount,
+          severity: 'warn',
         })
       }
       continue

@@ -38,11 +38,13 @@ export type CPSMetric = CpsBaseMetric & {
 export type MaxCpsMetric = CpsBaseMetric & {
   type: 'MAX_CPS'
   maxCps: number
+  severity: 'error' | 'warn'
 }
 
 export type MinCpsMetric = CpsBaseMetric & {
   type: 'MIN_CPS'
   minCps: number
+  severity: 'error' | 'warn'
 }
 
 export type CPSBalanceMetric = {
@@ -52,6 +54,7 @@ export type CPSBalanceMetric = {
   neighborCps: number
   deltaCps: number
   text?: string
+  severity: 'error' | 'warn'
 }
 
 export type NumberStyleMetric = {

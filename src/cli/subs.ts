@@ -66,11 +66,21 @@ function formatFinding(f: Finding): string {
       const legacyRuleId =
         typeof anyF.ruleId === 'number' ? `ruleId: ${anyF.ruleId}  ` : ''
       const rulePrefix = ruleCode || legacyRuleId
+      const severity =
+        typeof anyF.severity === 'string'
+          ? anyF.severity.toUpperCase()
+          : 'ERROR'
+      const severityColor = severity === 'WARN' ? YELLOW : MAGENTA
       lines.push(
-        `${YELLOW}${type}${RESET}  ${rulePrefix}instruction: ${instruction}`
+        `${severityColor}${severity}${RESET}  ${YELLOW}${type}${RESET}  ${rulePrefix}instruction: ${instruction}`
       )
     } else {
-      const head = `${BOLD}${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}  ${instruction}`
+      const severity =
+        typeof anyF.severity === 'string'
+          ? anyF.severity.toUpperCase()
+          : 'ERROR'
+      const severityColor = severity === 'WARN' ? YELLOW : MAGENTA
+      const head = `${BOLD}${CYAN}${anchor}${RESET}  ${severityColor}${severity}${RESET}  ${YELLOW}${type}${RESET}  ${instruction}`
       lines.push(head)
     }
 
@@ -98,6 +108,11 @@ function formatFinding(f: Finding): string {
   }
 
   const parts: string[] = []
+  const severity =
+    typeof anyF.severity === 'string'
+      ? anyF.severity.toUpperCase()
+      : 'ERROR'
+  const severityColor = severity === 'WARN' ? YELLOW : MAGENTA
   const previewKeys = ['text', 'payloadText', 'line', 'message']
   const tokenKeys = ['token']
   let lineText: string | null = null
@@ -105,6 +120,7 @@ function formatFinding(f: Finding): string {
 
   for (const [key, value] of Object.entries(anyF)) {
     if (key === 'type' || key === 'rule') continue
+    if (key === 'severity') continue
     if (key === 'lineIndex') continue // already covered by anchor
     if (value == null) continue
 
@@ -172,7 +188,7 @@ function formatFinding(f: Finding): string {
       baselineParts.push(`actual: ${anyF.actual}`)
     }
 
-    const head = `${YELLOW}${type}${RESET}${
+    const head = `${severityColor}${severity}${RESET}  ${YELLOW}${type}${RESET}${
       baselineParts.length ? `  ${baselineParts.join('  ')}` : ''
     }`
 
@@ -187,10 +203,10 @@ function formatFinding(f: Finding): string {
   }
 
   // Line number cyan+bold, type yellow, rest plain (except magenta numbers)
-  const head = `${BOLD}${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}${
+  const head = `${BOLD}${CYAN}${anchor}${RESET}  ${severityColor}${severity}${RESET}  ${YELLOW}${type}${RESET}${
     parts.length ? `  ${parts.join('  ')}` : ''
   }`
-  const headNoAnchor = `${YELLOW}${type}${RESET}${
+  const headNoAnchor = `${severityColor}${severity}${RESET}  ${YELLOW}${type}${RESET}${
     parts.length ? `  ${parts.join('  ')}` : ''
   }`
 

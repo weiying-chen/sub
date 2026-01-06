@@ -44,5 +44,6 @@ describe("cpsRule (segments)", () => {
     expect(findings).toHaveLength(1)
     expect(findings[0].cps).toBeLessThan(10)
     expect(findings[0].minCps).toBe(10)
+    expect(findings[0].severity).toBe("warn")
   })
 })

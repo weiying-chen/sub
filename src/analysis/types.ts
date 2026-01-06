@@ -26,6 +26,7 @@ export type CPSMetric = {
   lineIndex: number // timestamp line index
   text: string
   maxCps: number
+  minCps: number
   cps: number
   durationFrames: number
   charCount: number

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest"
 
 import { analyzeTextByType } from "../src/analysis/analyzeTextByType"
+import { getFindings } from "../src/shared/findings"
 import { cpsRule } from "../src/analysis/cpsRule"
 
 describe("cpsRule (segments)", () => {
@@ -29,5 +30,19 @@ describe("cpsRule (segments)", () => {
     expect(bye?.durationFrames).toBe(30)
     expect(bye?.charCount).toBe(3)
     expect(bye?.cps).toBe(3)
+  })
+
+  it("flags low CPS below the minimum", () => {
+    const text = [
+      "00:00:01:00\t00:00:03:00\tMarker",
+      "Hi",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [cpsRule(17, 10)])
+    const findings = getFindings(metrics).filter((m) => m.type === "CPS")
+
+    expect(findings).toHaveLength(1)
+    expect(findings[0].cps).toBeLessThan(10)
+    expect(findings[0].minCps).toBe(10)
   })
 })

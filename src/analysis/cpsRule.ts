@@ -1,6 +1,6 @@
 import type { Rule, CPSMetric, RuleCtx } from './types'
 
-import { FPS, MAX_CPS } from '../shared/subtitles'
+import { FPS, MAX_CPS, MIN_CPS } from '../shared/subtitles'
 import {
   type LineSource,
   parseBlockAt,
@@ -53,7 +53,10 @@ function mergeForwardSegments(segments: Segment[], startIndex: number) {
   }
 }
 
-export function cpsRule(maxCps: number = MAX_CPS): CpsRule {
+export function cpsRule(
+  maxCps: number = MAX_CPS,
+  minCps: number = MIN_CPS
+): CpsRule {
   return ((ctx: RuleCtx | SegmentCtx) => {
     if ('segment' in ctx) {
       const cur = ctx.segment
@@ -74,6 +77,7 @@ export function cpsRule(maxCps: number = MAX_CPS): CpsRule {
         text: run.text,
         cps,
         maxCps,
+        minCps,
         durationFrames,
         charCount,
       }
@@ -107,6 +111,7 @@ export function cpsRule(maxCps: number = MAX_CPS): CpsRule {
       text: run.payloadText,
       cps,
       maxCps,
+      minCps,
       durationFrames,
       charCount,
     }

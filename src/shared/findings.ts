@@ -10,7 +10,7 @@ export function getFindings(metrics: Metric[]): Finding[] {
     }
 
     if (m.type === 'CPS') {
-      if (m.cps > m.maxCps) out.push(m)
+      if (m.cps > m.maxCps || m.cps < m.minCps) out.push(m)
       continue
     }
 

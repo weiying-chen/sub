@@ -32,13 +32,13 @@ export function timestampLinkGutter(findings: Finding[]) {
   const warnRuns = new Set<number>()
 
   for (const f of findings) {
-    if (f.type === 'CPS') {
+    if (f.type === 'MAX_CPS' || f.type === 'CPS') {
       // red
       flaggedRuns.add(f.lineIndex)
       continue
     }
 
-    if (f.type === 'CPS_BALANCE') {
+    if (f.type === 'MIN_CPS' || f.type === 'CPS_BALANCE') {
       // yellow
       warnRuns.add(f.lineIndex)
       continue

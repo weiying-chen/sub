@@ -13,9 +13,12 @@ export function findingsDecorations(findings: Finding[]) {
         return a.lineIndex - b.lineIndex
       }
 
+      const isCpsFinding = (f: Finding) =>
+        f.type === 'MAX_CPS' || f.type === 'MIN_CPS' || f.type === 'CPS'
+
       // Same line: MAX_CHARS first, CPS last
-      if (a.type === 'MAX_CHARS' && b.type === 'CPS') return -1
-      if (a.type === 'CPS' && b.type === 'MAX_CHARS') return 1
+      if (a.type === 'MAX_CHARS' && isCpsFinding(b)) return -1
+      if (isCpsFinding(a) && b.type === 'MAX_CHARS') return 1
 
       return 0
     })

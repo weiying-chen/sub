@@ -39,7 +39,7 @@ describe("cpsRule (segments)", () => {
     ].join("\n")
 
     const metrics = analyzeTextByType(text, "subs", [cpsRule(17, 10)])
-    const findings = getFindings(metrics).filter((m) => m.type === "CPS")
+    const findings = getFindings(metrics).filter((m) => m.type === "MIN_CPS")
 
     expect(findings).toHaveLength(1)
     expect(findings[0].cps).toBeLessThan(10)

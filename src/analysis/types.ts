@@ -32,6 +32,14 @@ export type CPSMetric = {
   charCount: number
 }
 
+export type MaxCpsMetric = CPSMetric & {
+  type: 'MAX_CPS'
+}
+
+export type MinCpsMetric = CPSMetric & {
+  type: 'MIN_CPS'
+}
+
 export type CPSBalanceMetric = {
   type: 'CPS_BALANCE'
   lineIndex: number // timestamp line index (faster run)
@@ -88,6 +96,8 @@ export type BaselineMetric = {
 export type Metric =
   | MaxCharsMetric
   | CPSMetric
+  | MaxCpsMetric
+  | MinCpsMetric
   | CPSBalanceMetric
   | NumberStyleMetric
   | PunctuationMetric

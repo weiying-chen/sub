@@ -17,9 +17,10 @@ const BOLD = '\x1b[1m'
 const CYAN = '\x1b[36m'
 const MAGENTA = '\x1b[35m'
 const YELLOW = '\x1b[33m'
+const RED = '\x1b[31m'
 
 type SubsOptions = {
-  includeBalance: boolean
+  showWarnings: boolean
   baselinePath?: string
 }
 
@@ -70,17 +71,17 @@ function formatFinding(f: Finding): string {
         typeof anyF.severity === 'string'
           ? anyF.severity.toUpperCase()
           : 'ERROR'
-      const severityColor = severity === 'WARN' ? YELLOW : MAGENTA
+      const severityColor = severity === 'WARN' ? YELLOW : RED
       lines.push(
-        `${severityColor}${severity}${RESET}  ${YELLOW}${type}${RESET}  ${rulePrefix}instruction: ${instruction}`
+        `${severityColor}${severity}${RESET}  ${type}  ${rulePrefix}instruction: ${instruction}`
       )
     } else {
       const severity =
         typeof anyF.severity === 'string'
           ? anyF.severity.toUpperCase()
           : 'ERROR'
-      const severityColor = severity === 'WARN' ? YELLOW : MAGENTA
-      const head = `${BOLD}${CYAN}${anchor}${RESET}  ${severityColor}${severity}${RESET}  ${YELLOW}${type}${RESET}  ${instruction}`
+      const severityColor = severity === 'WARN' ? YELLOW : RED
+      const head = `${BOLD}${CYAN}${anchor}${RESET}  ${severityColor}${severity}${RESET}  ${type}  ${instruction}`
       lines.push(head)
     }
 
@@ -112,7 +113,7 @@ function formatFinding(f: Finding): string {
     typeof anyF.severity === 'string'
       ? anyF.severity.toUpperCase()
       : 'ERROR'
-  const severityColor = severity === 'WARN' ? YELLOW : MAGENTA
+  const severityColor = severity === 'WARN' ? YELLOW : RED
   const previewKeys = ['text', 'payloadText', 'line', 'message']
   const tokenKeys = ['token']
   let lineText: string | null = null
@@ -188,7 +189,7 @@ function formatFinding(f: Finding): string {
       baselineParts.push(`actual: ${anyF.actual}`)
     }
 
-    const head = `${severityColor}${severity}${RESET}  ${YELLOW}${type}${RESET}${
+    const head = `${severityColor}${severity}${RESET}  ${type}${
       baselineParts.length ? `  ${baselineParts.join('  ')}` : ''
     }`
 
@@ -203,10 +204,10 @@ function formatFinding(f: Finding): string {
   }
 
   // Line number cyan+bold, type yellow, rest plain (except magenta numbers)
-  const head = `${BOLD}${CYAN}${anchor}${RESET}  ${severityColor}${severity}${RESET}  ${YELLOW}${type}${RESET}${
+  const head = `${BOLD}${CYAN}${anchor}${RESET}  ${severityColor}${severity}${RESET}  ${type}${
     parts.length ? `  ${parts.join('  ')}` : ''
   }`
-  const headNoAnchor = `${severityColor}${severity}${RESET}  ${YELLOW}${type}${RESET}${
+  const headNoAnchor = `${severityColor}${severity}${RESET}  ${type}${
     parts.length ? `  ${parts.join('  ')}` : ''
   }`
 
@@ -256,17 +257,9 @@ async function printReport(
     : metrics
   const allFindings = getFindings(scopedMetrics) as Finding[]
 
-  // Optional filter: hide CPS_BALANCE unless explicitly requested
-  const findings = allFindings.filter((f: any) => {
-    const t =
-      (typeof f.type === 'string' && f.type) ||
-      (typeof f.rule === 'string' && f.rule) ||
-      ''
-    if (!options.includeBalance && t === 'CPS_BALANCE') {
-      return false
-    }
-    return true
-  })
+  const findings = options.showWarnings
+    ? allFindings
+    : allFindings.filter((f: any) => f?.severity !== 'warn')
 
   clearScreen()
 
@@ -275,13 +268,7 @@ async function printReport(
     return
   }
 
-  console.log(
-    `${findings.length} issues${
-      options.includeBalance
-        ? ''
-        : '  (CPS_BALANCE hidden, use --balance to show)'
-    }`
-  )
+  console.log(`${findings.length} issues`)
   console.log('')
 
   // Stable ordering: by anchor if possible, then by type string.

@@ -2,6 +2,7 @@ import chokidar from 'chokidar'
 
 import { createNewsReporter } from './news'
 import { createSubsReporter } from './subs'
+import { parseArgs } from './watchArgs'
 
 export type Reporter = (
   path: string,
@@ -13,9 +14,9 @@ type WatchOptions = {
 }
 
 // Parse CLI args once
-// Usage: watch <file> [--type subs|news] [--balance] [--baseline path]
+// Usage: watch <file> [--type subs|news] [--no-warn] [--baseline path]
 const args = process.argv.slice(2)
-const { filePath, type, includeBalance, baselinePath } = parseArgs(args)
+const { filePath, type, showWarnings, baselinePath } = parseArgs(args)
 
 function debounce<TArgs extends any[]>(
   fn: (...args: TArgs) => void | Promise<void>,
@@ -36,53 +37,6 @@ function clearScreen() {
   process.stdout.write('\x1b[2J\x1b[H')
 }
 
-function parseArgs(argv: string[]) {
-  const positionals: string[] = []
-  let type = 'subs'
-  let includeBalance = false
-  let baselinePath: string | null = null
-
-  for (let i = 0; i < argv.length; i += 1) {
-    const arg = argv[i]
-    if (arg === '--balance') {
-      includeBalance = true
-      continue
-    }
-
-    if (arg === '--baseline') {
-      const next = argv[i + 1]
-      if (next) {
-        baselinePath = next
-        i += 1
-        continue
-      }
-    }
-
-    if (arg === '--type') {
-      const next = argv[i + 1]
-      if (next) {
-        type = next
-        i += 1
-        continue
-      }
-    }
-
-    if (arg.startsWith('--type=')) {
-      type = arg.slice('--type='.length)
-      continue
-    }
-
-    if (arg.startsWith('--baseline=')) {
-      baselinePath = arg.slice('--baseline='.length)
-      continue
-    }
-
-    if (arg.startsWith('-')) continue
-    positionals.push(arg)
-  }
-
-  return { filePath: positionals[0], type, includeBalance, baselinePath }
-}
 
 export async function watch(
   path: string,
@@ -130,14 +84,14 @@ export async function watch(
 // --- CLI entry ---
 
 if (!filePath) {
-  console.error('Usage: watch <file> [--type subs|news] [--balance] [--baseline path]')
+  console.error('Usage: watch <file> [--type subs|news] [--no-warn] [--baseline path]')
   process.exit(1)
 }
 
 const normalizedType = type.trim().toLowerCase()
 
 if (normalizedType !== 'subs' && normalizedType !== 'news') {
-  console.error('Usage: watch <file> [--type subs|news] [--balance] [--baseline path]')
+  console.error('Usage: watch <file> [--type subs|news] [--no-warn] [--baseline path]')
   process.exit(1)
 }
 
@@ -149,15 +103,11 @@ const reporter =
   normalizedType === 'news'
     ? createNewsReporter()
     : createSubsReporter({
-        includeBalance,
+        showWarnings,
         baselinePath: baselinePath ?? undefined,
       })
 
 const label =
-  normalizedType === 'news'
-    ? '(news)'
-    : includeBalance
-      ? '(subs + CPS_BALANCE)'
-      : '(subs)'
+  normalizedType === 'news' ? '(news)' : '(subs)'
 
 void watch(filePath, reporter, { label })

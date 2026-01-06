@@ -11,11 +11,27 @@ export function getFindings(metrics: Metric[]): Finding[] {
 
     if (m.type === 'CPS') {
       if (m.cps > m.maxCps) {
-        out.push({ ...m, type: 'MAX_CPS' })
+        out.push({
+          type: 'MAX_CPS',
+          lineIndex: m.lineIndex,
+          text: m.text,
+          cps: m.cps,
+          maxCps: m.maxCps,
+          durationFrames: m.durationFrames,
+          charCount: m.charCount,
+        })
         continue
       }
       if (m.cps < m.minCps) {
-        out.push({ ...m, type: 'MIN_CPS' })
+        out.push({
+          type: 'MIN_CPS',
+          lineIndex: m.lineIndex,
+          text: m.text,
+          cps: m.cps,
+          minCps: m.minCps,
+          durationFrames: m.durationFrames,
+          charCount: m.charCount,
+        })
       }
       continue
     }

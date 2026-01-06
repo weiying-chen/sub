@@ -21,23 +21,28 @@ export type MaxCharsMetric = {
   actual: number
 }
 
-export type CPSMetric = {
-  type: 'CPS'
+type CpsBaseMetric = {
   lineIndex: number // timestamp line index
   text: string
-  maxCps: number
-  minCps: number
   cps: number
   durationFrames: number
   charCount: number
 }
 
-export type MaxCpsMetric = CPSMetric & {
-  type: 'MAX_CPS'
+export type CPSMetric = CpsBaseMetric & {
+  type: 'CPS'
+  maxCps: number
+  minCps: number
 }
 
-export type MinCpsMetric = CPSMetric & {
+export type MaxCpsMetric = CpsBaseMetric & {
+  type: 'MAX_CPS'
+  maxCps: number
+}
+
+export type MinCpsMetric = CpsBaseMetric & {
   type: 'MIN_CPS'
+  minCps: number
 }
 
 export type CPSBalanceMetric = {

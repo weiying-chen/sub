@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest"
 
 import { analyzeLines } from "../src/analysis/analyzeLines"
-import { punctuationRule } from "../src/analysis/punctuationRule"
+import { punctuationRule, punctuationRuleWithOptions } from "../src/analysis/punctuationRule"
 
 describe("punctuationRule", () => {
   it("flags punctuation/capitalization issues between subtitle cues", () => {
@@ -69,6 +69,24 @@ describe("punctuationRule", () => {
     ].join("\n")
 
     const metrics = analyzeLines(text, [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings).toHaveLength(0)
+  })
+
+  it("ignores configured proper nouns starting the next cue", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "He was always listening to",
+      "",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "English stories or songs.",
+      "",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [
+      punctuationRuleWithOptions({ properNouns: ["English"] }),
+    ])
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
     expect(findings).toHaveLength(0)

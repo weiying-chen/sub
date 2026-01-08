@@ -4,7 +4,7 @@ import { analyzeTextByType } from '../analysis/analyzeTextByType'
 import { baselineRule } from '../analysis/baselineRule'
 import { defaultSegmentRules } from '../analysis/defaultRules'
 import { numberStyleRule } from '../analysis/numberStyleRule'
-import { punctuationRule } from '../analysis/punctuationRule'
+import { punctuationRuleWithOptions } from '../analysis/punctuationRule'
 import { getFindings } from '../shared/findings'
 import type { Finding } from '../analysis/types'
 import type { Reporter } from './watch'
@@ -23,6 +23,8 @@ type SubsOptions = {
   showWarnings: boolean
   baselinePath?: string
 }
+
+const PROPER_NOUNS_PATH = 'punctuation-proper-nouns.txt'
 
 function asNum(v: unknown): number | null {
   return typeof v === 'number' && Number.isFinite(v) ? v : null
@@ -238,11 +240,23 @@ async function printReport(
   const baselineText = options.baselinePath
     ? await readFile(options.baselinePath, 'utf8')
     : null
+  let properNouns: string[] | null = null
+  try {
+    const raw = await readFile(PROPER_NOUNS_PATH, 'utf8')
+    properNouns = raw
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line !== '' && !line.startsWith('#'))
+  } catch {
+    properNouns = null
+  }
 
   const rules = [
     ...defaultSegmentRules(),
     numberStyleRule(),
-    punctuationRule(),
+    punctuationRuleWithOptions({
+      properNouns: properNouns ?? undefined,
+    }),
   ]
   if (baselineText != null) {
     rules.push(baselineRule(baselineText))

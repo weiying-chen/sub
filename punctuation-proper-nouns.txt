@@ -1,0 +1,2 @@
+# One proper noun per line.
+English

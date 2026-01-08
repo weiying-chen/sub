@@ -17,6 +17,34 @@ type Cue = {
   lineIndex: number
 }
 
+type PunctuationRuleOptions = {
+  properNouns?: string[]
+}
+
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function buildProperNounMatchers(properNouns: string[]): RegExp[] {
+  return properNouns
+    .map((noun) => noun.trim())
+    .filter((noun) => noun !== '')
+    .map(
+      (noun) =>
+        new RegExp(
+          `^\\s*(?:["'\\(\\[\\{]\\s*)?${escapeRegExp(noun)}\\b`
+        )
+    )
+}
+
+function startsWithProperNoun(
+  text: string,
+  properNounMatchers: RegExp[]
+): boolean {
+  if (properNounMatchers.length === 0) return false
+  return properNounMatchers.some((matcher) => matcher.test(text))
+}
+
 function firstAlphaCase(s: string): 'lower' | 'upper' | null {
   for (const ch of s.trimStart()) {
     if (/[A-Za-z]/.test(ch)) {
@@ -170,7 +198,10 @@ function addRule4Metric(
 
 type PunctuationRule = Rule & SegmentRule
 
-function collectMetrics(lines: string[]): PunctuationMetric[] {
+function collectMetrics(
+  lines: string[],
+  properNounMatchers: RegExp[]
+): PunctuationMetric[] {
   const cues = collectCues(lines)
   const metrics: PunctuationMetric[] = []
 
@@ -241,6 +272,7 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
       !startsWithOpenQuote(next.text) &&
       !startsWithIPronoun(next.text) &&
       !startsWithAcronym(next.text) &&
+      !startsWithProperNoun(next.text, properNounMatchers) &&
       case1 === 'upper'
     ) {
       metrics.push({
@@ -301,14 +333,23 @@ function collectMetrics(lines: string[]): PunctuationMetric[] {
 }
 
 export function punctuationRule(): PunctuationRule {
+  return punctuationRuleWithOptions()
+}
+
+export function punctuationRuleWithOptions(
+  options: PunctuationRuleOptions = {}
+): PunctuationRule {
+  const properNounMatchers = buildProperNounMatchers(
+    options.properNouns ?? []
+  )
   return ((ctx: RuleCtx | SegmentCtx) => {
     if ('segment' in ctx) {
       if (ctx.segmentIndex !== 0) return []
       if (!ctx.lines) return []
-      return collectMetrics(ctx.lines)
+      return collectMetrics(ctx.lines, properNounMatchers)
     }
 
     if (ctx.lineIndex !== 0) return []
-    return collectMetrics(ctx.lines)
+    return collectMetrics(ctx.lines, properNounMatchers)
   }) as PunctuationRule
 }

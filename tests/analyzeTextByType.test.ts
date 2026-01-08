@@ -23,6 +23,25 @@ describe("analyzeTextByType", () => {
     expect(byToken.get("eleven")?.lineIndex).toBe(3)
   })
 
+  it("normalizes CRLF input text for subs parsing", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "We saw 5 birds.",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "We saw eleven birds.",
+    ].join("\r\n")
+
+    const metrics = analyzeTextByType(text, "subs", [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    const tokens = findings.map((f) => f.token).sort()
+    expect(tokens).toEqual(["5", "eleven"])
+
+    const byToken = new Map(findings.map((f) => [f.token, f]))
+    expect(byToken.get("5")?.lineIndex).toBe(1)
+    expect(byToken.get("eleven")?.lineIndex).toBe(3)
+  })
+
   it("uses news parsing (paragraph anchors)", () => {
     const text = [
       "VO:",

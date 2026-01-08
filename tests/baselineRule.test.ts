@@ -29,6 +29,21 @@ describe("baselineRule", () => {
     expect(findings).toEqual([])
   })
 
+  it("normalizes CRLF baseline text before comparing", () => {
+    const baseline = [
+      "00:00:01:00\t00:00:02:00\tSRC1",
+      "00:00:02:00\t00:00:03:00\tSRC2",
+    ].join("\r\n")
+
+    const current = [
+      "00:00:01:00\t00:00:02:00\tSRC1",
+      "00:00:02:00\t00:00:03:00\tSRC2",
+    ].join("\n")
+
+    const findings = getBaselineFindings(baseline, current)
+    expect(findings).toEqual([])
+  })
+
   it("flags inline source text edits on timestamp lines", () => {
     const baseline = "00:00:01:00\t00:00:02:00\tSRC1"
     const current = "00:00:01:00\t00:00:02:00\tSRC1 EDIT"

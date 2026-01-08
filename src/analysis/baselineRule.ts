@@ -1,6 +1,7 @@
 import type { Rule, BaselineMetric, RuleCtx } from './types'
 
 import { TSV_RE, extractInlineSubtitleText } from '../shared/subtitles'
+import { normalizeLineEndings } from '../shared/normalizeLineEndings'
 import type { SegmentCtx, SegmentRule } from './segments'
 
 type TsEntry = {
@@ -139,7 +140,7 @@ function findMissingAnchor(
 type BaselineRule = Rule & SegmentRule
 
 export function baselineRule(baselineText: string): BaselineRule {
-  const baselineLines = baselineText.split('\n')
+  const baselineLines = normalizeLineEndings(baselineText).split('\n')
   const baselineEntries = parseTimestampLines(baselineLines)
 
   return ((ctx: RuleCtx | SegmentCtx) => {

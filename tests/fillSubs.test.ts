@@ -117,7 +117,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("auto-spans inline payloads to satisfy max CPS", () => {
+  it("adjusts target CPS to fill all slots when possible", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",
     "00:00:01:00\t00:00:02:00\tMarker",
@@ -138,6 +138,36 @@ describe("fillSelectedTimestampLines", () => {
     "00:00:01:00\t00:00:02:00\tMarker",
     "This is twenty chars",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "This is twenty chars",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
+  it("chooses the CPS that fills the most slots without overflow", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+    "00:00:03:00\t00:00:04:00\tMarker",
+  ]
+  const selected = new Set([0, 1, 2, 3])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Too long for four short slots.",
+    { maxChars: 100, inline: true }
+  )
+
+  expect(result.lines).toEqual([
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "Too long for four short slots.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "Too long for four short slots.",
+    "00:00:02:00\t00:00:03:00\tMarker",
+    "Too long for four short slots.",
+    "00:00:03:00\t00:00:04:00\tMarker",
+    "Too long for four short slots.",
   ])
   expect(result.remaining).toBe("")
   })

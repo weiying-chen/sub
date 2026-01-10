@@ -36,6 +36,9 @@ export function fillSelectedTimestampSubs(
     paragraph,
     options
   )
+  if (typeof result.chosenCps === 'number') {
+    console.log('[fillSubs] chosenCps', result.chosenCps.toFixed(2))
+  }
 
   let nextText = result.lines.join('\n')
   if (hasTrailingNewline && !nextText.endsWith('\n')) {

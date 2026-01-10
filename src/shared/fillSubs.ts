@@ -8,9 +8,11 @@ export type FillSubsOptions = {
 export type FillSubsResult = {
   lines: string[]
   remaining: string
+  chosenCps?: number
 }
 
 const DEFAULT_MAX_CHARS = 54
+const MIN_TARGET_CPS = 1
 
 const CONJ_RE = /\b(and|but|or|so|yet|for|nor)\b/i
 const THAT_RE = /\b(that)\b/i
@@ -258,16 +260,20 @@ function isFillableTimestamp(
   return true
 }
 
-function getAutoSpanCount(
+function getSpanForTargetCps(
   lines: string[],
   selectedLineIndices: Set<number>,
   startIndex: number,
-  text: string
-): number {
+  text: string,
+  targetCps: number
+): { count: number; satisfied: boolean } {
   const charCount = text.length
-  if (charCount === 0) return 1
+  if (charCount === 0) return { count: 1, satisfied: true }
+  if (!Number.isFinite(targetCps) || targetCps <= 0) {
+    return { count: 1, satisfied: true }
+  }
 
-  const targetFrames = (charCount * FPS) / MAX_CPS
+  const targetFrames = (charCount * FPS) / targetCps
   let frames = 0
   let count = 0
 
@@ -276,13 +282,151 @@ function getAutoSpanCount(
     if (!isFillableTimestamp(lines, selectedLineIndices, i)) break
 
     const durationFrames = getTimestampDurationFrames(lines[i] ?? '')
-    if (durationFrames == null) break
+    if (durationFrames == null) {
+      return { count: Math.max(1, count + 1), satisfied: true }
+    }
     frames += Math.max(0, durationFrames)
     count += 1
-    if (frames >= targetFrames) break
+    if (frames >= targetFrames) {
+      return { count: Math.max(1, count), satisfied: true }
+    }
   }
 
-  return Math.max(1, count)
+  return { count: Math.max(1, count), satisfied: false }
+}
+
+type FillRunResult = {
+  lines: string[]
+  remaining: string
+  usedSlots: number
+  overflow: boolean
+}
+
+function runInlineFill(
+  lines: string[],
+  selectedLineIndices: Set<number>,
+  paragraph: string,
+  limit: number,
+  targetCps: number,
+  dryRun: boolean
+): FillRunResult {
+  let remaining = normalizeParagraph(paragraph)
+  if (!remaining) {
+    return { lines: dryRun ? [] : [...lines], remaining: '', usedSlots: 0, overflow: false }
+  }
+
+  const outLines: string[] = []
+  let spanText: string | null = null
+  let spanRemaining = 0
+  let usedSlots = 0
+  let overflow = false
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    if (!dryRun) outLines.push(line)
+
+    if (!isFillableTimestamp(lines, selectedLineIndices, i)) {
+      if (isTimestampRow(line)) {
+        spanText = null
+        spanRemaining = 0
+      }
+      continue
+    }
+
+    if (spanRemaining > 0 && spanText) {
+      if (!dryRun) outLines.push(spanText)
+      spanRemaining -= 1
+      usedSlots += 1
+      continue
+    }
+
+    if (!remaining) continue
+
+    const { line: fillLine, rest } = takeLine(remaining, limit)
+    remaining = rest
+
+    if (!fillLine) continue
+    if (!dryRun) outLines.push(fillLine)
+    usedSlots += 1
+
+    const spanInfo = getSpanForTargetCps(
+      lines,
+      selectedLineIndices,
+      i,
+      fillLine,
+      targetCps
+    )
+    if (!spanInfo.satisfied) overflow = true
+    spanText = fillLine
+    spanRemaining = Math.max(0, spanInfo.count - 1)
+  }
+
+  return { lines: outLines, remaining, usedSlots, overflow }
+}
+
+function countFillableSlots(
+  lines: string[],
+  selectedLineIndices: Set<number>
+): number {
+  let count = 0
+  for (let i = 0; i < lines.length; i += 1) {
+    if (isFillableTimestamp(lines, selectedLineIndices, i)) count += 1
+  }
+  return count
+}
+
+function chooseTargetCps(
+  lines: string[],
+  selectedLineIndices: Set<number>,
+  paragraph: string,
+  limit: number
+): number {
+  const maxCps = MAX_CPS
+  const minCps = MIN_TARGET_CPS
+  const totalSlots = countFillableSlots(lines, selectedLineIndices)
+  if (totalSlots === 0) return maxCps
+
+  const runAtMax = runInlineFill(
+    lines,
+    selectedLineIndices,
+    paragraph,
+    limit,
+    maxCps,
+    true
+  )
+  if (runAtMax.overflow) return maxCps
+
+  let low = minCps
+  let high = maxCps
+  let best = maxCps
+  let bestSlots = runAtMax.usedSlots
+
+  if (bestSlots >= totalSlots) return maxCps
+
+  for (let i = 0; i < 24; i += 1) {
+    const mid = (low + high) / 2
+    const run = runInlineFill(
+      lines,
+      selectedLineIndices,
+      paragraph,
+      limit,
+      mid,
+      true
+    )
+    if (run.overflow) {
+      low = mid
+      continue
+    }
+    if (run.usedSlots > bestSlots) {
+      bestSlots = run.usedSlots
+      best = mid
+    } else if (run.usedSlots === bestSlots && mid < best) {
+      best = mid
+    }
+    high = mid
+  }
+
+  return best
 }
 
 export function fillSelectedTimestampLines(
@@ -295,53 +439,27 @@ export function fillSelectedTimestampLines(
   const limit = Math.max(1, maxChars)
   const inline = options.inline ?? true
 
-  let remaining = normalizeParagraph(paragraph)
-  if (!remaining) {
-    return { lines: [...lines], remaining: '' }
+  if (inline) {
+    const targetCps = chooseTargetCps(
+      lines,
+      selectedLineIndices,
+      paragraph,
+      limit
+    )
+    const run = runInlineFill(
+      lines,
+      selectedLineIndices,
+      paragraph,
+      limit,
+      targetCps,
+      false
+    )
+    return { lines: run.lines, remaining: run.remaining, chosenCps: targetCps }
   }
 
-  if (inline) {
-    const outLines: string[] = []
-    let spanText: string | null = null
-    let spanRemaining = 0
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
-      outLines.push(line)
-
-      if (!isFillableTimestamp(lines, selectedLineIndices, i)) {
-        if (isTimestampRow(line)) {
-          spanText = null
-          spanRemaining = 0
-        }
-        continue
-      }
-
-      if (spanRemaining > 0 && spanText) {
-        outLines.push(spanText)
-        spanRemaining -= 1
-        continue
-      }
-
-      if (!remaining) continue
-
-      const { line: fillLine, rest } = takeLine(remaining, limit)
-      remaining = rest
-
-      if (!fillLine) continue
-      outLines.push(fillLine)
-
-      const spanCount = getAutoSpanCount(
-        lines,
-        selectedLineIndices,
-        i,
-        fillLine
-      )
-      spanText = fillLine
-      spanRemaining = Math.max(0, spanCount - 1)
-    }
-
-    return { lines: outLines, remaining }
+  let remaining = normalizeParagraph(paragraph)
+  if (!remaining) {
+    return { lines: [...lines], remaining: '', chosenCps: undefined }
   }
 
   const prependLines: string[] = []
@@ -358,5 +476,5 @@ export function fillSelectedTimestampLines(
     if (fillLine) prependLines.push(fillLine)
   }
 
-  return { lines: [...prependLines, ...lines], remaining }
+  return { lines: [...prependLines, ...lines], remaining, chosenCps: undefined }
 }

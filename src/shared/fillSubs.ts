@@ -112,6 +112,36 @@ function findRightmostPunct(
   return -1
 }
 
+function isListComma(window: string, index: number): boolean {
+  const before = window.slice(0, index)
+  const after = window.slice(index + 1)
+
+  if (/^\s*(and|or|nor)\b/i.test(after) && before.includes(',')) return true
+  if (/,\s*(and|or|nor)\b/i.test(after)) return true
+
+  return false
+}
+
+function findRightmostNonListComma(window: string): number {
+  for (let i = window.length - 1; i >= 0; i--) {
+    if (window[i] !== ',') continue
+
+    const cut = i + 1
+    const left = window.slice(0, cut).trimEnd()
+    const right = window.slice(cut).trimStart()
+    if (!left || !right) continue
+
+    if (isListComma(window, i)) continue
+    return cut
+  }
+  return -1
+}
+
+function isCommaJoinedConjunction(window: string, index: number): boolean {
+  const before = window.slice(0, index).trimEnd()
+  return before.endsWith(',')
+}
+
 function findRightmostConjunctionStart(window: string): number {
   let best = -1
   const re = new RegExp(CONJ_RE.source, 'gi')
@@ -123,6 +153,7 @@ function findRightmostConjunctionStart(window: string): number {
     const prev = window[start - 1] ?? ''
     const next = window[end] ?? ''
     if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
+    if (isCommaJoinedConjunction(window, start)) continue
 
     const left = window.slice(0, start).trimEnd()
     const right = window.slice(start).trimStart()
@@ -178,7 +209,7 @@ function findBestCut(window: string): number {
   const semicolonCut = findRightmostPunct(window, SEMICOLON_PUNCT)
   if (semicolonCut >= 0) return semicolonCut
 
-  const commaCut = findRightmostPunct(window, COMMA_PUNCT)
+  const commaCut = findRightmostNonListComma(window)
   if (commaCut >= 0) return commaCut
 
   const conjCut = findRightmostConjunctionStart(window)

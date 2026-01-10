@@ -141,4 +141,27 @@ describe("fillSelectedTimestampLines", () => {
   ])
   expect(result.remaining).toBe("")
   })
+
+  it("avoids splitting list items at commas", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Let him know that feeling frustrated, sad, or worn out is normal.",
+    { maxChars: 54, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "Let him know",
+    "that feeling frustrated, sad, or worn out is normal.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
 })

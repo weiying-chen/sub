@@ -1,4 +1,4 @@
-import { TIME_RE } from './subtitles'
+import { FPS, MAX_CPS, TIME_RE, parseTimecodeToFrames } from './subtitles'
 
 export type FillSubsOptions = {
   maxChars?: number
@@ -19,12 +19,25 @@ const SEMICOLON_PUNCT = new Set([';'])
 const COMMA_PUNCT = new Set([','])
 const QUOTE_CHARS = new Set(['"'])
 
-function normalizeParagraph(text: string): string {
-  return text.replace(/\r?\n+/g, ' ').replace(/[ \t]+/g, ' ').trim()
+export function normalizeParagraph(text: string): string {
+  return text
+    .replace(/\u2014/g, '---')
+    .replace(/\r?\n+/g, ' ')
+    .replace(/[ \t]+/g, ' ')
+    .trim()
 }
 
 function parseColumns(line: string): string[] {
   return line.split('\t')
+}
+
+function getTimestampDurationFrames(line: string): number | null {
+  const cols = parseColumns(line)
+  const startFrames = parseTimecodeToFrames(cols[0] ?? '')
+  const endFrames = parseTimecodeToFrames(cols[1] ?? '')
+  if (startFrames == null || endFrames == null) return null
+  if (endFrames < startFrames) return null
+  return endFrames - startFrames
 }
 
 function isTimestampRow(line: string): boolean {
@@ -202,6 +215,45 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
   return { line, rest }
 }
 
+function isFillableTimestamp(
+  lines: string[],
+  selectedLineIndices: Set<number>,
+  index: number
+): boolean {
+  if (!selectedLineIndices.has(index)) return false
+  if (!isTimestampRow(lines[index] ?? '')) return false
+  const nextLine = findNextNonEmptyLine(lines, index)
+  if (nextLine != null && !isTimestampRow(nextLine)) return false
+  return true
+}
+
+function getAutoSpanCount(
+  lines: string[],
+  selectedLineIndices: Set<number>,
+  startIndex: number,
+  text: string
+): number {
+  const charCount = text.length
+  if (charCount === 0) return 1
+
+  const targetFrames = (charCount * FPS) / MAX_CPS
+  let frames = 0
+  let count = 0
+
+  for (let i = startIndex; i < lines.length; i++) {
+    if (!isTimestampRow(lines[i] ?? '')) continue
+    if (!isFillableTimestamp(lines, selectedLineIndices, i)) break
+
+    const durationFrames = getTimestampDurationFrames(lines[i] ?? '')
+    if (durationFrames == null) break
+    frames += Math.max(0, durationFrames)
+    count += 1
+    if (frames >= targetFrames) break
+  }
+
+  return Math.max(1, count)
+}
+
 export function fillSelectedTimestampLines(
   lines: string[],
   selectedLineIndices: Set<number>,
@@ -219,23 +271,43 @@ export function fillSelectedTimestampLines(
 
   if (inline) {
     const outLines: string[] = []
+    let spanText: string | null = null
+    let spanRemaining = 0
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
       outLines.push(line)
 
-      if (!selectedLineIndices.has(i)) continue
-      if (!isTimestampRow(line)) continue
+      if (!isFillableTimestamp(lines, selectedLineIndices, i)) {
+        if (isTimestampRow(line)) {
+          spanText = null
+          spanRemaining = 0
+        }
+        continue
+      }
 
-      const nextLine = findNextNonEmptyLine(lines, i)
-      if (nextLine != null && !isTimestampRow(nextLine)) continue
+      if (spanRemaining > 0 && spanText) {
+        outLines.push(spanText)
+        spanRemaining -= 1
+        continue
+      }
 
       if (!remaining) continue
 
       const { line: fillLine, rest } = takeLine(remaining, limit)
       remaining = rest
 
-      if (fillLine) outLines.push(fillLine)
+      if (!fillLine) continue
+      outLines.push(fillLine)
+
+      const spanCount = getAutoSpanCount(
+        lines,
+        selectedLineIndices,
+        i,
+        fillLine
+      )
+      spanText = fillLine
+      spanRemaining = Math.max(0, spanCount - 1)
     }
 
     return { lines: outLines, remaining }
@@ -245,11 +317,7 @@ export function fillSelectedTimestampLines(
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
-    if (!selectedLineIndices.has(i)) continue
-    if (!isTimestampRow(line)) continue
-
-    const nextLine = findNextNonEmptyLine(lines, i)
-    if (nextLine != null && !isTimestampRow(nextLine)) continue
+    if (!isFillableTimestamp(lines, selectedLineIndices, i)) continue
 
     if (!remaining) continue
 

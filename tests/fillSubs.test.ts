@@ -112,4 +112,29 @@ describe("fillSelectedTimestampLines", () => {
   ])
   expect(result.remaining).toBe("")
   })
+
+  it("auto-spans inline payloads to satisfy max CPS", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1, 2])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "This is twenty chars",
+    { maxChars: 100, inline: true }
+  )
+
+  expect(result.lines).toEqual([
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "This is twenty chars",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "This is twenty chars",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
 })

@@ -64,7 +64,9 @@ export default function App() {
 
   const handleFillSubs = useCallback(() => {
     if (!view) return
-    const { remaining } = fillSelectedTimestampSubs(view, extracted)
+    const { remaining } = fillSelectedTimestampSubs(view, extracted, {
+      inline: true,
+    })
     setExtracted(remaining)
   }, [view, extracted])
 

@@ -12,6 +12,7 @@ describe("fillSelectedTimestampLines", () => {
 
   const result = fillSelectedTimestampLines(lines, selected, "One two three four", {
     maxChars: 10,
+    inline: false,
   })
 
   expect(result.lines).toEqual([
@@ -32,7 +33,9 @@ describe("fillSelectedTimestampLines", () => {
   ]
   const selected = new Set([0, 2])
 
-  const result = fillSelectedTimestampLines(lines, selected, "Hello world")
+  const result = fillSelectedTimestampLines(lines, selected, "Hello world", {
+    inline: false,
+  })
 
   expect(result.lines).toEqual([
     "Hello world",
@@ -53,6 +56,7 @@ describe("fillSelectedTimestampLines", () => {
 
   const result = fillSelectedTimestampLines(lines, selected, "One two three", {
     maxChars: 10,
+    inline: false,
   })
 
   expect(result.lines).toEqual([
@@ -76,7 +80,7 @@ describe("fillSelectedTimestampLines", () => {
     lines,
     selected,
     'He said, "hello." Then left.',
-    { maxChars: 18 }
+    { maxChars: 18, inline: false }
   )
 
   expect(result.lines).toEqual([

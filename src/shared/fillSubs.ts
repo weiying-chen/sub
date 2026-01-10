@@ -262,7 +262,7 @@ export function fillSelectedTimestampLines(
 ): FillSubsResult {
   const maxChars = Math.max(1, options.maxChars ?? DEFAULT_MAX_CHARS)
   const limit = Math.max(1, maxChars)
-  const inline = options.inline ?? false
+  const inline = options.inline ?? true
 
   let remaining = normalizeParagraph(paragraph)
   if (!remaining) {

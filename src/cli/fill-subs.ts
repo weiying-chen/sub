@@ -48,8 +48,12 @@ function getClipboardText(): string {
   return ''
 }
 
-function parseArgs(argv: string[]): { inputFile: string; outputFile: string; inline: boolean } {
-  const args = { inputFile: '', outputFile: '', inline: false }
+function parseArgs(argv: string[]): {
+  inputFile: string
+  outputFile: string
+  inline: boolean
+} {
+  const args = { inputFile: '', outputFile: '', inline: true }
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
     if (a === '-i' || a === '--in') {
@@ -64,6 +68,10 @@ function parseArgs(argv: string[]): { inputFile: string; outputFile: string; inl
     }
     if (a === '--inline') {
       args.inline = true
+      continue
+    }
+    if (a === '--no-inline') {
+      args.inline = false
       continue
     }
   }

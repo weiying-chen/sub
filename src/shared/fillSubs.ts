@@ -302,6 +302,72 @@ type FillRunResult = {
   overflow: boolean
 }
 
+function countQuotes(text: string): number {
+  return (text.match(/"/g) ?? []).length
+}
+
+function hasLeadingQuote(text: string): boolean {
+  return /^\s*"/.test(text)
+}
+
+function hasTrailingQuote(text: string): boolean {
+  return /"\s*$/.test(text)
+}
+
+function stripTrailingQuote(text: string): string {
+  let end = text.length
+  while (end > 0 && /\s/.test(text[end - 1])) end -= 1
+  if (end > 0 && text[end - 1] === '"') {
+    return text.slice(0, end - 1) + text.slice(end)
+  }
+  return text
+}
+
+type QuoteMeta = {
+  isOpening: boolean
+  isClosing: boolean
+  isWrapped: boolean
+}
+
+function getQuoteMeta(rawLine: string, quoteOpen: boolean): QuoteMeta {
+  const quoteCount = countQuotes(rawLine)
+  const isOdd = quoteCount % 2 === 1
+  return {
+    isOpening: isOdd && !quoteOpen,
+    isClosing: isOdd && quoteOpen,
+    isWrapped: hasLeadingQuote(rawLine) && hasTrailingQuote(rawLine),
+  }
+}
+
+function applyQuoteCarry(
+  rawLine: string,
+  quoteOpen: boolean,
+  meta: QuoteMeta,
+  isFirstInSpan: boolean,
+  isLastInSpan: boolean
+): { text: string; quoteOpen: boolean } {
+  let text = rawLine
+  const shouldOpen = meta.isOpening || meta.isWrapped
+  const shouldClose = meta.isClosing || meta.isWrapped
+
+  if ((quoteOpen || shouldOpen || shouldClose) && !hasLeadingQuote(text)) {
+    text = `"${text}`
+  }
+
+  if ((quoteOpen || shouldOpen || shouldClose) && !hasTrailingQuote(text)) {
+    text = `${text}"`
+  }
+
+  let nextQuoteOpen = quoteOpen
+  if (shouldOpen && isFirstInSpan) {
+    nextQuoteOpen = true
+  } else if (shouldClose && isLastInSpan) {
+    nextQuoteOpen = false
+  }
+
+  return { text, quoteOpen: nextQuoteOpen }
+}
+
 function runInlineFill(
   lines: string[],
   selectedLineIndices: Set<number>,
@@ -317,9 +383,13 @@ function runInlineFill(
 
   const outLines: string[] = []
   let spanText: string | null = null
+  let spanMeta: QuoteMeta | null = null
+  let spanTotal = 0
+  let spanIndex = 0
   let spanRemaining = 0
   let usedSlots = 0
   let overflow = false
+  let quoteOpen = false
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
@@ -333,8 +403,18 @@ function runInlineFill(
       continue
     }
 
-    if (spanRemaining > 0 && spanText) {
-      if (!dryRun) outLines.push(spanText)
+    if (spanRemaining > 0 && spanText && spanMeta) {
+      spanIndex += 1
+      const isLastInSpan = spanRemaining === 1
+      const carried = applyQuoteCarry(
+        spanText,
+        quoteOpen,
+        spanMeta,
+        false,
+        isLastInSpan
+      )
+      quoteOpen = carried.quoteOpen
+      if (!dryRun) outLines.push(carried.text)
       spanRemaining -= 1
       usedSlots += 1
       continue
@@ -346,7 +426,8 @@ function runInlineFill(
     remaining = rest
 
     if (!fillLine) continue
-    if (!dryRun) outLines.push(fillLine)
+    const quoteMeta = getQuoteMeta(fillLine, quoteOpen)
+    spanMeta = quoteMeta
     usedSlots += 1
 
     const spanInfo = getSpanForTargetCps(
@@ -358,7 +439,18 @@ function runInlineFill(
     )
     if (!spanInfo.satisfied) overflow = true
     spanText = fillLine
-    spanRemaining = Math.max(0, spanInfo.count - 1)
+    spanTotal = Math.max(1, spanInfo.count)
+    spanIndex = 0
+    spanRemaining = Math.max(0, spanTotal - 1)
+    const carried = applyQuoteCarry(
+      fillLine,
+      quoteOpen,
+      quoteMeta,
+      true,
+      spanTotal === 1
+    )
+    quoteOpen = carried.quoteOpen
+    if (!dryRun) outLines.push(carried.text)
   }
 
   return { lines: outLines, remaining, usedSlots, overflow }

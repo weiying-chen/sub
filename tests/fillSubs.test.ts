@@ -194,4 +194,30 @@ describe("fillSelectedTimestampLines", () => {
   ])
   expect(result.remaining).toBe("")
   })
+
+  it("carries quotes across repeated spans", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1, 2])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    '"Hello there."',
+    { maxChars: 100, inline: true }
+  )
+
+  expect(result.lines).toEqual([
+    "00:00:00:00\t00:00:01:00\tMarker",
+    '"Hello there."',
+    "00:00:01:00\t00:00:02:00\tMarker",
+    '"Hello there."',
+    "00:00:02:00\t00:00:03:00\tMarker",
+    '"Hello there."',
+  ])
+  expect(result.remaining).toBe("")
+  })
 })

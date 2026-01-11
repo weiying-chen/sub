@@ -327,6 +327,29 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("be hard at times.")
   })
 
+  it("splits before clause-starting ', and'", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Even so, becoming a father hasn't been easy, and I've had a lot of setbacks.",
+    { maxChars: 50, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "Even so, becoming a father hasn't been easy,",
+    "and I've had a lot of setbacks.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
   it("carries quotes across repeated spans", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

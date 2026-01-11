@@ -16,6 +16,8 @@ const MIN_TARGET_CPS = 10
 const MAX_SPAN_PER_LINE = 3
 
 const CONJ_RE = /\b(and|but|or|so|yet|for|nor)\b/i
+const CLAUSE_START_RE =
+  /^\s*(?:I|you|we|they|he|she|it|this|that|there)\b/i
 const THAT_RE = /\b(that)\b/i
 const COPULAR_RE = /\b(am|is|are|was|were)\b/i
 const COPULAR_VERB_RE =
@@ -145,9 +147,15 @@ function findRightmostNonListComma(window: string, nextText: string): number {
   return -1
 }
 
-function isCommaJoinedConjunction(window: string, index: number): boolean {
+function isCommaJoinedConjunction(
+  window: string,
+  index: number,
+  rest: string
+): boolean {
   const before = window.slice(0, index).trimEnd()
-  return before.endsWith(',')
+  if (!before.endsWith(',')) return false
+  if (CLAUSE_START_RE.test(rest)) return false
+  return true
 }
 
 function findRightmostConjunctionStart(window: string): number {
@@ -161,7 +169,8 @@ function findRightmostConjunctionStart(window: string): number {
     const prev = window[start - 1] ?? ''
     const next = window[end] ?? ''
     if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
-    if (isCommaJoinedConjunction(window, start)) continue
+    const rest = window.slice(end)
+    if (isCommaJoinedConjunction(window, start, rest)) continue
     if (
       m[0].toLowerCase() === 'so' &&
       window.slice(0, start).trimEnd().toLowerCase().endsWith('even')

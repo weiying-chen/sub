@@ -68,6 +68,16 @@ export type NumberStyleMetric = {
   text?: string
 }
 
+export type CapitalizationMetric = {
+  type: 'CAPITALIZATION'
+  lineIndex: number
+  index: number
+  found: string
+  expected: string
+  token: string
+  text?: string
+}
+
 export type PunctuationMetric = {
   type: 'PUNCTUATION'
   lineIndex: number
@@ -108,6 +118,7 @@ export type Metric =
   | MinCpsMetric
   | CPSBalanceMetric
   | NumberStyleMetric
+  | CapitalizationMetric
   | PunctuationMetric
   | BaselineMetric
 

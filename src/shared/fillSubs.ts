@@ -128,14 +128,16 @@ function isListComma(window: string, index: number): boolean {
   return false
 }
 
-function findRightmostNonListComma(window: string): number {
+function findRightmostNonListComma(window: string, nextText: string): number {
   for (let i = window.length - 1; i >= 0; i--) {
     if (window[i] !== ',') continue
 
     const cut = i + 1
     const left = window.slice(0, cut).trimEnd()
     const right = window.slice(cut).trimStart()
-    if (!left || !right) continue
+    const hasNext = nextText.trimStart() !== ''
+    if (!left) continue
+    if (!right && !hasNext) continue
 
     if (isListComma(window, i)) continue
     return cut
@@ -160,6 +162,12 @@ function findRightmostConjunctionStart(window: string): number {
     const next = window[end] ?? ''
     if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
     if (isCommaJoinedConjunction(window, start)) continue
+    if (
+      m[0].toLowerCase() === 'so' &&
+      window.slice(0, start).trimEnd().toLowerCase().endsWith('even')
+    ) {
+      continue
+    }
 
     const left = window.slice(0, start).trimEnd()
     const right = window.slice(start).trimStart()
@@ -238,7 +246,7 @@ function findBestCut(window: string, nextText: string): number {
   const semicolonCut = findRightmostPunct(window, SEMICOLON_PUNCT)
   if (semicolonCut >= 0) return semicolonCut
 
-  const commaCut = findRightmostNonListComma(window)
+  const commaCut = findRightmostNonListComma(window, nextText)
   if (commaCut >= 0) return commaCut
 
   const conjCut = findRightmostConjunctionStart(window)

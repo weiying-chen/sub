@@ -304,6 +304,29 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("avoids splitting 'even so'", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Even so, it can be hard at times.",
+    { maxChars: 8, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "Even so,",
+    "it can",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("be hard at times.")
+  })
+
   it("carries quotes across repeated spans", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

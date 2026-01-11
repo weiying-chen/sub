@@ -411,15 +411,6 @@ function hasTrailingQuote(text: string): boolean {
   return /"\s*$/.test(text)
 }
 
-function stripTrailingQuote(text: string): string {
-  let end = text.length
-  while (end > 0 && /\s/.test(text[end - 1])) end -= 1
-  if (end > 0 && text[end - 1] === '"') {
-    return text.slice(0, end - 1) + text.slice(end)
-  }
-  return text
-}
-
 type QuoteMeta = {
   isOpening: boolean
   isClosing: boolean
@@ -684,7 +675,6 @@ export function fillSelectedTimestampLines(
   const prependLines: string[] = []
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]
     if (!isFillableTimestamp(lines, selectedLineIndices, i)) continue
 
     if (!remaining) continue

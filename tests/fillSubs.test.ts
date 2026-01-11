@@ -172,6 +172,92 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("fills trailing slots with the last line", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+    "00:00:03:00\t00:00:04:00\tMarker",
+    "00:00:04:00\t00:00:05:00\tMarker",
+  ]
+  const selected = new Set([0, 1, 2, 3, 4])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Short line that should not reach the end.",
+    { maxChars: 100, inline: true }
+  )
+
+  expect(result.lines).toEqual([
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "Short line that should not reach the end.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "Short line that should not reach the end.",
+    "00:00:02:00\t00:00:03:00\tMarker",
+    "Short line that should not reach the end.",
+    "00:00:03:00\t00:00:04:00\tMarker",
+    "Short line that should not reach the end.",
+    "00:00:04:00\t00:00:05:00\tMarker",
+    "Short line that should not reach the end.",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
+  it("respects the minimum CPS floor", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1, 2])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Short text.",
+    { maxChars: 100, inline: true }
+  )
+
+  expect(result.chosenCps).toBeGreaterThanOrEqual(10)
+  })
+
+  it("caps the span count per line", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+    "00:00:03:00\t00:00:04:00\tMarker",
+    "00:00:04:00\t00:00:05:00\tMarker",
+    "00:00:05:00\t00:00:06:00\tMarker",
+  ]
+  const selected = new Set([0, 1, 2, 3, 4, 5])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Alpha beta gamma delta epsilon zeta.",
+    { maxChars: 12, inline: true }
+  )
+
+  const payloads = result.lines.filter(
+    (line) => line.trim() !== "" && !/^\d{2}:\d{2}:\d{2}:\d{2}\t/.test(line)
+  )
+  let maxRun = 0
+  let run = 0
+  let last = ""
+  for (const payload of payloads) {
+    if (payload === last) {
+      run += 1
+    } else {
+      run = 1
+      last = payload
+    }
+    if (run > maxRun) maxRun = run
+  }
+  expect(maxRun).toBeLessThanOrEqual(3)
+  })
+
   it("avoids splitting list items at commas", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

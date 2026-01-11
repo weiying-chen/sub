@@ -12,7 +12,8 @@ export type FillSubsResult = {
 }
 
 const DEFAULT_MAX_CHARS = 54
-const MIN_TARGET_CPS = 1
+const MIN_TARGET_CPS = 10
+const MAX_SPAN_PER_LINE = 3
 
 const CONJ_RE = /\b(and|but|or|so|yet|for|nor)\b/i
 const THAT_RE = /\b(that)\b/i
@@ -283,10 +284,15 @@ function getSpanForTargetCps(
 
     const durationFrames = getTimestampDurationFrames(lines[i] ?? '')
     if (durationFrames == null) {
-      return { count: Math.max(1, count + 1), satisfied: true }
+      const nextCount = Math.max(1, count + 1)
+      const cappedCount = Math.min(nextCount, MAX_SPAN_PER_LINE)
+      return { count: cappedCount, satisfied: true }
     }
     frames += Math.max(0, durationFrames)
     count += 1
+    if (count >= MAX_SPAN_PER_LINE) {
+      return { count: MAX_SPAN_PER_LINE, satisfied: frames >= targetFrames }
+    }
     if (frames >= targetFrames) {
       return { count: Math.max(1, count), satisfied: true }
     }
@@ -382,6 +388,7 @@ function runInlineFill(
   }
 
   const outLines: string[] = []
+  const payloads = new Map<number, string>()
   let spanText: string | null = null
   let spanMeta: QuoteMeta | null = null
   let spanTotal = 0
@@ -390,10 +397,11 @@ function runInlineFill(
   let usedSlots = 0
   let overflow = false
   let quoteOpen = false
+  let lastFilledIndex: number | null = null
+  let lastPayload: string | null = null
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
-    if (!dryRun) outLines.push(line)
 
     if (!isFillableTimestamp(lines, selectedLineIndices, i)) {
       if (isTimestampRow(line)) {
@@ -414,7 +422,9 @@ function runInlineFill(
         isLastInSpan
       )
       quoteOpen = carried.quoteOpen
-      if (!dryRun) outLines.push(carried.text)
+      payloads.set(i, carried.text)
+      lastPayload = carried.text
+      lastFilledIndex = i
       spanRemaining -= 1
       usedSlots += 1
       continue
@@ -450,7 +460,27 @@ function runInlineFill(
       spanTotal === 1
     )
     quoteOpen = carried.quoteOpen
-    if (!dryRun) outLines.push(carried.text)
+    payloads.set(i, carried.text)
+    lastPayload = carried.text
+    lastFilledIndex = i
+  }
+
+  if (!dryRun && lastPayload && lastFilledIndex != null) {
+    for (let i = lastFilledIndex + 1; i < lines.length; i += 1) {
+      if (!isFillableTimestamp(lines, selectedLineIndices, i)) continue
+      if (payloads.has(i)) continue
+      payloads.set(i, lastPayload)
+    }
+  }
+
+  if (!dryRun) {
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      outLines.push(line)
+      if (!isFillableTimestamp(lines, selectedLineIndices, i)) continue
+      const payload = payloads.get(i)
+      if (payload) outLines.push(payload)
+    }
   }
 
   return { lines: outLines, remaining, usedSlots, overflow }
@@ -527,6 +557,12 @@ export function fillSelectedTimestampLines(
   paragraph: string,
   options: FillSubsOptions = {}
 ): FillSubsResult {
+  // Inline fill rules:
+  // - Normalize input, split lines with list-aware punctuation.
+  // - Choose target CPS (<= MAX_CPS) via dry-run to fill max slots without overflow.
+  // - Enforce MIN_TARGET_CPS floor and MAX_SPAN_PER_LINE cap.
+  // - Repeat line spans across consecutive slots; tail-fill repeats last line into trailing slots.
+  // - Carry quotes by fully wrapping each repeated line inside quoted spans.
   const maxChars = Math.max(1, options.maxChars ?? DEFAULT_MAX_CHARS)
   const limit = Math.max(1, maxChars)
   const inline = options.inline ?? true

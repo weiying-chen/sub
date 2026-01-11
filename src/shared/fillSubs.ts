@@ -22,6 +22,8 @@ const THAT_RE = /\b(that)\b/i
 const COPULAR_RE = /\b(am|is|are|was|were)\b/i
 const COPULAR_VERB_RE =
   /\b(give|make|take|help|let|get|keep|try|need|want|have)\b/i
+const SENTENCE_VERB_RE =
+  /\b(am|is|are|was|were|be|being|been|have|has|had|do|does|did|can|will|would|should|must)\b/i
 const STRONG_PUNCT = new Set(['.', '?', '!', ':', '\u2014'])
 const SEMICOLON_PUNCT = new Set([';'])
 const COMMA_PUNCT = new Set([','])
@@ -248,7 +250,38 @@ function adjustCutForTrailingQuote(window: string, cut: number): number {
   return i
 }
 
+function startsWithUppercase(text: string): boolean {
+  const trimmed = text.trimStart()
+  if (!trimmed) return false
+  const first = trimmed.startsWith('"') ? trimmed.slice(1).trimStart() : trimmed
+  const ch = first[0]
+  if (!ch) return false
+  return ch >= 'A' && ch <= 'Z'
+}
+
+function hasSentenceVerb(text: string): boolean {
+  return SENTENCE_VERB_RE.test(text)
+}
+
+function findFragmentSentenceCut(window: string, nextText: string): number {
+  for (let i = window.length - 1; i >= 0; i--) {
+    const ch = window[i]
+    if (ch !== '.' && ch !== '!' && ch !== '?') continue
+    const cut = i + 1
+    const left = window.slice(0, cut).trimEnd()
+    const right = (window.slice(cut) + nextText).trimStart()
+    if (!left || !right) continue
+
+    if (startsWithUppercase(left) && hasSentenceVerb(left)) continue
+    if (startsWithUppercase(right)) return cut
+  }
+  return -1
+}
+
 function findBestCut(window: string, nextText: string): number {
+  const fragmentCut = findFragmentSentenceCut(window, nextText)
+  if (fragmentCut >= 0) return fragmentCut
+
   const strongCut = findRightmostStrongPunct(window)
   if (strongCut >= 0) return strongCut
 
@@ -276,6 +309,15 @@ function findBestCut(window: string, nextText: string): number {
 function takeLine(text: string, limit: number): { line: string; rest: string } {
   const s = text.trimStart()
   if (!s) return { line: '', rest: '' }
+
+  const fragmentCut = findFragmentSentenceCut(s, '')
+  if (fragmentCut > 0 && fragmentCut < s.length) {
+    const left = s.slice(0, fragmentCut).trimEnd()
+    const right = s.slice(fragmentCut).trimStart()
+    if (left && right && !/["']\s*$/.test(left) && !/^["']/.test(right)) {
+      return { line: left, rest: right }
+    }
+  }
 
   if (s.length <= limit) {
     return { line: s.trimEnd(), rest: '' }

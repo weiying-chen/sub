@@ -350,6 +350,74 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("splits fragment before a new sentence", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "breather. My wife does this all the time.",
+    { maxChars: 35, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "breather.",
+    "My wife does this all the time.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
+  it("keeps full sentences together on one line", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "It is true. My wife does this all the time.",
+    { maxChars: 60, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "It is true. My wife does this all the time.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
+  it("forces split on fragment + new sentence even under maxChars", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "breather. My wife does this all the time.",
+    { maxChars: 60, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "breather.",
+    "My wife does this all the time.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
   it("carries quotes across repeated spans", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

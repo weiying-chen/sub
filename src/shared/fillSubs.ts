@@ -17,6 +17,9 @@ const MAX_SPAN_PER_LINE = 3
 
 const CONJ_RE = /\b(and|but|or|so|yet|for|nor)\b/i
 const THAT_RE = /\b(that)\b/i
+const COPULAR_RE = /\b(am|is|are|was|were)\b/i
+const COPULAR_VERB_RE =
+  /\b(give|make|take|help|let|get|keep|try|need|want|have)\b/i
 const STRONG_PUNCT = new Set(['.', '?', '!', ':', '\u2014'])
 const SEMICOLON_PUNCT = new Set([';'])
 const COMMA_PUNCT = new Set([','])
@@ -184,6 +187,29 @@ function findRightmostThatStart(window: string): number {
   return best
 }
 
+function findRightmostCopularBreak(window: string, nextText: string): number {
+  let best = -1
+  const re = new RegExp(COPULAR_RE.source, 'gi')
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const end = start + m[0].length
+    const prev = window[start - 1] ?? ''
+    const next = window[end] ?? ''
+    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
+
+    const left = window.slice(0, end).trimEnd()
+    if (!left) continue
+    const tail = (window.slice(end) + nextText).trimStart()
+    if (!tail) continue
+    if (!tail.match(COPULAR_VERB_RE)) continue
+
+    best = end
+  }
+
+  return best
+}
+
 function findRightmostSpace(window: string): number {
   for (let i = window.length - 1; i >= 0; i--) {
     if (window[i] !== ' ') continue
@@ -205,7 +231,7 @@ function adjustCutForTrailingQuote(window: string, cut: number): number {
   return i
 }
 
-function findBestCut(window: string): number {
+function findBestCut(window: string, nextText: string): number {
   const strongCut = findRightmostStrongPunct(window)
   if (strongCut >= 0) return strongCut
 
@@ -220,6 +246,9 @@ function findBestCut(window: string): number {
 
   const thatCut = findRightmostThatStart(window)
   if (thatCut >= 0) return thatCut
+
+  const copularCut = findRightmostCopularBreak(window, nextText)
+  if (copularCut >= 0) return copularCut
 
   const spaceCut = findRightmostSpace(window)
   if (spaceCut >= 0) return spaceCut
@@ -236,7 +265,10 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
   }
 
   const window = s.slice(0, limit)
-  const cut = adjustCutForTrailingQuote(window, findBestCut(window))
+  const cut = adjustCutForTrailingQuote(
+    window,
+    findBestCut(window, s.slice(limit))
+  )
 
   const line = window.slice(0, cut).trimEnd()
   const rest = (window.slice(cut) + s.slice(limit)).trimStart()

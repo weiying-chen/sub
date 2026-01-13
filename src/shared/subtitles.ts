@@ -9,7 +9,7 @@ export const TIME_RE =
   /^(?<h>\d{2}):(?<m>\d{2}):(?<s>\d{2}):(?<f>\d{2})$/
 
 export const TSV_RE =
-  /^(?<start>\d{2}:\d{2}:\d{2}:\d{2})\t+(?<end>\d{2}:\d{2}:\d{2}:\d{2})\t+.*$/
+  /^(?<prefix>.*?)(?<start>\d{2}:\d{2}:\d{2}:\d{2})\t+(?<end>\d{2}:\d{2}:\d{2}:\d{2})\t+.*$/
 
 export function parseTimecodeToFrames(tc: string): number | null {
   const m = tc.trim().match(TIME_RE)
@@ -44,7 +44,7 @@ export function parseTimecodeToFrames(tc: string): number | null {
  * or has no inline text.
  */
 const TSV_INLINE_TEXT_RE =
-  /^(?:\d{2}:\d{2}:\d{2}:\d{2})\t+(?:\d{2}:\d{2}:\d{2}:\d{2})\t+(?<text>.+)$/
+  /^(?:.*?)(?:\d{2}:\d{2}:\d{2}:\d{2})\t+(?:\d{2}:\d{2}:\d{2}:\d{2})\t+(?<text>.+)$/
 
 export function extractInlineSubtitleText(line: string): string | null {
   const m = line.match(TSV_INLINE_TEXT_RE)

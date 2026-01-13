@@ -1,4 +1,4 @@
-import { FPS, MAX_CPS, TIME_RE, parseTimecodeToFrames } from './subtitles'
+import { FPS, MAX_CPS, TSV_RE, parseTimecodeToFrames } from './subtitles'
 
 export type FillSubsOptions = {
   maxChars?: number
@@ -37,26 +37,18 @@ export function normalizeParagraph(text: string): string {
     .trim()
 }
 
-function parseColumns(line: string): string[] {
-  return line.split('\t')
-}
-
 function getTimestampDurationFrames(line: string): number | null {
-  const cols = parseColumns(line)
-  const startFrames = parseTimecodeToFrames(cols[0] ?? '')
-  const endFrames = parseTimecodeToFrames(cols[1] ?? '')
+  const m = line.match(TSV_RE)
+  if (!m?.groups) return null
+  const startFrames = parseTimecodeToFrames(m.groups.start)
+  const endFrames = parseTimecodeToFrames(m.groups.end)
   if (startFrames == null || endFrames == null) return null
   if (endFrames < startFrames) return null
   return endFrames - startFrames
 }
 
 function isTimestampRow(line: string): boolean {
-  const cols = parseColumns(line)
-  return (
-    cols.length >= 3 &&
-    TIME_RE.test(cols[0] ?? '') &&
-    TIME_RE.test(cols[1] ?? '')
-  )
+  return TSV_RE.test(line)
 }
 
 function findNextNonEmptyLine(lines: string[], startIndex: number): string | null {
@@ -264,7 +256,7 @@ function hasSentenceVerb(text: string): boolean {
 }
 
 function findFragmentSentenceCut(window: string, nextText: string): number {
-  for (let i = window.length - 1; i >= 0; i--) {
+  for (let i = 0; i < window.length; i++) {
     const ch = window[i]
     if (ch !== '.' && ch !== '!' && ch !== '?') continue
     const cut = i + 1

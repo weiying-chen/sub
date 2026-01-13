@@ -310,12 +310,14 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
   const s = text.trimStart()
   if (!s) return { line: '', rest: '' }
 
-  const fragmentCut = findFragmentSentenceCut(s, '')
-  if (fragmentCut > 0 && fragmentCut < s.length) {
-    const left = s.slice(0, fragmentCut).trimEnd()
-    const right = s.slice(fragmentCut).trimStart()
-    if (left && right && !/["']\s*$/.test(left) && !/^["']/.test(right)) {
-      return { line: left, rest: right }
+  if (s.length <= limit) {
+    const fragmentCut = findFragmentSentenceCut(s, '')
+    if (fragmentCut > 0 && fragmentCut < s.length) {
+      const left = s.slice(0, fragmentCut).trimEnd()
+      const right = s.slice(fragmentCut).trimStart()
+      if (left && right && !/["']\s*$/.test(left) && !/^["']/.test(right)) {
+        return { line: left, rest: right }
+      }
     }
   }
 

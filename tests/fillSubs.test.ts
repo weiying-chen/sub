@@ -418,6 +418,30 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("respects maxChars when remaining starts lowercase", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+    "00:00:03:00\t00:00:04:00\tMarker",
+  ]
+  const selected = new Set([0, 1, 2])
+
+  const maxChars = 30
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "My dad was always busy, and looking back, we hardly ever really talked. By the time he retired, I was the busy one.",
+    { maxChars, inline: true }
+  )
+
+  const payloads = result.lines.filter(
+    (line) => line.trim() !== "" && !line.includes("\t")
+  )
+  for (const payload of payloads) {
+    expect(payload.length).toBeLessThanOrEqual(maxChars)
+  }
+  })
+
   it("carries quotes across repeated spans", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

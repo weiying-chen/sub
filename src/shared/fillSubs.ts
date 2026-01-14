@@ -15,13 +15,15 @@ const DEFAULT_MAX_CHARS = 54
 const MIN_TARGET_CPS = 10
 const MAX_SPAN_PER_LINE = 3
 
-const CONJ_RE = /\b(and|but|or|so|yet|for|nor)\b/i
+const CONJ_RE = /\b(and|but|or|so|yet|nor)\b/i
 const CLAUSE_START_RE =
   /^\s*(?:I|you|we|they|he|she|it|this|that|there)\b/i
 const THAT_RE = /\b(that)\b/i
 const COPULAR_RE = /\b(am|is|are|was|were)\b/i
 const COPULAR_VERB_RE =
   /\b(give|make|take|help|let|get|keep|try|need|want|have)\b/i
+const COPULAR_CLAUSE_RE =
+  /\b(to|how|why|what|who|where|when|whether|that|if)\b/i
 const SENTENCE_VERB_RE =
   /\b(am|is|are|was|were|be|being|been|have|has|had|do|does|did|can|will|would|should|must)\b/i
 const STRONG_PUNCT = new Set(['.', '?', '!', ':', '\u2014'])
@@ -213,7 +215,9 @@ function findRightmostCopularBreak(window: string, nextText: string): number {
     if (!left) continue
     const tail = (window.slice(end) + nextText).trimStart()
     if (!tail) continue
-    if (!tail.match(COPULAR_VERB_RE)) continue
+    if (!tail.match(COPULAR_VERB_RE) && !tail.match(COPULAR_CLAUSE_RE)) {
+      continue
+    }
 
     best = end
   }
@@ -308,6 +312,15 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       const left = s.slice(0, fragmentCut).trimEnd()
       const right = s.slice(fragmentCut).trimStart()
       if (left && right && !/["']\s*$/.test(left) && !/^["']/.test(right)) {
+        return { line: left, rest: right }
+      }
+    }
+
+    const copularCut = findRightmostCopularBreak(s, '')
+    if (copularCut > 0 && copularCut < s.length) {
+      const left = s.slice(0, copularCut).trimEnd()
+      const right = s.slice(copularCut).trimStart()
+      if (left && right) {
         return { line: left, rest: right }
       }
     }

@@ -533,6 +533,29 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("splits after to-verb phrase before object", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "We don't believe they have to follow the exact same path we did.",
+    { maxChars: 50, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "We don't believe they have to follow",
+    "the exact same path we did.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
   it("carries quotes across repeated spans", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

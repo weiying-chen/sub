@@ -22,8 +22,12 @@ const THAT_RE = /\b(that)\b/i
 const COPULAR_RE = /\b(am|is|are|was|were)\b/i
 const COPULAR_VERB_RE =
   /\b(give|make|take|help|let|get|keep|try|need|want|have)\b/i
+const COPULAR_VERB_START_RE =
+  /^(?:give|make|take|help|let|get|keep|try|need|want|have)\b/i
 const COPULAR_CLAUSE_RE =
   /\b(to|how|why|what|who|where|when|whether|that|if)\b/i
+const COPULAR_CLAUSE_START_RE =
+  /^(?:to|how|why|what|who|where|when|whether|that|if)\b/i
 const SENTENCE_VERB_RE =
   /\b(am|is|are|was|were|be|being|been|have|has|had|do|does|did|can|will|would|should|must)\b/i
 const STRONG_PUNCT = new Set(['.', '?', '!', ':', '\u2014'])
@@ -215,13 +219,47 @@ function findRightmostCopularBreak(window: string, nextText: string): number {
     if (!left) continue
     const tail = (window.slice(end) + nextText).trimStart()
     if (!tail) continue
-    if (!tail.match(COPULAR_VERB_RE) && !tail.match(COPULAR_CLAUSE_RE)) {
+    if (
+      !COPULAR_VERB_START_RE.test(tail) &&
+      !COPULAR_CLAUSE_START_RE.test(tail)
+    ) {
       continue
     }
 
     best = end
   }
 
+  return best
+}
+
+function startsWithCopularClause(text: string): boolean {
+  const trimmed = text.trimStart()
+  if (!trimmed) return false
+  return COPULAR_CLAUSE_START_RE.test(trimmed) || CLAUSE_START_RE.test(trimmed)
+}
+
+function findRightmostCopularLead(window: string, nextText: string): number {
+  let best = -1
+  const re = new RegExp(COPULAR_RE.source, 'gi')
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const end = start + m[0].length
+    const prev = window[start - 1] ?? ''
+    const next = window[end] ?? ''
+    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
+
+    const left = window.slice(0, start).trimEnd()
+    if (!left) continue
+    if (left.includes(',')) continue
+    const wordCount = left.split(/\s+/).filter(Boolean).length
+    if (wordCount < 3) continue
+    const tail = (window.slice(end) + nextText).trimStart()
+    if (!tail) continue
+    if (startsWithCopularClause(tail)) continue
+
+    best = start
+  }
   return best
 }
 
@@ -296,6 +334,9 @@ function findBestCut(window: string, nextText: string): number {
   const copularCut = findRightmostCopularBreak(window, nextText)
   if (copularCut >= 0) return copularCut
 
+  const copularLeadCut = findRightmostCopularLead(window, nextText)
+  if (copularLeadCut >= 0) return copularLeadCut
+
   const spaceCut = findRightmostSpace(window)
   if (spaceCut >= 0) return spaceCut
 
@@ -320,6 +361,15 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
     if (copularCut > 0 && copularCut < s.length) {
       const left = s.slice(0, copularCut).trimEnd()
       const right = s.slice(copularCut).trimStart()
+      if (left && right) {
+        return { line: left, rest: right }
+      }
+    }
+
+    const copularLeadCut = findRightmostCopularLead(s, '')
+    if (copularLeadCut > 0 && copularLeadCut < s.length) {
+      const left = s.slice(0, copularLeadCut).trimEnd()
+      const right = s.slice(copularLeadCut).trimStart()
       if (left && right) {
         return { line: left, rest: right }
       }

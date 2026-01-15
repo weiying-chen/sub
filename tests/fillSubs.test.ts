@@ -336,12 +336,12 @@ describe("fillSelectedTimestampLines", () => {
   const result = fillSelectedTimestampLines(
     lines,
     selected,
-    "Even so, becoming a father hasn't been easy, and I've had a lot of setbacks.",
+    "Even so, becoming a caregiver hasn't been easy, and I've had a lot of setbacks.",
     { maxChars: 50, inline: false }
   )
 
   expect(result.lines).toEqual([
-    "Even so, becoming a father hasn't been easy,",
+    "Even so, becoming a caregiver hasn't been easy,",
     "and I've had a lot of setbacks.",
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -429,7 +429,7 @@ describe("fillSelectedTimestampLines", () => {
   const result = fillSelectedTimestampLines(
     lines,
     selected,
-    "My dad was always busy, and looking back, we hardly ever really talked. By the time he retired, I was the busy one.",
+    "Our manager was always busy, and looking back, we hardly ever really talked. By the time he retired, I was the busy one.",
     { maxChars, inline: true }
   )
 
@@ -451,13 +451,13 @@ describe("fillSelectedTimestampLines", () => {
   const result = fillSelectedTimestampLines(
     lines,
     selected,
-    "and that chance was gone. He later developed dementia.",
+    "and that chance was gone. He later moved away.",
     { maxChars: 54, inline: false }
   )
 
   expect(result.lines).toEqual([
     "and that chance was gone.",
-    "He later developed dementia.",
+    "He later moved away.",
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
   ])
@@ -565,12 +565,12 @@ describe("fillSelectedTimestampLines", () => {
   const result = fillSelectedTimestampLines(
     lines,
     selected,
-    "I've been teaching at Dalin Tzu Chi Hospital since it was founded.",
+    "I've been working at the lab since it was founded.",
     { maxChars: 50, inline: false }
   )
 
   expect(result.lines).toEqual([
-    "I've been teaching at Dalin Tzu Chi Hospital",
+    "I've been working at the lab",
     "since it was founded.",
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",

@@ -30,6 +30,8 @@ const COPULAR_CLAUSE_START_RE =
   /^(?:to|how|why|what|who|where|when|whether|that|if)\b/i
 const DET_RE =
   /^(?:the|a|an|this|that|these|those|my|your|his|her|our|their)\b/i
+const CLAUSE_STARTER_RE =
+  /^(?:because|since|as|although|though|while|if|when)\b/i
 const TO_VERB_HELPER_RE =
   /\b(?:have|has|had|need|needs|want|wants|wanted|going)\s+to\s+[A-Za-z]+$/i
 const SENTENCE_VERB_RE =
@@ -330,6 +332,28 @@ function findRightmostToVerbObjectBreak(window: string, nextText: string): numbe
   return -1
 }
 
+function findRightmostClauseStarterLead(window: string, nextText: string): number {
+  const re = /\b(?:because|since|as|although|though|while|if|when)\b/gi
+  let best = -1
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const end = start + m[0].length
+    const prev = window[start - 1] ?? ''
+    const next = window[end] ?? ''
+    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
+
+    const left = window.slice(0, start).trimEnd()
+    if (!left) continue
+    const right = (window.slice(start) + nextText).trimStart()
+    if (!right) continue
+    if (!CLAUSE_STARTER_RE.test(right)) continue
+
+    best = start
+  }
+  return best
+}
+
 function findBestCut(window: string, nextText: string): number {
   const fragmentCut = findFragmentSentenceCut(window, nextText)
   if (fragmentCut >= 0) return fragmentCut
@@ -357,6 +381,9 @@ function findBestCut(window: string, nextText: string): number {
 
   const toVerbCut = findRightmostToVerbObjectBreak(window, nextText)
   if (toVerbCut >= 0) return toVerbCut
+
+  const clauseLeadCut = findRightmostClauseStarterLead(window, nextText)
+  if (clauseLeadCut >= 0) return clauseLeadCut
 
   const spaceCut = findRightmostSpace(window)
   if (spaceCut >= 0) return spaceCut
@@ -400,6 +427,15 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
     if (toVerbCut > 0 && toVerbCut < s.length) {
       const left = s.slice(0, toVerbCut).trimEnd()
       const right = s.slice(toVerbCut).trimStart()
+      if (left && right) {
+        return { line: left, rest: right }
+      }
+    }
+
+    const clauseLeadCut = findRightmostClauseStarterLead(s, '')
+    if (clauseLeadCut > 0 && clauseLeadCut < s.length) {
+      const left = s.slice(0, clauseLeadCut).trimEnd()
+      const right = s.slice(clauseLeadCut).trimStart()
       if (left && right) {
         return { line: left, rest: right }
       }

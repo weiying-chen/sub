@@ -145,12 +145,6 @@ function findRightmostNonListComma(window: string, nextText: string): number {
     if (!left) continue
     if (!right && !hasNext) continue
 
-    const leftWords = left.split(/\s+/).filter(Boolean)
-    if (leftWords.length < 3) {
-      const leftLead = left.replace(/,\s*$/, '').toLowerCase()
-      if (leftLead !== 'even so') continue
-    }
-
     if (isListComma(window, i)) continue
     return cut
   }

@@ -280,29 +280,6 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("avoids splitting after short comma lead-ins", () => {
-  const lines = [
-    "00:00:01:00\t00:00:02:00\tMarker",
-    "00:00:02:00\t00:00:03:00\tMarker",
-  ]
-  const selected = new Set([0, 1])
-
-  const result = fillSelectedTimestampLines(
-    lines,
-    selected,
-    "At most, we guide the aim toward what we believe is right.",
-    { maxChars: 33, inline: false }
-  )
-
-  const payloads = result.lines.filter(
-    (line) => line.trim() !== "" && !line.includes("\t")
-  )
-  expect(payloads[0]?.startsWith("At most,")).toBe(true)
-  expect(payloads[0]).not.toBe("At most,")
-  expect(payloads[0]).toContain("we")
-  expect(payloads[1]).toBeTruthy()
-  })
-
   it("prefers breaking before copular verb phrases", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

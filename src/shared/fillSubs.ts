@@ -376,6 +376,9 @@ function findBestCut(window: string, nextText: string): number {
   const thatCut = findRightmostThatStart(window)
   if (thatCut >= 0) return thatCut
 
+  const clauseLeadCut = findRightmostClauseStarterLead(window, nextText)
+  if (clauseLeadCut >= 0) return clauseLeadCut
+
   const copularCut = findRightmostCopularBreak(window, nextText)
   if (copularCut >= 0) return copularCut
 
@@ -384,9 +387,6 @@ function findBestCut(window: string, nextText: string): number {
 
   const toVerbCut = findRightmostToVerbObjectBreak(window, nextText)
   if (toVerbCut >= 0) return toVerbCut
-
-  const clauseLeadCut = findRightmostClauseStarterLead(window, nextText)
-  if (clauseLeadCut >= 0) return clauseLeadCut
 
   const spaceCut = findRightmostSpace(window)
   if (spaceCut >= 0) return spaceCut
@@ -408,24 +408,6 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       }
     }
 
-    const copularCut = findRightmostCopularBreak(s, '')
-    if (copularCut > 0 && copularCut < s.length) {
-      const left = s.slice(0, copularCut).trimEnd()
-      const right = s.slice(copularCut).trimStart()
-      if (left && right) {
-        return { line: left, rest: right }
-      }
-    }
-
-    const copularLeadCut = findRightmostCopularLead(s, '')
-    if (copularLeadCut > 0 && copularLeadCut < s.length) {
-      const left = s.slice(0, copularLeadCut).trimEnd()
-      const right = s.slice(copularLeadCut).trimStart()
-      if (left && right) {
-        return { line: left, rest: right }
-      }
-    }
-
     const toVerbCut = findRightmostToVerbObjectBreak(s, '')
     if (toVerbCut > 0 && toVerbCut < s.length) {
       const left = s.slice(0, toVerbCut).trimEnd()
@@ -439,6 +421,24 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
     if (clauseLeadCut > 0 && clauseLeadCut < s.length) {
       const left = s.slice(0, clauseLeadCut).trimEnd()
       const right = s.slice(clauseLeadCut).trimStart()
+      if (left && right) {
+        return { line: left, rest: right }
+      }
+    }
+
+    const copularCut = findRightmostCopularBreak(s, '')
+    if (copularCut > 0 && copularCut < s.length) {
+      const left = s.slice(0, copularCut).trimEnd()
+      const right = s.slice(copularCut).trimStart()
+      if (left && right) {
+        return { line: left, rest: right }
+      }
+    }
+
+    const copularLeadCut = findRightmostCopularLead(s, '')
+    if (copularLeadCut > 0 && copularLeadCut < s.length) {
+      const left = s.slice(0, copularLeadCut).trimEnd()
+      const right = s.slice(copularLeadCut).trimStart()
       if (left && right) {
         return { line: left, rest: right }
       }

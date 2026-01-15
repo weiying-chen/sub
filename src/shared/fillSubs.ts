@@ -32,6 +32,8 @@ const DET_RE =
   /^(?:the|a|an|this|that|these|those|my|your|his|her|our|their)\b/i
 const CLAUSE_STARTER_RE =
   /^(?:because|since|as|although|though|while|if|when)\b/i
+const CLAUSE_STARTER_ANY_RE =
+  /\b(?:because|since|as|although|though|while|if|when)\b/i
 const TO_VERB_HELPER_RE =
   /\b(?:have|has|had|need|needs|want|wants|wanted|going)\s+to\s+[A-Za-z]+$/i
 const SENTENCE_VERB_RE =
@@ -257,6 +259,7 @@ function findRightmostCopularLead(window: string, nextText: string): number {
 
     const left = window.slice(0, start).trimEnd()
     if (!left) continue
+    if (CLAUSE_STARTER_ANY_RE.test(left)) continue
     if (left.includes(',')) continue
     const wordCount = left.split(/\s+/).filter(Boolean).length
     if (wordCount < 3) continue

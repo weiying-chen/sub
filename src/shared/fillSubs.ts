@@ -46,6 +46,8 @@ const QUOTE_CHARS = new Set(['"'])
 export function normalizeParagraph(text: string): string {
   return text
     .replace(/\u2014/g, '---')
+    .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
     .replace(/\r?\n+/g, ' ')
     .replace(/[ \t]+/g, ' ')
     .trim()

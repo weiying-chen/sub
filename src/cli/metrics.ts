@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
 
 import { analyzeTextByType } from '../analysis/analyzeTextByType'
 import { capitalizationRule } from '../analysis/capitalizationRule'
@@ -6,7 +7,7 @@ import { defaultSegmentRules } from '../analysis/defaultRules'
 import { maxCharsRule } from '../analysis/maxCharsRule'
 import { numberStyleRule } from '../analysis/numberStyleRule'
 import { punctuationRuleWithOptions } from '../analysis/punctuationRule'
-import type { Metric } from '../analysis/types'
+import type { Metric, Finding } from '../analysis/types'
 import { getFindings } from '../shared/findings'
 
 type MetricsArgs = {
@@ -14,6 +15,12 @@ type MetricsArgs = {
   type: 'subs' | 'news'
   ruleFilters: string[]
   findingsOnly: boolean
+}
+
+export type MetricsOptions = {
+  type: 'subs' | 'news'
+  ruleFilters?: string[]
+  findingsOnly?: boolean
 }
 
 const PROPER_NOUNS_PATH = 'punctuation-proper-nouns.txt'
@@ -106,24 +113,41 @@ async function buildRules(type: 'subs' | 'news') {
   ]
 }
 
-const args = parseArgs(process.argv.slice(2))
+export async function buildMetricsOutput(
+  text: string,
+  options: MetricsOptions
+): Promise<Metric[] | Finding[]> {
+  const rules = await buildRules(options.type)
+  const metrics = analyzeTextByType(text, options.type, rules)
+  const output = options.findingsOnly ? getFindings(metrics) : metrics
+  const filters = options.ruleFilters ?? []
 
-if (!args.filePath) {
-  printUsage()
-  process.exit(1)
+  if (filters.length === 0) {
+    return output
+  }
+
+  return output.filter((metric) => filters.includes(metric.type))
 }
 
-const text = await readFile(args.filePath, 'utf8')
-const rules = await buildRules(args.type)
-const metrics = analyzeTextByType(text, args.type, rules)
+async function runCli() {
+  const args = parseArgs(process.argv.slice(2))
 
-const output: Metric[] | ReturnType<typeof getFindings> = args.findingsOnly
-  ? getFindings(metrics)
-  : metrics
+  if (!args.filePath) {
+    printUsage()
+    process.exit(1)
+  }
 
-const filtered =
-  args.ruleFilters.length === 0
-    ? output
-    : output.filter((metric) => args.ruleFilters.includes(metric.type))
+  const text = await readFile(args.filePath, 'utf8')
+  const output = await buildMetricsOutput(text, {
+    type: args.type,
+    ruleFilters: args.ruleFilters,
+    findingsOnly: args.findingsOnly,
+  })
 
-console.log(JSON.stringify(filtered, null, 2))
+  console.log(JSON.stringify(output, null, 2))
+}
+
+const isCli = process.argv[1] === fileURLToPath(import.meta.url)
+if (isCli) {
+  await runCli()
+}

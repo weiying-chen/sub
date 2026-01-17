@@ -38,25 +38,42 @@ describe("parseSubs", () => {
 })
 
 describe("parseNews", () => {
-  it("coalesces paragraphs into single segments", () => {
+  it("tags VO/SUPER blocks and ignores non-content lines", () => {
     const text = [
-      "VO:",
+      "1_0001",
+      "中文內容。",
       "First sentence.",
-      "Second sentence.",
       "",
-      "SOT:",
-      "Another paragraph.",
+      "/*SUPER:",
+      "字幕中文。",
+      "*/",
+      "Super line one.",
+      "Super line two.",
       "",
-      "",
-      "Trailing.",
+      "Trailing VO line.",
     ].join("\n")
 
     const segments = parseNews(text)
 
     expect(segments).toMatchObject([
-      { lineIndex: 0, text: "VO: First sentence. Second sentence." },
-      { lineIndex: 4, text: "SOT: Another paragraph." },
-      { lineIndex: 8, text: "Trailing." },
+      {
+        lineIndex: 2,
+        lineIndexEnd: 2,
+        text: "First sentence.",
+        blockType: "vo",
+      },
+      {
+        lineIndex: 7,
+        lineIndexEnd: 8,
+        text: "Super line one. Super line two.",
+        blockType: "super",
+      },
+      {
+        lineIndex: 10,
+        lineIndexEnd: 10,
+        text: "Trailing VO line.",
+        blockType: "vo",
+      },
     ])
   })
 })

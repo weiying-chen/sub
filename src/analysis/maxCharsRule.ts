@@ -10,6 +10,15 @@ function getTextAndAnchor(
 ): { text: string; anchorIndex: number } | null {
   if ('segment' in ctx) {
     const seg = ctx.segment as Segment
+    if (seg.blockType === 'vo') return null
+    if (seg.blockType === 'super') {
+      const candidates = seg.candidateLines?.length
+        ? seg.candidateLines
+        : [{ lineIndex: seg.lineIndex, text: seg.text }]
+      const first = candidates.find((candidate) => candidate.text.trim() !== '')
+      if (!first) return null
+      return { text: first.text, anchorIndex: first.lineIndex }
+    }
     if (
       typeof seg.startFrames !== 'number' ||
       typeof seg.endFrames !== 'number'
@@ -43,6 +52,23 @@ export const maxCharsRule = (maxChars: number): MaxCharsRule => {
   return ((ctx: RuleCtx | SegmentCtx) => {
     const extracted = getTextAndAnchor(ctx)
     if (!extracted) return []
+
+    if ('segment' in ctx && ctx.segment.blockType === 'super') {
+      const candidates = ctx.segment.candidateLines?.length
+        ? ctx.segment.candidateLines
+        : [{ lineIndex: extracted.anchorIndex, text: extracted.text }]
+      return candidates
+        .filter((candidate) => candidate.text.trim() !== '')
+        .map(
+          (candidate): MaxCharsMetric => ({
+            type: 'MAX_CHARS',
+            lineIndex: candidate.lineIndex,
+            text: candidate.text,
+            maxAllowed: maxChars,
+            actual: candidate.text.length,
+          })
+        )
+    }
 
     const metric: MaxCharsMetric = {
       type: 'MAX_CHARS',

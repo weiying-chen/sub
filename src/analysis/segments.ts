@@ -12,6 +12,7 @@ export type Segment = {
   lineIndex: number
   lineIndexEnd?: number
   text: string
+  blockType?: 'vo' | 'super'
   tsIndex?: number
   payloadIndex?: number
   startFrames?: number
@@ -117,44 +118,93 @@ export function parseNews(text: string): Segment[] {
   const lines = text.split('\n')
   const segments: Segment[] = []
 
-  let startIndex: number | null = null
-  let endIndex: number | null = null
-  let buffer: string[] = []
+  let buffer: CandidateLine[] = []
+  let bufferText: string[] = []
+  let currentBlock: Segment['blockType'] | null = null
+  let inComment = false
+  let inSuperComment = false
+  let superActive = false
+
+  const flush = () => {
+    if (!currentBlock || buffer.length === 0) {
+      buffer = []
+      bufferText = []
+      currentBlock = null
+      return
+    }
+
+    const lineIndex = buffer[0].lineIndex
+    const lineIndexEnd = buffer[buffer.length - 1].lineIndex
+    segments.push({
+      lineIndex,
+      lineIndexEnd,
+      text: bufferText.join(' '),
+      candidateLines: buffer,
+      blockType: currentBlock,
+    })
+    buffer = []
+    bufferText = []
+    currentBlock = null
+  }
 
   for (let i = 0; i < lines.length; i += 1) {
     const raw = lines[i]
     const trimmed = raw.trim()
 
-    if (trimmed === '') {
-      if (buffer.length > 0 && startIndex != null) {
-        segments.push({
-          lineIndex: startIndex,
-          lineIndexEnd: endIndex ?? startIndex,
-          text: buffer.join(' '),
-          candidateLines: getCandidateLines(lines, startIndex, endIndex),
-        })
-        buffer = []
-        startIndex = null
-        endIndex = null
+    const isSuperStart = trimmed.startsWith('/*SUPER')
+    const isCommentStart = trimmed.startsWith('/*')
+    const isCommentEnd = trimmed.includes('*/')
+
+    if (isCommentStart) {
+      flush()
+      inComment = true
+      inSuperComment = isSuperStart
+      if (isCommentEnd) {
+        inComment = false
+        if (inSuperComment) superActive = true
+        inSuperComment = false
       }
       continue
     }
 
-    if (startIndex == null) startIndex = i
-    endIndex = i
-    buffer.push(trimmed)
+    if (inComment) {
+      if (isCommentEnd) {
+        inComment = false
+        if (inSuperComment) superActive = true
+        inSuperComment = false
+      }
+      continue
+    }
+
+    if (trimmed === '' || isNewsLabel(trimmed)) {
+      flush()
+      superActive = false
+      continue
+    }
+
+    if (!isEnglishLikeLine(raw)) {
+      flush()
+      superActive = false
+      continue
+    }
+
+    const blockType: Segment['blockType'] = superActive ? 'super' : 'vo'
+    if (currentBlock && currentBlock !== blockType) {
+      flush()
+    }
+
+    currentBlock = blockType
+    buffer.push({ lineIndex: i, text: raw })
+    bufferText.push(trimmed)
   }
 
-  if (buffer.length > 0 && startIndex != null) {
-    segments.push({
-      lineIndex: startIndex,
-      lineIndexEnd: endIndex ?? startIndex,
-      text: buffer.join(' '),
-      candidateLines: getCandidateLines(lines, startIndex, endIndex),
-    })
-  }
+  flush()
 
   return segments
+}
+
+function isNewsLabel(text: string): boolean {
+  return /^[A-Z]{2,5}:$/.test(text)
 }
 
 function isEnglishLikeLine(text: string): boolean {
@@ -168,21 +218,4 @@ function isEnglishLikeLine(text: string): boolean {
 
   const letters = text.match(/[A-Za-z]/g)
   return (letters?.length ?? 0) >= 3
-}
-
-function getCandidateLines(
-  lines: string[],
-  startIndex: number,
-  endIndex: number | null
-): CandidateLine[] {
-  if (endIndex == null) return []
-  const candidates: CandidateLine[] = []
-
-  for (let i = startIndex; i <= endIndex; i += 1) {
-    const line = lines[i] ?? ''
-    if (!isEnglishLikeLine(line)) continue
-    candidates.push({ lineIndex: i, text: line })
-  }
-
-  return candidates
 }

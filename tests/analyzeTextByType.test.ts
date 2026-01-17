@@ -42,7 +42,7 @@ describe("analyzeTextByType", () => {
     expect(byToken.get("eleven")?.lineIndex).toBe(3)
   })
 
-  it("uses news parsing (paragraph anchors)", () => {
+  it("uses news parsing (VO lines as candidates)", () => {
     const text = [
       "VO:",
       "We saw 5 birds.",

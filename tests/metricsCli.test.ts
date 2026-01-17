@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest"
 
 import type { Metric } from "../src/analysis/types"
-import { buildMetricsOutput } from "../src/cli/metrics"
+import { buildMetricsOutput } from "../src/cli/metricsCore"
 
 describe("metrics CLI output", () => {
   it("returns MAX_CHARS metrics for news SUPER lines", async () => {

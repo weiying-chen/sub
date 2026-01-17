@@ -17,7 +17,7 @@ export type Segment = {
   payloadIndex?: number
   startFrames?: number
   endFrames?: number
-  candidateLines?: CandidateLine[]
+  targetLines?: CandidateLine[]
 }
 
 export type SegmentCtx = {
@@ -68,7 +68,7 @@ export function parseSubs(text: string): Segment[] {
   for (let i = 0; i < lines.length; i += 1) {
     const block = parseBlockAt(src, i)
     if (!block) continue
-    const candidateLines = isEnglishLikeLine(block.payloadText)
+    const targetLines = isEnglishLikeLine(block.payloadText)
       ? [{ lineIndex: block.payloadIndex, text: block.payloadText }]
       : []
     segments.push({
@@ -79,7 +79,7 @@ export function parseSubs(text: string): Segment[] {
       payloadIndex: block.payloadIndex,
       startFrames: block.startFrames,
       endFrames: block.endFrames,
-      candidateLines,
+      targetLines,
     })
     payloadIndices.add(block.payloadIndex)
   }
@@ -100,14 +100,14 @@ export function parseSubs(text: string): Segment[] {
     if (TSV_RE.test(line)) continue
     if (payloadIndices.has(i)) continue
 
-    const candidateLines = isEnglishLikeLine(line)
+    const targetLines = isEnglishLikeLine(line)
       ? [{ lineIndex: i, text: line }]
       : []
     segments.push({
       lineIndex: i,
       lineIndexEnd: i,
       text: line,
-      candidateLines,
+      targetLines,
     })
   }
 
@@ -139,7 +139,7 @@ export function parseNews(text: string): Segment[] {
       lineIndex,
       lineIndexEnd,
       text: bufferText.join(' '),
-      candidateLines: buffer,
+      targetLines: buffer,
       blockType: currentBlock,
     })
     buffer = []

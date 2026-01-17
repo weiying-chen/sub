@@ -56,8 +56,8 @@ function collectMetrics(
 
 export function capitalizationRule(): CapitalizationRule {
   return ((ctx: RuleCtx | SegmentCtx) => {
-    if ('segment' in ctx && ctx.segment.candidateLines) {
-      const candidates = ctx.segment.candidateLines
+    if ('segment' in ctx && ctx.segment.targetLines) {
+      const candidates = ctx.segment.targetLines
       if (candidates.length === 0) return []
       return candidates.flatMap((candidate) =>
         collectMetrics(candidate.text, candidate.lineIndex, candidate.text)

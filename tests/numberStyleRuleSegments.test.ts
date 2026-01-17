@@ -18,7 +18,7 @@ describe("numberStyleRule (segments)", () => {
       { lineIndex: 17, text: "About 10,000 people attended." },
     ].map((segment) => ({
       ...segment,
-      candidateLines: [
+      targetLines: [
         { lineIndex: segment.lineIndex, text: segment.text },
       ],
     }))
@@ -43,9 +43,9 @@ describe("numberStyleRule (segments)", () => {
 
   it("ignores non-English text blocks", () => {
     const segments = [
-      { lineIndex: 0, text: "（ 11/16~17 ）", candidateLines: [] },
-      { lineIndex: 1, text: "62歲的雪麗塔希望視力更清晰。", candidateLines: [] },
-      { lineIndex: 2, text: "（ 13 Roberto ）", candidateLines: [] },
+      { lineIndex: 0, text: "（ 11/16~17 ）", targetLines: [] },
+      { lineIndex: 1, text: "62歲的雪麗塔希望視力更清晰。", targetLines: [] },
+      { lineIndex: 2, text: "（ 13 Roberto ）", targetLines: [] },
     ]
 
     const metrics = analyzeSegments(segments, [numberStyleRule()])
@@ -59,7 +59,7 @@ describe("numberStyleRule (segments)", () => {
       { lineIndex: 1, text: "She is a twelve year old student." },
     ].map((segment) => ({
       ...segment,
-      candidateLines: [
+      targetLines: [
         { lineIndex: segment.lineIndex, text: segment.text },
       ],
     }))

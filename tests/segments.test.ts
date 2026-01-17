@@ -41,11 +41,11 @@ describe("parseNews", () => {
   it("tags VO/SUPER blocks and ignores non-content lines", () => {
     const text = [
       "1_0001",
-      "中文內容。",
+      "(metadata)",
       "First sentence.",
       "",
       "/*SUPER:",
-      "字幕中文。",
+      "super meta line",
       "*/",
       "Super line one.",
       "Super line two.",

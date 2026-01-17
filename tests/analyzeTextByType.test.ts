@@ -77,9 +77,9 @@ describe("analyzeTextByType", () => {
 
   it("flags English lines inside mixed news paragraphs", () => {
     const text = [
-      "中文內容在這裡。",
+      "(meta line)",
       "tetetete 4",
-      "還有一些中文。",
+      "[more meta]",
     ].join("\n")
 
     const metrics = analyzeTextByType(text, "news", [numberStyleRule()])

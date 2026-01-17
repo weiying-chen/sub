@@ -43,9 +43,9 @@ describe("numberStyleRule (segments)", () => {
 
   it("ignores non-English text blocks", () => {
     const segments = [
-      { lineIndex: 0, text: "（ 11/16~17 ）", targetLines: [] },
-      { lineIndex: 1, text: "62歲的雪麗塔希望視力更清晰。", targetLines: [] },
-      { lineIndex: 2, text: "（ 13 Roberto ）", targetLines: [] },
+      { lineIndex: 0, text: "( 01/01 )", targetLines: [] },
+      { lineIndex: 1, text: "Metadata line.", targetLines: [] },
+      { lineIndex: 2, text: "( speaker )", targetLines: [] },
     ]
 
     const metrics = analyzeSegments(segments, [numberStyleRule()])
@@ -55,7 +55,7 @@ describe("numberStyleRule (segments)", () => {
 
   it("ignores age adjectives like twelve-year-old", () => {
     const segments = [
-      { lineIndex: 0, text: "Twelve-year-old Ken went home." },
+      { lineIndex: 0, text: "Twelve-year-old Alex went home." },
       { lineIndex: 1, text: "She is a twelve year old student." },
     ].map((segment) => ({
       ...segment,

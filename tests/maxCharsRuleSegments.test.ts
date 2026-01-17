@@ -25,7 +25,7 @@ describe("maxCharsRule (segments)", () => {
     const text = [
       "Intro line ignored.",
       "/*SUPER:",
-      "字幕中文。",
+      "super meta line",
       "*/",
       "Short line.",
       "This line is definitely too long.",

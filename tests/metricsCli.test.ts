@@ -44,4 +44,19 @@ describe("metrics CLI output", () => {
     ])
     expect(output.map((metric) => metric.lineIndex)).toEqual([1, 3])
   })
+
+  it("returns findings only when requested", async () => {
+    const text = [
+      "00:00:01:00\t00:00:03:00\tMarker",
+      "Hi",
+    ].join("\n")
+
+    const output = (await buildMetricsOutput(text, {
+      type: "subs",
+      findingsOnly: true,
+    })) as Metric[]
+
+    expect(output.some((metric) => metric.type === "CPS")).toBe(false)
+    expect(output.some((metric) => metric.type === "MIN_CPS")).toBe(true)
+  })
 })

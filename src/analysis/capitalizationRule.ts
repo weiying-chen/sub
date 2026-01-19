@@ -35,20 +35,23 @@ function collectMetrics(
   fullText?: string
 ): CapitalizationMetric[] {
   const metrics: CapitalizationMetric[] = []
-  const re = /\bindigenous\b/g
-  let match: RegExpExecArray | null = null
+  const rules = [/\bindigenous\b/g, /\bbodhisattvas?\b/g]
 
-  while ((match = re.exec(text))) {
-    const token = match[0]
-    metrics.push({
-      type: 'CAPITALIZATION',
-      lineIndex: anchorIndex,
-      index: match.index,
-      found: token,
-      expected: 'Indigenous',
-      token,
-      text: fullText,
-    })
+  for (const rule of rules) {
+    let match: RegExpExecArray | null = null
+    while ((match = rule.exec(text))) {
+      const token = match[0]
+      const expected = `${token[0]?.toUpperCase() ?? ''}${token.slice(1)}`
+      metrics.push({
+        type: 'CAPITALIZATION',
+        lineIndex: anchorIndex,
+        index: match.index,
+        found: token,
+        expected,
+        token,
+        text: fullText,
+      })
+    }
   }
 
   return metrics

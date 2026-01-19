@@ -3,6 +3,8 @@ import type { Rule, CPSMetric, RuleCtx } from './types'
 import { FPS, MAX_CPS, MIN_CPS } from '../shared/subtitles'
 import {
   type LineSource,
+  type ParseBlockOptions,
+  hasEmptyLineBetween,
   parseBlockAt,
   isContinuationOfPrevious,
   mergeForward,
@@ -10,6 +12,7 @@ import {
 import type { Segment, SegmentCtx, SegmentRule } from './segments'
 
 type CpsRule = Rule & SegmentRule
+type CpsRuleOptions = ParseBlockOptions
 
 function hasTiming(
   segment: Segment
@@ -21,15 +24,43 @@ function hasTiming(
   )
 }
 
-function isSegmentContinuation(segments: Segment[], index: number): boolean {
+function hasSegmentGap(
+  lines: string[] | undefined,
+  prev: Segment,
+  cur: Segment,
+  ignoreEmptyLines: boolean
+): boolean {
+  if (ignoreEmptyLines || !lines) return false
+  if (typeof prev.payloadIndex !== 'number' || typeof cur.tsIndex !== 'number') {
+    return false
+  }
+  const src: LineSource = {
+    lineCount: lines.length,
+    getLine: (i) => lines[i] ?? '',
+  }
+  return hasEmptyLineBetween(src, prev.payloadIndex, cur.tsIndex)
+}
+
+function isSegmentContinuation(
+  segments: Segment[],
+  index: number,
+  lines: string[] | undefined,
+  ignoreEmptyLines: boolean
+): boolean {
   if (index <= 0) return false
   const cur = segments[index]
   const prev = segments[index - 1]
   if (!hasTiming(cur) || !hasTiming(prev)) return false
+  if (hasSegmentGap(lines, prev, cur, ignoreEmptyLines)) return false
   return cur.text === prev.text
 }
 
-function mergeForwardSegments(segments: Segment[], startIndex: number) {
+function mergeForwardSegments(
+  segments: Segment[],
+  startIndex: number,
+  lines: string[] | undefined,
+  ignoreEmptyLines: boolean
+) {
   const first = segments[startIndex]
   if (!hasTiming(first)) return null
 
@@ -39,6 +70,7 @@ function mergeForwardSegments(segments: Segment[], startIndex: number) {
   while (endIndex + 1 < segments.length) {
     const next = segments[endIndex + 1]
     if (!hasTiming(next) || next.text !== first.text) break
+    if (hasSegmentGap(lines, segments[endIndex], next, ignoreEmptyLines)) break
     endFrames = next.endFrames
     endIndex += 1
   }
@@ -55,15 +87,31 @@ function mergeForwardSegments(segments: Segment[], startIndex: number) {
 
 export function cpsRule(
   maxCps: number = MAX_CPS,
-  minCps: number = MIN_CPS
+  minCps: number = MIN_CPS,
+  options: CpsRuleOptions = {}
 ): CpsRule {
+  const ignoreEmptyLines = options.ignoreEmptyLines ?? false
   return ((ctx: RuleCtx | SegmentCtx) => {
     if ('segment' in ctx) {
       const cur = ctx.segment
       if (!hasTiming(cur)) return []
-      if (isSegmentContinuation(ctx.segments, ctx.segmentIndex)) return []
+      if (
+        isSegmentContinuation(
+          ctx.segments,
+          ctx.segmentIndex,
+          ctx.lines,
+          ignoreEmptyLines
+        )
+      ) {
+        return []
+      }
 
-      const run = mergeForwardSegments(ctx.segments, ctx.segmentIndex)
+      const run = mergeForwardSegments(
+        ctx.segments,
+        ctx.segmentIndex,
+        ctx.lines,
+        ignoreEmptyLines
+      )
       if (!run) return []
 
       const durationFrames = run.endFrames - run.startFrames
@@ -90,15 +138,15 @@ export function cpsRule(
       getLine: (i) => ctx.lines[i] ?? '',
     }
 
-    const cur = parseBlockAt(src, ctx.lineIndex)
+    const cur = parseBlockAt(src, ctx.lineIndex, options)
     if (!cur) return []
 
     // Skip if this timestamp block is a continuation of a previous identical payload.
     // (Only the first block in the merged run should emit a metric.)
-    if (isContinuationOfPrevious(src, cur)) return []
+    if (isContinuationOfPrevious(src, cur, options)) return []
 
     // Merge forward: exact same payload (timing gaps allowed).
-    const run = mergeForward(src, cur)
+    const run = mergeForward(src, cur, options)
 
     const durationFrames = run.endFrames - run.startFrames
     const charCount = run.payloadText.length

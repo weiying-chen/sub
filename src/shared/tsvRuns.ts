@@ -10,6 +10,10 @@ export type LineSource = {
   getLine(index: number): string
 }
 
+export type ParseBlockOptions = {
+  ignoreEmptyLines?: boolean
+}
+
 export type ParsedBlock = {
   tsIndex: number
   payloadIndex: number
@@ -34,14 +38,31 @@ export type MergedRun = {
  */
 function findPayloadBelow(
   src: LineSource,
-  tsIndex: number
+  tsIndex: number,
+  options: ParseBlockOptions = {}
 ): { payloadIndex: number | null; payloadText: string } {
+  const ignoreEmptyLines = options.ignoreEmptyLines ?? false
   for (let i = tsIndex + 1; i < src.lineCount; i++) {
     const t = src.getLine(i)
     if (TSV_RE.test(t)) break
-    if (t.trim() !== '') return { payloadIndex: i, payloadText: t }
+    if (t.trim() === '') {
+      if (ignoreEmptyLines) continue
+      return { payloadIndex: null, payloadText: '' }
+    }
+    return { payloadIndex: i, payloadText: t }
   }
   return { payloadIndex: null, payloadText: '' }
+}
+
+export function hasEmptyLineBetween(
+  src: LineSource,
+  startIndex: number,
+  endIndex: number
+): boolean {
+  for (let i = startIndex + 1; i < endIndex; i++) {
+    if (src.getLine(i).trim() === '') return true
+  }
+  return false
 }
 
 /**
@@ -49,7 +70,8 @@ function findPayloadBelow(
  */
 export function parseBlockAt(
   src: LineSource,
-  tsIndex: number
+  tsIndex: number,
+  options: ParseBlockOptions = {}
 ): ParsedBlock | null {
   const tsLine = src.getLine(tsIndex)
   const m = tsLine.match(TSV_RE)
@@ -61,7 +83,11 @@ export function parseBlockAt(
     return null
   }
 
-  const { payloadIndex, payloadText } = findPayloadBelow(src, tsIndex)
+  const { payloadIndex, payloadText } = findPayloadBelow(
+    src,
+    tsIndex,
+    options
+  )
   if (payloadIndex == null) return null
 
   return {
@@ -82,11 +108,20 @@ export function parseBlockAt(
  */
 export function isContinuationOfPrevious(
   src: LineSource,
-  block: ParsedBlock
+  block: ParsedBlock,
+  options: ParseBlockOptions = {}
 ): boolean {
+  const ignoreEmptyLines = options.ignoreEmptyLines ?? false
   for (let i = block.tsIndex - 1; i >= 0; i--) {
-    const prev = parseBlockAt(src, i)
+    const prev = parseBlockAt(src, i, options)
     if (!prev) continue
+
+    if (
+      !ignoreEmptyLines &&
+      hasEmptyLineBetween(src, prev.payloadIndex, block.tsIndex)
+    ) {
+      return false
+    }
 
     const isContinuation = prev.payloadText === block.payloadText
     return isContinuation
@@ -100,7 +135,12 @@ export function isContinuationOfPrevious(
  * New behavior: merges adjacent timestamp blocks as long as payloadText matches,
  * regardless of gaps in timing.
  */
-export function mergeForward(src: LineSource, first: ParsedBlock): MergedRun {
+export function mergeForward(
+  src: LineSource,
+  first: ParsedBlock,
+  options: ParseBlockOptions = {}
+): MergedRun {
+  const ignoreEmptyLines = options.ignoreEmptyLines ?? false
   let mergedEndFrames = first.endFrames
   let scanTs = first.tsIndex
 
@@ -119,7 +159,11 @@ export function mergeForward(src: LineSource, first: ParsedBlock): MergedRun {
 
     if (nextTs == null) break
 
-    const next = parseBlockAt(src, nextTs)
+    if (!ignoreEmptyLines && hasEmptyLineBetween(src, payloadIndexEnd, nextTs)) {
+      break
+    }
+
+    const next = parseBlockAt(src, nextTs, options)
     if (next && next.payloadText === first.payloadText) {
       mergedEndFrames = next.endFrames
       scanTs = next.tsIndex

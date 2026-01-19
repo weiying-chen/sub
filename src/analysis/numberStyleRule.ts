@@ -1,6 +1,10 @@
 import type { Rule, NumberStyleMetric, RuleCtx } from './types'
 
-import { type LineSource, parseBlockAt } from '../shared/tsvRuns'
+import {
+  type LineSource,
+  type ParseBlockOptions,
+  parseBlockAt,
+} from '../shared/tsvRuns'
 import type { SegmentCtx, SegmentRule } from './segments'
 
 const SMALL: Record<string, number> = {
@@ -161,7 +165,8 @@ function isHyphenatedDigitSequence(raw: string, parts: string[]) {
 type NumberStyleRule = Rule & SegmentRule
 
 function getTextAndAnchor(
-  ctx: RuleCtx | SegmentCtx
+  ctx: RuleCtx | SegmentCtx,
+  options: ParseBlockOptions = {}
 ): { text: string; anchorIndex: number } | null {
   if ('segment' in ctx) {
     const text = ctx.segment.text
@@ -174,7 +179,7 @@ function getTextAndAnchor(
     getLine: (i) => ctx.lines[i] ?? '',
   }
 
-  const block = parseBlockAt(src, ctx.lineIndex)
+  const block = parseBlockAt(src, ctx.lineIndex, options)
   if (!block) return null
 
   const text = block.payloadText
@@ -242,7 +247,9 @@ function collectMetrics(
   return metrics
 }
 
-export function numberStyleRule(): NumberStyleRule {
+export function numberStyleRule(
+  options: ParseBlockOptions = {}
+): NumberStyleRule {
   return ((ctx: RuleCtx | SegmentCtx) => {
     if ('segment' in ctx && ctx.segment.targetLines) {
       const candidates = ctx.segment.targetLines
@@ -252,7 +259,7 @@ export function numberStyleRule(): NumberStyleRule {
       )
     }
 
-    const extracted = getTextAndAnchor(ctx)
+    const extracted = getTextAndAnchor(ctx, options)
     if (!extracted) return []
 
     return collectMetrics(extracted.text, extracted.anchorIndex, extracted.text)

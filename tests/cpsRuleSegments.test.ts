@@ -46,4 +46,38 @@ describe("cpsRule (segments)", () => {
     expect(findings[0].minCps).toBe(10)
     expect(findings[0].severity).toBe("warn")
   })
+
+  it("treats empty lines as breaks between identical payloads by default", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "Hi",
+      "",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "Hi",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [cpsRule()])
+
+    expect(metrics).toHaveLength(2)
+    const byLine = new Map(metrics.map((m) => [m.lineIndex, m]))
+    expect(byLine.has(0)).toBe(true)
+    expect(byLine.has(3)).toBe(true)
+  })
+
+  it("can ignore empty lines between identical payloads when opted in", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "Hi",
+      "",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "Hi",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [
+      cpsRule(17, 10, { ignoreEmptyLines: true }),
+    ])
+
+    expect(metrics).toHaveLength(1)
+    expect(metrics[0]?.lineIndex).toBe(0)
+  })
 })

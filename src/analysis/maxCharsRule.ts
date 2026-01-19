@@ -1,12 +1,17 @@
 import type { Rule, MaxCharsMetric, RuleCtx } from './types'
 
-import { type LineSource, parseBlockAt } from '../shared/tsvRuns'
+import {
+  type LineSource,
+  type ParseBlockOptions,
+  parseBlockAt,
+} from '../shared/tsvRuns'
 import type { Segment, SegmentCtx, SegmentRule } from './segments'
 
 type MaxCharsRule = Rule & SegmentRule
 
 function getTextAndAnchor(
-  ctx: RuleCtx | SegmentCtx
+  ctx: RuleCtx | SegmentCtx,
+  options: ParseBlockOptions = {}
 ): { text: string; anchorIndex: number } | null {
   if ('segment' in ctx) {
     const seg = ctx.segment as Segment
@@ -36,7 +41,7 @@ function getTextAndAnchor(
     getLine: (i) => ctx.lines[i] ?? '',
   }
 
-  const block = parseBlockAt(src, ctx.lineIndex)
+  const block = parseBlockAt(src, ctx.lineIndex, options)
   if (!block) return null
 
   const text = block.payloadText
@@ -48,9 +53,12 @@ function getTextAndAnchor(
   return { text, anchorIndex }
 }
 
-export const maxCharsRule = (maxChars: number): MaxCharsRule => {
+export const maxCharsRule = (
+  maxChars: number,
+  options: ParseBlockOptions = {}
+): MaxCharsRule => {
   return ((ctx: RuleCtx | SegmentCtx) => {
-    const extracted = getTextAndAnchor(ctx)
+    const extracted = getTextAndAnchor(ctx, options)
     if (!extracted) return []
 
     if ('segment' in ctx && ctx.segment.blockType === 'super') {

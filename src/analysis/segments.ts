@@ -1,7 +1,7 @@
 import type { Metric } from './types'
 
 import { TSV_RE } from '../shared/subtitles'
-import { parseBlockAt } from '../shared/tsvRuns'
+import { type ParseBlockOptions, parseBlockAt } from '../shared/tsvRuns'
 
 export type CandidateLine = {
   lineIndex: number
@@ -55,7 +55,10 @@ export function analyzeSegments(
   return metrics
 }
 
-export function parseSubs(text: string): Segment[] {
+export function parseSubs(
+  text: string,
+  options: ParseBlockOptions = {}
+): Segment[] {
   const lines = text.split('\n')
   const src = {
     lineCount: lines.length,
@@ -66,7 +69,7 @@ export function parseSubs(text: string): Segment[] {
   const payloadIndices = new Set<number>()
 
   for (let i = 0; i < lines.length; i += 1) {
-    const block = parseBlockAt(src, i)
+    const block = parseBlockAt(src, i, options)
     if (!block) continue
     const targetLines = isEnglishLikeLine(block.payloadText)
       ? [{ lineIndex: block.payloadIndex, text: block.payloadText }]

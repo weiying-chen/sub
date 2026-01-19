@@ -38,6 +38,7 @@ function collectMetrics(
   const rules = [/\bindigenous\b/g, /\bbodhisattvas?\b/g]
 
   for (const rule of rules) {
+    rule.lastIndex = 0
     let match: RegExpExecArray | null = null
     while ((match = rule.exec(text))) {
       const token = match[0]

@@ -20,12 +20,8 @@ const CLAUSE_START_RE =
   /^\s*(?:I|you|we|they|he|she|it|this|that|there)\b/i
 const THAT_RE = /\b(that)\b/i
 const COPULAR_RE = /\b(am|is|are|was|were)\b/i
-const COPULAR_VERB_RE =
-  /\b(give|make|take|help|let|get|keep|try|need|want|have)\b/i
 const COPULAR_VERB_START_RE =
   /^(?:give|make|take|help|let|get|keep|try|need|want|have)\b/i
-const COPULAR_CLAUSE_RE =
-  /\b(to|how|why|what|who|where|when|whether|that|if)\b/i
 const COPULAR_CLAUSE_START_RE =
   /^(?:to|how|why|what|who|where|when|whether|that|if)\b/i
 const DET_RE =

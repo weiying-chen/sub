@@ -7,10 +7,11 @@ describe("capitalizationRule", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "We support indigenous communities.",
-      "Bodhisattva teachings are important.",
-      "We honor bodhisattvas today.",
       "00:00:02:00\t00:00:03:00\tMarker",
+      "We honor bodhisattvas today.",
+      "00:00:03:00\t00:00:04:00\tMarker",
       "Indigenous leadership matters.",
+      "00:00:04:00\t00:00:05:00\tMarker",
       "Bodhisattvas are honored here.",
     ].join("\n")
 

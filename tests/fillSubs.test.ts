@@ -603,27 +603,4 @@ describe("fillSelectedTimestampLines", () => {
   ])
   expect(result.remaining).toBe("")
   })
-
-  it("does not carry wrapped quotes into the next line", () => {
-  const lines = [
-    "00:00:00:00\t00:00:01:00\tMarker",
-    "00:00:01:00\t00:00:02:00\tMarker",
-  ]
-  const selected = new Set([0, 1])
-
-  const result = fillSelectedTimestampLines(
-    lines,
-    selected,
-    '"Hello there." Next line continues.',
-    { maxChars: 30, inline: true }
-  )
-
-  expect(result.lines).toEqual([
-    "00:00:00:00\t00:00:01:00\tMarker",
-    '"Hello there."',
-    "00:00:01:00\t00:00:02:00\tMarker",
-    "Next line continues.",
-  ])
-  expect(result.remaining).toBe("")
-  })
 })

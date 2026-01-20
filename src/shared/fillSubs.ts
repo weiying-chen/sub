@@ -571,10 +571,10 @@ function applyQuoteCarry(
   }
 
   let nextQuoteOpen = quoteOpen
-  if (shouldClose && isLastInSpan) {
-    nextQuoteOpen = false
-  } else if (shouldOpen && isFirstInSpan) {
+  if (shouldOpen && isFirstInSpan) {
     nextQuoteOpen = true
+  } else if (shouldClose && isLastInSpan) {
+    nextQuoteOpen = false
   }
 
   return { text, quoteOpen: nextQuoteOpen }

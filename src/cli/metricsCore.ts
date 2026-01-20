@@ -1,5 +1,3 @@
-import { readFile } from 'node:fs/promises'
-
 import { analyzeTextByType } from '../analysis/analyzeTextByType'
 import { capitalizationRule } from '../analysis/capitalizationRule'
 import { defaultSegmentRules } from '../analysis/defaultRules'
@@ -8,25 +6,12 @@ import { numberStyleRule } from '../analysis/numberStyleRule'
 import { punctuationRuleWithOptions } from '../analysis/punctuationRule'
 import type { Metric, Finding } from '../analysis/types'
 import { getFindings } from '../shared/findings'
+import { loadProperNouns } from './properNouns'
 
 export type MetricsOptions = {
   type: 'subs' | 'news'
   ruleFilters?: string[]
   findingsOnly?: boolean
-}
-
-const PROPER_NOUNS_PATH = 'punctuation-proper-nouns.txt'
-
-async function loadProperNouns() {
-  try {
-    const raw = await readFile(PROPER_NOUNS_PATH, 'utf8')
-    return raw
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line !== '' && !line.startsWith('#'))
-  } catch {
-    return null
-  }
 }
 
 async function buildRules(type: 'subs' | 'news') {

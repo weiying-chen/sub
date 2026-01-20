@@ -1,6 +1,5 @@
 import type { Metric } from './types'
 
-import { TSV_RE } from '../shared/subtitles'
 import { type ParseBlockOptions, parseBlockAt } from '../shared/tsvRuns'
 
 export type CandidateLine = {

@@ -9,6 +9,7 @@ import { getFindings } from '../shared/findings'
 import type { Finding } from '../analysis/types'
 import type { Reporter } from './watch'
 import { findMarkerScope } from './markerScope'
+import { loadProperNouns } from './properNouns'
 
 // --- ANSI colors (use terminal theme palette) ---
 
@@ -23,8 +24,6 @@ type SubsOptions = {
   showWarnings: boolean
   baselinePath?: string
 }
-
-const PROPER_NOUNS_PATH = 'punctuation-proper-nouns.txt'
 
 function asNum(v: unknown): number | null {
   return typeof v === 'number' && Number.isFinite(v) ? v : null
@@ -240,16 +239,7 @@ async function printReport(
   const baselineText = options.baselinePath
     ? await readFile(options.baselinePath, 'utf8')
     : null
-  let properNouns: string[] | null = null
-  try {
-    const raw = await readFile(PROPER_NOUNS_PATH, 'utf8')
-    properNouns = raw
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line !== '' && !line.startsWith('#'))
-  } catch {
-    properNouns = null
-  }
+  const properNouns = await loadProperNouns()
 
   const rules = [
     ...defaultSegmentRules(),

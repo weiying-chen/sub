@@ -603,4 +603,69 @@ describe("fillSelectedTimestampLines", () => {
   ])
   expect(result.remaining).toBe("")
   })
+
+  it("does not add leading quotes to inline quotes", () => {
+  const lines = [
+    "00:00:54:00\t00:00:55:10\tMarker",
+    "00:00:55:10\t00:01:00:02\tMarker",
+    "00:01:00:02\t00:01:04:15\tMarker",
+    "00:01:04:15\t00:01:09:17\tMarker",
+    "00:01:09:17\t00:01:12:17\tMarker",
+    "00:01:12:17\t00:01:16:09\tMarker",
+    "00:01:16:09\t00:01:17:27\tMarker",
+    "00:01:17:27\t00:01:20:14\tMarker",
+    "00:01:20:14\t00:01:23:14\tMarker",
+    "00:01:23:14\t00:01:27:04\tMarker",
+    "00:01:27:04\t00:01:28:07\tMarker",
+    "00:01:28:07\t00:01:29:28\tMarker",
+    "00:01:29:28\t00:01:33:06\tMarker",
+    "00:01:33:06\t00:01:35:15\tMarker",
+    "00:01:35:15\t00:01:37:11\tMarker",
+    "00:01:37:11\t00:01:39:26\tMarker",
+    "00:01:39:26\t00:01:41:02\tMarker",
+    "00:01:41:02\t00:01:45:18\tMarker",
+    "00:01:45:18\t00:01:51:06\tMarker",
+    "00:01:51:06\t00:01:54:26\tMarker",
+    "00:01:54:26\t00:01:58:22\tMarker",
+    "00:01:58:22\t00:02:01:20\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+
+  const paragraph = [
+    "I remember one time in Nanhua Village.",
+    "I remember one time in Nanhua Village.",
+    "I arrived at dusk and knocked on the half-open door.",
+    "I arrived at dusk and knocked on the half-open door.",
+    'A man inside said, "Just push it. You can come in."',
+    "The place was in terrible shape, a thatched hut with a bamboo door.",
+    "a thatched hut with a bamboo door.",
+    "Inside it was pitch dark.",
+    'He said, "Reach out and you\'ll hit the light."',
+    'He said, "Reach out and you\'ll hit the light."',
+    "The bulb was hanging down,",
+    "The bulb was hanging down,",
+    "and when I turned it on it was just five watts,",
+    "and when I turned it on it was just five watts,",
+    "and when I turned it on it was just five watts,",
+    "barely lighting the room.",
+    "barely lighting the room.",
+    "By the wall was a bamboo bed with straw on top,",
+    "By the wall was a bamboo bed with straw on top,",
+    "and a middle-aged man lay there.",
+    "and a middle-aged man lay there.",
+  ].join(" ")
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    maxChars: 54,
+    inline: true,
+  })
+
+  const withInlineQuote = result.lines.filter((line) =>
+    line.includes("A man inside said,")
+  )
+  expect(withInlineQuote.length).toBeGreaterThan(0)
+  for (const line of withInlineQuote) {
+    expect(line.startsWith('"')).toBe(false)
+  }
+  })
 })

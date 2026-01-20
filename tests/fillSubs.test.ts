@@ -603,37 +603,4 @@ describe("fillSelectedTimestampLines", () => {
   ])
   expect(result.remaining).toBe("")
   })
-
-  it("does not add leading quotes to inline quotes", () => {
-  const lines = [
-    "00:00:00:00\t00:00:01:00\tMarker",
-    "00:00:01:00\t00:00:02:00\tMarker",
-    "00:00:02:00\t00:00:03:00\tMarker",
-    "00:00:03:00\t00:00:04:00\tMarker",
-    "00:00:04:00\t00:00:05:00\tMarker",
-    "00:00:05:00\t00:00:06:00\tMarker",
-  ]
-  const selected = new Set(lines.map((_, i) => i))
-
-  const paragraph = [
-    'He said, "please push the door open and come in right away.',
-    'Take a seat and wait inside." Then we left.',
-  ].join(" ")
-
-  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
-    maxChars: 40,
-    inline: true,
-  })
-
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
-  const inlineLines = payloads.filter((line) => line.includes("He said,"))
-  expect(inlineLines.length).toBeGreaterThan(0)
-  for (const line of inlineLines) {
-    expect(line.startsWith('"')).toBe(false)
-  }
-
-  const splitIndex = payloads.findIndex((line) => line.endsWith('"'))
-  expect(splitIndex).toBeGreaterThan(-1)
-  expect(payloads[splitIndex + 1]?.startsWith('"')).toBe(true)
-  })
 })

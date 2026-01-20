@@ -569,12 +569,12 @@ type QuoteMeta = {
 }
 
 function getQuoteMeta(rawLine: string, quoteOpen: boolean): QuoteMeta {
-  const quoteCount = countQuotes(rawLine)
-  const isOdd = quoteCount % 2 === 1
+  const hasLeading = hasLeadingQuote(rawLine)
+  const hasTrailing = hasTrailingQuote(rawLine)
   return {
-    isOpening: isOdd && !quoteOpen,
-    isClosing: isOdd && quoteOpen,
-    isWrapped: hasLeadingQuote(rawLine) && hasTrailingQuote(rawLine),
+    isOpening: hasLeading && !quoteOpen,
+    isClosing: hasTrailing && quoteOpen,
+    isWrapped: hasLeading && hasTrailing,
   }
 }
 
@@ -598,7 +598,9 @@ function applyQuoteCarry(
   }
 
   let nextQuoteOpen = quoteOpen
-  if (shouldOpen && isFirstInSpan) {
+  if (meta.isWrapped) {
+    nextQuoteOpen = false
+  } else if (shouldOpen && isFirstInSpan) {
     nextQuoteOpen = true
   } else if (shouldClose && isLastInSpan) {
     nextQuoteOpen = false

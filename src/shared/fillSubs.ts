@@ -402,7 +402,7 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       const left = s.slice(0, fragmentCut).trimEnd()
       const right = s.slice(fragmentCut).trimStart()
       if (left && right && !/["']\s*$/.test(left) && !/^["']/.test(right)) {
-        return { line: left, rest: right }
+        return adjustSplitForQuotes(left, right)
       }
     }
 
@@ -411,7 +411,7 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       const left = s.slice(0, toVerbCut).trimEnd()
       const right = s.slice(toVerbCut).trimStart()
       if (left && right) {
-        return { line: left, rest: right }
+        return adjustSplitForQuotes(left, right)
       }
     }
 
@@ -420,7 +420,7 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       const left = s.slice(0, clauseLeadCut).trimEnd()
       const right = s.slice(clauseLeadCut).trimStart()
       if (left && right) {
-        return { line: left, rest: right }
+        return adjustSplitForQuotes(left, right)
       }
     }
 
@@ -429,7 +429,7 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       const left = s.slice(0, copularCut).trimEnd()
       const right = s.slice(copularCut).trimStart()
       if (left && right) {
-        return { line: left, rest: right }
+        return adjustSplitForQuotes(left, right)
       }
     }
 
@@ -438,7 +438,7 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       const left = s.slice(0, copularLeadCut).trimEnd()
       const right = s.slice(copularLeadCut).trimStart()
       if (left && right) {
-        return { line: left, rest: right }
+        return adjustSplitForQuotes(left, right)
       }
     }
   }
@@ -458,10 +458,13 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
 
   if (!line) {
     const hard = s.slice(0, limit)
-    return { line: hard.trimEnd(), rest: s.slice(limit).trimStart() }
+    return adjustSplitForQuotes(
+      hard.trimEnd(),
+      s.slice(limit).trimStart()
+    )
   }
 
-  return { line, rest }
+  return adjustSplitForQuotes(line, rest)
 }
 
 function isFillableTimestamp(
@@ -523,12 +526,40 @@ type FillRunResult = {
   overflow: boolean
 }
 
+function countQuotes(text: string): number {
+  return (text.match(/"/g) ?? []).length
+}
+
 function hasLeadingQuote(text: string): boolean {
   return /^\s*"/.test(text)
 }
 
 function hasTrailingQuote(text: string): boolean {
   return /"\s*$/.test(text)
+}
+
+function adjustSplitForQuotes(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  if (!line || !rest) return { line, rest }
+
+  const leftCount = countQuotes(line)
+  const rightCount = countQuotes(rest)
+  if (leftCount % 2 !== 1 || rightCount % 2 !== 1) {
+    return { line, rest }
+  }
+
+  let nextLine = line
+  let nextRest = rest
+  if (!hasTrailingQuote(nextLine)) {
+    nextLine = `${nextLine}"`
+  }
+  if (!hasLeadingQuote(nextRest)) {
+    nextRest = `"${nextRest}`
+  }
+
+  return { line: nextLine, rest: nextRest }
 }
 
 type QuoteMeta = {

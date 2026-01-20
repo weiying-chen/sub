@@ -9,7 +9,7 @@ import { getFindings } from '../shared/findings'
 import type { Finding } from '../analysis/types'
 import type { Reporter } from './watch'
 import { findMarkerScope } from './markerScope'
-import { loadProperNouns } from './properNouns'
+import { loadCapitalizationTerms, loadProperNouns } from './properNouns'
 
 // --- ANSI colors (use terminal theme palette) ---
 
@@ -240,9 +240,12 @@ async function printReport(
     ? await readFile(options.baselinePath, 'utf8')
     : null
   const properNouns = await loadProperNouns()
+  const capitalizationTerms = await loadCapitalizationTerms()
 
   const rules = [
-    ...defaultSegmentRules(),
+    ...defaultSegmentRules({
+      capitalizationTerms: capitalizationTerms ?? undefined,
+    }),
     numberStyleRule(),
     punctuationRuleWithOptions({
       properNouns: properNouns ?? undefined,

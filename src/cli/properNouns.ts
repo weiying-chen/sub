@@ -3,6 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const PROPER_NOUNS_FILE = 'punctuation-proper-nouns.txt'
+const CAPITALIZATION_TERMS_FILE = 'capitalization-terms.txt'
 
 async function pathExists(candidate: string): Promise<boolean> {
   try {
@@ -24,12 +25,12 @@ async function findUp(filename: string, startDir: string): Promise<string | null
   }
 }
 
-export async function loadProperNouns(): Promise<string[] | null> {
+async function loadTextList(filename: string): Promise<string[] | null> {
   const moduleDir = path.dirname(fileURLToPath(import.meta.url))
   const roots = [process.cwd(), moduleDir]
 
   for (const root of roots) {
-    const found = await findUp(PROPER_NOUNS_FILE, root)
+    const found = await findUp(filename, root)
     if (!found) continue
     try {
       const raw = await readFile(found, 'utf8')
@@ -43,4 +44,12 @@ export async function loadProperNouns(): Promise<string[] | null> {
   }
 
   return null
+}
+
+export async function loadProperNouns(): Promise<string[] | null> {
+  return loadTextList(PROPER_NOUNS_FILE)
+}
+
+export async function loadCapitalizationTerms(): Promise<string[] | null> {
+  return loadTextList(CAPITALIZATION_TERMS_FILE)
 }

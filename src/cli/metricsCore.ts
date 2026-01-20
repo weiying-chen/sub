@@ -6,7 +6,7 @@ import { numberStyleRule } from '../analysis/numberStyleRule'
 import { punctuationRuleWithOptions } from '../analysis/punctuationRule'
 import type { Metric, Finding } from '../analysis/types'
 import { getFindings } from '../shared/findings'
-import { loadProperNouns } from './properNouns'
+import { loadCapitalizationTerms, loadProperNouns } from './properNouns'
 
 export type MetricsOptions = {
   type: 'subs' | 'news'
@@ -15,13 +15,22 @@ export type MetricsOptions = {
 }
 
 async function buildRules(type: 'subs' | 'news') {
+  const capitalizationTerms = await loadCapitalizationTerms()
   if (type === 'news') {
-    return [maxCharsRule(54), numberStyleRule(), capitalizationRule()]
+    return [
+      maxCharsRule(54),
+      numberStyleRule(),
+      capitalizationRule({
+        terms: capitalizationTerms ?? undefined,
+      }),
+    ]
   }
 
   const properNouns = await loadProperNouns()
   return [
-    ...defaultSegmentRules(),
+    ...defaultSegmentRules({
+      capitalizationTerms: capitalizationTerms ?? undefined,
+    }),
     numberStyleRule(),
     punctuationRuleWithOptions({
       properNouns: properNouns ?? undefined,

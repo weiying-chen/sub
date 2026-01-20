@@ -1,2 +1,9 @@
 # One proper noun per line.
 English
+Taipei
+New Taipei
+Taoyuan
+Taichung
+Tainan
+Kaohsiung
+Hualien

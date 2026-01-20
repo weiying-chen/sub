@@ -66,7 +66,6 @@ export function parseSubs(
   }
 
   const segments: Segment[] = []
-  const payloadIndices = new Set<number>()
 
   for (let i = 0; i < lines.length; i += 1) {
     const block = parseBlockAt(src, i, options)
@@ -82,34 +81,6 @@ export function parseSubs(
       payloadIndex: block.payloadIndex,
       startFrames: block.startFrames,
       endFrames: block.endFrames,
-      targetLines,
-    })
-    payloadIndices.add(block.payloadIndex)
-  }
-
-  let inComment = false
-  for (let i = 0; i < lines.length; i += 1) {
-    const line = lines[i]
-    const trimmed = line.trim()
-
-    if (trimmed.includes('/*')) inComment = true
-    if (trimmed.includes('*/')) {
-      inComment = false
-      continue
-    }
-
-    if (inComment) continue
-    if (trimmed === '') continue
-    if (TSV_RE.test(line)) continue
-    if (payloadIndices.has(i)) continue
-
-    const targetLines = isEnglishLikeLine(line)
-      ? [{ lineIndex: i, text: line }]
-      : []
-    segments.push({
-      lineIndex: i,
-      lineIndexEnd: i,
-      text: line,
       targetLines,
     })
   }

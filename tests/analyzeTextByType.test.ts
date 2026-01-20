@@ -61,7 +61,7 @@ describe("analyzeTextByType", () => {
     expect(byToken.get("eleven")?.lineIndex).toBe(3)
   })
 
-  it("includes free-text lines for subs parsing", () => {
+  it("ignores free-text lines for subs parsing", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "Hello world.",
@@ -71,8 +71,24 @@ describe("analyzeTextByType", () => {
     const metrics = analyzeTextByType(text, "subs", [numberStyleRule()])
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
 
-    expect(findings).toHaveLength(1)
-    expect(findings[0]).toMatchObject({ token: "4", lineIndex: 2 })
+    expect(findings).toHaveLength(0)
+  })
+
+  it("ignores URL-only lines for subs parsing", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "We saw 5 birds.",
+      "",
+      "https://example.com/v1.9.17-20131201.pdf",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "We saw eleven birds.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    const tokens = findings.map((f) => f.token).sort()
+    expect(tokens).toEqual(["5", "eleven"])
   })
 
   it("flags English lines inside mixed news paragraphs", () => {

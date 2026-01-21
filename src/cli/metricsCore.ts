@@ -3,7 +3,7 @@ import { capitalizationRule } from '../analysis/capitalizationRule'
 import { defaultSegmentRules } from '../analysis/defaultRules'
 import { maxCharsRule } from '../analysis/maxCharsRule'
 import { numberStyleRule } from '../analysis/numberStyleRule'
-import { punctuationRuleWithOptions } from '../analysis/punctuationRule'
+import { punctuationRule } from '../analysis/punctuationRule'
 import type { Metric, Finding } from '../analysis/types'
 import { getFindings } from '../shared/findings'
 import { loadCapitalizationTerms, loadProperNouns } from './properNouns'
@@ -37,7 +37,7 @@ async function buildRules(
       ignoreEmptyLines,
     }),
     numberStyleRule(),
-    punctuationRuleWithOptions({
+    punctuationRule({
       properNouns: properNouns ?? undefined,
       ignoreEmptyLines,
     }),

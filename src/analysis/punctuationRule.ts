@@ -333,11 +333,7 @@ function collectMetrics(
   return metrics
 }
 
-export function punctuationRule(): PunctuationRule {
-  return punctuationRuleWithOptions()
-}
-
-export function punctuationRuleWithOptions(
+export function punctuationRule(
   options: PunctuationRuleOptions = {}
 ): PunctuationRule {
   const properNounMatchers = buildProperNounMatchers(

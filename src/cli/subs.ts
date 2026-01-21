@@ -4,7 +4,7 @@ import { analyzeTextByType } from '../analysis/analyzeTextByType'
 import { baselineRule } from '../analysis/baselineRule'
 import { defaultSegmentRules } from '../analysis/defaultRules'
 import { numberStyleRule } from '../analysis/numberStyleRule'
-import { punctuationRuleWithOptions } from '../analysis/punctuationRule'
+import { punctuationRule } from '../analysis/punctuationRule'
 import { getFindings } from '../shared/findings'
 import type { Finding } from '../analysis/types'
 import type { Reporter } from './watch'
@@ -249,7 +249,7 @@ async function printReport(
       ignoreEmptyLines: options.ignoreEmptyLines,
     }),
     numberStyleRule(),
-    punctuationRuleWithOptions({
+    punctuationRule({
       properNouns: properNouns ?? undefined,
       ignoreEmptyLines: options.ignoreEmptyLines,
     }),

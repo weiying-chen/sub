@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest"
 
 import { analyzeLines } from "../src/analysis/analyzeLines"
-import { punctuationRule, punctuationRuleWithOptions } from "../src/analysis/punctuationRule"
+import { punctuationRule } from "../src/analysis/punctuationRule"
 
 describe("punctuationRule", () => {
   it("flags punctuation/capitalization issues between subtitle cues", () => {
@@ -77,7 +77,7 @@ describe("punctuationRule", () => {
     ].join("\n")
 
     const metrics = analyzeLines(text, [
-      punctuationRuleWithOptions({ properNouns: ["English"] }),
+      punctuationRule({ properNouns: ["English"] }),
     ])
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
@@ -117,7 +117,7 @@ describe("punctuationRule", () => {
     ].join("\n")
 
     const metrics = analyzeLines(text, [
-      punctuationRuleWithOptions({ ignoreEmptyLines: true }),
+      punctuationRule({ ignoreEmptyLines: true }),
     ])
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 

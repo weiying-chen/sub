@@ -25,10 +25,15 @@ describe("numberStyleRule", () => {
       "If we can make it five-two-seven.",
       "00:00:09:00\t00:00:10:00\tMarker",
       "About 10,000 people attended.",
+      "00:00:10:00\t00:00:11:00\tMarker",
+      "It rose 5 percent this year.",
+      "00:00:11:00\t00:00:12:00\tMarker",
+      "It rose 5% last year.",
     ].join("\n")
 
     const metrics = analyzeLines(text, [numberStyleRule()])
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    const percentFindings = metrics.filter((m) => m.type === "PERCENT_STYLE")
 
     const tokens = findings.map((f) => f.token).sort()
     expect(tokens).toEqual(["12", "5", "eleven"])
@@ -40,5 +45,10 @@ describe("numberStyleRule", () => {
     expect(byToken.get("eleven")?.found).toBe("words")
     expect(byToken.get("12")?.expected).toBe("words")
     expect(byToken.get("12")?.found).toBe("digits")
+
+    expect(percentFindings).toHaveLength(1)
+    const percent = percentFindings[0]
+    expect(percent?.token).toBe("5 percent")
+    expect(percent?.expected).toBe("symbol")
   })
 })

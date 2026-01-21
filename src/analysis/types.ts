@@ -68,6 +68,17 @@ export type NumberStyleMetric = {
   text?: string
 }
 
+export type PercentStyleMetric = {
+  type: 'PERCENT_STYLE'
+  lineIndex: number
+  index: number
+  value: number
+  found: 'word'
+  expected: 'symbol'
+  token: string
+  text?: string
+}
+
 export type CapitalizationMetric = {
   type: 'CAPITALIZATION'
   lineIndex: number
@@ -118,6 +129,7 @@ export type Metric =
   | MinCpsMetric
   | CPSBalanceMetric
   | NumberStyleMetric
+  | PercentStyleMetric
   | CapitalizationMetric
   | PunctuationMetric
   | BaselineMetric

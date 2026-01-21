@@ -1,4 +1,4 @@
-import type { Rule, NumberStyleMetric, RuleCtx } from './types'
+import type { Rule, NumberStyleMetric, PercentStyleMetric, RuleCtx } from './types'
 
 import {
   type LineSource,
@@ -193,8 +193,8 @@ function collectMetrics(
   text: string,
   anchorIndex: number,
   fullText?: string
-): NumberStyleMetric[] {
-  const metrics: NumberStyleMetric[] = []
+): Array<NumberStyleMetric | PercentStyleMetric> {
+  const metrics: Array<NumberStyleMetric | PercentStyleMetric> = []
 
   const digitsRe = /\b\d{1,3}(?:,\d{3})+\b|\b\d+\b/g
   let match: RegExpExecArray | null = null
@@ -202,10 +202,30 @@ function collectMetrics(
   while ((match = digitsRe.exec(text))) {
     const rawToken = match[0]
     const normalized = rawToken.replace(/,/g, '')
-    const value = Number.parseInt(normalized, 10)
+    const value = Number.parseFloat(normalized)
     if (!Number.isFinite(value)) continue
     if (isTimeToken(text, match.index, rawToken.length)) continue
     if (isAgeAdjective(text, match.index, rawToken.length)) continue
+
+    const tail = text.slice(match.index + rawToken.length)
+    const percentWordMatch = tail.match(/^\s+percent\b/i)
+    if (percentWordMatch) {
+      metrics.push({
+        type: 'PERCENT_STYLE',
+        lineIndex: anchorIndex,
+        index: match.index,
+        value,
+        found: 'word',
+        expected: 'symbol',
+        token: `${rawToken}${percentWordMatch[0]}`,
+        text: fullText,
+      })
+      continue
+    }
+
+    if (/^\s*%/.test(tail)) {
+      continue
+    }
 
     const sentenceStart = isSentenceStart(text, match.index)
 

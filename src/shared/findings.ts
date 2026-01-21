@@ -48,6 +48,11 @@ export function getFindings(metrics: Metric[]): Finding[] {
       continue
     }
 
+    if (m.type === 'PERCENT_STYLE') {
+      out.push(m)
+      continue
+    }
+
     if (m.type === 'CAPITALIZATION') {
       out.push(m)
       continue

@@ -5,6 +5,7 @@ import { maxCharsRule } from './maxCharsRule'
 import { cpsRule } from './cpsRule'
 import { cpsBalanceRule } from './cpsBalanceRule'
 import { capitalizationRule } from './capitalizationRule'
+import { percentStyleRule } from './percentStyleRule'
 
 type DefaultRulesOptions = {
   capitalizationTerms?: string[]
@@ -19,6 +20,7 @@ export function defaultRules(options: DefaultRulesOptions = {}): Rule[] {
     }),
     cpsBalanceRule({ ignoreEmptyLines: options.ignoreEmptyLines }),
     capitalizationRule({ terms: options.capitalizationTerms }),
+    percentStyleRule(),
   ]
 }
 
@@ -32,5 +34,6 @@ export function defaultSegmentRules(
     }),
     cpsBalanceRule({ ignoreEmptyLines: options.ignoreEmptyLines }),
     capitalizationRule({ terms: options.capitalizationTerms }),
+    percentStyleRule(),
   ]
 }

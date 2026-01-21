@@ -3,6 +3,7 @@ import { capitalizationRule } from '../analysis/capitalizationRule'
 import { defaultSegmentRules } from '../analysis/defaultRules'
 import { maxCharsRule } from '../analysis/maxCharsRule'
 import { numberStyleRule } from '../analysis/numberStyleRule'
+import { percentStyleRule } from '../analysis/percentStyleRule'
 import { punctuationRule } from '../analysis/punctuationRule'
 import type { Metric, Finding } from '../analysis/types'
 import { getFindings } from '../shared/findings'
@@ -37,6 +38,7 @@ async function buildRules(
       ignoreEmptyLines,
     }),
     numberStyleRule(),
+    percentStyleRule(),
     punctuationRule({
       properNouns: properNouns ?? undefined,
       ignoreEmptyLines,

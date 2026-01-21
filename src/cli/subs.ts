@@ -4,6 +4,7 @@ import { analyzeTextByType } from '../analysis/analyzeTextByType'
 import { baselineRule } from '../analysis/baselineRule'
 import { defaultSegmentRules } from '../analysis/defaultRules'
 import { numberStyleRule } from '../analysis/numberStyleRule'
+import { percentStyleRule } from '../analysis/percentStyleRule'
 import { punctuationRule } from '../analysis/punctuationRule'
 import { getFindings } from '../shared/findings'
 import type { Finding } from '../analysis/types'
@@ -249,6 +250,7 @@ async function printReport(
       ignoreEmptyLines: options.ignoreEmptyLines,
     }),
     numberStyleRule(),
+    percentStyleRule(),
     punctuationRule({
       properNouns: properNouns ?? undefined,
       ignoreEmptyLines: options.ignoreEmptyLines,

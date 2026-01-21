@@ -1,4 +1,4 @@
-import type { Rule, NumberStyleMetric, PercentStyleMetric, RuleCtx } from './types'
+import type { Rule, NumberStyleMetric, RuleCtx } from './types'
 
 import {
   type LineSource,
@@ -110,6 +110,11 @@ function isAgeAdjective(text: string, index: number, length: number) {
   return /^(?:\s*-|\s+)year(?:-|\s+)old\b/.test(tail)
 }
 
+function isPercentToken(text: string, index: number, length: number) {
+  const tail = text.slice(index + length)
+  return /^\s*(%|percent\b)/i.test(tail)
+}
+
 function parseNumberWords(words: string[]): number | null {
   let total = 0
   let current = 0
@@ -193,8 +198,8 @@ function collectMetrics(
   text: string,
   anchorIndex: number,
   fullText?: string
-): Array<NumberStyleMetric | PercentStyleMetric> {
-  const metrics: Array<NumberStyleMetric | PercentStyleMetric> = []
+): NumberStyleMetric[] {
+  const metrics: NumberStyleMetric[] = []
 
   const digitsRe = /\b\d{1,3}(?:,\d{3})+\b|\b\d+\b/g
   let match: RegExpExecArray | null = null
@@ -202,30 +207,11 @@ function collectMetrics(
   while ((match = digitsRe.exec(text))) {
     const rawToken = match[0]
     const normalized = rawToken.replace(/,/g, '')
-    const value = Number.parseFloat(normalized)
+    const value = Number.parseInt(normalized, 10)
     if (!Number.isFinite(value)) continue
     if (isTimeToken(text, match.index, rawToken.length)) continue
     if (isAgeAdjective(text, match.index, rawToken.length)) continue
-
-    const tail = text.slice(match.index + rawToken.length)
-    const percentWordMatch = tail.match(/^\s+percent\b/i)
-    if (percentWordMatch) {
-      metrics.push({
-        type: 'PERCENT_STYLE',
-        lineIndex: anchorIndex,
-        index: match.index,
-        value,
-        found: 'word',
-        expected: 'symbol',
-        token: `${rawToken}${percentWordMatch[0]}`,
-        text: fullText,
-      })
-      continue
-    }
-
-    if (/^\s*%/.test(tail)) {
-      continue
-    }
+    if (isPercentToken(text, match.index, rawToken.length)) continue
 
     const sentenceStart = isSentenceStart(text, match.index)
 

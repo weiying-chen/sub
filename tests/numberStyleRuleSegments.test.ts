@@ -16,7 +16,6 @@ describe("numberStyleRule (segments)", () => {
       { lineIndex: 15, text: "We raised 1,000 dollars." },
       { lineIndex: 16, text: "If we can make it five-two-seven." },
       { lineIndex: 17, text: "About 10,000 people attended." },
-      { lineIndex: 18, text: "It rose 5 percent this year." },
     ].map((segment) => ({
       ...segment,
       targetLines: [
@@ -26,8 +25,6 @@ describe("numberStyleRule (segments)", () => {
 
     const metrics = analyzeSegments(segments, [numberStyleRule()])
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
-    const percentFindings = metrics.filter((m) => m.type === "PERCENT_STYLE")
-
     const tokens = findings.map((f) => f.token).sort()
     expect(tokens).toEqual(["12", "5", "eleven"])
 
@@ -41,8 +38,6 @@ describe("numberStyleRule (segments)", () => {
     expect(byToken.get("12")?.expected).toBe("words")
     expect(byToken.get("12")?.found).toBe("digits")
     expect(byToken.get("12")?.text).toBe("12 birds landed.")
-    expect(percentFindings).toHaveLength(1)
-    expect(percentFindings[0]?.token).toBe("5 percent")
   })
 
   it("ignores non-English text blocks", () => {

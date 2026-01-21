@@ -140,6 +140,9 @@ function isListComma(window: string, index: number): boolean {
 function findRightmostNonListComma(window: string, nextText: string): number {
   for (let i = window.length - 1; i >= 0; i--) {
     if (window[i] !== ',') continue
+    if (/\d$/.test(window.slice(0, i)) && /^\d/.test(window.slice(i + 1))) {
+      continue
+    }
 
     const cut = i + 1
     const left = window.slice(0, cut).trimEnd()

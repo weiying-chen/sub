@@ -680,6 +680,25 @@ describe("fillSelectedTimestampLines", () => {
   expect(payloads.some((line) => line.includes("Ms. Lin"))).toBe(true)
   })
 
+  it("avoids splitting numeric comma groups", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "NT$10,000 today.",
+    { maxChars: 9, inline: true }
+  )
+  const payloads = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(payloads.some((line) => line.includes("10,000"))).toBe(true)
+  expect(payloads).not.toContain("10,")
+  })
+
   it("preserves quote continuity when a split lands inside quotes", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

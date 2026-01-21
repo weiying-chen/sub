@@ -1,6 +1,12 @@
 import type { Rule, PunctuationMetric, RuleCtx } from './types'
 
 import { TSV_RE } from '../shared/subtitles'
+import {
+  type LineSource,
+  type ParseBlockOptions,
+  hasEmptyLineBetween,
+  parseBlockAt,
+} from '../shared/tsvRuns'
 import type { SegmentCtx, SegmentRule } from './segments'
 
 const OPEN_QUOTE_RE = /^\s*(["'])/
@@ -15,10 +21,13 @@ type Cue = {
   end: string
   text: string
   lineIndex: number
+  tsIndex: number
+  payloadIndex: number
 }
 
 type PunctuationRuleOptions = {
   properNouns?: string[]
+  ignoreEmptyLines?: boolean
 }
 
 function escapeRegExp(text: string): string {
@@ -124,47 +133,27 @@ function findUnmatchedDoubleQuote(s: string): UnmatchedDoubleQuote | null {
   return { kind: 'open', index }
 }
 
-function collectCues(lines: string[]): Cue[] {
+function collectCues(
+  src: LineSource,
+  options: ParseBlockOptions = {}
+): Cue[] {
   const cues: Cue[] = []
-  let i = 0
 
-  while (i < lines.length) {
-    const line = lines[i]
-    if (line.trim() === '') {
-      i += 1
-      continue
-    }
+  for (let i = 0; i < src.lineCount; i += 1) {
+    const block = parseBlockAt(src, i, options)
+    if (!block) continue
+    const tsLine = src.getLine(block.tsIndex)
+    const m = tsLine.match(TSV_RE)
+    if (!m?.groups) continue
 
-    const m = line.match(TSV_RE)
-    if (!m?.groups) {
-      i += 1
-      continue
-    }
-
-    const start = m.groups.start
-    const end = m.groups.end
-    i += 1
-
-    while (i < lines.length) {
-      const next = lines[i]
-      if (next.trim() === '') {
-        i += 1
-        break
-      }
-
-      if (TSV_RE.test(next)) {
-        break
-      }
-
-      cues.push({
-        start,
-        end,
-        text: next.trim(),
-        lineIndex: i,
-      })
-      i += 1
-      break
-    }
+    cues.push({
+      start: m.groups.start,
+      end: m.groups.end,
+      text: block.payloadText.trim(),
+      lineIndex: block.payloadIndex,
+      tsIndex: block.tsIndex,
+      payloadIndex: block.payloadIndex,
+    })
   }
 
   return cues
@@ -200,9 +189,15 @@ type PunctuationRule = Rule & SegmentRule
 
 function collectMetrics(
   lines: string[],
-  properNounMatchers: RegExp[]
+  properNounMatchers: RegExp[],
+  options: ParseBlockOptions = {}
 ): PunctuationMetric[] {
-  const cues = collectCues(lines)
+  const src: LineSource = {
+    lineCount: lines.length,
+    getLine: (i) => lines[i] ?? '',
+  }
+  const cues = collectCues(src, options)
+  const ignoreEmptyLines = options.ignoreEmptyLines ?? false
   const metrics: PunctuationMetric[] = []
 
   const reportedRule5 = new Set<string>()
@@ -246,6 +241,12 @@ function collectMetrics(
     const prev = cues[j]
     const next = cues[j + 1]
     if (next.text === prev.text) continue
+    if (
+      !ignoreEmptyLines &&
+      hasEmptyLineBetween(src, prev.payloadIndex, next.tsIndex)
+    ) {
+      continue
+    }
 
     const case1 = firstAlphaCase(next.text)
     if (!case1) continue
@@ -346,10 +347,10 @@ export function punctuationRuleWithOptions(
     if ('segment' in ctx) {
       if (ctx.segmentIndex !== 0) return []
       if (!ctx.lines) return []
-      return collectMetrics(ctx.lines, properNounMatchers)
+      return collectMetrics(ctx.lines, properNounMatchers, options)
     }
 
     if (ctx.lineIndex !== 0) return []
-    return collectMetrics(ctx.lines, properNounMatchers)
+    return collectMetrics(ctx.lines, properNounMatchers, options)
   }) as PunctuationRule
 }

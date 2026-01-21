@@ -23,6 +23,7 @@ const RED = '\x1b[31m'
 type SubsOptions = {
   showWarnings: boolean
   baselinePath?: string
+  ignoreEmptyLines?: boolean
 }
 
 function asNum(v: unknown): number | null {
@@ -245,17 +246,23 @@ async function printReport(
   const rules = [
     ...defaultSegmentRules({
       capitalizationTerms: capitalizationTerms ?? undefined,
+      ignoreEmptyLines: options.ignoreEmptyLines,
     }),
     numberStyleRule(),
     punctuationRuleWithOptions({
       properNouns: properNouns ?? undefined,
+      ignoreEmptyLines: options.ignoreEmptyLines,
     }),
   ]
   if (baselineText != null) {
     rules.push(baselineRule(baselineText))
   }
 
-  const metrics = analyzeTextByType(text, 'subs', rules)
+  const metrics = analyzeTextByType(text, 'subs', rules, {
+    parseOptions: {
+      ignoreEmptyLines: options.ignoreEmptyLines,
+    },
+  })
   const scope = findMarkerScope(lines)
   const scopedMetrics = scope
     ? metrics.filter(

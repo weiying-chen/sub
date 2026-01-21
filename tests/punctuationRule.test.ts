@@ -106,6 +106,26 @@ describe("punctuationRule", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("opts into cross-cue checks across empty lines", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "Hello",
+      "",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "Next Starts Capital.",
+      "",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [
+      punctuationRuleWithOptions({ ignoreEmptyLines: true }),
+    ])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some((f) => f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL")
+    ).toBe(true)
+  })
+
   it("flags dangling closing quote", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

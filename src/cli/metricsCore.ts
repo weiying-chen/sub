@@ -12,9 +12,13 @@ export type MetricsOptions = {
   type: 'subs' | 'news'
   ruleFilters?: string[]
   findingsOnly?: boolean
+  ignoreEmptyLines?: boolean
 }
 
-async function buildRules(type: 'subs' | 'news') {
+async function buildRules(
+  type: 'subs' | 'news',
+  ignoreEmptyLines?: boolean
+) {
   const capitalizationTerms = await loadCapitalizationTerms()
   if (type === 'news') {
     return [
@@ -30,10 +34,12 @@ async function buildRules(type: 'subs' | 'news') {
   return [
     ...defaultSegmentRules({
       capitalizationTerms: capitalizationTerms ?? undefined,
+      ignoreEmptyLines,
     }),
     numberStyleRule(),
     punctuationRuleWithOptions({
       properNouns: properNouns ?? undefined,
+      ignoreEmptyLines,
     }),
   ]
 }
@@ -42,8 +48,12 @@ export async function buildMetricsOutput(
   text: string,
   options: MetricsOptions
 ): Promise<Metric[] | Finding[]> {
-  const rules = await buildRules(options.type)
-  const metrics = analyzeTextByType(text, options.type, rules)
+  const rules = await buildRules(options.type, options.ignoreEmptyLines)
+  const metrics = analyzeTextByType(text, options.type, rules, {
+    parseOptions: {
+      ignoreEmptyLines: options.ignoreEmptyLines,
+    },
+  })
   const output = options.findingsOnly ? getFindings(metrics) : metrics
   const filters = options.ruleFilters ?? []
 

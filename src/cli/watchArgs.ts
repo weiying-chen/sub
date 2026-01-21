@@ -3,6 +3,7 @@ type WatchArgs = {
   type: string
   showWarnings: boolean
   baselinePath: string | null
+  ignoreEmptyLines: boolean
 }
 
 export function parseArgs(argv: string[]): WatchArgs {
@@ -10,6 +11,7 @@ export function parseArgs(argv: string[]): WatchArgs {
   let type = 'subs'
   let showWarnings = true
   let baselinePath: string | null = null
+  let ignoreEmptyLines = false
 
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i]
@@ -25,6 +27,11 @@ export function parseArgs(argv: string[]): WatchArgs {
         i += 1
         continue
       }
+    }
+
+    if (arg === '--ignore-empty-lines') {
+      ignoreEmptyLines = true
+      continue
     }
 
     if (arg === '--type') {
@@ -50,5 +57,5 @@ export function parseArgs(argv: string[]): WatchArgs {
     positionals.push(arg)
   }
 
-  return { filePath: positionals[0], type, showWarnings, baselinePath }
+  return { filePath: positionals[0], type, showWarnings, baselinePath, ignoreEmptyLines }
 }

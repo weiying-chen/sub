@@ -8,13 +8,16 @@ import { capitalizationRule } from './capitalizationRule'
 
 type DefaultRulesOptions = {
   capitalizationTerms?: string[]
+  ignoreEmptyLines?: boolean
 }
 
 export function defaultRules(options: DefaultRulesOptions = {}): Rule[] {
   return [
     maxCharsRule(54),
-    cpsRule(),
-    cpsBalanceRule(),
+    cpsRule(undefined, undefined, {
+      ignoreEmptyLines: options.ignoreEmptyLines,
+    }),
+    cpsBalanceRule({ ignoreEmptyLines: options.ignoreEmptyLines }),
     capitalizationRule({ terms: options.capitalizationTerms }),
   ]
 }
@@ -24,8 +27,10 @@ export function defaultSegmentRules(
 ): SegmentRule[] {
   return [
     maxCharsRule(54),
-    cpsRule(),
-    cpsBalanceRule(),
+    cpsRule(undefined, undefined, {
+      ignoreEmptyLines: options.ignoreEmptyLines,
+    }),
+    cpsBalanceRule({ ignoreEmptyLines: options.ignoreEmptyLines }),
     capitalizationRule({ terms: options.capitalizationTerms }),
   ]
 }

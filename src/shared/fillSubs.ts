@@ -38,6 +38,7 @@ const STRONG_PUNCT = new Set(['.', '?', '!', ':', '\u2014'])
 const SEMICOLON_PUNCT = new Set([';'])
 const COMMA_PUNCT = new Set([','])
 const QUOTE_CHARS = new Set(['"'])
+const NO_SPLIT_ABBREV_RE = /(?:^|\s)(?:Mr|Mrs|Ms|Dr)\.$|(?:^|\s)U\.S\.$/
 
 export function normalizeParagraph(text: string): string {
   return text
@@ -402,7 +403,7 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       const left = s.slice(0, fragmentCut).trimEnd()
       const right = s.slice(fragmentCut).trimStart()
       if (left && right && !/["']\s*$/.test(left) && !/^["']/.test(right)) {
-        return adjustSplitForQuotes(left, right)
+        return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
       }
     }
 
@@ -411,7 +412,7 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       const left = s.slice(0, toVerbCut).trimEnd()
       const right = s.slice(toVerbCut).trimStart()
       if (left && right) {
-        return adjustSplitForQuotes(left, right)
+        return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
       }
     }
 
@@ -420,7 +421,7 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       const left = s.slice(0, clauseLeadCut).trimEnd()
       const right = s.slice(clauseLeadCut).trimStart()
       if (left && right) {
-        return adjustSplitForQuotes(left, right)
+        return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
       }
     }
 
@@ -429,7 +430,7 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       const left = s.slice(0, copularCut).trimEnd()
       const right = s.slice(copularCut).trimStart()
       if (left && right) {
-        return adjustSplitForQuotes(left, right)
+        return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
       }
     }
 
@@ -438,7 +439,7 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       const left = s.slice(0, copularLeadCut).trimEnd()
       const right = s.slice(copularLeadCut).trimStart()
       if (left && right) {
-        return adjustSplitForQuotes(left, right)
+        return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
       }
     }
   }
@@ -458,13 +459,13 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
 
   if (!line) {
     const hard = s.slice(0, limit)
-    return adjustSplitForQuotes(
+    return adjustSplitForNoSplitAbbrevAndQuotes(
       hard.trimEnd(),
       s.slice(limit).trimStart()
     )
   }
 
-  return adjustSplitForQuotes(line, rest)
+  return adjustSplitForNoSplitAbbrevAndQuotes(line, rest)
 }
 
 function isFillableTimestamp(
@@ -538,6 +539,34 @@ function hasTrailingQuote(text: string): boolean {
   return /"\s*$/.test(text)
 }
 
+function adjustSplitForNoSplitAbbrev(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  if (!line || !rest) return { line, rest }
+
+  const trimmedLine = line.trimEnd()
+  if (!NO_SPLIT_ABBREV_RE.test(trimmedLine)) return { line, rest }
+
+  const trimmedRest = rest.trimStart()
+  if (!/^[A-Za-z]/.test(trimmedRest)) return { line, rest }
+
+  const lastSpace = trimmedLine.lastIndexOf(' ')
+  if (lastSpace > 0) {
+    const nextLine = trimmedLine.slice(0, lastSpace).trimEnd()
+    const nextRest = `${trimmedLine.slice(lastSpace).trimStart()} ${trimmedRest}`
+    if (nextLine) {
+      return { line: nextLine, rest: nextRest.trimStart() }
+    }
+  }
+
+  const wordMatch = trimmedRest.match(/^[^\s]+/)
+  if (!wordMatch) return { line, rest }
+  const word = wordMatch[0]
+  const nextRest = trimmedRest.slice(word.length).trimStart()
+  return { line: `${trimmedLine} ${word}`, rest: nextRest }
+}
+
 function adjustSplitForQuotes(
   line: string,
   rest: string
@@ -560,6 +589,14 @@ function adjustSplitForQuotes(
   }
 
   return { line: nextLine, rest: nextRest }
+}
+
+function adjustSplitForNoSplitAbbrevAndQuotes(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const abbrevAdjusted = adjustSplitForNoSplitAbbrev(line, rest)
+  return adjustSplitForQuotes(abbrevAdjusted.line, abbrevAdjusted.rest)
 }
 
 type QuoteMeta = {

@@ -642,6 +642,25 @@ describe("fillSelectedTimestampLines", () => {
   expect(payloads).not.toContain('"A voice inside said, "Just push it."')
   })
 
+  it("adds quotes when splitting inside a quoted span in non-inline mode", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+  const paragraph =
+    'He said "This is a long quote that should split in the middle." Then left.'
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    maxChars: 24,
+    inline: false,
+  })
+  const payloads = result.lines.slice(0, 2)
+
+  expect(payloads[0]?.endsWith('"')).toBe(true)
+  expect(payloads[1]?.startsWith('"')).toBe(true)
+  })
+
   it("preserves quote continuity when a split lands inside quotes", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

@@ -406,7 +406,8 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       const left = s.slice(0, fragmentCut).trimEnd()
       const right = s.slice(fragmentCut).trimStart()
       if (left && right && !/["']\s*$/.test(left) && !/^["']/.test(right)) {
-        return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
+        const shifted = adjustSplitForObjectContinuation(left, right)
+        return adjustSplitForNoSplitAbbrevAndQuotes(shifted.line, shifted.rest)
       }
     }
 
@@ -415,7 +416,8 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       const left = s.slice(0, toVerbCut).trimEnd()
       const right = s.slice(toVerbCut).trimStart()
       if (left && right) {
-        return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
+        const shifted = adjustSplitForObjectContinuation(left, right)
+        return adjustSplitForNoSplitAbbrevAndQuotes(shifted.line, shifted.rest)
       }
     }
 
@@ -424,7 +426,8 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       const left = s.slice(0, clauseLeadCut).trimEnd()
       const right = s.slice(clauseLeadCut).trimStart()
       if (left && right) {
-        return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
+        const shifted = adjustSplitForObjectContinuation(left, right)
+        return adjustSplitForNoSplitAbbrevAndQuotes(shifted.line, shifted.rest)
       }
     }
 
@@ -433,7 +436,8 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       const left = s.slice(0, copularCut).trimEnd()
       const right = s.slice(copularCut).trimStart()
       if (left && right) {
-        return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
+        const shifted = adjustSplitForObjectContinuation(left, right)
+        return adjustSplitForNoSplitAbbrevAndQuotes(shifted.line, shifted.rest)
       }
     }
 
@@ -442,7 +446,8 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       const left = s.slice(0, copularLeadCut).trimEnd()
       const right = s.slice(copularLeadCut).trimStart()
       if (left && right) {
-        return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
+        const shifted = adjustSplitForObjectContinuation(left, right)
+        return adjustSplitForNoSplitAbbrevAndQuotes(shifted.line, shifted.rest)
       }
     }
   }
@@ -462,13 +467,15 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
 
   if (!line) {
     const hard = s.slice(0, limit)
-    return adjustSplitForNoSplitAbbrevAndQuotes(
+    const shifted = adjustSplitForObjectContinuation(
       hard.trimEnd(),
       s.slice(limit).trimStart()
     )
+    return adjustSplitForNoSplitAbbrevAndQuotes(shifted.line, shifted.rest)
   }
 
-  return adjustSplitForNoSplitAbbrevAndQuotes(line, rest)
+  const shifted = adjustSplitForObjectContinuation(line, rest)
+  return adjustSplitForNoSplitAbbrevAndQuotes(shifted.line, shifted.rest)
 }
 
 function isFillableTimestamp(
@@ -600,6 +607,28 @@ function adjustSplitForNoSplitAbbrevAndQuotes(
 ): { line: string; rest: string } {
   const abbrevAdjusted = adjustSplitForNoSplitAbbrev(line, rest)
   return adjustSplitForQuotes(abbrevAdjusted.line, abbrevAdjusted.rest)
+}
+
+function adjustSplitForObjectContinuation(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  if (!line || !rest) return { line, rest }
+
+  if (!/^\s*(one another|each other)\b/i.test(rest)) {
+    return { line, rest }
+  }
+
+  const trimmedLine = line.trimEnd()
+  const lastSpace = trimmedLine.lastIndexOf(' ')
+  if (lastSpace <= 0) return { line, rest }
+
+  const head = trimmedLine.slice(0, lastSpace).trimEnd()
+  const tailWord = trimmedLine.slice(lastSpace + 1)
+  if (!head || !tailWord) return { line, rest }
+
+  const nextRest = `${tailWord} ${rest}`.trimStart()
+  return { line: head, rest: nextRest }
 }
 
 type QuoteMeta = {

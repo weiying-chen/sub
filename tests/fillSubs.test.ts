@@ -699,6 +699,25 @@ describe("fillSelectedTimestampLines", () => {
   expect(payloads).not.toContain("10,")
   })
 
+  it("keeps verb with 'one another' on the same line", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "People helped one another, despite the hardship.",
+    { maxChars: 28, inline: true }
+  )
+  const payloads = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(payloads.some((line) => line.includes("helped one another,"))).toBe(true)
+  expect(payloads).not.toContain("one another,")
+  })
+
   it("preserves quote continuity when a split lands inside quotes", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

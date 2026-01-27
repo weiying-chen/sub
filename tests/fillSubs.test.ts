@@ -326,6 +326,29 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("be hard at times.")
   })
 
+  it("keeps 'like that' together", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "He laughed like that every time.",
+    { maxChars: 24, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "He laughed like that",
+    "every time.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
   it("splits before clause-starting ', and'", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

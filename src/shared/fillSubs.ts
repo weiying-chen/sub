@@ -570,6 +570,27 @@ function adjustSplitForNoSplitAbbrev(
   return { line: `${trimmedLine} ${word}`, rest: nextRest }
 }
 
+function adjustSplitForNoSplitPhrases(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  if (!line || !rest) return { line, rest }
+
+  const trimmedLine = line.trimEnd()
+  const trimmedRest = rest.trimStart()
+
+  if (/\blike$/i.test(trimmedLine)) {
+    const thatMatch = trimmedRest.match(/^that\b/i)
+    if (thatMatch) {
+      const token = thatMatch[0]
+      const nextRest = trimmedRest.slice(token.length).trimStart()
+      return { line: `${trimmedLine} ${token}`, rest: nextRest }
+    }
+  }
+
+  return { line, rest }
+}
+
 function adjustSplitForQuotes(
   line: string,
   rest: string
@@ -598,7 +619,11 @@ function adjustSplitForNoSplitAbbrevAndQuotes(
   line: string,
   rest: string
 ): { line: string; rest: string } {
-  const abbrevAdjusted = adjustSplitForNoSplitAbbrev(line, rest)
+  const phraseAdjusted = adjustSplitForNoSplitPhrases(line, rest)
+  const abbrevAdjusted = adjustSplitForNoSplitAbbrev(
+    phraseAdjusted.line,
+    phraseAdjusted.rest
+  )
   return adjustSplitForQuotes(abbrevAdjusted.line, abbrevAdjusted.rest)
 }
 

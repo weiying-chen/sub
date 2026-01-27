@@ -198,6 +198,21 @@ function findRightmostConjunctionStart(window: string): number {
   return best
 }
 
+function findRightmostOnHowBreak(window: string): number {
+  const re = /\bon\s+how\b/gi
+  let best = -1
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const matchText = m[0]
+    const howStart = start + matchText.lastIndexOf('how')
+    const left = window.slice(0, howStart).trimEnd()
+    const right = window.slice(howStart).trimStart()
+    if (left && right) best = howStart
+  }
+  return best
+}
+
 function findRightmostThatStart(window: string): number {
   let best = -1
   const re = new RegExp(THAT_RE.source, 'gi')
@@ -374,6 +389,9 @@ function findBestCut(window: string, nextText: string): number {
 
   const commaCut = findRightmostNonListComma(window, nextText)
   if (commaCut >= 0) return commaCut
+
+  const onHowCut = findRightmostOnHowBreak(window)
+  if (onHowCut >= 0) return onHowCut
 
   const conjCut = findRightmostConjunctionStart(window)
   if (conjCut >= 0) return conjCut

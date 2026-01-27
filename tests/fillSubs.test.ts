@@ -349,6 +349,29 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("it was still hard.")
   })
 
+  it("prefers splitting before 'on how'", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "We focused on how to do it.",
+    { maxChars: 17, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "We focused on",
+    "how to do it.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
   it("keeps 'like that' together", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

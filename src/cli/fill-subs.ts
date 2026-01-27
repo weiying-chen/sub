@@ -2,6 +2,7 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import { spawnSync } from 'node:child_process'
 import { fillSelectedTimestampLines } from '../shared/fillSubs'
+import { parseFillSubsArgs } from './fillSubsCore'
 
 const MAX_LEN = Number(process.env.MAX_LEN ?? process.env.MAX_CHARS ?? 54)
 const LIMIT = Math.max(1, MAX_LEN)
@@ -48,46 +49,20 @@ function getClipboardText(): string {
   return ''
 }
 
-function parseArgs(argv: string[]): {
-  inputFile: string
-  outputFile: string
-  inline: boolean
-} {
-  const args = { inputFile: '', outputFile: '', inline: true }
-  for (let i = 0; i < argv.length; i++) {
-    const a = argv[i]
-    if (a === '-i' || a === '--in') {
-      args.inputFile = argv[i + 1] ?? ''
-      i++
-      continue
-    }
-    if (a === '-o' || a === '--out') {
-      args.outputFile = argv[i + 1] ?? ''
-      i++
-      continue
-    }
-    if (a === '--inline') {
-      args.inline = true
-      continue
-    }
-    if (a === '--no-inline') {
-      args.inline = false
-      continue
-    }
-  }
-  return args
-}
-
-const { inputFile, outputFile, inline } = parseArgs(process.argv.slice(2))
+const { inputFile, outputFile, inline, paragraphArg } = parseFillSubsArgs(
+  process.argv.slice(2)
+)
 
 const inputTsv = inputFile ? await readFile(inputFile, 'utf8') : await readStdin()
 const lines = inputTsv.split(/\r?\n/)
 
-let paragraph = ''
-if (PARAGRAPH_FILE) {
-  paragraph = await readFile(PARAGRAPH_FILE, 'utf8')
-} else {
-  paragraph = getClipboardText()
+let paragraph = paragraphArg
+if (!paragraph.trim()) {
+  if (PARAGRAPH_FILE) {
+    paragraph = await readFile(PARAGRAPH_FILE, 'utf8')
+  } else {
+    paragraph = getClipboardText()
+  }
 }
 
 if (!paragraph.trim()) {

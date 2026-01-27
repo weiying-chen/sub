@@ -190,7 +190,10 @@ function findRightmostConjunctionStart(window: string): number {
 
     const left = window.slice(0, start).trimEnd()
     const right = window.slice(start).trimStart()
-    if (left && right) best = start
+    if (!left || !right) continue
+    const leftWords = left.split(/\s+/).filter(Boolean)
+    if (leftWords.length === 1 && CONJ_RE.test(leftWords[0])) continue
+    best = start
   }
   return best
 }
@@ -581,6 +584,15 @@ function adjustSplitForNoSplitPhrases(
 
   if (/\blike$/i.test(trimmedLine)) {
     const thatMatch = trimmedRest.match(/^that\b/i)
+    if (thatMatch) {
+      const token = thatMatch[0]
+      const nextRest = trimmedRest.slice(token.length).trimStart()
+      return { line: `${trimmedLine} ${token}`, rest: nextRest }
+    }
+  }
+
+  if (/^(?:and|but|or|so|yet|nor)$/i.test(trimmedLine)) {
+    const thatMatch = trimmedRest.match(/^that(?:'s)?\b/i)
     if (thatMatch) {
       const token = thatMatch[0]
       const nextRest = trimmedRest.slice(token.length).trimStart()

@@ -326,6 +326,29 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("be hard at times.")
   })
 
+  it("avoids splitting 'even though'", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Even though that was true, it was still hard.",
+    { maxChars: 14, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "Even though",
+    "that was true,",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("it was still hard.")
+  })
+
   it("keeps 'like that' together", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

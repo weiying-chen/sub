@@ -591,6 +591,15 @@ function adjustSplitForNoSplitPhrases(
     }
   }
 
+  if (/\beven$/i.test(trimmedLine)) {
+    const thoughMatch = trimmedRest.match(/^though\b/i)
+    if (thoughMatch) {
+      const token = thoughMatch[0]
+      const nextRest = trimmedRest.slice(token.length).trimStart()
+      return { line: `${trimmedLine} ${token}`, rest: nextRest }
+    }
+  }
+
   if (/^(?:and|but|or|so|yet|nor)$/i.test(trimmedLine)) {
     const thatMatch = trimmedRest.match(/^that(?:'s)?\b/i)
     if (thatMatch) {

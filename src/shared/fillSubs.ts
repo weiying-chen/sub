@@ -34,6 +34,8 @@ const CLAUSE_STARTER_RE =
   /^(?:because|since|as|although|though|while|if|when)\b/i
 const CLAUSE_STARTER_ANY_RE =
   /\b(?:because|since|as|although|though|while|if|when)\b/i
+const THAT_FOLLOW_PRONOUN_RE =
+  /^(?:it|we|he|she|they|i|this|that|there)\b/i
 const TO_VERB_HELPER_RE =
   /\b(?:have|has|had|need|needs|want|wants|wanted|going)\s+to\s+[A-Za-z]+$/i
 const SENTENCE_VERB_RE =
@@ -258,6 +260,33 @@ function canSplitBeforeThat(left: string): boolean {
   return false
 }
 
+function findRightmostThatPronounBreak(
+  window: string,
+  nextText: string
+): number {
+  let best = -1
+  const re = new RegExp(THAT_RE.source, 'gi')
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const end = start + m[0].length
+
+    const prev = window[start - 1] ?? ''
+    const next = window[end] ?? ''
+    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
+
+    const left = window.slice(0, end).trimEnd()
+    if (!left) continue
+    const right = (window.slice(end) + nextText).trimStart()
+    if (!right) continue
+    if (canSplitBeforeThat(window.slice(0, start))) continue
+    if (!THAT_FOLLOW_PRONOUN_RE.test(right)) continue
+
+    best = end
+  }
+  return best
+}
+
 function findRightmostCopularBreak(window: string, nextText: string): number {
   let best = -1
   const re = new RegExp(COPULAR_RE.source, 'gi')
@@ -424,6 +453,9 @@ function findBestCut(window: string, nextText: string): number {
 
   const thatCut = findRightmostThatStart(window)
   if (thatCut >= 0) return thatCut
+
+  const thatPronounCut = findRightmostThatPronounBreak(window, nextText)
+  if (thatPronounCut >= 0) return thatPronounCut
 
   const clauseLeadCut = findRightmostClauseStarterLead(window, nextText)
   if (clauseLeadCut >= 0) return clauseLeadCut

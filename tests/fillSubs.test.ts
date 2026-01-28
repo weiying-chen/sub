@@ -464,6 +464,29 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("prefers splitting after 'that' before pronoun", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "The biggest benefit is that it opens up my perspective.",
+    { maxChars: 30, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "The biggest benefit is that",
+    "it opens up my perspective.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
   it("splits before clause-starting ', and'", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

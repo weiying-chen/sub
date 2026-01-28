@@ -17,8 +17,6 @@ type CapitalizationMatcher = {
   expected: string
 }
 
-const DEFAULT_TERMS = ['Indigenous', 'Bodhisattva', 'Bodhisattvas']
-
 function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
@@ -90,8 +88,10 @@ function collectMetrics(
 export function capitalizationRule(
   options: CapitalizationRuleOptions = {}
 ): CapitalizationRule {
-  const terms =
-    options.terms && options.terms.length > 0 ? options.terms : DEFAULT_TERMS
+  const terms = options.terms ?? []
+  if (terms.length === 0) {
+    return (() => []) as CapitalizationRule
+  }
   const matchers = buildMatchers(terms)
   return ((ctx: RuleCtx | SegmentCtx) => {
     if ('segment' in ctx && ctx.segment.targetLines) {

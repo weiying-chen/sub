@@ -1,4 +1,2 @@
 # Terms that must be capitalized (one per line).
 Indigenous
-Bodhisattva
-Bodhisattvas

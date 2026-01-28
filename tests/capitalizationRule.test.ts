@@ -3,27 +3,38 @@ import { analyzeLines } from "../src/analysis/analyzeLines"
 import { capitalizationRule } from "../src/analysis/capitalizationRule"
 
 describe("capitalizationRule", () => {
-  it("flags lowercase indigenous and bodhisattvas and ignores proper case", () => {
+  it("flags lowercase terms provided and ignores proper case", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "We support indigenous communities.",
       "00:00:02:00\t00:00:03:00\tMarker",
-      "We honor bodhisattvas today.",
-      "00:00:03:00\t00:00:04:00\tMarker",
       "Indigenous leadership matters.",
-      "00:00:04:00\t00:00:05:00\tMarker",
-      "Bodhisattvas are honored here.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [
+      capitalizationRule({ terms: ["Indigenous"] }),
+    ])
+    const findings = metrics.filter((m) => m.type === "CAPITALIZATION")
+
+    const tokens = findings.map((f) => f.token).sort()
+    expect(tokens).toEqual(["indigenous"])
+
+    const byToken = new Map(findings.map((f) => [f.token, f]))
+    expect(byToken.get("indigenous")?.expected).toBe("Indigenous")
+  })
+
+  it("returns no findings when no terms are configured", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "We support indigenous communities.",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "Indigenous leadership matters.",
     ].join("\n")
 
     const metrics = analyzeLines(text, [capitalizationRule()])
     const findings = metrics.filter((m) => m.type === "CAPITALIZATION")
 
-    const tokens = findings.map((f) => f.token).sort()
-    expect(tokens).toEqual(["bodhisattvas", "indigenous"])
-
-    const byToken = new Map(findings.map((f) => [f.token, f]))
-    expect(byToken.get("indigenous")?.expected).toBe("Indigenous")
-    expect(byToken.get("bodhisattvas")?.expected).toBe("Bodhisattvas")
+    expect(findings).toEqual([])
   })
 
   it("uses custom capitalization terms when provided", () => {

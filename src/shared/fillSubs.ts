@@ -19,6 +19,10 @@ const CONJ_RE = /\b(and|but|or|so|yet|nor)\b/i
 const CLAUSE_START_RE =
   /^\s*(?:I|you|we|they|he|she|it|this|that|there)\b/i
 const THAT_RE = /\b(that)\b/i
+const THAT_SPLIT_VERB_RE =
+  /\b(?:say|says|said|tell|tells|told|ask|asks|asked|think|thinks|thought|know|knows|knew|realize|realizes|realized|feel|feels|felt|hope|hopes|hoped|decide|decides|decided|learn|learns|learned|hear|hears|heard|believe|believes|believed|suspect|suspects|suspected|guess|guesses|guessed|remember|remembers|remembered|notice|notices|noticed|find|finds|found)\b/i
+const THAT_SPLIT_OBJECT_RE =
+  /^(?:me|you|him|her|us|them|it|this|that|there|someone|somebody|anyone|anybody|everyone|everybody|noone|nobody)$/i
 const COPULAR_RE = /\b(am|is|are|was|were)\b/i
 const COPULAR_VERB_START_RE =
   /^(?:give|make|take|help|let|get|keep|try|need|want|have)\b/i
@@ -227,9 +231,31 @@ function findRightmostThatStart(window: string): number {
 
     const left = window.slice(0, start).trimEnd()
     const right = window.slice(start).trimStart()
-    if (left && right) best = start
+    if (left && right && canSplitBeforeThat(left)) best = start
   }
   return best
+}
+
+function canSplitBeforeThat(left: string): boolean {
+  const trimmed = left.trimEnd()
+  if (!trimmed) return false
+
+  const words = trimmed.split(/\s+/).filter(Boolean)
+  if (words.length === 0) return false
+
+  const minIndex = Math.max(0, words.length - 3)
+  for (let i = words.length - 1; i >= minIndex; i--) {
+    const word = words[i] ?? ''
+    if (!THAT_SPLIT_VERB_RE.test(word)) continue
+
+    const tail = words.slice(i + 1)
+    if (tail.length === 0) return true
+    if (tail.length === 1 && THAT_SPLIT_OBJECT_RE.test(tail[0] ?? '')) {
+      return true
+    }
+  }
+
+  return false
 }
 
 function findRightmostCopularBreak(window: string, nextText: string): number {
@@ -599,6 +625,13 @@ function adjustSplitForNoSplitPhrases(
 
   const trimmedLine = line.trimEnd()
   const trimmedRest = rest.trimStart()
+
+  const thatMatch = trimmedRest.match(/^that(?:'s)?\b/i)
+  if (thatMatch && !canSplitBeforeThat(trimmedLine)) {
+    const token = thatMatch[0]
+    const nextRest = trimmedRest.slice(token.length).trimStart()
+    return { line: `${trimmedLine} ${token}`, rest: nextRest }
+  }
 
   if (/\blike$/i.test(trimmedLine)) {
     const thatMatch = trimmedRest.match(/^that\b/i)

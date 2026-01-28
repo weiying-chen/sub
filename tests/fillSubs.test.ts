@@ -395,6 +395,52 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("splits before 'that' after reporting verbs", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "He told me that it was over.",
+    { maxChars: 20, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "He told me",
+    "that it was over.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
+  it("avoids starting a line with 'that' after noun phrases", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "He told me a story that moved me.",
+    { maxChars: 20, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "He told me a story that",
+    "moved me.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
   it("keeps conjunction with following 'that' clause", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

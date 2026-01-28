@@ -628,9 +628,17 @@ function adjustSplitForNoSplitAbbrev(
   if (!line || !rest) return { line, rest }
 
   const trimmedLine = line.trimEnd()
-  if (!NO_SPLIT_ABBREV_RE.test(trimmedLine)) return { line, rest }
-
   const trimmedRest = rest.trimStart()
+
+  const usMatch = /(?:^|\s)U\.$/i.test(trimmedLine)
+  const sMatch = /^S\./i.test(trimmedRest)
+  if (usMatch && sMatch) {
+    const token = trimmedRest.match(/^S\./i)?.[0] ?? 'S.'
+    const nextRest = trimmedRest.slice(token.length).trimStart()
+    return { line: `${trimmedLine}${token}`, rest: nextRest }
+  }
+
+  if (!NO_SPLIT_ABBREV_RE.test(trimmedLine)) return { line, rest }
   if (!/^[A-Za-z]/.test(trimmedRest)) return { line, rest }
 
   const lastSpace = trimmedLine.lastIndexOf(' ')

@@ -487,6 +487,29 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("prefers splitting before relative who clauses", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "A Chinese American science fiction writer who's hugely respected in the U.S.",
+    { maxChars: 54, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "A Chinese American science fiction writer",
+    "who's hugely respected in the U.S.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
   it("splits before clause-starting ', and'", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

@@ -19,6 +19,7 @@ const CONJ_RE = /\b(and|but|or|so|yet|nor)\b/i
 const CLAUSE_START_RE =
   /^\s*(?:I|you|we|they|he|she|it|this|that|there)\b/i
 const THAT_RE = /\b(that)\b/i
+const WHO_RE = /\b(who|whom|whose|who's)\b/i
 const THAT_SPLIT_VERB_RE =
   /\b(?:say|says|said|tell|tells|told|ask|asks|asked|think|thinks|thought|know|knows|knew|realize|realizes|realized|feel|feels|felt|hope|hopes|hoped|decide|decides|decided|learn|learns|learned|hear|hears|heard|believe|believes|believed|suspect|suspects|suspected|guess|guesses|guessed|remember|remembers|remembered|notice|notices|noticed|find|finds|found)\b/i
 const THAT_SPLIT_OBJECT_RE =
@@ -260,6 +261,49 @@ function canSplitBeforeThat(left: string): boolean {
   return false
 }
 
+function canSplitBeforeWho(left: string): boolean {
+  const trimmed = left.trimEnd()
+  if (!trimmed) return false
+
+  const words = trimmed.split(/\s+/).filter(Boolean)
+  if (words.length === 0) return false
+
+  const lastWord = (words[words.length - 1] ?? '').toLowerCase()
+  if (!lastWord) return false
+  if (
+    SENTENCE_VERB_RE.test(lastWord) ||
+    THAT_SPLIT_VERB_RE.test(lastWord) ||
+    CONJ_RE.test(lastWord) ||
+    lastWord === 'to'
+  ) {
+    return false
+  }
+
+  return true
+}
+
+function findRightmostWhoStart(window: string): number {
+  let best = -1
+  const re = new RegExp(WHO_RE.source, 'gi')
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const end = start + m[0].length
+
+    const prev = window[start - 1] ?? ''
+    const next = window[end] ?? ''
+    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
+
+    const left = window.slice(0, start).trimEnd()
+    const right = window.slice(start).trimStart()
+    if (!left || !right) continue
+    if (!canSplitBeforeWho(left)) continue
+
+    best = start
+  }
+  return best
+}
+
 function findRightmostThatPronounBreak(
   window: string,
   nextText: string
@@ -450,6 +494,9 @@ function findBestCut(window: string, nextText: string): number {
 
   const conjCut = findRightmostConjunctionStart(window)
   if (conjCut >= 0) return conjCut
+
+  const whoCut = findRightmostWhoStart(window)
+  if (whoCut >= 0) return whoCut
 
   const thatCut = findRightmostThatStart(window)
   if (thatCut >= 0) return thatCut

@@ -115,6 +115,29 @@ function isPercentToken(text: string, index: number, length: number) {
   return /^\s*(%|percent\b)/i.test(tail)
 }
 
+function isPrecededByDigitToken(text: string, index: number) {
+  let i = index - 1
+  while (i >= 0 && isSpace(text[i])) i -= 1
+  if (i < 0) return false
+
+  let sawDigit = false
+  while (i >= 0) {
+    const ch = text[i]
+    if (ch >= '0' && ch <= '9') {
+      sawDigit = true
+      i -= 1
+      continue
+    }
+    if (ch === ',') {
+      i -= 1
+      continue
+    }
+    break
+  }
+
+  return sawDigit
+}
+
 function parseNumberWords(words: string[]): number | null {
   let total = 0
   let current = 0
@@ -232,6 +255,7 @@ function collectMetrics(
   while ((match = WORD_NUMBER_RE.exec(text))) {
     const parts = match[0].split(/[\s-]+/).filter(Boolean)
     if (isHyphenatedDigitSequence(match[0], parts)) continue
+    if (isPrecededByDigitToken(text, match.index)) continue
     const value = parseNumberWords(parts)
     if (value == null || value <= 10) continue
     if (isAgeAdjective(text, match.index, match[0].length)) continue

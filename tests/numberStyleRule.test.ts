@@ -29,12 +29,18 @@ describe("numberStyleRule", () => {
       "It rose 5 percent this year.",
       "00:00:11:00\t00:00:12:00\tMarker",
       "It rose 5% last year.",
+      "00:00:12:00\t00:00:13:00\tMarker",
+      "We spent NT$80 million last year.",
+      "00:00:13:00\t00:00:14:00\tMarker",
+      "It was 80 million dollars.",
+      "00:00:14:00\t00:00:15:00\tMarker",
+      "It was eight million dollars.",
     ].join("\n")
 
     const metrics = analyzeLines(text, [numberStyleRule()])
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
     const tokens = findings.map((f) => f.token).sort()
-    expect(tokens).toEqual(["12", "5", "eleven"])
+    expect(tokens).toEqual(["12", "5", "eight million", "eleven"])
 
     const byToken = new Map(findings.map((f) => [f.token, f]))
     expect(byToken.get("5")?.expected).toBe("words")

@@ -40,20 +40,20 @@ describe("capitalizationRule", () => {
   it("uses custom capitalization terms when provided", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
-      "We traveled to hualien last summer.",
+      "We traveled to riverton last summer.",
       "00:00:02:00\t00:00:03:00\tMarker",
       "We support indigenous communities.",
     ].join("\n")
 
     const metrics = analyzeLines(text, [
-      capitalizationRule({ terms: ["Hualien"] }),
+      capitalizationRule({ terms: ["Riverton"] }),
     ])
     const findings = metrics.filter((m) => m.type === "CAPITALIZATION")
 
     const tokens = findings.map((f) => f.token).sort()
-    expect(tokens).toEqual(["hualien"])
+    expect(tokens).toEqual(["riverton"])
 
     const byToken = new Map(findings.map((f) => [f.token, f]))
-    expect(byToken.get("hualien")?.expected).toBe("Hualien")
+    expect(byToken.get("riverton")?.expected).toBe("Riverton")
   })
 })

@@ -848,19 +848,19 @@ describe("fillSelectedTimestampLines", () => {
 
   it("keeps quoted sentences intact when under max length", () => {
   const lines = [
-    "00:00:02:00\t00:00:05:05\t真的 我下定了決心",
-    "00:00:05:05\t00:00:07:21\t就是說要建醫院",
-    "00:00:07:21\t00:00:11:26\t所以 一直開始有這樣的醞釀",
-    "00:00:11:26\t00:00:16:18\t就是這一念這樣開始浮現出來",
-    "00:00:16:18\t00:00:20:08\t開始就一直一直在醞釀著如何",
-    "00:00:20:08\t00:00:22:24\t何時才是時機",
-    "00:00:22:24\t00:00:23:18\t什麼時候",
-    "00:00:23:18\t00:00:28:02\t我能把我心中想要做的事情",
-    "00:00:28:02\t00:00:30:29\t公布出來",
+    "00:00:02:00\t00:00:05:05\tMarker",
+    "00:00:05:05\t00:00:07:21\tMarker",
+    "00:00:07:21\t00:00:11:26\tMarker",
+    "00:00:11:26\t00:00:16:18\tMarker",
+    "00:00:16:18\t00:00:20:08\tMarker",
+    "00:00:20:08\t00:00:22:24\tMarker",
+    "00:00:22:24\t00:00:23:18\tMarker",
+    "00:00:23:18\t00:00:28:02\tMarker",
+    "00:00:28:02\t00:00:30:29\tMarker",
   ]
   const selected = new Set(lines.map((_, i) => i))
   const paragraph =
-    `I really made up my mind to build a hospital. From then on, the idea just kept growing in me, and I couldn't stop thinking, "When's the right time?"`
+    `I made up my mind to start the project. The idea kept growing, and I couldn't stop thinking, "Is this the right time?"`
 
   const result = fillSelectedTimestampLines(lines, selected, paragraph, {
     inline: false,
@@ -869,25 +869,23 @@ describe("fillSelectedTimestampLines", () => {
   const payloads = result.lines.filter((line) => !line.includes("\t"))
 
   expect(
-    payloads.some((line) =>
-      line.includes(`and I couldn't stop thinking, "When's the right time?"`)
-    )
+    payloads.some((line) => line.includes(`"Is this the right time?"`))
   ).toBe(true)
   expect(payloads.some((line) => line.trim() === '"')).toBe(false)
   })
 
   it("always splits after periods when possible", () => {
   const lines = [
-    "00:00:26:10\t00:00:31:06\t為了花蓮地區醫療的缺欠",
-    "00:00:31:06\t00:00:38:13\t為了生命若有病痛或意外時",
-    "00:00:38:13\t00:00:41:28\t芸芸眾生無語問蒼天",
-    "00:00:41:28\t00:00:44:02\t那一種的悲苦",
-    "00:00:44:02\t00:00:46:11\t所以不忍心",
-    "00:00:46:11\t00:00:51:20\t所以我信自己無私",
+    "00:00:26:10\t00:00:31:06\tMarker",
+    "00:00:31:06\t00:00:38:13\tMarker",
+    "00:00:38:13\t00:00:41:28\tMarker",
+    "00:00:41:28\t00:00:44:02\tMarker",
+    "00:00:44:02\t00:00:46:11\tMarker",
+    "00:00:46:11\t00:00:51:20\tMarker",
   ]
   const selected = new Set(lines.map((_, i) => i))
   const paragraph =
-    "Hualien's always been short on medical care, and when sickness or accidents strike, people can only look up and ask why. That kind of pain is unbearable, so I couldn't just stand by."
+    "Riverton's services were limited, and when accidents strike, people can only look up and ask why. That kind of pain is unbearable, so I couldn't just stand by."
 
   const result = fillSelectedTimestampLines(lines, selected, paragraph, {
     inline: false,

@@ -845,6 +845,36 @@ describe("fillSelectedTimestampLines", () => {
   expect(payloads[1]?.startsWith('"')).toBe(true)
   })
 
+  it("keeps quoted sentences intact when under max length", () => {
+  const lines = [
+    "00:00:02:00\t00:00:05:05\t真的 我下定了決心",
+    "00:00:05:05\t00:00:07:21\t就是說要建醫院",
+    "00:00:07:21\t00:00:11:26\t所以 一直開始有這樣的醞釀",
+    "00:00:11:26\t00:00:16:18\t就是這一念這樣開始浮現出來",
+    "00:00:16:18\t00:00:20:08\t開始就一直一直在醞釀著如何",
+    "00:00:20:08\t00:00:22:24\t何時才是時機",
+    "00:00:22:24\t00:00:23:18\t什麼時候",
+    "00:00:23:18\t00:00:28:02\t我能把我心中想要做的事情",
+    "00:00:28:02\t00:00:30:29\t公布出來",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+  const paragraph =
+    `I really made up my mind to build a hospital. From then on, the idea just kept growing in me, and I couldn't stop thinking, "When's the right time?"`
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    inline: false,
+    maxChars: 54,
+  })
+  const payloads = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(
+    payloads.some((line) =>
+      line.includes(`and I couldn't stop thinking, "When's the right time?"`)
+    )
+  ).toBe(true)
+  expect(payloads.some((line) => line.trim() === '"')).toBe(false)
+  })
+
   it("keeps honorific abbreviations with the following word", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

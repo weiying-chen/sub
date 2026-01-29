@@ -526,6 +526,10 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
   const s = text.trimStart()
   if (!s) return { line: '', rest: '' }
 
+  if (s.length <= limit && countQuotes(s) > 0 && countQuotes(s) % 2 === 0) {
+    return { line: s.trimEnd(), rest: '' }
+  }
+
   if (s.length <= limit) {
     const fragmentCut = findFragmentSentenceCut(s, '')
     if (fragmentCut > 0 && fragmentCut < s.length) {

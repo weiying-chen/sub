@@ -33,7 +33,7 @@ export function parseFillSubsArgs(argv: string[]): FillSubsCliArgs {
       args.inline = false
       continue
     }
-    if (a === '-p' || a === '--paragraph') {
+    if (a === '-t' || a === '--text') {
       args.paragraphArg = argv[i + 1] ?? ''
       i++
       continue

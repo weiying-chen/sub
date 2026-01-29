@@ -21,11 +21,11 @@ If you prefer `npx tsx`:
 npx tsx src/cli/watch.ts path/to/file.txt --type subs --balance
 ```
 
-One-shot fill (reads TSV from stdin and a paragraph from `-p` or clipboard):
+One-shot fill (reads TSV from stdin and a paragraph from `-t/--text` or clipboard):
 
 ```sh
 printf '00:00:01:00\t00:00:02:00\tMarker\n00:00:02:00\t00:00:03:00\tMarker\n' \
-  | npx tsx src/cli/fillSubs.ts --no-inline -p "He said that it was over."
+  | npx tsx src/cli/fillSubs.ts --no-inline -t "He said that it was over."
 ```
 
 Baseline comparison (timestamps + inline source text):

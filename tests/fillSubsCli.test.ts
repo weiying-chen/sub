@@ -4,7 +4,7 @@ import { parseFillSubsArgs } from "../src/cli/fillSubsCore"
 
 describe("fill-subs CLI args", () => {
   it("parses paragraph argument", () => {
-    const args = parseFillSubsArgs(["--paragraph", "Hello world."])
+    const args = parseFillSubsArgs(["--text", "Hello world."])
     expect(args).toMatchObject({
       paragraphArg: "Hello world.",
       inline: true,
@@ -12,7 +12,7 @@ describe("fill-subs CLI args", () => {
   })
 
   it("supports short paragraph flag", () => {
-    const args = parseFillSubsArgs(["-p", "Short line."])
+    const args = parseFillSubsArgs(["-t", "Short line."])
     expect(args.paragraphArg).toBe("Short line.")
   })
 })

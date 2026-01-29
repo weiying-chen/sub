@@ -556,7 +556,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("keeps full sentences together on one line", () => {
+  it("splits after periods even for full sentences", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -571,7 +571,8 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "It is true. My wife does this all the time.",
+    "It is true.",
+    "My wife does this all the time.",
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
   ])
@@ -873,6 +874,30 @@ describe("fillSelectedTimestampLines", () => {
     )
   ).toBe(true)
   expect(payloads.some((line) => line.trim() === '"')).toBe(false)
+  })
+
+  it("always splits after periods when possible", () => {
+  const lines = [
+    "00:00:26:10\t00:00:31:06\t為了花蓮地區醫療的缺欠",
+    "00:00:31:06\t00:00:38:13\t為了生命若有病痛或意外時",
+    "00:00:38:13\t00:00:41:28\t芸芸眾生無語問蒼天",
+    "00:00:41:28\t00:00:44:02\t那一種的悲苦",
+    "00:00:44:02\t00:00:46:11\t所以不忍心",
+    "00:00:46:11\t00:00:51:20\t所以我信自己無私",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+  const paragraph =
+    "Hualien's always been short on medical care, and when sickness or accidents strike, people can only look up and ask why. That kind of pain is unbearable, so I couldn't just stand by."
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    inline: false,
+    maxChars: 140,
+  })
+  const payloads = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(payloads.some((line) => line.includes("why. That"))).toBe(false)
+  expect(payloads.some((line) => line.endsWith("ask why."))).toBe(true)
+  expect(payloads.some((line) => line.startsWith("That kind of pain"))).toBe(true)
   })
 
   it("keeps honorific abbreviations with the following word", () => {

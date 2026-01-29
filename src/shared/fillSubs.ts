@@ -425,7 +425,7 @@ function hasSentenceVerb(text: string): boolean {
   return SENTENCE_VERB_RE.test(text)
 }
 
-function findFragmentSentenceCut(window: string, nextText: string): number {
+function findSentenceBoundaryCut(window: string, nextText: string): number {
   for (let i = 0; i < window.length; i++) {
     const ch = window[i]
     if (ch !== '.' && ch !== '!' && ch !== '?') continue
@@ -433,9 +433,7 @@ function findFragmentSentenceCut(window: string, nextText: string): number {
     const left = window.slice(0, cut).trimEnd()
     const right = (window.slice(cut) + nextText).trimStart()
     if (!left || !right) continue
-
-    if (startsWithUppercase(left) && hasSentenceVerb(left)) continue
-    if (startsWithUppercase(right)) return cut
+    return cut
   }
   return -1
 }
@@ -477,8 +475,8 @@ function findRightmostClauseStarterLead(window: string, nextText: string): numbe
 }
 
 function findBestCut(window: string, nextText: string): number {
-  const fragmentCut = findFragmentSentenceCut(window, nextText)
-  if (fragmentCut >= 0) return fragmentCut
+  const sentenceCut = findSentenceBoundaryCut(window, nextText)
+  if (sentenceCut >= 0) return sentenceCut
 
   const strongCut = findRightmostStrongPunct(window)
   if (strongCut >= 0) return strongCut
@@ -531,10 +529,10 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
   }
 
   if (s.length <= limit) {
-    const fragmentCut = findFragmentSentenceCut(s, '')
-    if (fragmentCut > 0 && fragmentCut < s.length) {
-      const left = s.slice(0, fragmentCut).trimEnd()
-      const right = s.slice(fragmentCut).trimStart()
+    const sentenceCut = findSentenceBoundaryCut(s, '')
+    if (sentenceCut > 0 && sentenceCut < s.length) {
+      const left = s.slice(0, sentenceCut).trimEnd()
+      const right = s.slice(sentenceCut).trimStart()
       if (left && right && !/["']\s*$/.test(left) && !/^["']/.test(right)) {
         return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
       }
@@ -717,8 +715,11 @@ function adjustSplitForNoSplitPhrases(
   const trimmedLine = line.trimEnd()
   const trimmedRest = rest.trimStart()
 
+  const endsWithSentence =
+    /[.!?]["']?\s*$/.test(trimmedLine) || /[.!?]["']?\s*$/.test(line)
+
   const thatMatch = trimmedRest.match(/^that(?:'s)?\b/i)
-  if (thatMatch && !canSplitBeforeThat(trimmedLine)) {
+  if (thatMatch && !endsWithSentence && !canSplitBeforeThat(trimmedLine)) {
     const token = thatMatch[0]
     const nextRest = trimmedRest.slice(token.length).trimStart()
     return { line: `${trimmedLine} ${token}`, rest: nextRest }

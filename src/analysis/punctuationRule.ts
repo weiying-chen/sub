@@ -290,24 +290,6 @@ function collectMetrics(
     }
 
     if (
-      prevQuoteOpenIndex !== null &&
-      !endsSentenceBoundary(prevTrim) &&
-      !startsWithDoubleQuote(next.text)
-    ) {
-      metrics.push({
-        type: 'PUNCTUATION',
-        lineIndex: next.lineIndex,
-        ruleCode: 'MISSING_OPENING_QUOTE_CONTINUATION',
-        instruction:
-          'Start this line with " to continue the quote from the previous line.',
-        text: next.text,
-        timestamp: cueTimestamp(next),
-        prevText: prev.text,
-        prevTimestamp: cueTimestamp(prev),
-      })
-    }
-
-    if (
       startsWithOpenQuote(next.text) &&
       !prevTrim.endsWith(':') &&
       !endsSentenceBoundary(prevTrim) &&

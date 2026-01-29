@@ -80,26 +80,6 @@ describe("punctuationRule (segments)", () => {
     )
   })
 
-  it("flags missing opening quote when quoted speech continues", () => {
-    const text = [
-      "00:00:01:00\t00:00:02:00\tMarker",
-      "\"it makes me feel like not knowing my way\"",
-      "00:00:02:00\t00:00:03:00\tMarker",
-      "means there's something wrong with me.",
-    ].join("\n")
-
-    const segments = parseSubs(text)
-    const metrics = analyzeSegments(segments, [punctuationRule()], {
-      lines: text.split("\n"),
-      sourceText: text,
-    })
-    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
-
-    expect(
-      findings.some((f) => f.ruleCode === "MISSING_OPENING_QUOTE_CONTINUATION")
-    ).toBe(true)
-  })
-
   it("does not require ':' when the next quoted line is a continuation", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

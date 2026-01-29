@@ -109,7 +109,6 @@ export type PunctuationRuleCode =
   | 'MISSING_END_PUNCTUATION'
   | 'MISSING_CLOSING_QUOTE'
   | 'MISSING_OPENING_QUOTE'
-  | 'MISSING_OPENING_QUOTE_CONTINUATION'
 
 export type BaselineMetric = {
   type: 'BASELINE'

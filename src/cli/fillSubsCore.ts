@@ -25,10 +25,6 @@ export function parseFillSubsArgs(argv: string[]): FillSubsCliArgs {
       i++
       continue
     }
-    if (a === '--inline') {
-      args.inline = true
-      continue
-    }
     if (a === '--no-inline') {
       args.inline = false
       continue

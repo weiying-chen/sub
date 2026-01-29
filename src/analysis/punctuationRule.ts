@@ -101,10 +101,6 @@ function findMatchingOpeningDoubleQuoteForTrailingQuote(s: string): number | nul
   return openIndex >= 0 ? openIndex : null
 }
 
-function startsWithDoubleQuote(s: string): boolean {
-  return /^\s*"/.test(s)
-}
-
 type UnmatchedDoubleQuote = { kind: 'open' | 'close'; index: number }
 
 function findUnmatchedDoubleQuote(s: string): UnmatchedDoubleQuote | null {

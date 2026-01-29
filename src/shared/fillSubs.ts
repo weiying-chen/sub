@@ -412,19 +412,6 @@ function adjustCutForTrailingQuote(window: string, cut: number): number {
   return i
 }
 
-function startsWithUppercase(text: string): boolean {
-  const trimmed = text.trimStart()
-  if (!trimmed) return false
-  const first = trimmed.startsWith('"') ? trimmed.slice(1).trimStart() : trimmed
-  const ch = first[0]
-  if (!ch) return false
-  return ch >= 'A' && ch <= 'Z'
-}
-
-function hasSentenceVerb(text: string): boolean {
-  return SENTENCE_VERB_RE.test(text)
-}
-
 function findSentenceBoundaryCut(window: string, nextText: string): number {
   for (let i = 0; i < window.length; i++) {
     const ch = window[i]

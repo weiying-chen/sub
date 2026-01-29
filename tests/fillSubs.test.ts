@@ -898,6 +898,42 @@ describe("fillSelectedTimestampLines", () => {
   expect(payloads.some((line) => line.startsWith("That kind of pain"))).toBe(true)
   })
 
+  it("keeps dialogue tags with preceding question when it fits", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+  const paragraph =
+    '"How can that be possible?" they said. Afterwards, they left.'
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    inline: false,
+    maxChars: 60,
+  })
+  const payloads = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(payloads).toContain('"How can that be possible?" they said.')
+  expect(payloads.some((line) => line.startsWith("Afterwards,"))).toBe(true)
+  })
+
+  it("does not add extra quotes to repeated inline lines", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+  const paragraph = '"How can that be possible?" they said.'
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    inline: true,
+  })
+  const payloads = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(payloads.some((line) => line.endsWith('said."'))).toBe(false)
+  })
+
   it("keeps honorific abbreviations with the following word", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

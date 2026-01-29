@@ -46,6 +46,7 @@ const SEMICOLON_PUNCT = new Set([';'])
 const COMMA_PUNCT = new Set([','])
 const QUOTE_CHARS = new Set(['"'])
 const NO_SPLIT_ABBREV_RE = /(?:^|\s)(?:Mr|Mrs|Ms|Dr)\.$|(?:^|\s)U\.S\.$/
+const DIALOGUE_TAG_VERBS = ['said', 'asked', 'replied', 'told']
 
 export function normalizeParagraph(text: string): string {
   return text
@@ -93,6 +94,27 @@ function isPunctForQuote(ch: string): boolean {
     COMMA_PUNCT.has(ch) ||
     ch === '-'
   )
+}
+
+function isDialogueTagStart(text: string): boolean {
+  const trimmed = text.trimStart().replace(/^["']\s*/, '')
+  const tokens = trimmed.split(/\s+/).filter(Boolean).slice(0, 3)
+  if (tokens.length < 2) return false
+
+  const clean = (value: string) => value.replace(/[.,!?;:]+$/g, '').toLowerCase()
+  const verb1 = clean(tokens[1] ?? '')
+  if (DIALOGUE_TAG_VERBS.includes(verb1)) return true
+
+  const verb2 = clean(tokens[2] ?? '')
+  return DIALOGUE_TAG_VERBS.includes(verb2)
+}
+
+function endsWithQuestionOrExclaim(text: string): boolean {
+  return /[!?]["']?\s*$/.test(text.trimEnd())
+}
+
+function isSentenceBoundaryChar(ch: string): boolean {
+  return ch === '.' || ch === '!' || ch === '?'
 }
 
 function findRightmostStrongPunct(window: string): number {
@@ -415,11 +437,21 @@ function adjustCutForTrailingQuote(window: string, cut: number): number {
 function findSentenceBoundaryCut(window: string, nextText: string): number {
   for (let i = 0; i < window.length; i++) {
     const ch = window[i]
-    if (ch !== '.' && ch !== '!' && ch !== '?') continue
+    if (!isSentenceBoundaryChar(ch)) continue
     const cut = i + 1
     const left = window.slice(0, cut).trimEnd()
     const right = (window.slice(cut) + nextText).trimStart()
     if (!left || !right) continue
+    if ((ch === '?' || ch === '!') && isDialogueTagStart(right)) {
+      let hasLaterBoundary = false
+      for (let j = i + 1; j < window.length; j++) {
+        if (isSentenceBoundaryChar(window[j])) {
+          hasLaterBoundary = true
+          break
+        }
+      }
+      if (hasLaterBoundary) continue
+    }
     return cut
   }
   return -1
@@ -520,6 +552,14 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
     if (sentenceCut > 0 && sentenceCut < s.length) {
       const left = s.slice(0, sentenceCut).trimEnd()
       const right = s.slice(sentenceCut).trimStart()
+      if (
+        left &&
+        right &&
+        endsWithQuestionOrExclaim(left) &&
+        isDialogueTagStart(right)
+      ) {
+        return { line: s.trimEnd(), rest: '' }
+      }
       if (left && right && !/["']\s*$/.test(left) && !/^["']/.test(right)) {
         return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
       }
@@ -785,6 +825,10 @@ type QuoteMeta = {
 }
 
 function getQuoteMeta(rawLine: string, quoteOpen: boolean): QuoteMeta {
+  const quoteCount = countQuotes(rawLine)
+  if (quoteCount % 2 === 0) {
+    return { isOpening: false, isClosing: false, isWrapped: false }
+  }
   const hasLeading = hasLeadingQuote(rawLine)
   const hasTrailing = hasTrailingQuote(rawLine)
   return {

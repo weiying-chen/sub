@@ -898,6 +898,25 @@ describe("fillSelectedTimestampLines", () => {
   expect(payloads.some((line) => line.startsWith("That kind of pain"))).toBe(true)
   })
 
+  it("keeps em dash phrases glued without inserting spaces", () => {
+  const lines = [
+    "00:00:00:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:04:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+  const paragraph =
+    "This main hall we have now---that was our office, and it was also where we lived."
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    inline: false,
+    maxChars: 36,
+  })
+  const payloads = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(payloads.some((line) => line.includes("now---that"))).toBe(true)
+  expect(payloads.some((line) => line.includes("now--- that"))).toBe(false)
+  })
+
   it("keeps dialogue tags with preceding question when it fits", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

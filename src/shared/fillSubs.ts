@@ -733,7 +733,7 @@ function adjustSplitForNoSplitAbbrev(
   return { line: `${trimmedLine} ${word}`, rest: nextRest }
 }
 
-function adjustSplitForNoSplitPhrases(
+function mergeNoSplitPhrases(
   line: string,
   rest: string
 ): { line: string; rest: string } {
@@ -741,6 +741,10 @@ function adjustSplitForNoSplitPhrases(
 
   const trimmedLine = line.trimEnd()
   const trimmedRest = rest.trimStart()
+  const appendToken = (base: string, token: string) => {
+    const noSpace = /(?:---|—|–)$/.test(base)
+    return noSpace ? `${base}${token}` : `${base} ${token}`
+  }
 
   const endsWithSentence =
     /[.!?]["']?\s*$/.test(trimmedLine) || /[.!?]["']?\s*$/.test(line)
@@ -749,7 +753,7 @@ function adjustSplitForNoSplitPhrases(
   if (thatMatch && !endsWithSentence && !canSplitBeforeThat(trimmedLine)) {
     const token = thatMatch[0]
     const nextRest = trimmedRest.slice(token.length).trimStart()
-    return { line: `${trimmedLine} ${token}`, rest: nextRest }
+    return { line: appendToken(trimmedLine, token), rest: nextRest }
   }
 
   if (/\blike$/i.test(trimmedLine)) {
@@ -757,7 +761,7 @@ function adjustSplitForNoSplitPhrases(
     if (thatMatch) {
       const token = thatMatch[0]
       const nextRest = trimmedRest.slice(token.length).trimStart()
-      return { line: `${trimmedLine} ${token}`, rest: nextRest }
+      return { line: appendToken(trimmedLine, token), rest: nextRest }
     }
   }
 
@@ -766,7 +770,7 @@ function adjustSplitForNoSplitPhrases(
     if (thoughMatch) {
       const token = thoughMatch[0]
       const nextRest = trimmedRest.slice(token.length).trimStart()
-      return { line: `${trimmedLine} ${token}`, rest: nextRest }
+      return { line: appendToken(trimmedLine, token), rest: nextRest }
     }
   }
 
@@ -775,7 +779,7 @@ function adjustSplitForNoSplitPhrases(
     if (thatMatch) {
       const token = thatMatch[0]
       const nextRest = trimmedRest.slice(token.length).trimStart()
-      return { line: `${trimmedLine} ${token}`, rest: nextRest }
+      return { line: appendToken(trimmedLine, token), rest: nextRest }
     }
   }
 
@@ -810,7 +814,7 @@ function adjustSplitForNoSplitAbbrevAndQuotes(
   line: string,
   rest: string
 ): { line: string; rest: string } {
-  const phraseAdjusted = adjustSplitForNoSplitPhrases(line, rest)
+  const phraseAdjusted = mergeNoSplitPhrases(line, rest)
   const abbrevAdjusted = adjustSplitForNoSplitAbbrev(
     phraseAdjusted.line,
     phraseAdjusted.rest

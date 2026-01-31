@@ -6,6 +6,7 @@ import { baselineRule } from "../src/analysis/baselineRule"
 import { capitalizationRule } from "../src/analysis/capitalizationRule"
 import { cpsBalanceRule } from "../src/analysis/cpsBalanceRule"
 import { cpsRule } from "../src/analysis/cpsRule"
+import { leadingWhitespaceRule } from "../src/analysis/leadingWhitespaceRule"
 import { maxCharsRule } from "../src/analysis/maxCharsRule"
 import { numberStyleRule } from "../src/analysis/numberStyleRule"
 import { percentStyleRule } from "../src/analysis/percentStyleRule"
@@ -61,6 +62,18 @@ describe("getFindings severity", () => {
       (m) => m.type === "MAX_CHARS"
     )
     expect(maxCharsFindings[0]?.severity).toBe("error")
+
+    const leadingText = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      " Leading space.",
+    ].join("\n")
+    const leadingMetrics = analyzeTextByType(leadingText, "subs", [
+      leadingWhitespaceRule(),
+    ])
+    const leadingFindings = getFindings(leadingMetrics).filter(
+      (m) => m.type === "LEADING_WHITESPACE"
+    )
+    expect(leadingFindings[0]?.severity).toBe("error")
   })
 
   it("marks punctuation findings as error", () => {

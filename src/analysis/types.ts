@@ -22,6 +22,15 @@ export type MaxCharsMetric = {
   severity?: 'error' | 'warn'
 }
 
+export type LeadingWhitespaceMetric = {
+  type: 'LEADING_WHITESPACE'
+  lineIndex: number
+  index: number
+  count: number
+  text?: string
+  severity?: 'error' | 'warn'
+}
+
 type CpsBaseMetric = {
   lineIndex: number // timestamp line index
   text: string
@@ -129,6 +138,7 @@ export type BaselineMetric = {
 
 export type Metric =
   | MaxCharsMetric
+  | LeadingWhitespaceMetric
   | CPSMetric
   | MaxCpsMetric
   | MinCpsMetric

@@ -9,6 +9,11 @@ export function getFindings(metrics: Metric[]): Finding[] {
       continue
     }
 
+    if (m.type === 'LEADING_WHITESPACE') {
+      out.push({ ...m, severity: 'error' })
+      continue
+    }
+
     if (m.type === 'CPS') {
       if (m.cps > m.maxCps) {
         out.push({

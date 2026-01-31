@@ -2,6 +2,7 @@ import type { Rule } from './types'
 import type { SegmentRule } from './segments'
 
 import { maxCharsRule } from './maxCharsRule'
+import { leadingWhitespaceRule } from './leadingWhitespaceRule'
 import { cpsRule } from './cpsRule'
 import { cpsBalanceRule } from './cpsBalanceRule'
 import { capitalizationRule } from './capitalizationRule'
@@ -15,6 +16,7 @@ type DefaultRulesOptions = {
 export function defaultRules(options: DefaultRulesOptions = {}): Rule[] {
   return [
     maxCharsRule(54),
+    leadingWhitespaceRule(),
     cpsRule(undefined, undefined, {
       ignoreEmptyLines: options.ignoreEmptyLines,
     }),
@@ -29,6 +31,7 @@ export function defaultSegmentRules(
 ): SegmentRule[] {
   return [
     maxCharsRule(54),
+    leadingWhitespaceRule(),
     cpsRule(undefined, undefined, {
       ignoreEmptyLines: options.ignoreEmptyLines,
     }),

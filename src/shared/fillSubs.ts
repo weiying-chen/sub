@@ -31,6 +31,7 @@ const COPULAR_CLAUSE_START_RE =
   /^(?:to|how|why|what|who|where|when|whether|that|if)\b/i
 const DET_RE =
   /^(?:the|a|an|this|that|these|those|my|your|his|her|our|their)\b/i
+const PRONOUN_RE = /^(?:me|you|him|her|us|them|it|this|that|there)\b/i
 const CLAUSE_STARTER_RE =
   /^(?:because|since|as|although|though|while|if|when)\b/i
 const CLAUSE_STARTER_ANY_RE =
@@ -135,7 +136,9 @@ function findRightmostStrongPunct(window: string): number {
     const cut = i + 1
     const left = window.slice(0, cut).trimEnd()
     const right = window.slice(cut).trimStart()
-    if (left && right) return cut
+    if (!left || !right) continue
+    if (isToVerbSplit(left, right)) continue
+    return cut
   }
   return -1
 }
@@ -413,14 +416,16 @@ function findRightmostCopularLead(window: string, nextText: string): number {
   return best
 }
 
-function findRightmostSpace(window: string): number {
+function findRightmostSpace(window: string, nextText: string): number {
   for (let i = window.length - 1; i >= 0; i--) {
     if (window[i] !== ' ') continue
 
     const cut = i + 1
     const left = window.slice(0, cut).trimEnd()
-    const right = window.slice(cut).trimStart()
-    if (left && right) return cut
+    const right = (window.slice(cut) + nextText).trimStart()
+    if (!left || !right) continue
+    if (isToVerbSplit(left, right)) continue
+    return cut
   }
   return -1
 }
@@ -469,6 +474,15 @@ function findRightmostToVerbObjectBreak(window: string, nextText: string): numbe
     return i + 1
   }
   return -1
+}
+
+function isToVerbSplit(left: string, right: string): boolean {
+  if (!/\bto$/i.test(left)) return false
+  const firstWord = right.split(/\s+/)[0] ?? ''
+  if (!/^[A-Za-z]+$/.test(firstWord)) return false
+  if (DET_RE.test(firstWord)) return false
+  if (PRONOUN_RE.test(firstWord)) return false
+  return true
 }
 
 function findRightmostClauseStarterLead(window: string, nextText: string): number {
@@ -533,15 +547,21 @@ function findBestCut(window: string, nextText: string): number {
   const toVerbCut = findRightmostToVerbObjectBreak(window, nextText)
   if (toVerbCut >= 0) return toVerbCut
 
-  const spaceCut = findRightmostSpace(window)
+  const spaceCut = findRightmostSpace(window, nextText)
   if (spaceCut >= 0) return spaceCut
 
   return window.length
 }
 
-function takeLine(text: string, limit: number): { line: string; rest: string } {
+function takeLine(
+  text: string,
+  limit: number,
+  options: { allowHeuristicSplitsWhenFits?: boolean } = {}
+): { line: string; rest: string } {
   const s = text.trimStart()
   if (!s) return { line: '', rest: '' }
+  const allowHeuristicSplitsWhenFits =
+    options.allowHeuristicSplitsWhenFits ?? false
 
   if (s.length <= limit && countQuotes(s) > 0 && countQuotes(s) % 2 === 0) {
     return { line: s.trimEnd(), rest: '' }
@@ -563,6 +583,10 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
       if (left && right && !/["']\s*$/.test(left) && !/^["']/.test(right)) {
         return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
       }
+    }
+
+    if (!allowHeuristicSplitsWhenFits) {
+      return { line: s.trimEnd(), rest: '' }
     }
 
     const toVerbCut = findRightmostToVerbObjectBreak(s, '')
@@ -600,9 +624,7 @@ function takeLine(text: string, limit: number): { line: string; rest: string } {
         return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
       }
     }
-  }
 
-  if (s.length <= limit) {
     return { line: s.trimEnd(), rest: '' }
   }
 

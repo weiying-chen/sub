@@ -664,8 +664,7 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "The issue now is",
-    "how to solve this quickly",
+    "The issue now is how to solve this quickly",
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
   ])
@@ -687,8 +686,7 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "The best exercise for older adults",
-    "is simply walking",
+    "The best exercise for older adults is simply walking",
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
   ])
@@ -755,8 +753,7 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "I've been working at the lab",
-    "since it was founded.",
+    "I've been working at the lab since it was founded.",
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
   ])
@@ -863,7 +860,7 @@ describe("fillSelectedTimestampLines", () => {
     `I made up my mind to start the project. The idea kept growing, and I couldn't stop thinking, "Is this the right time?"`
 
   const result = fillSelectedTimestampLines(lines, selected, paragraph, {
-    inline: false,
+    inline: true,
     maxChars: 54,
   })
   const payloads = result.lines.filter((line) => !line.includes("\t"))
@@ -915,6 +912,45 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(payloads.some((line) => line.includes("now---that"))).toBe(true)
   expect(payloads.some((line) => line.includes("now--- that"))).toBe(false)
+  })
+
+  it("keeps 'to' with the following verb", () => {
+  const lines = [
+    "00:00:00:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:04:00\tMarker",
+    "00:00:04:00\t00:00:06:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+  const paragraph = "We will try to keep moving forward."
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    inline: false,
+    maxChars: 15,
+  })
+  const payloads = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(payloads.some((line) => line.includes("to keep"))).toBe(true)
+  expect(payloads.some((line) => line.endsWith("to"))).toBe(false)
+  })
+
+  it("does not split copular clauses when they fit", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+  const paragraph = "and he truly understood what I was trying to do."
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    inline: true,
+    maxChars: 54,
+  })
+  const payloads = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(payloads.some((line) => line.includes("what I was trying to do."))).toBe(
+    true
+  )
+  expect(payloads.some((line) => line.endsWith("what I"))).toBe(false)
   })
 
   it("keeps dialogue tags with preceding question when it fits", () => {

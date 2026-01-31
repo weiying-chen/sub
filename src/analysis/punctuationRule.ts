@@ -13,8 +13,8 @@ const OPEN_QUOTE_RE = /^\s*(["'])/
 const I_PRONOUN_RE = /^\s*I(\b|')/
 const ACRONYM_RE =
   /^\s*(["'\(\[\{])?\s*(?:[A-Z]{2,}(?:'s\b|\b)|(?:[A-Z]\.){2,}[A-Z]?(?:'s\b)?)/
-const SENT_BOUNDARY_RE = /[.!?:](?:["'\)\]\}]+)?\s*$/
-const TERMINAL_RE = /(?:\.{3}|[.!?:…])(?:["'\)\]\}]+)?\s*$/
+const SENT_BOUNDARY_RE = /(?:[.!?:]|…|—|–|---)(?:["'\)\]\}]+)?\s*$/
+const TERMINAL_RE = /(?:\.{3}|[.!?:…]|—|–|---)(?:["'\)\]\}]+)?\s*$/
 
 type Cue = {
   start: string
@@ -175,7 +175,7 @@ function addRule4Metric(
     lineIndex: cue.lineIndex,
     ruleCode: 'MISSING_END_PUNCTUATION',
     instruction:
-      "End this line with terminal punctuation (., ?, !, :, …, or '...').",
+      "End this line with terminal punctuation (., ?, !, :, …, —, or '...').",
     text: cue.text,
     timestamp: cueTimestamp(cue),
   })

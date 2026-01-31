@@ -80,6 +80,37 @@ describe("punctuationRule (segments)", () => {
     )
   })
 
+  it("treats em dash and triple hyphen as sentence boundaries", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "Isn't there a saying---",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "When you've been doing something long enough,",
+      "00:00:03:00\t00:00:04:00\tMarker",
+      "He paused —",
+    ].join("\n")
+
+    const segments = parseSubs(text)
+    const metrics = analyzeSegments(segments, [punctuationRule()], {
+      lines: text.split("\n"),
+      sourceText: text,
+    })
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    const missingBeforeCapital = findings.filter(
+      (f) => f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL"
+    )
+    const missingEnd = findings.filter(
+      (f) => f.ruleCode === "MISSING_END_PUNCTUATION"
+    )
+    expect(
+      missingBeforeCapital.some((f) => f.text === "Isn't there a saying---")
+    ).toBe(false)
+    expect(
+      missingEnd.some((f) => f.text === "He paused —")
+    ).toBe(false)
+  })
+
   it("does not require ':' when the next quoted line is a continuation", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

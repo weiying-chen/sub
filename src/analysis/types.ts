@@ -19,6 +19,7 @@ export type MaxCharsMetric = {
   text: string
   maxAllowed: number
   actual: number
+  severity?: 'error' | 'warn'
 }
 
 type CpsBaseMetric = {
@@ -54,7 +55,7 @@ export type CPSBalanceMetric = {
   neighborCps: number
   deltaCps: number
   text?: string
-  severity: 'error' | 'warn'
+  severity?: 'error' | 'warn'
 }
 
 export type NumberStyleMetric = {
@@ -66,6 +67,7 @@ export type NumberStyleMetric = {
   expected: 'digits' | 'words'
   token: string
   text?: string
+  severity?: 'error' | 'warn'
 }
 
 export type PercentStyleMetric = {
@@ -77,6 +79,7 @@ export type PercentStyleMetric = {
   expected: 'symbol'
   token: string
   text?: string
+  severity?: 'error' | 'warn'
 }
 
 export type CapitalizationMetric = {
@@ -87,6 +90,7 @@ export type CapitalizationMetric = {
   expected: string
   token: string
   text?: string
+  severity?: 'error' | 'warn'
 }
 
 export type PunctuationMetric = {
@@ -100,6 +104,7 @@ export type PunctuationMetric = {
   prevTimestamp?: string
   nextText?: string
   nextTimestamp?: string
+  severity?: 'error' | 'warn'
 }
 
 export type PunctuationRuleCode =
@@ -119,6 +124,7 @@ export type BaselineMetric = {
   expected?: string
   actual?: string
   baselineLineIndex?: number
+  severity?: 'error' | 'warn'
 }
 
 export type Metric =

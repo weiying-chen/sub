@@ -5,7 +5,7 @@ export function getFindings(metrics: Metric[]): Finding[] {
 
   for (const m of metrics) {
     if (m.type === 'MAX_CHARS') {
-      if (m.actual > m.maxAllowed) out.push(m)
+      if (m.actual > m.maxAllowed) out.push({ ...m, severity: 'error' })
       continue
     }
 
@@ -39,32 +39,32 @@ export function getFindings(metrics: Metric[]): Finding[] {
     }
 
     if (m.type === 'CPS_BALANCE') {
-      out.push(m) // warn (yellow later)
+      out.push({ ...m, severity: 'warn' })
       continue
     }
 
     if (m.type === 'NUMBER_STYLE') {
-      out.push(m)
+      out.push({ ...m, severity: 'error' })
       continue
     }
 
     if (m.type === 'PERCENT_STYLE') {
-      out.push(m)
+      out.push({ ...m, severity: 'error' })
       continue
     }
 
     if (m.type === 'CAPITALIZATION') {
-      out.push(m)
+      out.push({ ...m, severity: 'error' })
       continue
     }
 
     if (m.type === 'PUNCTUATION') {
-      out.push(m)
+      out.push({ ...m, severity: 'error' })
       continue
     }
 
     if (m.type === 'BASELINE') {
-      out.push(m)
+      out.push({ ...m, severity: 'error' })
       continue
     }
   }

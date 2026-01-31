@@ -410,6 +410,11 @@ function findRightmostCopularLead(window: string, nextText: string): number {
     const tail = (window.slice(end) + nextText).trimStart()
     if (!tail) continue
     if (startsWithCopularClause(tail)) continue
+    const tailWords = tail.split(/\s+/).filter(Boolean).slice(0, 3)
+    if (tailWords.length > 0) {
+      const candidate = `${left} ${tailWords.join(' ')}`
+      if (candidate.length <= window.length) continue
+    }
 
     best = start
   }

@@ -115,6 +115,19 @@ function isPercentToken(text: string, index: number, length: number) {
   return /^\s*(%|percent\b)/i.test(tail)
 }
 
+function isCurrencyToken(text: string, index: number) {
+  const prefix = text.slice(0, index)
+  const window = prefix.slice(Math.max(0, prefix.length - 12))
+  if (
+    /\b(?:NT|US|HK|SG|AUD|CAD|USD|HKD|TWD|JPY|RMB|CNY|EUR|GBP)\s*\$\s*$/i.test(
+      window
+    )
+  ) {
+    return true
+  }
+  return /\$\s*$/.test(window)
+}
+
 function isPrecededByDigitToken(text: string, index: number) {
   let i = index - 1
   while (i >= 0 && isSpace(text[i])) i -= 1
@@ -235,6 +248,7 @@ function collectMetrics(
     if (isTimeToken(text, match.index, rawToken.length)) continue
     if (isAgeAdjective(text, match.index, rawToken.length)) continue
     if (isPercentToken(text, match.index, rawToken.length)) continue
+    if (isCurrencyToken(text, match.index)) continue
 
     const sentenceStart = isSentenceStart(text, match.index)
 

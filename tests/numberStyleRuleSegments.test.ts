@@ -67,4 +67,21 @@ describe("numberStyleRule (segments)", () => {
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
     expect(findings).toHaveLength(0)
   })
+
+  it("ignores currency amounts with symbols", () => {
+    const segments = [
+      { lineIndex: 0, text: "It's about NT$1 million per bed." },
+      { lineIndex: 1, text: "The estimate is US$ 2 million total." },
+      { lineIndex: 2, text: "He paid $3 yesterday." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [
+        { lineIndex: segment.lineIndex, text: segment.text },
+      ],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    expect(findings).toHaveLength(0)
+  })
 })

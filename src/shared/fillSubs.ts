@@ -137,6 +137,7 @@ function findRightmostStrongPunct(window: string): number {
     const left = window.slice(0, cut).trimEnd()
     const right = window.slice(cut).trimStart()
     if (!left || !right) continue
+    if (ch === '.' && NO_SPLIT_ABBREV_RE.test(left)) continue
     if (isToVerbSplit(left, right)) continue
     return cut
   }
@@ -452,6 +453,7 @@ function findSentenceBoundaryCut(window: string, nextText: string): number {
     const left = window.slice(0, cut).trimEnd()
     const right = (window.slice(cut) + nextText).trimStart()
     if (!left || !right) continue
+    if (ch === '.' && NO_SPLIT_ABBREV_RE.test(left)) continue
     if ((ch === '?' || ch === '!') && isDialogueTagStart(right)) {
       let hasLaterBoundary = false
       for (let j = i + 1; j < window.length; j++) {

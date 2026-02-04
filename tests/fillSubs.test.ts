@@ -395,6 +395,29 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("avoids splitting after abbreviations like Dr.", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Hi, I'm Dr. Chuang Chia-ying, a Chinese medicine doctor.",
+    { maxChars: 54, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "Hi, I'm Dr. Chuang Chia-ying,",
+    "a Chinese medicine doctor.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
   it("splits before 'that' after reporting verbs", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

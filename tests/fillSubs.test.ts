@@ -290,17 +290,17 @@ describe("fillSelectedTimestampLines", () => {
   const result = fillSelectedTimestampLines(
     lines,
     selected,
-    "Next, we treat the hair follicles directly with heat-clearing herbs.",
+    "Next, we review the plan carefully before taking action.",
     { maxChars: 20, inline: false }
   )
 
   expect(result.lines).toEqual([
-    "Next, we treat the",
-    "hair follicles",
+    "Next, we review the",
+    "plan carefully",
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
   ])
-  expect(result.remaining).toBe("directly with heat-clearing herbs.")
+  expect(result.remaining).toBe("before taking action.")
   })
 
   it("prefers breaking before copular verb phrases", () => {

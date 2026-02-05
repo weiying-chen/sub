@@ -280,6 +280,29 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("avoids early comma splits on short lead-ins", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Next, we treat the hair follicles directly with heat-clearing herbs.",
+    { maxChars: 20, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "Next, we treat the",
+    "hair follicles",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("directly with heat-clearing herbs.")
+  })
+
   it("prefers breaking before copular verb phrases", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
@@ -755,6 +778,29 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.lines).toEqual([
     "We don't believe they have to follow",
     "the exact same path we did.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
+  it("splits before 'with' as a low-priority fallback", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "They arrived at the station with extra supplies.",
+    { maxChars: 34, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "They arrived at the station",
+    "with extra supplies.",
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
   ])

@@ -14,6 +14,8 @@ export type FillSubsResult = {
 const DEFAULT_MAX_CHARS = 54
 const MIN_TARGET_CPS = 10
 const MAX_SPAN_PER_LINE = 3
+const MIN_COMMA_SPLIT_CHARS = 12
+const MIN_COMMA_SPLIT_WORDS = 2
 
 const CONJ_RE = /\b(and|but|or|so|yet|nor)\b/i
 const CLAUSE_START_RE =
@@ -183,6 +185,9 @@ function findRightmostNonListComma(window: string, nextText: string): number {
     const hasNext = nextText.trimStart() !== ''
     if (!left) continue
     if (!right && !hasNext) continue
+    if (left.length < MIN_COMMA_SPLIT_CHARS) continue
+    const leftWords = left.split(/\s+/).filter(Boolean)
+    if (leftWords.length < MIN_COMMA_SPLIT_WORDS) continue
 
     if (isListComma(window, i)) continue
     return cut
@@ -514,6 +519,27 @@ function findRightmostClauseStarterLead(window: string, nextText: string): numbe
   return best
 }
 
+function findRightmostWithStart(window: string, nextText: string): number {
+  let best = -1
+  const re = /\bwith\b/gi
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const end = start + m[0].length
+    const prev = window[start - 1] ?? ''
+    const next = window[end] ?? ''
+    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
+
+    const left = window.slice(0, start).trimEnd()
+    const right = (window.slice(start) + nextText).trimStart()
+    if (!left || !right) continue
+    if (!/^with\b/i.test(right)) continue
+    if (/^with\b\s*$/i.test(right)) continue
+    best = start
+  }
+  return best
+}
+
 function findBestCut(window: string, nextText: string): number {
   const sentenceCut = findSentenceBoundaryCut(window, nextText)
   if (sentenceCut >= 0) return sentenceCut
@@ -553,6 +579,9 @@ function findBestCut(window: string, nextText: string): number {
 
   const toVerbCut = findRightmostToVerbObjectBreak(window, nextText)
   if (toVerbCut >= 0) return toVerbCut
+
+  const withCut = findRightmostWithStart(window, nextText)
+  if (withCut >= 0) return withCut
 
   const spaceCut = findRightmostSpace(window, nextText)
   if (spaceCut >= 0) return spaceCut
@@ -795,6 +824,13 @@ function mergeNoSplitPhrases(
   }
 
   if (/\beven$/i.test(trimmedLine)) {
+    const soMatch = trimmedRest.match(/^so\b,?/i)
+    if (soMatch) {
+      const token = soMatch[0]
+      const nextRest = trimmedRest.slice(token.length).trimStart()
+      return { line: appendToken(trimmedLine, token), rest: nextRest }
+    }
+
     const thoughMatch = trimmedRest.match(/^though\b/i)
     if (thoughMatch) {
       const token = thoughMatch[0]

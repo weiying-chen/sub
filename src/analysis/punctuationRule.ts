@@ -1,5 +1,6 @@
 import type { Rule, PunctuationMetric, RuleCtx } from './types'
 
+import { createDoubleQuoteSpanTracker } from '../shared/doubleQuoteSpan'
 import { TSV_RE } from '../shared/subtitles'
 import {
   type LineSource,
@@ -38,12 +39,15 @@ function buildProperNounMatchers(properNouns: string[]): RegExp[] {
   return properNouns
     .map((noun) => noun.trim())
     .filter((noun) => noun !== '')
-    .map(
-      (noun) =>
-        new RegExp(
-          `^\\s*(?:["'\\(\\[\\{]\\s*)?${escapeRegExp(noun)}\\b`
-        )
-    )
+    .map((noun) => {
+      const boundary =
+        /[A-Za-z0-9_]$/.test(noun)
+          ? '\\b'
+          : '(?=$|\\s|["\'\\)\\]\\}\\.,!?:;…—–-])'
+      return new RegExp(
+        `^\\s*(?:["'\\(\\[\\{]\\s*)?${escapeRegExp(noun)}${boundary}`
+      )
+    })
 }
 
 function startsWithProperNoun(
@@ -193,6 +197,8 @@ function collectMetrics(
     getLine: (i) => lines[i] ?? '',
   }
   const cues = collectCues(src, options)
+  const quoteTracker = createDoubleQuoteSpanTracker()
+  const quoteStateByCue = cues.map((cue) => quoteTracker.inspect(cue.text))
   const ignoreEmptyLines = options.ignoreEmptyLines ?? false
   const metrics: PunctuationMetric[] = []
 
@@ -250,6 +256,10 @@ function collectMetrics(
     const prevTrim = prev.text.trimEnd()
     const prevQuoteOpenIndex =
       findMatchingOpeningDoubleQuoteForTrailingQuote(prevTrim)
+    const nextQuoteStart = startsWithOpenQuote(next.text)
+    const nextIsQuoteContinuation =
+      nextQuoteStart === '"' &&
+      (quoteStateByCue[j + 1]?.leadingQuoteIsContinuation ?? false)
 
     if (prevTrim.endsWith('.') && case1 === 'lower') {
       metrics.push({
@@ -266,7 +276,7 @@ function collectMetrics(
 
     if (
       !endsSentenceBoundary(prevTrim) &&
-      !startsWithOpenQuote(next.text) &&
+      !nextQuoteStart &&
       !startsWithIPronoun(next.text) &&
       !startsWithAcronym(next.text) &&
       !startsWithProperNoun(next.text, properNounMatchers) &&
@@ -286,7 +296,8 @@ function collectMetrics(
     }
 
     if (
-      startsWithOpenQuote(next.text) &&
+      nextQuoteStart &&
+      !nextIsQuoteContinuation &&
       !prevTrim.endsWith(':') &&
       !endsSentenceBoundary(prevTrim) &&
       prevQuoteOpenIndex === null

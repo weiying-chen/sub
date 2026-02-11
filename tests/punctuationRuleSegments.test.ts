@@ -131,6 +131,26 @@ describe("punctuationRule (segments)", () => {
     ).toBe(false)
   })
 
+  it("does not require ':' before continuation quoted cues across timestamps", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "\"This quote starts here",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "\"and continues to here.\"",
+    ].join("\n")
+
+    const segments = parseSubs(text)
+    const metrics = analyzeSegments(segments, [punctuationRule()], {
+      lines: text.split("\n"),
+      sourceText: text,
+    })
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some((f) => f.ruleCode === "MISSING_COLON_BEFORE_QUOTE")
+    ).toBe(false)
+  })
+
   it('flags unclosed opening quote even when it is mid-line', () => {
     const text = [
       '00:00:01:00\t00:00:02:00\tMarker',

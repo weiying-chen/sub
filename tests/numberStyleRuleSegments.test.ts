@@ -84,4 +84,43 @@ describe("numberStyleRule (segments)", () => {
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
     expect(findings).toHaveLength(0)
   })
+
+  it("flags sentence-start digits across line-start wrappers", () => {
+    const segments = [
+      { lineIndex: 0, text: "20 birds arrived." },
+      { lineIndex: 1, text: "(20 birds arrived.)" },
+      { lineIndex: 2, text: '"20 birds arrived."' },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [
+        { lineIndex: segment.lineIndex, text: segment.text },
+      ],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    const flaggedLines = findings.map((f) => f.lineIndex).sort((a, b) => a - b)
+
+    expect(flaggedLines).toEqual([0, 1, 2])
+    expect(findings.every((f) => f.token === "20")).toBe(true)
+    expect(findings.every((f) => f.found === "digits")).toBe(true)
+    expect(findings.every((f) => f.expected === "words")).toBe(true)
+  })
+
+  it("treats leading double quote as continuation across timestamps", () => {
+    const segments = [
+      { lineIndex: 0, text: '"We counted birds all morning' },
+      { lineIndex: 1, text: '"20 arrived near the lake."' },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [
+        { lineIndex: segment.lineIndex, text: segment.text },
+      ],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
 })

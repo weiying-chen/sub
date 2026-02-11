@@ -1,8 +1,14 @@
 import { FPS, MAX_CPS, TSV_RE, parseTimecodeToFrames } from './subtitles'
+import {
+  countDoubleQuotes,
+  hasLeadingDoubleQuote,
+  hasTrailingDoubleQuote,
+} from './doubleQuoteSpan'
 
 export type FillSubsOptions = {
   maxChars?: number
   inline?: boolean
+  noSplitAbbreviations?: string[]
 }
 
 export type FillSubsResult = {
@@ -47,9 +53,30 @@ const SENTENCE_VERB_RE =
 const STRONG_PUNCT = new Set(['.', '?', '!', ':', '\u2014'])
 const SEMICOLON_PUNCT = new Set([';'])
 const COMMA_PUNCT = new Set([','])
-const QUOTE_CHARS = new Set(['"'])
-const NO_SPLIT_ABBREV_RE = /(?:^|\s)(?:Mr|Mrs|Ms|Dr)\.$|(?:^|\s)U\.S\.$/
 const DIALOGUE_TAG_VERBS = ['said', 'asked', 'replied', 'told']
+
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function buildNoSplitAbbrevRe(abbreviations: string[]): RegExp | null {
+  const tokens = abbreviations
+    .map((abbr) => abbr.trim())
+    .filter((abbr) => abbr !== '' && /\.$/.test(abbr))
+    .map((abbr) => escapeRegExp(abbr))
+
+  if (tokens.length === 0) return null
+  return new RegExp(`(?:^|\\s)(?:${tokens.join('|')})$`, 'i')
+}
+
+function hasNoSplitUsAbbreviation(abbreviations: string[]): boolean {
+  return abbreviations.some((abbr) => abbr.trim().toLowerCase() === 'u.s.')
+}
+
+function isNoSplitAbbrevEnding(text: string, matcher: RegExp | null): boolean {
+  if (!matcher) return false
+  return matcher.test(text)
+}
 
 export function normalizeParagraph(text: string): string {
   return text
@@ -87,7 +114,7 @@ function isWordChar(ch: string): boolean {
 }
 
 function isQuoteChar(ch: string): boolean {
-  return QUOTE_CHARS.has(ch)
+  return ch === '"'
 }
 
 function isPunctForQuote(ch: string): boolean {
@@ -120,7 +147,10 @@ function isSentenceBoundaryChar(ch: string): boolean {
   return ch === '.' || ch === '!' || ch === '?'
 }
 
-function findRightmostStrongPunct(window: string): number {
+function findRightmostStrongPunct(
+  window: string,
+  noSplitAbbrevMatcher: RegExp | null
+): number {
   for (let i = window.length - 1; i >= 0; i--) {
     const ch = window[i]
 
@@ -139,7 +169,7 @@ function findRightmostStrongPunct(window: string): number {
     const left = window.slice(0, cut).trimEnd()
     const right = window.slice(cut).trimStart()
     if (!left || !right) continue
-    if (ch === '.' && NO_SPLIT_ABBREV_RE.test(left)) continue
+    if (ch === '.' && isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher)) continue
     if (isToVerbSplit(left, right)) continue
     return cut
   }
@@ -450,7 +480,11 @@ function adjustCutForTrailingQuote(window: string, cut: number): number {
   return i
 }
 
-function findSentenceBoundaryCut(window: string, nextText: string): number {
+function findSentenceBoundaryCut(
+  window: string,
+  nextText: string,
+  noSplitAbbrevMatcher: RegExp | null
+): number {
   for (let i = 0; i < window.length; i++) {
     const ch = window[i]
     if (!isSentenceBoundaryChar(ch)) continue
@@ -458,7 +492,7 @@ function findSentenceBoundaryCut(window: string, nextText: string): number {
     const left = window.slice(0, cut).trimEnd()
     const right = (window.slice(cut) + nextText).trimStart()
     if (!left || !right) continue
-    if (ch === '.' && NO_SPLIT_ABBREV_RE.test(left)) continue
+    if (ch === '.' && isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher)) continue
     if ((ch === '?' || ch === '!') && isDialogueTagStart(right)) {
       let hasLaterBoundary = false
       for (let j = i + 1; j < window.length; j++) {
@@ -540,11 +574,15 @@ function findRightmostWithStart(window: string, nextText: string): number {
   return best
 }
 
-function findBestCut(window: string, nextText: string): number {
-  const sentenceCut = findSentenceBoundaryCut(window, nextText)
+function findBestCut(
+  window: string,
+  nextText: string,
+  noSplitAbbrevMatcher: RegExp | null
+): number {
+  const sentenceCut = findSentenceBoundaryCut(window, nextText, noSplitAbbrevMatcher)
   if (sentenceCut >= 0) return sentenceCut
 
-  const strongCut = findRightmostStrongPunct(window)
+  const strongCut = findRightmostStrongPunct(window, noSplitAbbrevMatcher)
   if (strongCut >= 0) return strongCut
 
   const semicolonCut = findRightmostPunct(window, SEMICOLON_PUNCT)
@@ -592,6 +630,8 @@ function findBestCut(window: string, nextText: string): number {
 function takeLine(
   text: string,
   limit: number,
+  noSplitAbbrevMatcher: RegExp | null,
+  noSplitUsAbbreviation: boolean,
   options: { allowHeuristicSplitsWhenFits?: boolean } = {}
 ): { line: string; rest: string } {
   const s = text.trimStart()
@@ -599,12 +639,16 @@ function takeLine(
   const allowHeuristicSplitsWhenFits =
     options.allowHeuristicSplitsWhenFits ?? false
 
-  if (s.length <= limit && countQuotes(s) > 0 && countQuotes(s) % 2 === 0) {
+  if (
+    s.length <= limit &&
+    countDoubleQuotes(s) > 0 &&
+    countDoubleQuotes(s) % 2 === 0
+  ) {
     return { line: s.trimEnd(), rest: '' }
   }
 
   if (s.length <= limit) {
-    const sentenceCut = findSentenceBoundaryCut(s, '')
+    const sentenceCut = findSentenceBoundaryCut(s, '', noSplitAbbrevMatcher)
     if (sentenceCut > 0 && sentenceCut < s.length) {
       const left = s.slice(0, sentenceCut).trimEnd()
       const right = s.slice(sentenceCut).trimStart()
@@ -617,7 +661,12 @@ function takeLine(
         return { line: s.trimEnd(), rest: '' }
       }
       if (left && right && !/["']\s*$/.test(left) && !/^["']/.test(right)) {
-        return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
+        return adjustSplitForNoSplitAbbrevAndQuotes(
+          left,
+          right,
+          noSplitAbbrevMatcher,
+          noSplitUsAbbreviation
+        )
       }
     }
 
@@ -630,7 +679,12 @@ function takeLine(
       const left = s.slice(0, toVerbCut).trimEnd()
       const right = s.slice(toVerbCut).trimStart()
       if (left && right) {
-        return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
+        return adjustSplitForNoSplitAbbrevAndQuotes(
+          left,
+          right,
+          noSplitAbbrevMatcher,
+          noSplitUsAbbreviation
+        )
       }
     }
 
@@ -639,7 +693,12 @@ function takeLine(
       const left = s.slice(0, clauseLeadCut).trimEnd()
       const right = s.slice(clauseLeadCut).trimStart()
       if (left && right) {
-        return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
+        return adjustSplitForNoSplitAbbrevAndQuotes(
+          left,
+          right,
+          noSplitAbbrevMatcher,
+          noSplitUsAbbreviation
+        )
       }
     }
 
@@ -648,7 +707,12 @@ function takeLine(
       const left = s.slice(0, copularCut).trimEnd()
       const right = s.slice(copularCut).trimStart()
       if (left && right) {
-        return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
+        return adjustSplitForNoSplitAbbrevAndQuotes(
+          left,
+          right,
+          noSplitAbbrevMatcher,
+          noSplitUsAbbreviation
+        )
       }
     }
 
@@ -657,7 +721,12 @@ function takeLine(
       const left = s.slice(0, copularLeadCut).trimEnd()
       const right = s.slice(copularLeadCut).trimStart()
       if (left && right) {
-        return adjustSplitForNoSplitAbbrevAndQuotes(left, right)
+        return adjustSplitForNoSplitAbbrevAndQuotes(
+          left,
+          right,
+          noSplitAbbrevMatcher,
+          noSplitUsAbbreviation
+        )
       }
     }
 
@@ -667,7 +736,7 @@ function takeLine(
   const window = s.slice(0, limit)
   const cut = adjustCutForTrailingQuote(
     window,
-    findBestCut(window, s.slice(limit))
+    findBestCut(window, s.slice(limit), noSplitAbbrevMatcher)
   )
 
   const line = window.slice(0, cut).trimEnd()
@@ -677,11 +746,18 @@ function takeLine(
     const hard = s.slice(0, limit)
     return adjustSplitForNoSplitAbbrevAndQuotes(
       hard.trimEnd(),
-      s.slice(limit).trimStart()
+      s.slice(limit).trimStart(),
+      noSplitAbbrevMatcher,
+      noSplitUsAbbreviation
     )
   }
 
-  return adjustSplitForNoSplitAbbrevAndQuotes(line, rest)
+  return adjustSplitForNoSplitAbbrevAndQuotes(
+    line,
+    rest,
+    noSplitAbbrevMatcher,
+    noSplitUsAbbreviation
+  )
 }
 
 function isFillableTimestamp(
@@ -743,28 +819,18 @@ type FillRunResult = {
   overflow: boolean
 }
 
-function countQuotes(text: string): number {
-  return (text.match(/"/g) ?? []).length
-}
-
-function hasLeadingQuote(text: string): boolean {
-  return /^\s*"/.test(text)
-}
-
-function hasTrailingQuote(text: string): boolean {
-  return /"\s*$/.test(text)
-}
-
 function adjustSplitForNoSplitAbbrev(
   line: string,
-  rest: string
+  rest: string,
+  noSplitAbbrevMatcher: RegExp | null,
+  noSplitUsAbbreviation: boolean
 ): { line: string; rest: string } {
   if (!line || !rest) return { line, rest }
 
   const trimmedLine = line.trimEnd()
   const trimmedRest = rest.trimStart()
 
-  const usMatch = /(?:^|\s)U\.$/i.test(trimmedLine)
+  const usMatch = noSplitUsAbbreviation && /(?:^|\s)U\.$/i.test(trimmedLine)
   const sMatch = /^S\./i.test(trimmedRest)
   if (usMatch && sMatch) {
     const token = trimmedRest.match(/^S\./i)?.[0] ?? 'S.'
@@ -772,7 +838,9 @@ function adjustSplitForNoSplitAbbrev(
     return { line: `${trimmedLine}${token}`, rest: nextRest }
   }
 
-  if (!NO_SPLIT_ABBREV_RE.test(trimmedLine)) return { line, rest }
+  if (!isNoSplitAbbrevEnding(trimmedLine, noSplitAbbrevMatcher)) {
+    return { line, rest }
+  }
   if (!/^[A-Za-z]/.test(trimmedRest)) return { line, rest }
 
   const lastSpace = trimmedLine.lastIndexOf(' ')
@@ -857,18 +925,18 @@ function adjustSplitForQuotes(
 ): { line: string; rest: string } {
   if (!line || !rest) return { line, rest }
 
-  const leftCount = countQuotes(line)
-  const rightCount = countQuotes(rest)
+  const leftCount = countDoubleQuotes(line)
+  const rightCount = countDoubleQuotes(rest)
   if (leftCount % 2 !== 1 || rightCount % 2 !== 1) {
     return { line, rest }
   }
 
   let nextLine = line
   let nextRest = rest
-  if (!hasTrailingQuote(nextLine)) {
+  if (!hasTrailingDoubleQuote(nextLine)) {
     nextLine = `${nextLine}"`
   }
-  if (!hasLeadingQuote(nextRest)) {
+  if (!hasLeadingDoubleQuote(nextRest)) {
     nextRest = `"${nextRest}`
   }
 
@@ -877,12 +945,16 @@ function adjustSplitForQuotes(
 
 function adjustSplitForNoSplitAbbrevAndQuotes(
   line: string,
-  rest: string
+  rest: string,
+  noSplitAbbrevMatcher: RegExp | null,
+  noSplitUsAbbreviation: boolean
 ): { line: string; rest: string } {
   const phraseAdjusted = mergeNoSplitPhrases(line, rest)
   const abbrevAdjusted = adjustSplitForNoSplitAbbrev(
     phraseAdjusted.line,
-    phraseAdjusted.rest
+    phraseAdjusted.rest,
+    noSplitAbbrevMatcher,
+    noSplitUsAbbreviation
   )
   return adjustSplitForQuotes(abbrevAdjusted.line, abbrevAdjusted.rest)
 }
@@ -894,12 +966,12 @@ type QuoteMeta = {
 }
 
 function getQuoteMeta(rawLine: string, quoteOpen: boolean): QuoteMeta {
-  const quoteCount = countQuotes(rawLine)
+  const quoteCount = countDoubleQuotes(rawLine)
   if (quoteCount % 2 === 0) {
     return { isOpening: false, isClosing: false, isWrapped: false }
   }
-  const hasLeading = hasLeadingQuote(rawLine)
-  const hasTrailing = hasTrailingQuote(rawLine)
+  const hasLeading = hasLeadingDoubleQuote(rawLine)
+  const hasTrailing = hasTrailingDoubleQuote(rawLine)
   return {
     isOpening: hasLeading && !quoteOpen,
     isClosing: hasTrailing && quoteOpen,
@@ -918,11 +990,17 @@ function applyQuoteCarry(
   const shouldOpen = meta.isOpening || meta.isWrapped
   const shouldClose = meta.isClosing || meta.isWrapped
 
-  if ((quoteOpen || shouldOpen || shouldClose) && !hasLeadingQuote(text)) {
+  if (
+    (quoteOpen || shouldOpen || shouldClose) &&
+    !hasLeadingDoubleQuote(text)
+  ) {
     text = `"${text}`
   }
 
-  if ((quoteOpen || shouldOpen || shouldClose) && !hasTrailingQuote(text)) {
+  if (
+    (quoteOpen || shouldOpen || shouldClose) &&
+    !hasTrailingDoubleQuote(text)
+  ) {
     text = `${text}"`
   }
 
@@ -944,7 +1022,9 @@ function runInlineFill(
   paragraph: string,
   limit: number,
   targetCps: number,
-  dryRun: boolean
+  dryRun: boolean,
+  noSplitAbbrevMatcher: RegExp | null,
+  noSplitUsAbbreviation: boolean
 ): FillRunResult {
   let remaining = normalizeParagraph(paragraph)
   if (!remaining) {
@@ -996,7 +1076,12 @@ function runInlineFill(
 
     if (!remaining) continue
 
-    const { line: fillLine, rest } = takeLine(remaining, limit)
+    const { line: fillLine, rest } = takeLine(
+      remaining,
+      limit,
+      noSplitAbbrevMatcher,
+      noSplitUsAbbreviation
+    )
     remaining = rest
 
     if (!fillLine) continue
@@ -1065,7 +1150,9 @@ function chooseTargetCps(
   lines: string[],
   selectedLineIndices: Set<number>,
   paragraph: string,
-  limit: number
+  limit: number,
+  noSplitAbbrevMatcher: RegExp | null,
+  noSplitUsAbbreviation: boolean
 ): number {
   const maxCps = MAX_CPS
   const minCps = MIN_TARGET_CPS
@@ -1078,7 +1165,9 @@ function chooseTargetCps(
     paragraph,
     limit,
     maxCps,
-    true
+    true,
+    noSplitAbbrevMatcher,
+    noSplitUsAbbreviation
   )
   if (runAtMax.overflow) return maxCps
 
@@ -1097,7 +1186,9 @@ function chooseTargetCps(
       paragraph,
       limit,
       mid,
-      true
+      true,
+      noSplitAbbrevMatcher,
+      noSplitUsAbbreviation
     )
     if (run.overflow) {
       low = mid
@@ -1130,13 +1221,18 @@ export function fillSelectedTimestampLines(
   const maxChars = Math.max(1, options.maxChars ?? DEFAULT_MAX_CHARS)
   const limit = Math.max(1, maxChars)
   const inline = options.inline ?? true
+  const noSplitAbbreviations = options.noSplitAbbreviations ?? []
+  const noSplitAbbrevMatcher = buildNoSplitAbbrevRe(noSplitAbbreviations)
+  const noSplitUsAbbreviation = hasNoSplitUsAbbreviation(noSplitAbbreviations)
 
   if (inline) {
     const targetCps = chooseTargetCps(
       lines,
       selectedLineIndices,
       paragraph,
-      limit
+      limit,
+      noSplitAbbrevMatcher,
+      noSplitUsAbbreviation
     )
     const run = runInlineFill(
       lines,
@@ -1144,7 +1240,9 @@ export function fillSelectedTimestampLines(
       paragraph,
       limit,
       targetCps,
-      false
+      false,
+      noSplitAbbrevMatcher,
+      noSplitUsAbbreviation
     )
     return { lines: run.lines, remaining: run.remaining, chosenCps: targetCps }
   }
@@ -1161,7 +1259,12 @@ export function fillSelectedTimestampLines(
 
     if (!remaining) continue
 
-    const { line: fillLine, rest } = takeLine(remaining, limit)
+    const { line: fillLine, rest } = takeLine(
+      remaining,
+      limit,
+      noSplitAbbrevMatcher,
+      noSplitUsAbbreviation
+    )
     remaining = rest
 
     if (fillLine) prependLines.push(fillLine)

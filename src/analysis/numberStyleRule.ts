@@ -5,6 +5,7 @@ import {
   type ParseBlockOptions,
   parseBlockAt,
 } from '../shared/tsvRuns'
+import { createDoubleQuoteSpanTracker } from '../shared/doubleQuoteSpan'
 import type { SegmentCtx, SegmentRule } from './segments'
 
 const SMALL: Record<string, number> = {
@@ -65,8 +66,12 @@ function isSpace(ch: string) {
   return ch === ' ' || ch === '\t'
 }
 
+function isQuote(ch: string) {
+  return ch === '"' || ch === "'"
+}
+
 function isOpening(ch: string) {
-  return ch === '"' || ch === "'" || ch === '(' || ch === '[' || ch === '{'
+  return ch === '(' || ch === '[' || ch === '{'
 }
 
 function isClosing(ch: string) {
@@ -77,11 +82,19 @@ function isSentenceEnd(ch: string) {
   return ch === '.' || ch === '!' || ch === '?'
 }
 
-function isLineStart(text: string, index: number) {
+function isLineStart(text: string, index: number, allowLeadingDoubleQuote = true) {
   let i = 0
+  let sawLeadingQuote = false
   while (i < index) {
     const ch = text[i]
     if (isSpace(ch) || isOpening(ch)) {
+      i += 1
+      continue
+    }
+    if (isQuote(ch)) {
+      if (ch === '"' && !allowLeadingDoubleQuote) return false
+      if (sawLeadingQuote) return false
+      sawLeadingQuote = true
       i += 1
       continue
     }
@@ -90,8 +103,12 @@ function isLineStart(text: string, index: number) {
   return true
 }
 
-function isSentenceStart(text: string, index: number) {
-  if (isLineStart(text, index)) return true
+function isSentenceStart(
+  text: string,
+  index: number,
+  allowLeadingDoubleQuote = true
+) {
+  if (isLineStart(text, index, allowLeadingDoubleQuote)) return true
 
   let i = index - 1
   while (i >= 0 && isSpace(text[i])) i -= 1
@@ -233,7 +250,8 @@ function getTextAndAnchor(
 function collectMetrics(
   text: string,
   anchorIndex: number,
-  fullText?: string
+  fullText?: string,
+  allowLeadingDoubleQuote = true
 ): NumberStyleMetric[] {
   const metrics: NumberStyleMetric[] = []
 
@@ -250,7 +268,11 @@ function collectMetrics(
     if (isPercentToken(text, match.index, rawToken.length)) continue
     if (isCurrencyToken(text, match.index)) continue
 
-    const sentenceStart = isSentenceStart(text, match.index)
+    const sentenceStart = isSentenceStart(
+      text,
+      match.index,
+      allowLeadingDoubleQuote
+    )
 
     if (value <= 10 || sentenceStart) {
       metrics.push({
@@ -274,7 +296,7 @@ function collectMetrics(
     if (value == null || value <= 10) continue
     if (isAgeAdjective(text, match.index, match[0].length)) continue
 
-    if (isSentenceStart(text, match.index)) continue
+    if (isSentenceStart(text, match.index, allowLeadingDoubleQuote)) continue
 
     metrics.push({
       type: 'NUMBER_STYLE',
@@ -294,18 +316,32 @@ function collectMetrics(
 export function numberStyleRule(
   options: ParseBlockOptions = {}
 ): NumberStyleRule {
+  const quoteTracker = createDoubleQuoteSpanTracker()
+
   return ((ctx: RuleCtx | SegmentCtx) => {
     if ('segment' in ctx && ctx.segment.targetLines) {
       const candidates = ctx.segment.targetLines
       if (candidates.length === 0) return []
-      return candidates.flatMap((candidate) =>
-        collectMetrics(candidate.text, candidate.lineIndex, candidate.text)
-      )
+      return candidates.flatMap((candidate) => {
+        const quoteInfo = quoteTracker.inspect(candidate.text)
+        return collectMetrics(
+          candidate.text,
+          candidate.lineIndex,
+          candidate.text,
+          !quoteInfo.leadingQuoteIsContinuation
+        )
+      })
     }
 
     const extracted = getTextAndAnchor(ctx, options)
     if (!extracted) return []
 
-    return collectMetrics(extracted.text, extracted.anchorIndex, extracted.text)
+    const quoteInfo = quoteTracker.inspect(extracted.text)
+    return collectMetrics(
+      extracted.text,
+      extracted.anchorIndex,
+      extracted.text,
+      !quoteInfo.leadingQuoteIsContinuation
+    )
   }) as NumberStyleRule
 }

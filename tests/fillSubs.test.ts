@@ -1208,4 +1208,15 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.line.endsWith(" and")).toBe(false)
   expect(split.rest.startsWith("and ")).toBe(true)
   })
+
+  it("moves trailing 'the' to the next split chunk", () => {
+  const split = __testTakeLine(
+    "This is a classic case of indigestion affecting the autonomic nervous system.",
+    54,
+    null,
+    false
+  )
+  expect(split.line.endsWith(" the")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("the ")).toBe(true)
+  })
 })

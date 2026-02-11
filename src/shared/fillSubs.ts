@@ -794,11 +794,35 @@ function normalizeTrailingConjunctionHead(
   return { line: left, rest: `${conjunction} ${rest}` }
 }
 
+function normalizeTrailingArticleHead(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmed = line.trimEnd()
+  const match = trimmed.match(/^(.*)\s+(the)$/i)
+  if (!match) return { line, rest }
+
+  const left = (match[1] ?? '').trimEnd()
+  const article = (match[2] ?? '').trim().toLowerCase()
+  if (!left) return { line, rest }
+  if (/[,;:]/.test(left)) return { line, rest }
+
+  if (!rest) return { line: left, rest: article }
+  if (rest.trimStart().toLowerCase().startsWith(`${article} `)) {
+    return { line: left, rest }
+  }
+  return { line: left, rest: `${article} ${rest}` }
+}
+
 function normalizeSplit(line: string, rest: string): { line: string; rest: string } {
   const quoteNormalized = normalizeQuoteOnlyHead(line, rest)
-  return normalizeTrailingConjunctionHead(
+  const conjunctionNormalized = normalizeTrailingConjunctionHead(
     quoteNormalized.line,
     quoteNormalized.rest
+  )
+  return normalizeTrailingArticleHead(
+    conjunctionNormalized.line,
+    conjunctionNormalized.rest
   )
 }
 

@@ -84,6 +84,24 @@ describe("punctuationRule", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores configured proper nouns that end with punctuation", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "He was speaking to",
+      "",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "Mr. Chen at the gate.",
+      "",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [
+      punctuationRule({ properNouns: ["Mr."] }),
+    ])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("skips cross-cue checks when empty lines separate cues", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

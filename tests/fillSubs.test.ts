@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest"
 import { fillSelectedTimestampLines } from "../src/shared/fillSubs"
 
+const NO_SPLIT_ABBREVIATIONS = ["Mr.", "Mrs.", "Ms.", "Dr.", "U.S."]
+
 describe("fillSelectedTimestampLines", () => {
   it("fills selected timestamps and returns leftover", () => {
   const lines = [
@@ -429,7 +431,7 @@ describe("fillSelectedTimestampLines", () => {
     lines,
     selected,
     "Hi, I'm Dr. Chuang Chia-ying, a Chinese medicine doctor.",
-    { maxChars: 54, inline: false }
+    { maxChars: 54, inline: false, noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS }
   )
 
   expect(result.lines).toEqual([
@@ -544,7 +546,7 @@ describe("fillSelectedTimestampLines", () => {
     lines,
     selected,
     "A Chinese American science fiction writer who's hugely respected in the U.S.",
-    { maxChars: 54, inline: false }
+    { maxChars: 54, inline: false, noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS }
   )
 
   expect(result.lines).toEqual([
@@ -1069,7 +1071,7 @@ describe("fillSelectedTimestampLines", () => {
     lines,
     selected,
     "Ms. Lin said hello.",
-    { maxChars: 4, inline: true }
+    { maxChars: 4, inline: true, noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS }
   )
   const payloads = result.lines.filter((line) => !line.includes("\t"))
 
@@ -1088,7 +1090,7 @@ describe("fillSelectedTimestampLines", () => {
     lines,
     selected,
     "hugely respected in the U.S.",
-    { maxChars: 26, inline: true }
+    { maxChars: 26, inline: true, noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS }
   )
   const payloads = result.lines.filter((line) => !line.includes("\t"))
 

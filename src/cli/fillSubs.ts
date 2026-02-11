@@ -3,6 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { spawnSync } from 'node:child_process'
 import { fillSelectedTimestampLines } from '../shared/fillSubs'
 import { parseFillSubsArgs } from './fillSubsCore'
+import { loadProperNouns } from './properNouns'
 
 const MAX_LEN = Number(process.env.MAX_LEN ?? process.env.MAX_CHARS ?? 54)
 const LIMIT = Math.max(1, MAX_LEN)
@@ -83,11 +84,15 @@ for (let i = 0; i < lines.length; i++) {
   selectedLineIndices.add(i)
 }
 
+const properNouns = await loadProperNouns()
+const noSplitAbbreviations =
+  properNouns?.filter((value) => /\.$/.test(value.trim())) ?? []
+
 const result = fillSelectedTimestampLines(
   lines,
   selectedLineIndices,
   paragraph,
-  { maxChars: LIMIT, inline }
+  { maxChars: LIMIT, inline, noSplitAbbreviations }
 )
 
 const output = result.lines.join('\n') + '\n'

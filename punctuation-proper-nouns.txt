@@ -1,5 +1,11 @@
 # One proper noun per line.
 English
+Mr.
+Mrs.
+Ms.
+Dr.
+U.S.
+President
 Taipei
 New Taipei
 Taoyuan

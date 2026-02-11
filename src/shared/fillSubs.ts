@@ -645,7 +645,7 @@ function takeLine(
     countDoubleQuotes(s) > 0 &&
     countDoubleQuotes(s) % 2 === 0
   ) {
-    return normalizeQuoteOnlyHead(s.trimEnd(), '')
+    return normalizeSplit(s.trimEnd(), '')
   }
 
   if (s.length <= limit) {
@@ -659,7 +659,7 @@ function takeLine(
         endsWithQuestionOrExclaim(left) &&
         isDialogueTagStart(right)
       ) {
-        return normalizeQuoteOnlyHead(s.trimEnd(), '')
+        return normalizeSplit(s.trimEnd(), '')
       }
       if (left && right && !/["']\s*$/.test(left) && !/^["']/.test(right)) {
         const adjusted = adjustSplitForNoSplitAbbrevAndQuotes(
@@ -668,12 +668,12 @@ function takeLine(
           noSplitAbbrevMatcher,
           noSplitUsAbbreviation
         )
-        return normalizeQuoteOnlyHead(adjusted.line, adjusted.rest)
+        return normalizeSplit(adjusted.line, adjusted.rest)
       }
     }
 
     if (!allowHeuristicSplitsWhenFits) {
-      return normalizeQuoteOnlyHead(s.trimEnd(), '')
+      return normalizeSplit(s.trimEnd(), '')
     }
 
     const toVerbCut = findRightmostToVerbObjectBreak(s, '')
@@ -687,7 +687,7 @@ function takeLine(
           noSplitAbbrevMatcher,
           noSplitUsAbbreviation
         )
-        return normalizeQuoteOnlyHead(adjusted.line, adjusted.rest)
+        return normalizeSplit(adjusted.line, adjusted.rest)
       }
     }
 
@@ -702,7 +702,7 @@ function takeLine(
           noSplitAbbrevMatcher,
           noSplitUsAbbreviation
         )
-        return normalizeQuoteOnlyHead(adjusted.line, adjusted.rest)
+        return normalizeSplit(adjusted.line, adjusted.rest)
       }
     }
 
@@ -717,7 +717,7 @@ function takeLine(
           noSplitAbbrevMatcher,
           noSplitUsAbbreviation
         )
-        return normalizeQuoteOnlyHead(adjusted.line, adjusted.rest)
+        return normalizeSplit(adjusted.line, adjusted.rest)
       }
     }
 
@@ -732,11 +732,11 @@ function takeLine(
           noSplitAbbrevMatcher,
           noSplitUsAbbreviation
         )
-        return normalizeQuoteOnlyHead(adjusted.line, adjusted.rest)
+        return normalizeSplit(adjusted.line, adjusted.rest)
       }
     }
 
-    return normalizeQuoteOnlyHead(s.trimEnd(), '')
+    return normalizeSplit(s.trimEnd(), '')
   }
 
   const window = s.slice(0, limit)
@@ -756,7 +756,7 @@ function takeLine(
       noSplitAbbrevMatcher,
       noSplitUsAbbreviation
     )
-    return normalizeQuoteOnlyHead(adjusted.line, adjusted.rest)
+    return normalizeSplit(adjusted.line, adjusted.rest)
   }
 
   const adjusted = adjustSplitForNoSplitAbbrevAndQuotes(
@@ -765,7 +765,7 @@ function takeLine(
     noSplitAbbrevMatcher,
     noSplitUsAbbreviation
   )
-  return normalizeQuoteOnlyHead(adjusted.line, adjusted.rest)
+  return normalizeSplit(adjusted.line, adjusted.rest)
 }
 
 function normalizeQuoteOnlyHead(line: string, rest: string): { line: string; rest: string } {
@@ -773,6 +773,33 @@ function normalizeQuoteOnlyHead(line: string, rest: string): { line: string; res
   if (!rest) return { line: '', rest: '"' }
   if (rest.trimStart().startsWith('"')) return { line: '', rest }
   return { line: '', rest: `"${rest}` }
+}
+
+function normalizeTrailingConjunctionHead(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmed = line.trimEnd()
+  const match = trimmed.match(/^(.*)\s+(and|but|or|so|yet|nor)$/i)
+  if (!match) return { line, rest }
+
+  const left = (match[1] ?? '').trimEnd()
+  const conjunction = (match[2] ?? '').trim().toLowerCase()
+  if (!left) return { line, rest }
+
+  if (!rest) return { line: left, rest: conjunction }
+  if (rest.trimStart().toLowerCase().startsWith(`${conjunction} `)) {
+    return { line: left, rest }
+  }
+  return { line: left, rest: `${conjunction} ${rest}` }
+}
+
+function normalizeSplit(line: string, rest: string): { line: string; rest: string } {
+  const quoteNormalized = normalizeQuoteOnlyHead(line, rest)
+  return normalizeTrailingConjunctionHead(
+    quoteNormalized.line,
+    quoteNormalized.rest
+  )
 }
 
 export function __testTakeLine(

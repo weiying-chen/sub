@@ -1180,7 +1180,7 @@ describe("fillSelectedTimestampLines", () => {
   ]
   const selected = new Set(lines.map((_, i) => i))
   const paragraph =
-    'When I checked his pulse, I noticed his stomach was badly bloated. So I asked if he often felt bloated, burped a lot, or had acid reflux. He said, "Yes. I even cough at night, and my throat feels irritated."'
+    'I reviewed the report, then asked a few follow-up questions about the timeline and details. He said, "Yes. I can stay online, and I will share updates if anything changes."'
 
   const result = fillSelectedTimestampLines(lines, selected, paragraph, {
     maxChars: 54,
@@ -1196,5 +1196,16 @@ describe("fillSelectedTimestampLines", () => {
   const split = __testTakeLine('"', 54, null, false)
   expect(split.line).toBe("")
   expect(split.rest).toBe('"')
+  })
+
+  it("moves trailing bare conjunctions to the next split chunk", () => {
+  const split = __testTakeLine(
+    "mixed signals can make you anxious, irritable, and disrupt your sleep.",
+    54,
+    null,
+    false
+  )
+  expect(split.line.endsWith(" and")).toBe(false)
+  expect(split.rest.startsWith("and ")).toBe(true)
   })
 })

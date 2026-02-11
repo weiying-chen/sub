@@ -1,5 +1,6 @@
 import { FPS, MAX_CPS, TSV_RE, parseTimecodeToFrames } from './subtitles'
 import {
+  analyzeDoubleQuoteSpan,
   countDoubleQuotes,
   hasLeadingDoubleQuote,
   hasTrailingDoubleQuote,
@@ -966,16 +967,14 @@ type QuoteMeta = {
 }
 
 function getQuoteMeta(rawLine: string, quoteOpen: boolean): QuoteMeta {
-  const quoteCount = countDoubleQuotes(rawLine)
-  if (quoteCount % 2 === 0) {
+  const quoteInfo = analyzeDoubleQuoteSpan(rawLine, quoteOpen)
+  if (quoteInfo.quoteCount % 2 === 0) {
     return { isOpening: false, isClosing: false, isWrapped: false }
   }
-  const hasLeading = hasLeadingDoubleQuote(rawLine)
-  const hasTrailing = hasTrailingDoubleQuote(rawLine)
   return {
-    isOpening: hasLeading && !quoteOpen,
-    isClosing: hasTrailing && quoteOpen,
-    isWrapped: hasLeading && hasTrailing,
+    isOpening: quoteInfo.isOpeningAtStart,
+    isClosing: quoteInfo.isClosingAtEnd,
+    isWrapped: quoteInfo.hasLeadingQuote && quoteInfo.hasTrailingQuote,
   }
 }
 

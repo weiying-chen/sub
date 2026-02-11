@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { fillSelectedTimestampLines } from "../src/shared/fillSubs"
+import { __testTakeLine, fillSelectedTimestampLines } from "../src/shared/fillSubs"
 
 const NO_SPLIT_ABBREVIATIONS = ["Mr.", "Mrs.", "Ms.", "Dr.", "U.S."]
 
@@ -1162,5 +1162,39 @@ describe("fillSelectedTimestampLines", () => {
     const quoteCount = (line.match(/"/g) ?? []).length
     expect(quoteCount % 2).toBe(0)
   })
+  })
+
+  it("does not emit standalone quote-only payload lines", () => {
+  const lines = [
+    "00:00:08:17\t00:00:10:23\tSource 1",
+    "00:00:10:23\t00:00:13:00\tSource 2",
+    "00:00:13:00\t00:00:14:24\tSource 3",
+    "00:00:14:24\t00:00:18:08\tSource 4",
+    "00:00:18:08\t00:00:20:23\tSource 5",
+    "00:00:20:23\t00:00:22:28\tSource 6",
+    "00:00:22:28\t00:00:25:11\tSource 7",
+    "00:00:25:11\t00:00:27:20\tSource 8",
+    "00:00:27:20\t00:00:29:18\tSource 9",
+    "00:00:29:18\t00:00:30:28\tSource 10",
+    "00:00:30:28\t00:00:32:07\tSource 11",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+  const paragraph =
+    'When I checked his pulse, I noticed his stomach was badly bloated. So I asked if he often felt bloated, burped a lot, or had acid reflux. He said, "Yes. I even cough at night, and my throat feels irritated."'
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    maxChars: 54,
+    inline: true,
+    noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS,
+  })
+  const payloads = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(payloads.some((line) => line.trim() === '"')).toBe(false)
+  })
+
+  it("does not return quote-only head chunks from splitter", () => {
+  const split = __testTakeLine('"', 54, null, false)
+  expect(split.line).toBe("")
+  expect(split.rest).toBe('"')
   })
 })

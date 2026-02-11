@@ -645,7 +645,7 @@ function takeLine(
     countDoubleQuotes(s) > 0 &&
     countDoubleQuotes(s) % 2 === 0
   ) {
-    return { line: s.trimEnd(), rest: '' }
+    return normalizeQuoteOnlyHead(s.trimEnd(), '')
   }
 
   if (s.length <= limit) {
@@ -659,20 +659,21 @@ function takeLine(
         endsWithQuestionOrExclaim(left) &&
         isDialogueTagStart(right)
       ) {
-        return { line: s.trimEnd(), rest: '' }
+        return normalizeQuoteOnlyHead(s.trimEnd(), '')
       }
       if (left && right && !/["']\s*$/.test(left) && !/^["']/.test(right)) {
-        return adjustSplitForNoSplitAbbrevAndQuotes(
+        const adjusted = adjustSplitForNoSplitAbbrevAndQuotes(
           left,
           right,
           noSplitAbbrevMatcher,
           noSplitUsAbbreviation
         )
+        return normalizeQuoteOnlyHead(adjusted.line, adjusted.rest)
       }
     }
 
     if (!allowHeuristicSplitsWhenFits) {
-      return { line: s.trimEnd(), rest: '' }
+      return normalizeQuoteOnlyHead(s.trimEnd(), '')
     }
 
     const toVerbCut = findRightmostToVerbObjectBreak(s, '')
@@ -680,12 +681,13 @@ function takeLine(
       const left = s.slice(0, toVerbCut).trimEnd()
       const right = s.slice(toVerbCut).trimStart()
       if (left && right) {
-        return adjustSplitForNoSplitAbbrevAndQuotes(
+        const adjusted = adjustSplitForNoSplitAbbrevAndQuotes(
           left,
           right,
           noSplitAbbrevMatcher,
           noSplitUsAbbreviation
         )
+        return normalizeQuoteOnlyHead(adjusted.line, adjusted.rest)
       }
     }
 
@@ -694,12 +696,13 @@ function takeLine(
       const left = s.slice(0, clauseLeadCut).trimEnd()
       const right = s.slice(clauseLeadCut).trimStart()
       if (left && right) {
-        return adjustSplitForNoSplitAbbrevAndQuotes(
+        const adjusted = adjustSplitForNoSplitAbbrevAndQuotes(
           left,
           right,
           noSplitAbbrevMatcher,
           noSplitUsAbbreviation
         )
+        return normalizeQuoteOnlyHead(adjusted.line, adjusted.rest)
       }
     }
 
@@ -708,12 +711,13 @@ function takeLine(
       const left = s.slice(0, copularCut).trimEnd()
       const right = s.slice(copularCut).trimStart()
       if (left && right) {
-        return adjustSplitForNoSplitAbbrevAndQuotes(
+        const adjusted = adjustSplitForNoSplitAbbrevAndQuotes(
           left,
           right,
           noSplitAbbrevMatcher,
           noSplitUsAbbreviation
         )
+        return normalizeQuoteOnlyHead(adjusted.line, adjusted.rest)
       }
     }
 
@@ -722,16 +726,17 @@ function takeLine(
       const left = s.slice(0, copularLeadCut).trimEnd()
       const right = s.slice(copularLeadCut).trimStart()
       if (left && right) {
-        return adjustSplitForNoSplitAbbrevAndQuotes(
+        const adjusted = adjustSplitForNoSplitAbbrevAndQuotes(
           left,
           right,
           noSplitAbbrevMatcher,
           noSplitUsAbbreviation
         )
+        return normalizeQuoteOnlyHead(adjusted.line, adjusted.rest)
       }
     }
 
-    return { line: s.trimEnd(), rest: '' }
+    return normalizeQuoteOnlyHead(s.trimEnd(), '')
   }
 
   const window = s.slice(0, limit)
@@ -745,19 +750,44 @@ function takeLine(
 
   if (!line) {
     const hard = s.slice(0, limit)
-    return adjustSplitForNoSplitAbbrevAndQuotes(
+    const adjusted = adjustSplitForNoSplitAbbrevAndQuotes(
       hard.trimEnd(),
       s.slice(limit).trimStart(),
       noSplitAbbrevMatcher,
       noSplitUsAbbreviation
     )
+    return normalizeQuoteOnlyHead(adjusted.line, adjusted.rest)
   }
 
-  return adjustSplitForNoSplitAbbrevAndQuotes(
+  const adjusted = adjustSplitForNoSplitAbbrevAndQuotes(
     line,
     rest,
     noSplitAbbrevMatcher,
     noSplitUsAbbreviation
+  )
+  return normalizeQuoteOnlyHead(adjusted.line, adjusted.rest)
+}
+
+function normalizeQuoteOnlyHead(line: string, rest: string): { line: string; rest: string } {
+  if (line.trim() !== '"') return { line, rest }
+  if (!rest) return { line: '', rest: '"' }
+  if (rest.trimStart().startsWith('"')) return { line: '', rest }
+  return { line: '', rest: `"${rest}` }
+}
+
+export function __testTakeLine(
+  text: string,
+  limit: number,
+  noSplitAbbrevMatcher: RegExp | null,
+  noSplitUsAbbreviation: boolean,
+  options: { allowHeuristicSplitsWhenFits?: boolean } = {}
+): { line: string; rest: string } {
+  return takeLine(
+    text,
+    limit,
+    noSplitAbbrevMatcher,
+    noSplitUsAbbreviation,
+    options
   )
 }
 
@@ -1084,6 +1114,12 @@ function runInlineFill(
     remaining = rest
 
     if (!fillLine) continue
+    if (fillLine.trim() === '"') {
+      if (remaining && !remaining.trimStart().startsWith('"')) {
+        remaining = `"${remaining}`
+      }
+      continue
+    }
     const quoteMeta = getQuoteMeta(fillLine, quoteOpen)
     spanMeta = quoteMeta
     usedSlots += 1

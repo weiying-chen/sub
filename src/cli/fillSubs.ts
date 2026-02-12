@@ -85,8 +85,9 @@ for (let i = 0; i < lines.length; i++) {
 }
 
 const properNouns = await loadProperNouns()
-const noSplitAbbreviations =
-  properNouns?.filter((value) => /\.$/.test(value.trim())) ?? []
+const noSplitAbbreviations = properNouns?.filter((value) =>
+  /\.$/.test(value.trim())
+)
 
 const result = fillSelectedTimestampLines(
   lines,

@@ -1079,6 +1079,48 @@ describe("fillSelectedTimestampLines", () => {
   expect(payloads.some((line) => line.includes("Ms. Lin"))).toBe(true)
   })
 
+  it("uses default no-split abbreviations when none are provided", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Ms. Lin said hello.",
+    { maxChars: 4, inline: true }
+  )
+  const payloads = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(payloads).not.toContain("Ms.")
+  expect(payloads.some((line) => line.includes("Ms. Lin"))).toBe(true)
+  })
+
+  it("keeps UI and CLI fill outputs in parity for default abbreviations", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+  const paragraph =
+    "Hi, I'm Dr. Lin, and this project is well known in the U.S."
+
+  const uiLike = fillSelectedTimestampLines(lines, selected, paragraph, {
+    maxChars: 32,
+    inline: true,
+  })
+  const cliLike = fillSelectedTimestampLines(lines, selected, paragraph, {
+    maxChars: 32,
+    inline: true,
+    noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS,
+  })
+
+  expect(uiLike).toEqual(cliLike)
+  })
+
   it("keeps U.S. together when split after U.", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

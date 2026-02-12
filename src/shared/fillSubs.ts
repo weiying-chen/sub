@@ -19,6 +19,7 @@ export type FillSubsResult = {
 }
 
 const DEFAULT_MAX_CHARS = 54
+const DEFAULT_NO_SPLIT_ABBREVIATIONS = ['Mr.', 'Mrs.', 'Ms.', 'Dr.', 'U.S.']
 const MIN_TARGET_CPS = 10
 const MAX_SPAN_PER_LINE = 3
 const MIN_COMMA_SPLIT_CHARS = 12
@@ -1313,7 +1314,8 @@ export function fillSelectedTimestampLines(
   const maxChars = Math.max(1, options.maxChars ?? DEFAULT_MAX_CHARS)
   const limit = Math.max(1, maxChars)
   const inline = options.inline ?? true
-  const noSplitAbbreviations = options.noSplitAbbreviations ?? []
+  const noSplitAbbreviations =
+    options.noSplitAbbreviations ?? DEFAULT_NO_SPLIT_ABBREVIATIONS
   const noSplitAbbrevMatcher = buildNoSplitAbbrevRe(noSplitAbbreviations)
   const noSplitUsAbbreviation = hasNoSplitUsAbbreviation(noSplitAbbreviations)
 

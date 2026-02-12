@@ -805,7 +805,13 @@ function normalizeTrailingArticleHead(
   const left = (match[1] ?? '').trimEnd()
   const article = (match[2] ?? '').trim().toLowerCase()
   if (!left) return { line, rest }
-  if (/[,;:]/.test(left)) return { line, rest }
+
+  // Keep very short lead-ins intact (e.g. "Next, we review the").
+  const leftWordCount = left
+    .split(/\s+/)
+    .map((word) => word.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, ''))
+    .filter(Boolean).length
+  if (leftWordCount <= 3) return { line, rest }
 
   if (!rest) return { line: left, rest: article }
   if (rest.trimStart().toLowerCase().startsWith(`${article} `)) {

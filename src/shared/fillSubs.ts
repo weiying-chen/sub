@@ -821,15 +821,38 @@ function normalizeTrailingArticleHead(
   return { line: left, rest: `${article} ${rest}` }
 }
 
+function normalizeTrailingSubordinatorHead(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmed = line.trimEnd()
+  const match = trimmed.match(/^(.*)\s+(before|after|while)$/i)
+  if (!match) return { line, rest }
+
+  const left = (match[1] ?? '').trimEnd()
+  const word = (match[2] ?? '').trim().toLowerCase()
+  if (!left) return { line, rest }
+
+  if (!rest) return { line: left, rest: word }
+  if (rest.trimStart().toLowerCase().startsWith(`${word} `)) {
+    return { line: left, rest }
+  }
+  return { line: left, rest: `${word} ${rest}` }
+}
+
 function normalizeSplit(line: string, rest: string): { line: string; rest: string } {
   const quoteNormalized = normalizeQuoteOnlyHead(line, rest)
   const conjunctionNormalized = normalizeTrailingConjunctionHead(
     quoteNormalized.line,
     quoteNormalized.rest
   )
-  return normalizeTrailingArticleHead(
+  const articleNormalized = normalizeTrailingArticleHead(
     conjunctionNormalized.line,
     conjunctionNormalized.rest
+  )
+  return normalizeTrailingSubordinatorHead(
+    articleNormalized.line,
+    articleNormalized.rest
   )
 }
 

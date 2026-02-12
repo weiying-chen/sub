@@ -1261,4 +1261,37 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.line.endsWith(" the")).toBe(false)
   expect(split.rest.toLowerCase().startsWith("the ")).toBe(true)
   })
+
+  it("moves trailing 'before' to the next split chunk", () => {
+  const split = __testTakeLine(
+    "acid reflux, heart palpitations, or insomnia before they do anything about it.",
+    54,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" before")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("before ")).toBe(true)
+  })
+
+  it("moves trailing 'after' to the next split chunk", () => {
+  const split = __testTakeLine(
+    "we should review the checklist after we finish the call.",
+    38,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" after")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("after ")).toBe(true)
+  })
+
+  it("moves trailing 'while' to the next split chunk", () => {
+  const split = __testTakeLine(
+    "please keep the notes open while we compare both versions.",
+    34,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" while")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("while ")).toBe(true)
+  })
 })

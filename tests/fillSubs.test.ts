@@ -1294,4 +1294,15 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.line.toLowerCase().endsWith(" while")).toBe(false)
   expect(split.rest.toLowerCase().startsWith("while ")).toBe(true)
   })
+
+  it("moves trailing 'like' to the next split chunk", () => {
+  const split = __testTakeLine(
+    "It also raises your risk of chronic diseases like high blood pressure and diabetes.",
+    54,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" like")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("like ")).toBe(true)
+  })
 })

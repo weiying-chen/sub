@@ -826,7 +826,7 @@ function normalizeTrailingSubordinatorHead(
   rest: string
 ): { line: string; rest: string } {
   const trimmed = line.trimEnd()
-  const match = trimmed.match(/^(.*)\s+(before|after|while)$/i)
+  const match = trimmed.match(/^(.*)\s+(before|after|while|like)$/i)
   if (!match) return { line, rest }
 
   const left = (match[1] ?? '').trimEnd()

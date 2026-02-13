@@ -1340,4 +1340,16 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.line.toLowerCase().endsWith(" of")).toBe(false)
   expect(split.rest.toLowerCase().startsWith("of ")).toBe(true)
   })
+
+  it("keeps 'to the' together when trailing-article normalization runs", () => {
+  const split = __testTakeLine(
+    "The update happened to the release schedule during testing.",
+    24,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" to")).toBe(false)
+  expect(split.line).toBe("The update happened")
+  expect(split.rest.toLowerCase().startsWith("to the ")).toBe(true)
+  })
 })

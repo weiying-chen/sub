@@ -487,6 +487,7 @@ function findRightmostSpace(window: string, nextText: string): number {
     const right = (window.slice(cut) + nextText).trimStart()
     if (!left || !right) continue
     if (isToVerbSplit(left, right)) continue
+    if (/\bto$/i.test(left) && DET_RE.test(right)) continue
     return cut
   }
   return -1
@@ -836,6 +837,7 @@ function normalizeTrailingArticleHead(
   const left = (match[1] ?? '').trimEnd()
   const article = (match[2] ?? '').trim().toLowerCase()
   if (!left) return { line, rest }
+  if (/\bto$/i.test(left)) return { line, rest }
 
   // Keep very short lead-ins intact (e.g. "Next, we review the").
   const leftWordCount = left

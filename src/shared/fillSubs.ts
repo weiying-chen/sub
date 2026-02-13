@@ -196,6 +196,7 @@ function findRightmostPunct(
   return -1
 }
 
+// List-aware comma handling.
 function isListComma(window: string, index: number): boolean {
   const before = window.slice(0, index)
   const after = window.slice(index + 1)
@@ -573,6 +574,7 @@ function findRightmostClauseStarterLead(window: string, nextText: string): numbe
   return best
 }
 
+// Low-priority fallback: split before "with", but avoid tiny heads.
 function findRightmostWithStart(window: string, nextText: string): number {
   let best = -1
   const re = /\bwith\b/gi
@@ -603,6 +605,7 @@ function findBestCut(
   nextText: string,
   noSplitAbbrevMatcher: RegExp | null
 ): number {
+  // 1) Strong punctuation boundaries.
   const sentenceCut = findSentenceBoundaryCut(window, nextText, noSplitAbbrevMatcher)
   if (sentenceCut >= 0) return sentenceCut
 
@@ -612,6 +615,7 @@ function findBestCut(
   const semicolonCut = findRightmostPunct(window, SEMICOLON_PUNCT)
   if (semicolonCut >= 0) return semicolonCut
 
+  // 2) Mid-priority syntactic/list boundaries.
   const commaCut = findRightmostNonListComma(window, nextText)
   if (commaCut >= 0) return commaCut
 
@@ -645,6 +649,7 @@ function findBestCut(
   const listTailCut = findRightmostListTailLead(window, nextText)
   if (listTailCut >= 0) return listTailCut
 
+  // 3) Last-resort lexical/space fallback boundaries.
   const withCut = findRightmostWithStart(window, nextText)
   if (withCut >= 0) return withCut
 

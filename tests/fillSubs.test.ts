@@ -1329,4 +1329,15 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.line.toLowerCase().endsWith(" like")).toBe(false)
   expect(split.rest.toLowerCase().startsWith("like ")).toBe(true)
   })
+
+  it("moves trailing 'of' to the next split chunk", () => {
+  const split = __testTakeLine(
+    "This method increases the risk of sudden outages during migration.",
+    34,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" of")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("of ")).toBe(true)
+  })
 })

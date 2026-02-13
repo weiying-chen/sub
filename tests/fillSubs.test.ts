@@ -809,6 +809,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("avoids one-word heads when splitting before 'with'", () => {
+  const split = __testTakeLine(
+    "coping with outages, delays, or staffing shortages before recovery.",
+    54,
+    null,
+    false
+  )
+
+  expect(split.line.toLowerCase()).toMatch(/^coping with\b/)
+  expect(split.line.split(/\s+/).filter(Boolean).length).toBeGreaterThan(1)
+  })
+
   it("keeps since-clause starter with its clause", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

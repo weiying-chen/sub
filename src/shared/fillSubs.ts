@@ -24,6 +24,8 @@ const MIN_TARGET_CPS = 10
 const MAX_SPAN_PER_LINE = 3
 const MIN_COMMA_SPLIT_CHARS = 12
 const MIN_COMMA_SPLIT_WORDS = 2
+const MIN_WITH_SPLIT_LEFT_CHARS = 12
+const MIN_WITH_SPLIT_LEFT_WORDS = 2
 
 const CONJ_RE = /\b(and|but|or|so|yet|nor)\b/i
 const CLAUSE_START_RE =
@@ -569,6 +571,10 @@ function findRightmostWithStart(window: string, nextText: string): number {
     const left = window.slice(0, start).trimEnd()
     const right = (window.slice(start) + nextText).trimStart()
     if (!left || !right) continue
+    if (left.length < MIN_WITH_SPLIT_LEFT_CHARS) continue
+    if (left.split(/\s+/).filter(Boolean).length < MIN_WITH_SPLIT_LEFT_WORDS) {
+      continue
+    }
     if (!/^with\b/i.test(right)) continue
     if (/^with\b\s*$/i.test(right)) continue
     best = start

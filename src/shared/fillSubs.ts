@@ -229,6 +229,22 @@ function findRightmostNonListComma(window: string, nextText: string): number {
   return -1
 }
 
+function findRightmostListTailLead(window: string, nextText: string): number {
+  for (let i = window.length - 1; i >= 0; i--) {
+    if (window[i] !== ',') continue
+
+    const left = window.slice(0, i + 1).trimEnd()
+    const right = (window.slice(i + 1) + nextText).trimStart()
+    if (!left || !right) continue
+    if (!/^(and|or|nor)\b/i.test(right)) continue
+    if (/^(and|or|nor)\s+\S+\s+(before|after|while|like)\b/i.test(right)) {
+      continue
+    }
+    return i + 1
+  }
+  return -1
+}
+
 function isCommaJoinedConjunction(
   window: string,
   index: number,
@@ -625,6 +641,9 @@ function findBestCut(
 
   const toVerbCut = findRightmostToVerbObjectBreak(window, nextText)
   if (toVerbCut >= 0) return toVerbCut
+
+  const listTailCut = findRightmostListTailLead(window, nextText)
+  if (listTailCut >= 0) return listTailCut
 
   const withCut = findRightmostWithStart(window, nextText)
   if (withCut >= 0) return withCut

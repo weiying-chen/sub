@@ -282,6 +282,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("moves the full final list item to the next line when it doesn't fit", () => {
+  const split = __testTakeLine(
+    "We reviewed budgets, timelines, or staffing constraints before launch.",
+    44,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("We reviewed budgets, timelines,")
+  expect(split.rest).toBe("or staffing constraints before launch.")
+  })
+
   it("avoids early comma splits on short lead-ins", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

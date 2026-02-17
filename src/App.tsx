@@ -20,6 +20,8 @@ import { fillSelectedTimestampSubs } from "./cm/fillSubs"
 
 import { sampleSubtitles } from "./fixtures/subtitles"
 
+const FINDINGS_SIDEBAR_WIDTH = 320
+
 export default function App() {
   const [theme, setTheme] = useState<"dark" | "light">("dark")
 
@@ -99,6 +101,7 @@ export default function App() {
       style={{
         width: "100vw",
         height: "100vh",
+        paddingRight: FINDINGS_SIDEBAR_WIDTH,
         display: "flex",
         flexDirection: "column",
         background: "var(--bg)",
@@ -122,6 +125,32 @@ export default function App() {
           onCreateEditor={(v) => setView(v)}
         />
       </div>
+
+      <aside
+        style={{
+          position: "fixed",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width: FINDINGS_SIDEBAR_WIDTH,
+          borderLeft: "1px solid var(--border)",
+          background: "var(--panel)",
+          padding: 12,
+          overflowY: "auto",
+        }}
+      >
+        <h3 style={{ margin: 0, marginBottom: 10, fontSize: 14 }}>Findings</h3>
+        <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 12 }}>
+          Dummy data for sidebar layout.
+        </div>
+        <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 8 }}>
+          <li>[ERROR] Line 23: Too many characters</li>
+          <li>[WARN] Line 41: CPS is above limit</li>
+          <li>[WARN] Line 67: Punctuation spacing issue</li>
+          <li>[ERROR] Line 90: Capitalization mismatch</li>
+          <li>[WARN] Line 105: Leading whitespace</li>
+        </ul>
+      </aside>
 
       <div
         style={{

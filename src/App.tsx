@@ -22,13 +22,18 @@ import { sampleSubtitles } from "./fixtures/subtitles"
 
 const FINDINGS_SIDEBAR_WIDTH = 320
 
-function formatFindingSummary(finding: Finding): string {
+function getFindingParts(finding: Finding): {
+  severityLabel: string
+  severityColor: string
+  detail: string
+} {
   const severity =
-    "severity" in finding && finding.severity
-      ? finding.severity.toUpperCase()
-      : "INFO"
+    "severity" in finding && finding.severity ? finding.severity : "warn"
+  const severityLabel = `[${severity.toUpperCase()}]`
+  const severityColor = severity === "error" ? "var(--danger)" : "var(--warning)"
   const line = finding.lineIndex + 1
-  return `[${severity}] ${finding.type} (line ${line})`
+  const detail = `${finding.type} (line ${line})`
+  return { severityLabel, severityColor, detail }
 }
 
 export default function App() {
@@ -152,12 +157,25 @@ export default function App() {
         {findings.length === 0 ? (
           <div style={{ fontSize: 13, color: "var(--muted)" }}>No findings.</div>
         ) : (
-          <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 8 }}>
-            {findings.map((finding, index) => (
-              <li key={`${finding.type}-${finding.lineIndex}-${index}`}>
-                {formatFindingSummary(finding)}
-              </li>
-            ))}
+          <ul
+            style={{
+              margin: 0,
+              padding: 0,
+              listStyle: "none",
+              display: "grid",
+              gap: 8,
+              fontSize: 13,
+            }}
+          >
+            {findings.map((finding, index) => {
+              const { severityLabel, severityColor, detail } = getFindingParts(finding)
+              return (
+                <li key={`${finding.type}-${finding.lineIndex}-${index}`}>
+                  <span style={{ color: severityColor }}>{severityLabel}</span>{" "}
+                  <span>{detail}</span>
+                </li>
+              )
+            })}
           </ul>
         )}
       </aside>

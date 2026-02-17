@@ -91,8 +91,20 @@ body {
 
 /* ---- Semantic highlights (tuned for dark + light) ---- */
 
-.cm-too-long {
-  background-color: rgba(239, 68, 68, 0.18);
+.cm-finding-error {
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-color: var(--danger);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.cm-finding-warn {
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-color: var(--warning);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
 }
 
 /* ---- Timestamp link gutter ---- */

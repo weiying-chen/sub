@@ -211,11 +211,12 @@ export default function App() {
           <ul
             style={{
               margin: 0,
+              marginLeft: -12,
+              marginRight: -12,
               padding: 0,
               listStyle: "none",
               display: "flex",
               flexDirection: "column",
-              gap: 8,
               fontSize: 13,
             }}
           >
@@ -229,15 +230,15 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => handleFindingClick(finding)}
+                    className="finding-row-button"
                     style={{
                       width: "100%",
                       display: "flex",
                       alignItems: "center",
                       gap: 6,
                       textAlign: "left",
-                      background: "transparent",
                       border: "none",
-                      padding: 0,
+                      padding: "6px 12px",
                       color: "inherit",
                       font: "inherit",
                       cursor: "pointer",

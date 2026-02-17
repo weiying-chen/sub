@@ -8,6 +8,7 @@
   /* Surfaces */
   --bg: #f8fafc;        /* cool-neutral off-white */
   --panel: #f1f5f9;     /* subtle depth, not gray */
+  --panel-hover: #e2e8f0;
   --border: #e2e8f0;
 
   /* Text */
@@ -28,6 +29,7 @@
 [data-theme="dark"] {
   --bg: #111827;
   --panel: #0b1220;
+  --panel-hover: #1f2937;
   --text: #e5e7eb;
   --muted: #9ca3af;
   --border: #374151;
@@ -154,4 +156,13 @@ body {
    This only handles native ::selection cases. */
 .cm-editor .cm-content ::selection {
   background-color: var(--cm-selection) !important;
+}
+
+.finding-row-button {
+  background: transparent;
+  border-radius: 0;
+}
+
+.finding-row-button:hover {
+  background: var(--panel-hover);
 }

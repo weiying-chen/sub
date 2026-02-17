@@ -27,18 +27,14 @@ describe("Sidebar", () => {
 
     expect(screen.getByRole("heading", { name: "Findings" })).toBeInTheDocument()
     expect(screen.queryByText("Dummy data for sidebar layout.")).not.toBeInTheDocument()
-    expect(
-      screen.getByText((_, element) => {
-        return element?.textContent === "[ERROR] MAX_CPS (line 1)"
-      })
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText((_, element) => {
-        return element?.textContent === "[WARN] MIN_CPS (line 4)"
-      })
-    ).toBeInTheDocument()
-    expect(screen.getByText("[ERROR]")).toHaveStyle("color: var(--danger)")
-    expect(screen.getAllByText("[WARN]")[0]).toHaveStyle("color: var(--warning)")
+    expect(screen.getAllByText("MAX_CPS (line 1)").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("MIN_CPS (line 4)").length).toBeGreaterThan(0)
+    const errorIcon = container.querySelector(".la-times-circle")
+    const warningIcon = container.querySelector(".la-exclamation-triangle")
+    expect(errorIcon).not.toBeNull()
+    expect(warningIcon).not.toBeNull()
+    expect(errorIcon).toHaveStyle("color: var(--danger)")
+    expect(warningIcon).toHaveStyle("color: var(--warning)")
 
     const root = container.firstElementChild
     expect(root).toHaveStyle("padding-right: 320px")

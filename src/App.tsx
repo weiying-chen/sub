@@ -23,17 +23,18 @@ import { sampleSubtitles } from "./fixtures/subtitles"
 const FINDINGS_SIDEBAR_WIDTH = 320
 
 function getFindingParts(finding: Finding): {
-  severityLabel: string
+  severityIconClass: string
   severityColor: string
   detail: string
 } {
   const severity =
     "severity" in finding && finding.severity ? finding.severity : "warn"
-  const severityLabel = `[${severity.toUpperCase()}]`
+  const severityIconClass =
+    severity === "error" ? "las la-times-circle" : "las la-exclamation-triangle"
   const severityColor = severity === "error" ? "var(--danger)" : "var(--warning)"
   const line = finding.lineIndex + 1
   const detail = `${finding.type} (line ${line})`
-  return { severityLabel, severityColor, detail }
+  return { severityIconClass, severityColor, detail }
 }
 
 export default function App() {
@@ -168,10 +169,17 @@ export default function App() {
             }}
           >
             {findings.map((finding, index) => {
-              const { severityLabel, severityColor, detail } = getFindingParts(finding)
+              const { severityIconClass, severityColor, detail } = getFindingParts(finding)
               return (
-                <li key={`${finding.type}-${finding.lineIndex}-${index}`}>
-                  <span style={{ color: severityColor }}>{severityLabel}</span>{" "}
+                <li
+                  key={`${finding.type}-${finding.lineIndex}-${index}`}
+                  style={{ display: "flex", alignItems: "center", gap: 6 }}
+                >
+                  <i
+                    className={severityIconClass}
+                    aria-hidden="true"
+                    style={{ color: severityColor }}
+                  />
                   <span>{detail}</span>
                 </li>
               )

@@ -12,7 +12,6 @@ import type { Metric, Finding } from "./analysis/types"
 import { getFindings } from "./shared/findings"
 
 import { findingsDecorations } from "./cm/findingsDecorations"
-import { timestampLinkGutter } from "./cm/timestampLinkGutter"
 import { cmTheme } from "./cm/theme"
 import { getSelectedInlineText } from "./cm/selection"
 import { selectLineOnTripleClick } from "./cm/selectLineOnTripleClick"
@@ -69,7 +68,6 @@ export default function App() {
       ),
 
       selectLineOnTripleClick,
-      timestampLinkGutter(findings),
       findingsDecorations(findings),
     ]
   }, [findings])

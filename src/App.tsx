@@ -16,6 +16,7 @@ import { cmTheme } from "./cm/theme"
 import { getSelectedInlineText } from "./cm/selection"
 import { selectLineOnTripleClick } from "./cm/selectLineOnTripleClick"
 import { fillSelectedTimestampSubs } from "./cm/fillSubs"
+import { mergeForward, parseBlockAt, type LineSource } from "./shared/tsvRuns"
 
 import { sampleSubtitles } from "./fixtures/subtitles"
 
@@ -34,6 +35,44 @@ function getFindingParts(finding: Finding): {
   const line = finding.lineIndex + 1
   const detail = `${finding.type} (line ${line})`
   return { severityIconClass, severityColor, detail }
+}
+
+function getFindingAnchor(view: EditorView, finding: Finding): number {
+  const doc = view.state.doc
+  const safeLineIndex = Math.min(Math.max(finding.lineIndex, 0), doc.lines - 1)
+  const line = doc.line(safeLineIndex + 1)
+
+  if (
+    finding.type === "MAX_CPS" ||
+    finding.type === "MIN_CPS" ||
+    finding.type === "CPS_BALANCE"
+  ) {
+    const src: LineSource = {
+      lineCount: doc.lines,
+      getLine: (i) => doc.line(i + 1).text,
+    }
+    const block = parseBlockAt(src, safeLineIndex)
+    if (block) {
+      const run = mergeForward(src, block)
+      return doc.line(run.payloadIndexStart + 1).from
+    }
+    return line.from
+  }
+
+  if (finding.type === "MAX_CHARS") {
+    return Math.min(line.to, line.from + finding.maxAllowed)
+  }
+
+  if (
+    finding.type === "NUMBER_STYLE" ||
+    finding.type === "PERCENT_STYLE" ||
+    finding.type === "CAPITALIZATION" ||
+    finding.type === "LEADING_WHITESPACE"
+  ) {
+    return Math.min(line.to, line.from + finding.index)
+  }
+
+  return line.from
 }
 
 export default function App() {
@@ -94,6 +133,19 @@ export default function App() {
   const handleToggleTheme = useCallback(() => {
     setTheme((t) => (t === "dark" ? "light" : "dark"))
   }, [])
+
+  const handleFindingClick = useCallback(
+    (finding: Finding) => {
+      if (!view) return
+      const anchor = getFindingAnchor(view, finding)
+      view.dispatch({
+        selection: { anchor },
+        scrollIntoView: true,
+      })
+      view.focus()
+    },
+    [view]
+  )
 
   useEffect(() => {
     console.log("METRICS CHECKS:", metrics)
@@ -172,14 +224,32 @@ export default function App() {
               return (
                 <li
                   key={`${finding.type}-${finding.lineIndex}-${index}`}
-                  style={{ display: "flex", alignItems: "center", gap: 6 }}
+                  style={{ display: "flex", alignItems: "center" }}
                 >
-                  <i
-                    className={severityIconClass}
-                    aria-hidden="true"
-                    style={{ color: severityColor }}
-                  />
-                  <span>{detail}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleFindingClick(finding)}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      textAlign: "left",
+                      background: "transparent",
+                      border: "none",
+                      padding: 0,
+                      color: "inherit",
+                      font: "inherit",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <i
+                      className={severityIconClass}
+                      aria-hidden="true"
+                      style={{ color: severityColor }}
+                    />
+                    <span>{detail}</span>
+                  </button>
                 </li>
               )
             })}

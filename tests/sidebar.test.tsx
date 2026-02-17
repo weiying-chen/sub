@@ -21,16 +21,15 @@ vi.mock("@uiw/react-codemirror", () => ({
   ),
 }))
 
-describe("App findings sidebar", () => {
-  it("renders a fixed findings sidebar with placeholder items", () => {
+describe("Sidebar", () => {
+  it("renders a fixed findings sidebar with real findings", () => {
     const { container } = render(<App />)
 
     expect(screen.getByRole("heading", { name: "Findings" })).toBeInTheDocument()
+    expect(screen.queryByText("Dummy data for sidebar layout.")).not.toBeInTheDocument()
+    expect(screen.getByText("[ERROR] MAX_CPS (line 1)")).toBeInTheDocument()
     expect(
-      screen.getByText("Dummy data for sidebar layout.")
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText("[ERROR] Line 23: Too many characters")
+      screen.getByText("[WARN] MIN_CPS (line 4)")
     ).toBeInTheDocument()
 
     const root = container.firstElementChild

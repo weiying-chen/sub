@@ -163,7 +163,8 @@ export default function App() {
               margin: 0,
               padding: 0,
               listStyle: "none",
-              display: "grid",
+              display: "flex",
+              flexDirection: "column",
               gap: 8,
               fontSize: 13,
             }}

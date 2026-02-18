@@ -300,7 +300,7 @@ export default function App() {
           bottom: 0,
           width: FINDINGS_SIDEBAR_WIDTH,
           borderLeft: "1px solid var(--border)",
-          background: "var(--panel)",
+          background: "var(--bg)",
           padding: 12,
           overflowY: "auto",
           overflowX: "hidden",

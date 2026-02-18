@@ -166,3 +166,7 @@ body {
 .finding-row-button:hover {
   background: var(--panel-hover);
 }
+
+.finding-row-button.is-active {
+  background: var(--panel-hover);
+}

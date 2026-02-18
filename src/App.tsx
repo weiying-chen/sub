@@ -138,6 +138,7 @@ export default function App() {
   const [value, setValue] = useState(sampleSubtitles)
   const [view, setView] = useState<EditorView | null>(null)
   const [extracted, setExtracted] = useState("")
+  const [activeFindingId, setActiveFindingId] = useState<string | null>(null)
   const scrollAnimFrameRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -197,8 +198,9 @@ export default function App() {
   }, [])
 
   const handleFindingClick = useCallback(
-    (finding: Finding) => {
+    (finding: Finding, findingId: string) => {
       if (!view) return
+      setActiveFindingId(findingId)
       const anchor = getFindingAnchor(view, finding)
       const snapshots = collectScrollContainers(view)
 
@@ -322,15 +324,16 @@ export default function App() {
           >
             {findings.map((finding, index) => {
               const { severityIconClass, severityColor, snippet, detail } = getFindingParts(finding)
+              const findingId = `${finding.type}-${finding.lineIndex}-${index}`
               return (
                 <li
-                  key={`${finding.type}-${finding.lineIndex}-${index}`}
+                  key={findingId}
                   style={{ display: "flex", alignItems: "flex-start" }}
                 >
                   <button
                     type="button"
-                    onClick={() => handleFindingClick(finding)}
-                    className="finding-row-button"
+                    onClick={() => handleFindingClick(finding, findingId)}
+                    className={`finding-row-button${activeFindingId === findingId ? " is-active" : ""}`}
                     style={{
                       width: "100%",
                       display: "block",

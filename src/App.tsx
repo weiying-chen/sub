@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from "react"
 import CodeMirror from "@uiw/react-codemirror"
-import type { EditorView } from "@codemirror/view"
-import { keymap } from "@codemirror/view"
+import { EditorView, keymap } from "@codemirror/view"
 import { Prec } from "@codemirror/state"
 import { insertTab } from "@codemirror/commands"
 
@@ -25,6 +24,114 @@ const FINDINGS_SIDEBAR_WIDTH = 320
 type ScrollSnapshot = {
   el: HTMLElement
   top: number
+}
+
+function getFindingId(finding: Finding, index: number): string {
+  return `${finding.type}-${finding.lineIndex}-${index}`
+}
+
+type FindingRange = {
+  id: string
+  from: number
+  to: number
+}
+
+function getSortedFindings(findings: Finding[]) {
+  return findings
+    .map((finding, index) => ({ finding, index }))
+    .sort((a, b) => {
+      if (a.finding.lineIndex !== b.finding.lineIndex) {
+        return a.finding.lineIndex - b.finding.lineIndex
+      }
+
+      const isCpsFinding = (f: Finding) =>
+        f.type === "MAX_CPS" || f.type === "MIN_CPS" || f.type === "CPS"
+
+      if (a.finding.type === "MAX_CHARS" && isCpsFinding(b.finding)) return -1
+      if (isCpsFinding(a.finding) && b.finding.type === "MAX_CHARS") return 1
+      return 0
+    })
+}
+
+function getFindingRanges(view: EditorView, findings: Finding[]): FindingRange[] {
+  const ranges: FindingRange[] = []
+  const doc = view.state.doc
+  const src: LineSource = {
+    lineCount: doc.lines,
+    getLine: (i) => doc.line(i + 1).text,
+  }
+
+  const addRange = (id: string, from: number, to: number) => {
+    if (from >= to) return
+    ranges.push({ id, from, to })
+  }
+
+  const addWholeLine = (id: string, lineIndex: number) => {
+    if (lineIndex < 0 || lineIndex >= doc.lines) return
+    const line = doc.line(lineIndex + 1)
+    addRange(id, line.from, line.to)
+  }
+
+  for (const { finding: f, index } of getSortedFindings(findings)) {
+    const id = getFindingId(f, index)
+    if (f.lineIndex < 0 || f.lineIndex >= doc.lines) continue
+
+    if (f.type === "MAX_CHARS") {
+      const line = doc.line(f.lineIndex + 1)
+      const from = Math.min(line.to, line.from + f.maxAllowed)
+      addRange(id, from, line.to)
+      continue
+    }
+
+    if (f.type === "MAX_CPS" || f.type === "MIN_CPS" || f.type === "CPS_BALANCE") {
+      const first = parseBlockAt(src, f.lineIndex)
+      if (first) {
+        const run = mergeForward(src, first)
+        for (let i = run.payloadIndexStart; i <= run.payloadIndexEnd; i += 1) {
+          addWholeLine(id, i)
+        }
+      } else {
+        addWholeLine(id, f.lineIndex)
+      }
+      continue
+    }
+
+    if (
+      f.type === "NUMBER_STYLE" ||
+      f.type === "PERCENT_STYLE" ||
+      f.type === "CAPITALIZATION"
+    ) {
+      const line = doc.line(f.lineIndex + 1)
+      const tokenLength = f.token.length
+      const from = Math.min(line.to, line.from + f.index)
+      const to = Math.min(line.to, from + Math.max(tokenLength, 1))
+      addRange(id, from, to)
+      continue
+    }
+
+    if (f.type === "LEADING_WHITESPACE") {
+      const line = doc.line(f.lineIndex + 1)
+      const from = Math.min(line.to, line.from + f.index)
+      const to = Math.min(line.to, from + Math.max(f.count, 1))
+      addRange(id, from, to)
+      continue
+    }
+
+    addWholeLine(id, f.lineIndex)
+  }
+
+  return ranges
+}
+
+function findFindingIdAtPos(
+  view: EditorView,
+  findings: Finding[],
+  pos: number
+): string | null {
+  const hit = getFindingRanges(view, findings)
+    .filter((r) => pos >= r.from && pos < r.to)
+    .sort((a, b) => a.to - a.from - (b.to - b.from))[0]
+  return hit?.id ?? null
 }
 
 function getFindingParts(finding: Finding): {
@@ -157,6 +264,21 @@ export default function App() {
     return getFindings(metrics)
   }, [metrics])
 
+  useEffect(() => {
+    if (findings.length === 0) {
+      if (activeFindingId !== null) setActiveFindingId(null)
+      return
+    }
+
+    const hasActive =
+      activeFindingId !== null &&
+      findings.some((finding, index) => getFindingId(finding, index) === activeFindingId)
+
+    if (!hasActive) {
+      setActiveFindingId(getFindingId(findings[0], 0))
+    }
+  }, [findings, activeFindingId])
+
   const extensions = useMemo(() => {
     return [
       cmTheme,
@@ -171,6 +293,14 @@ export default function App() {
 
       selectLineOnTripleClick,
       findingsDecorations(findings, activeFindingId),
+      EditorView.updateListener.of((update) => {
+        if (!update.selectionSet) return
+        const pos = update.state.selection.main.head
+        const hitId = findFindingIdAtPos(update.view, findings, pos)
+        if (hitId && hitId !== activeFindingId) {
+          setActiveFindingId(hitId)
+        }
+      }),
     ]
   }, [findings, activeFindingId])
 
@@ -324,7 +454,7 @@ export default function App() {
           >
             {findings.map((finding, index) => {
               const { severityIconClass, severityColor, snippet, detail } = getFindingParts(finding)
-              const findingId = `${finding.type}-${finding.lineIndex}-${index}`
+              const findingId = getFindingId(finding, index)
               return (
                 <li
                   key={findingId}

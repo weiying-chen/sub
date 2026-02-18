@@ -44,6 +44,18 @@ vi.mock("@uiw/react-codemirror", () => ({
         },
         dispatch: cmSpies.dispatch,
         focus: cmSpies.focus,
+        contentDOM: {
+          focus: vi.fn(),
+        },
+        scrollDOM: {
+          scrollTop: 0,
+          scrollHeight: 2000,
+          clientHeight: 200,
+          parentElement: null,
+          ownerDocument: {
+            scrollingElement: null,
+          },
+        },
       }
     }, [value])
 
@@ -96,6 +108,6 @@ describe("Sidebar", () => {
       selection: { anchor: firstLineLength + 1 },
       scrollIntoView: true,
     })
-    expect(cmSpies.focus).toHaveBeenCalledTimes(1)
+    expect(cmSpies.focus).not.toHaveBeenCalled()
   })
 })

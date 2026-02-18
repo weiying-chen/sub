@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react"
+import { useEffect, useMemo, useState, useCallback, useRef } from "react"
 import CodeMirror from "@uiw/react-codemirror"
 import type { EditorView } from "@codemirror/view"
 import { keymap } from "@codemirror/view"
@@ -21,6 +21,11 @@ import { mergeForward, parseBlockAt, type LineSource } from "./shared/tsvRuns"
 import { sampleSubtitles } from "./fixtures/subtitles"
 
 const FINDINGS_SIDEBAR_WIDTH = 320
+
+type ScrollSnapshot = {
+  el: HTMLElement
+  top: number
+}
 
 function getFindingParts(finding: Finding): {
   severityIconClass: string
@@ -89,6 +94,40 @@ function getFindingAnchor(view: EditorView, finding: Finding): number {
   return line.from
 }
 
+function collectScrollContainers(view: EditorView): ScrollSnapshot[] {
+  const snapshots: ScrollSnapshot[] = []
+  const seen = new Set<HTMLElement>()
+  let cur: HTMLElement | null = view.scrollDOM
+  while (cur) {
+    if (!seen.has(cur) && cur.scrollHeight > cur.clientHeight + 1) {
+      seen.add(cur)
+      snapshots.push({ el: cur, top: cur.scrollTop })
+    }
+    cur = cur.parentElement
+  }
+
+  const docScroller = view.scrollDOM.ownerDocument?.scrollingElement
+  if (
+    docScroller instanceof HTMLElement &&
+    !seen.has(docScroller) &&
+    docScroller.scrollHeight > docScroller.clientHeight + 1
+  ) {
+    snapshots.push({ el: docScroller, top: docScroller.scrollTop })
+  }
+
+  return snapshots
+}
+
+function focusEditorContent(view: EditorView) {
+  const content = view.contentDOM as HTMLElement | null
+  if (!content || typeof content.focus !== "function") return
+  try {
+    content.focus({ preventScroll: true })
+  } catch {
+    content.focus()
+  }
+}
+
 export default function App() {
   const [theme, setTheme] = useState<"dark" | "light">("dark")
 
@@ -99,6 +138,15 @@ export default function App() {
   const [value, setValue] = useState(sampleSubtitles)
   const [view, setView] = useState<EditorView | null>(null)
   const [extracted, setExtracted] = useState("")
+  const scrollAnimFrameRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (scrollAnimFrameRef.current !== null) {
+        cancelAnimationFrame(scrollAnimFrameRef.current)
+      }
+    }
+  }, [])
 
   const metrics = useMemo<Metric[]>(() => {
     return analyzeLines(value, defaultRules())
@@ -152,11 +200,62 @@ export default function App() {
     (finding: Finding) => {
       if (!view) return
       const anchor = getFindingAnchor(view, finding)
+      const snapshots = collectScrollContainers(view)
+
       view.dispatch({
         selection: { anchor },
         scrollIntoView: true,
       })
-      view.focus()
+
+      if (scrollAnimFrameRef.current !== null) {
+        cancelAnimationFrame(scrollAnimFrameRef.current)
+      }
+
+      scrollAnimFrameRef.current = requestAnimationFrame(() => {
+        const moved = snapshots
+          .map(({ el, top }) => ({ el, startTop: top, targetTop: el.scrollTop }))
+          .filter(({ startTop, targetTop }) => Math.abs(targetTop - startTop) > 0.5)
+
+        if (moved.length === 0) {
+          focusEditorContent(view)
+          scrollAnimFrameRef.current = null
+          return
+        }
+
+        const primary = moved.reduce((best, cur) =>
+          Math.abs(cur.targetTop - cur.startTop) > Math.abs(best.targetTop - best.startTop)
+            ? cur
+            : best
+        )
+
+        const { el, startTop, targetTop } = primary
+        const delta = targetTop - startTop
+        if (Math.abs(delta) < 1) {
+          focusEditorContent(view)
+          scrollAnimFrameRef.current = null
+          return
+        }
+
+        el.scrollTop = startTop
+        const durationMs = 650
+        const start = performance.now()
+        const easeInOutCubic = (t: number) =>
+          t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+
+        const step = (now: number) => {
+          const elapsed = now - start
+          const t = Math.min(1, elapsed / durationMs)
+          el.scrollTop = startTop + delta * easeInOutCubic(t)
+          if (t < 1) {
+            scrollAnimFrameRef.current = requestAnimationFrame(step)
+          } else {
+            scrollAnimFrameRef.current = null
+            focusEditorContent(view)
+          }
+        }
+
+        scrollAnimFrameRef.current = requestAnimationFrame(step)
+      })
     },
     [view]
   )

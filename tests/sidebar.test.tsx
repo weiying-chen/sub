@@ -72,8 +72,8 @@ describe("Sidebar", () => {
 
     expect(screen.getByRole("heading", { name: "Findings" })).toBeInTheDocument()
     expect(screen.queryByText("Dummy data for sidebar layout.")).not.toBeInTheDocument()
-    expect(screen.getAllByText("MAX_CPS (line 1)").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("MIN_CPS (line 4)").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("MAX_CPS").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("MIN_CPS").length).toBeGreaterThan(0)
     const errorIcon = container.querySelector(".la-times-circle")
     const warningIcon = container.querySelector(".la-exclamation-triangle")
     expect(errorIcon).not.toBeNull()
@@ -90,7 +90,7 @@ describe("Sidebar", () => {
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
     const firstLineLength = editor.value.split("\n")[0]?.length ?? 0
 
-    fireEvent.click(screen.getAllByRole("button", { name: "MAX_CPS (line 1)" })[0])
+    fireEvent.click(screen.getAllByText("MAX_CPS")[0])
 
     expect(cmSpies.dispatch).toHaveBeenCalledWith({
       selection: { anchor: firstLineLength + 1 },

@@ -25,6 +25,7 @@ const FINDINGS_SIDEBAR_WIDTH = 320
 function getFindingParts(finding: Finding): {
   severityIconClass: string
   severityColor: string
+  snippet: string | null
   detail: string
 } {
   const severity =
@@ -32,9 +33,22 @@ function getFindingParts(finding: Finding): {
   const severityIconClass =
     severity === "error" ? "las la-times-circle" : "las la-exclamation-triangle"
   const severityColor = severity === "error" ? "var(--danger)" : "var(--warning)"
-  const line = finding.lineIndex + 1
-  const detail = `${finding.type} (line ${line})`
-  return { severityIconClass, severityColor, detail }
+
+  let snippet: string | null = null
+  if ("token" in finding && typeof finding.token === "string" && finding.token.trim()) {
+    snippet = finding.token.trim()
+  } else if ("text" in finding && typeof finding.text === "string" && finding.text.trim()) {
+    snippet = finding.text.trim()
+  } else if ("message" in finding && typeof finding.message === "string" && finding.message.trim()) {
+    snippet = finding.message.trim()
+  }
+
+  if (snippet && snippet.length > 72) {
+    snippet = `${snippet.slice(0, 72)}...`
+  }
+
+  const detail = finding.type
+  return { severityIconClass, severityColor, snippet, detail }
 }
 
 function getFindingAnchor(view: EditorView, finding: Finding): number {
@@ -202,6 +216,7 @@ export default function App() {
           background: "var(--panel)",
           padding: 12,
           overflowY: "auto",
+          overflowX: "hidden",
         }}
       >
         <h3 style={{ margin: 0, marginBottom: 10, fontSize: 14 }}>Findings</h3>
@@ -221,11 +236,11 @@ export default function App() {
             }}
           >
             {findings.map((finding, index) => {
-              const { severityIconClass, severityColor, detail } = getFindingParts(finding)
+              const { severityIconClass, severityColor, snippet, detail } = getFindingParts(finding)
               return (
                 <li
                   key={`${finding.type}-${finding.lineIndex}-${index}`}
-                  style={{ display: "flex", alignItems: "center" }}
+                  style={{ display: "flex", alignItems: "flex-start" }}
                 >
                   <button
                     type="button"
@@ -233,9 +248,7 @@ export default function App() {
                     className="finding-row-button"
                     style={{
                       width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
+                      display: "block",
                       textAlign: "left",
                       border: "none",
                       padding: "6px 12px",
@@ -244,12 +257,35 @@ export default function App() {
                       cursor: "pointer",
                     }}
                   >
-                    <i
-                      className={severityIconClass}
-                      aria-hidden="true"
-                      style={{ color: severityColor }}
-                    />
-                    <span>{detail}</span>
+                    <span style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
+                      <i
+                        className={severityIconClass}
+                        aria-hidden="true"
+                        style={{ color: severityColor, marginTop: 2 }}
+                      />
+                      <span
+                        style={{
+                          color: "var(--muted)",
+                          fontSize: 12,
+                          overflowWrap: "anywhere",
+                          wordBreak: "break-word",
+                        }}
+                      >
+                        {detail}
+                      </span>
+                    </span>
+                    {snippet ? (
+                      <span
+                        style={{
+                          display: "block",
+                          marginTop: 2,
+                          overflowWrap: "anywhere",
+                          wordBreak: "break-word",
+                        }}
+                      >
+                        {snippet}
+                      </span>
+                    ) : null}
                   </button>
                 </li>
               )

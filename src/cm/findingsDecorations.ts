@@ -4,7 +4,7 @@ import { defineDecorationsPlugin } from './defineDecorationsPlugin'
 import type { Finding } from '../analysis/types'
 import { mergeForward, parseBlockAt, type LineSource } from '../shared/tsvRuns'
 
-export function findingsDecorations(findings: Finding[]) {
+export function findingsDecorations(findings: Finding[], activeFindingId: string | null) {
   return defineDecorationsPlugin((view: EditorView) => {
     const builder = new RangeSetBuilder<Decoration>()
     const doc = view.state.doc
@@ -14,25 +14,35 @@ export function findingsDecorations(findings: Finding[]) {
     }
 
     // Still keep deterministic order (useful if you add more decorations later)
-    const sorted = [...findings].sort((a, b) => {
-      if (a.lineIndex !== b.lineIndex) {
-        return a.lineIndex - b.lineIndex
-      }
+    const sorted = findings
+      .map((finding, index) => ({ finding, index }))
+      .sort((a, b) => {
+        if (a.finding.lineIndex !== b.finding.lineIndex) {
+          return a.finding.lineIndex - b.finding.lineIndex
+        }
 
-      const isCpsFinding = (f: Finding) =>
-        f.type === 'MAX_CPS' || f.type === 'MIN_CPS' || f.type === 'CPS'
+        const isCpsFinding = (f: Finding) =>
+          f.type === 'MAX_CPS' || f.type === 'MIN_CPS' || f.type === 'CPS'
 
-      // Same line: MAX_CHARS first, CPS last
-      if (a.type === 'MAX_CHARS' && isCpsFinding(b)) return -1
-      if (isCpsFinding(a) && b.type === 'MAX_CHARS') return 1
+        // Same line: MAX_CHARS first, CPS last
+        if (a.finding.type === 'MAX_CHARS' && isCpsFinding(b.finding)) return -1
+        if (isCpsFinding(a.finding) && b.finding.type === 'MAX_CHARS') return 1
 
-      return 0
-    })
+        return 0
+      })
 
-    const classFor = (finding: Finding) => {
+    const findingId = (finding: Finding, index: number) =>
+      `${finding.type}-${finding.lineIndex}-${index}`
+
+    const classFor = (finding: Finding, index: number) => {
       const severity =
         'severity' in finding && finding.severity ? finding.severity : 'warn'
-      return severity === 'error' ? 'cm-finding-error' : 'cm-finding-warn'
+      const severityClass = severity === 'error' ? 'cm-finding-error' : 'cm-finding-warn'
+      const activeClass =
+        activeFindingId && activeFindingId === findingId(finding, index)
+          ? ' cm-finding-active'
+          : ''
+      return `${severityClass}${activeClass}`
     }
 
     const underline = (from: number, to: number, className: string) => {
@@ -57,8 +67,8 @@ export function findingsDecorations(findings: Finding[]) {
       return true
     }
 
-    for (const f of sorted) {
-      const className = classFor(f)
+    for (const { finding: f, index } of sorted) {
+      const className = classFor(f, index)
       if (f.lineIndex < 0 || f.lineIndex >= doc.lines) continue
 
       if (f.type === 'MAX_CHARS') {

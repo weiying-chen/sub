@@ -109,6 +109,16 @@ body {
   text-underline-offset: 2px;
 }
 
+.cm-finding-active {
+  background: var(--panel-hover);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding-top: 0.14em;
+  padding-bottom: 0.14em;
+  margin-top: -0.14em;
+  margin-bottom: -0.14em;
+}
+
 /* ---- Timestamp link gutter ---- */
 
 .cm-ts-link-gutter {

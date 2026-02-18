@@ -170,9 +170,9 @@ export default function App() {
       ),
 
       selectLineOnTripleClick,
-      findingsDecorations(findings),
+      findingsDecorations(findings, activeFindingId),
     ]
-  }, [findings])
+  }, [findings, activeFindingId])
 
   const handleExtract = useCallback(() => {
     if (!view) return

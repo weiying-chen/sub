@@ -260,20 +260,6 @@ export default function App() {
     [view]
   )
 
-  useEffect(() => {
-    console.log("METRICS CHECKS:", metrics)
-
-    const cpsMetrics = metrics.filter(
-      (m): m is Extract<Metric, { type: "CPS" }> => m.type === "CPS"
-    )
-
-    console.log("CPS CHECKS:", cpsMetrics)
-  }, [metrics])
-
-  useEffect(() => {
-    console.log("FINDINGS CHECKS:", findings)
-  }, [findings])
-
   return (
     <div
       style={{

@@ -18,8 +18,18 @@ import { fillSelectedTimestampSubs } from "./cm/fillSubs"
 import { mergeForward, parseBlockAt, type LineSource } from "./shared/tsvRuns"
 
 import { sampleSubtitles } from "./fixtures/subtitles"
+import capitalizationTermsText from "../capitalization-terms.txt?raw"
 
 const FINDINGS_SIDEBAR_WIDTH = 320
+
+function parseTextList(raw: string): string[] {
+  return raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line !== "" && !line.startsWith("#"))
+}
+
+const capitalizationTerms = parseTextList(capitalizationTermsText)
 
 type ScrollSnapshot = {
   el: HTMLElement
@@ -257,7 +267,12 @@ export default function App() {
   }, [])
 
   const metrics = useMemo<Metric[]>(() => {
-    return analyzeLines(value, defaultRules())
+    return analyzeLines(
+      value,
+      defaultRules({
+        capitalizationTerms,
+      })
+    )
   }, [value])
 
   const findings = useMemo<Finding[]>(() => {

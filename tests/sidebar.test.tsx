@@ -95,6 +95,7 @@ describe("Sidebar", () => {
 
     const root = container.firstElementChild
     expect(root).toHaveStyle("padding-right: 320px")
+    expect(container.querySelectorAll(".finding-row-button.is-active").length).toBeGreaterThan(0)
   })
 
   it("jumps editor selection when clicking a finding", () => {

@@ -237,7 +237,7 @@ export default function App() {
         }
 
         el.scrollTop = startTop
-        const durationMs = 650
+        const durationMs = 420
         const start = performance.now()
         const easeInOutCubic = (t: number) =>
           t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2

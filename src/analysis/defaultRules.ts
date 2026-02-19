@@ -7,6 +7,7 @@ import { cpsRule } from './cpsRule'
 import { cpsBalanceRule } from './cpsBalanceRule'
 import { capitalizationRule } from './capitalizationRule'
 import { percentStyleRule } from './percentStyleRule'
+import { mergeCandidateRule } from './mergeCandidateRule'
 
 type DefaultRulesOptions = {
   capitalizationTerms?: string[]
@@ -36,6 +37,7 @@ export function defaultSegmentRules(
       ignoreEmptyLines: options.ignoreEmptyLines,
     }),
     cpsBalanceRule({ ignoreEmptyLines: options.ignoreEmptyLines }),
+    mergeCandidateRule({ ignoreEmptyLines: options.ignoreEmptyLines }),
     capitalizationRule({ terms: options.capitalizationTerms }),
     percentStyleRule(),
   ]

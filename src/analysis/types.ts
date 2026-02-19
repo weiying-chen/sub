@@ -32,7 +32,8 @@ export type LeadingWhitespaceMetric = {
 }
 
 type CpsBaseMetric = {
-  lineIndex: number // timestamp line index
+  lineIndex: number // payload line index
+  tsLineIndex?: number // timestamp line index
   text: string
   cps: number
   durationFrames: number
@@ -59,7 +60,8 @@ export type MinCpsMetric = CpsBaseMetric & {
 
 export type CPSBalanceMetric = {
   type: 'CPS_BALANCE'
-  lineIndex: number // timestamp line index (faster run)
+  lineIndex: number // payload line index (faster run)
+  tsLineIndex?: number // timestamp line index (faster run)
   cps: number
   neighborCps: number
   deltaCps: number
@@ -136,6 +138,18 @@ export type BaselineMetric = {
   severity?: 'error' | 'warn'
 }
 
+export type MergeCandidateMetric = {
+  type: 'MERGE_CANDIDATE'
+  lineIndex: number
+  nextLineIndex: number
+  text: string
+  nextText: string
+  gapFrames: number
+  editDistance: number
+  message: string
+  severity?: 'error' | 'warn'
+}
+
 export type Metric =
   | MaxCharsMetric
   | LeadingWhitespaceMetric
@@ -147,6 +161,7 @@ export type Metric =
   | PercentStyleMetric
   | CapitalizationMetric
   | PunctuationMetric
+  | MergeCandidateMetric
   | BaselineMetric
 
 // ---- Findings (violations only; derived from metrics) ----

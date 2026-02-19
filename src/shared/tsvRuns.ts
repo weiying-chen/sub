@@ -32,6 +32,15 @@ export type MergedRun = {
   payloadIndexEnd: number
 }
 
+function findNextTimestampIndex(src: LineSource, fromTsIndex: number): number | null {
+  for (let j = fromTsIndex + 1; j < src.lineCount; j++) {
+    if (TSV_RE.test(src.getLine(j))) {
+      return j
+    }
+  }
+  return null
+}
+
 /**
  * Find the next non-empty, non-timestamp line below a timestamp.
  * Mirrors existing behavior exactly.
@@ -148,14 +157,7 @@ export function mergeForward(
   let endTsIndex = first.tsIndex
 
   while (true) {
-    let nextTs: number | null = null
-
-    for (let j = scanTs + 1; j < src.lineCount; j++) {
-      if (TSV_RE.test(src.getLine(j))) {
-        nextTs = j
-        break
-      }
-    }
+    const nextTs = findNextTimestampIndex(src, scanTs)
 
     if (nextTs == null) break
 
@@ -184,4 +186,33 @@ export function mergeForward(
     payloadIndexStart: first.payloadIndex,
     payloadIndexEnd,
   }
+}
+
+export function mergedRunPayloadIndices(
+  src: LineSource,
+  first: ParsedBlock,
+  options: ParseBlockOptions = {}
+): number[] {
+  const ignoreEmptyLines = options.ignoreEmptyLines ?? false
+  const payloadIndices = [first.payloadIndex]
+  let scanTs = first.tsIndex
+  let lastPayloadIndex = first.payloadIndex
+
+  while (true) {
+    const nextTs = findNextTimestampIndex(src, scanTs)
+    if (nextTs == null) break
+
+    if (!ignoreEmptyLines && hasEmptyLineBetween(src, lastPayloadIndex, nextTs)) {
+      break
+    }
+
+    const next = parseBlockAt(src, nextTs, options)
+    if (!next || next.payloadText !== first.payloadText) break
+
+    payloadIndices.push(next.payloadIndex)
+    scanTs = next.tsIndex
+    lastPayloadIndex = next.payloadIndex
+  }
+
+  return payloadIndices
 }

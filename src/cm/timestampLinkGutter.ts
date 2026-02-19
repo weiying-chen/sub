@@ -11,6 +11,16 @@ type TimestampLinkGutterOptions = {
   colorize?: boolean
 }
 
+function findingTsLineIndex(f: Finding): number {
+  if (
+    (f.type === 'MAX_CPS' || f.type === 'MIN_CPS' || f.type === 'CPS_BALANCE') &&
+    typeof f.tsLineIndex === 'number'
+  ) {
+    return f.tsLineIndex
+  }
+  return f.lineIndex
+}
+
 class LinkMarker extends GutterMarker {
   private part: LinkPart
   private state: LinkState
@@ -36,12 +46,18 @@ export function getTimestampRunState(
   colorize: boolean
 ): LinkState {
   if (!colorize) return 'ok'
-  if (findings.some((f) => (f.type === 'MAX_CPS' || f.type === 'CPS') && f.lineIndex === tsIndex)) {
+  if (
+    findings.some(
+      (f) => (f.type === 'MAX_CPS' || f.type === 'CPS') && findingTsLineIndex(f) === tsIndex
+    )
+  ) {
     return 'flagged'
   }
   if (
     findings.some(
-      (f) => (f.type === 'MIN_CPS' || f.type === 'CPS_BALANCE') && f.lineIndex === tsIndex
+      (f) =>
+        (f.type === 'MIN_CPS' || f.type === 'CPS_BALANCE') &&
+        findingTsLineIndex(f) === tsIndex
     )
   ) {
     return 'warn'
@@ -60,13 +76,13 @@ export function timestampLinkGutter(
   for (const f of findings) {
     if (f.type === 'MAX_CPS' || f.type === 'CPS') {
       // red
-      flaggedRuns.add(f.lineIndex)
+      flaggedRuns.add(findingTsLineIndex(f))
       continue
     }
 
     if (f.type === 'MIN_CPS' || f.type === 'CPS_BALANCE') {
       // yellow
-      warnRuns.add(f.lineIndex)
+      warnRuns.add(findingTsLineIndex(f))
       continue
     }
   }

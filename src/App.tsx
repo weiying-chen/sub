@@ -18,7 +18,7 @@ import { cmTheme } from "./cm/theme"
 import { getSelectedInlineText } from "./cm/selection"
 import { selectLineOnTripleClick } from "./cm/selectLineOnTripleClick"
 import { fillSelectedTimestampSubs } from "./cm/fillSubs"
-import { mergeForward, parseBlockAt, type LineSource } from "./shared/tsvRuns"
+import { mergeForward, mergedRunPayloadIndices, parseBlockAt, type LineSource } from "./shared/tsvRuns"
 
 import { sampleSubtitles } from "./fixtures/subtitles"
 import capitalizationTermsText from "../capitalization-terms.txt?raw"
@@ -49,6 +49,18 @@ type FindingRange = {
   id: string
   from: number
   to: number
+}
+
+function findingTsLineIndex(finding: Finding): number {
+  if (
+    (finding.type === "MAX_CPS" ||
+      finding.type === "MIN_CPS" ||
+      finding.type === "CPS_BALANCE") &&
+    typeof finding.tsLineIndex === "number"
+  ) {
+    return finding.tsLineIndex
+  }
+  return finding.lineIndex
 }
 
 function getFindingRanges(view: EditorView, findings: Finding[]): FindingRange[] {
@@ -82,10 +94,10 @@ function getFindingRanges(view: EditorView, findings: Finding[]): FindingRange[]
     }
 
     if (f.type === "MAX_CPS" || f.type === "MIN_CPS" || f.type === "CPS_BALANCE") {
-      const first = parseBlockAt(src, f.lineIndex)
+      const first = parseBlockAt(src, findingTsLineIndex(f))
       if (first) {
-        const run = mergeForward(src, first)
-        for (let i = run.payloadIndexStart; i <= run.payloadIndexEnd; i += 1) {
+        const payloadIndices = mergedRunPayloadIndices(src, first)
+        for (const i of payloadIndices) {
           addWholeLine(id, i)
         }
       } else {
@@ -112,6 +124,12 @@ function getFindingRanges(view: EditorView, findings: Finding[]): FindingRange[]
       const from = Math.min(line.to, line.from + f.index)
       const to = Math.min(line.to, from + Math.max(f.count, 1))
       addRange(id, from, to)
+      continue
+    }
+
+    if (f.type === "MERGE_CANDIDATE") {
+      addWholeLine(id, f.lineIndex)
+      addWholeLine(id, f.nextLineIndex)
       continue
     }
 
@@ -165,7 +183,11 @@ function getFindingParts(finding: Finding): {
     typeof finding.instruction === "string" &&
     finding.instruction.trim() !== ""
       ? finding.instruction
-      : null
+      : "message" in finding &&
+          typeof finding.message === "string" &&
+          finding.message.trim() !== ""
+        ? finding.message
+        : null
   return { severityIconClass, severityColor, snippet, detail, explanation }
 }
 
@@ -183,7 +205,11 @@ function getFindingAnchor(view: EditorView, finding: Finding): number {
       lineCount: doc.lines,
       getLine: (i) => doc.line(i + 1).text,
     }
-    const block = parseBlockAt(src, safeLineIndex)
+    const tsLineIndex = Math.min(
+      Math.max(findingTsLineIndex(finding), 0),
+      doc.lines - 1
+    )
+    const block = parseBlockAt(src, tsLineIndex)
     if (block) {
       const run = mergeForward(src, block)
       return doc.line(run.payloadIndexStart + 1).from

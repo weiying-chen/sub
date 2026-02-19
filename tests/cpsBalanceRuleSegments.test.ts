@@ -17,7 +17,7 @@ describe("cpsBalanceRule (segments)", () => {
     expect(metrics).toHaveLength(1)
     expect(metrics[0]).toMatchObject({
       type: "CPS_BALANCE",
-      lineIndex: 0,
+      lineIndex: 1,
       cps: 25,
       neighborCps: 3,
       deltaCps: 22,

@@ -3,11 +3,16 @@ import { describe, expect, it } from "vitest"
 import { getTimestampRunState } from "../src/cm/timestampLinkGutter"
 import type { Finding } from "../src/analysis/types"
 
-function finding(type: Finding["type"], lineIndex: number): Finding {
+function finding(
+  type: Finding["type"],
+  lineIndex: number,
+  tsLineIndex: number
+): Finding {
   if (type === "MAX_CPS") {
     return {
       type,
       lineIndex,
+      tsLineIndex,
       text: "x",
       cps: 25,
       maxCps: 17,
@@ -20,6 +25,7 @@ function finding(type: Finding["type"], lineIndex: number): Finding {
     return {
       type,
       lineIndex,
+      tsLineIndex,
       text: "x",
       cps: 5,
       minCps: 10,
@@ -32,6 +38,7 @@ function finding(type: Finding["type"], lineIndex: number): Finding {
     return {
       type,
       lineIndex,
+      tsLineIndex,
       cps: 12,
       neighborCps: 18,
       deltaCps: 6,
@@ -44,9 +51,9 @@ function finding(type: Finding["type"], lineIndex: number): Finding {
 describe("timestampLinkGutter", () => {
   it("keeps indicators neutral when colorize is false", () => {
     const findings: Finding[] = [
-      finding("MAX_CPS", 0),
-      finding("MIN_CPS", 2),
-      finding("CPS_BALANCE", 4),
+      finding("MAX_CPS", 1, 0),
+      finding("MIN_CPS", 3, 2),
+      finding("CPS_BALANCE", 5, 4),
     ]
 
     expect(getTimestampRunState(findings, 0, false)).toBe("ok")
@@ -56,9 +63,9 @@ describe("timestampLinkGutter", () => {
 
   it("uses severity states when colorize is true", () => {
     const findings: Finding[] = [
-      finding("MAX_CPS", 0),
-      finding("MIN_CPS", 2),
-      finding("CPS_BALANCE", 4),
+      finding("MAX_CPS", 1, 0),
+      finding("MIN_CPS", 3, 2),
+      finding("CPS_BALANCE", 5, 4),
     ]
 
     expect(getTimestampRunState(findings, 0, true)).toBe("flagged")

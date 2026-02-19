@@ -59,4 +59,20 @@ describe("metrics CLI output", () => {
     expect(output.some((metric) => metric.type === "CPS")).toBe(false)
     expect(output.some((metric) => metric.type === "MIN_CPS")).toBe(true)
   })
+
+  it("includes merge-candidate findings for near-identical close cues", async () => {
+    const text = [
+      "00:00:08:00\t00:00:09:00\tMarker",
+      "Gap text",
+      "00:00:10:00\t00:00:11:00\tMarker",
+      "Gap text.",
+    ].join("\n")
+
+    const output = (await buildMetricsOutput(text, {
+      type: "subs",
+      findingsOnly: true,
+    })) as Metric[]
+
+    expect(output.some((metric) => metric.type === "MERGE_CANDIDATE")).toBe(true)
+  })
 })

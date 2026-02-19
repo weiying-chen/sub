@@ -1,9 +1,10 @@
 import type { Finding } from "../analysis/types"
 
-const FINDING_LABELS: Record<Finding["type"], string> = {
+const FINDING_LABELS: Partial<Record<Finding["type"], string>> = {
   MAX_CPS: "Reading speed is too high",
   MIN_CPS: "Reading speed is too low",
   CPS_BALANCE: "Reading speed changes too much",
+  MERGE_CANDIDATE: "Lines could be merged",
   MAX_CHARS: "Line has too many characters",
   NUMBER_STYLE: "Number format is incorrect",
   PERCENT_STYLE: "Percent format is incorrect",
@@ -14,5 +15,5 @@ const FINDING_LABELS: Record<Finding["type"], string> = {
 }
 
 export function getFindingLabel(finding: Finding): string {
-  return FINDING_LABELS[finding.type]
+  return FINDING_LABELS[finding.type] ?? finding.type
 }

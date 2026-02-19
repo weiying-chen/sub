@@ -84,6 +84,7 @@ function mergeForwardSegments(
     endFrames,
     text: first.text,
     tsIndex: first.tsIndex,
+    lineIndex: first.lineIndex,
   }
 }
 
@@ -148,7 +149,8 @@ export function cpsBalanceRule(
 
       const metric: CPSBalanceMetric = {
         type: 'CPS_BALANCE',
-        lineIndex: faster.run.tsIndex,
+        lineIndex: faster.run.lineIndex,
+        tsLineIndex: faster.run.tsIndex,
         cps: faster.cps,
         neighborCps: faster.neighborCps,
         deltaCps,
@@ -218,7 +220,8 @@ export function cpsBalanceRule(
 
     const metric: CPSBalanceMetric = {
       type: 'CPS_BALANCE',
-      lineIndex: faster.run.startTsIndex,
+      lineIndex: faster.run.payloadIndexStart,
+      tsLineIndex: faster.run.startTsIndex,
       cps: faster.cps,
       neighborCps: faster.neighborCps,
       deltaCps,

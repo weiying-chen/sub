@@ -5,7 +5,7 @@ import { getFindings } from "../src/shared/findings"
 import { cpsRule } from "../src/analysis/cpsRule"
 
 describe("cpsRule (segments)", () => {
-  it("merges identical consecutive payloads and anchors to timestamp lines", () => {
+  it("merges identical consecutive payloads and anchors to payload lines", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "Hi",
@@ -20,8 +20,8 @@ describe("cpsRule (segments)", () => {
     expect(metrics).toHaveLength(2)
 
     const byLine = new Map(metrics.map((m) => [m.lineIndex, m]))
-    const hi = byLine.get(0)
-    const bye = byLine.get(4)
+    const hi = byLine.get(1)
+    const bye = byLine.get(5)
 
     expect(hi?.durationFrames).toBe(60)
     expect(hi?.charCount).toBe(2)
@@ -59,8 +59,8 @@ describe("cpsRule (segments)", () => {
 
     expect(metrics).toHaveLength(2)
     const byLine = new Map(metrics.map((m) => [m.lineIndex, m]))
-    expect(byLine.has(0)).toBe(true)
-    expect(byLine.has(3)).toBe(true)
+    expect(byLine.has(1)).toBe(true)
+    expect(byLine.has(4)).toBe(true)
   })
 
   it("can ignore empty lines between identical payloads when opted in", () => {
@@ -77,6 +77,6 @@ describe("cpsRule (segments)", () => {
     ])
 
     expect(metrics).toHaveLength(1)
-    expect(metrics[0]?.lineIndex).toBe(0)
+    expect(metrics[0]?.lineIndex).toBe(1)
   })
 })

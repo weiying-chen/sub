@@ -19,6 +19,6 @@ describe("metrics CLI integration fixtures", () => {
     })) as Metric[]
 
     const cps = output.filter((metric) => metric.type === "CPS")
-    expect(cps.map((metric) => metric.lineIndex)).toEqual([0, 3, 5])
+    expect(cps.map((metric) => metric.lineIndex)).toEqual([1, 4, 6])
   })
 })

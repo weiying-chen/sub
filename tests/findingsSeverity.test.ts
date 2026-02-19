@@ -8,6 +8,7 @@ import { cpsBalanceRule } from "../src/analysis/cpsBalanceRule"
 import { cpsRule } from "../src/analysis/cpsRule"
 import { leadingWhitespaceRule } from "../src/analysis/leadingWhitespaceRule"
 import { maxCharsRule } from "../src/analysis/maxCharsRule"
+import { mergeCandidateRule } from "../src/analysis/mergeCandidateRule"
 import { numberStyleRule } from "../src/analysis/numberStyleRule"
 import { percentStyleRule } from "../src/analysis/percentStyleRule"
 import { punctuationRule } from "../src/analysis/punctuationRule"
@@ -122,6 +123,21 @@ describe("getFindings severity", () => {
       (m) => m.type === "CPS_BALANCE"
     )
     expect(balanceFindings[0]?.severity).toBe("warn")
+
+    const mergeCandidateMetrics = analyzeTextByType(
+      [
+        "00:00:08:00\t00:00:09:00\tMarker",
+        "Gap text",
+        "00:00:10:00\t00:00:11:00\tMarker",
+        "Gap text.",
+      ].join("\n"),
+      "subs",
+      [mergeCandidateRule()]
+    )
+    const mergeCandidateFindings = getFindings(mergeCandidateMetrics).filter(
+      (m) => m.type === "MERGE_CANDIDATE"
+    )
+    expect(mergeCandidateFindings[0]?.severity).toBe("warn")
   })
 
   it("can exclude warnings via includeWarnings=false", () => {

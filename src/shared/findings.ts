@@ -27,6 +27,7 @@ export function getFindings(
         out.push({
           type: 'MAX_CPS',
           lineIndex: m.lineIndex,
+          tsLineIndex: m.tsLineIndex,
           text: m.text,
           cps: m.cps,
           maxCps: m.maxCps,
@@ -40,6 +41,7 @@ export function getFindings(
         out.push({
           type: 'MIN_CPS',
           lineIndex: m.lineIndex,
+          tsLineIndex: m.tsLineIndex,
           text: m.text,
           cps: m.cps,
           minCps: m.minCps,
@@ -52,6 +54,11 @@ export function getFindings(
     }
 
     if (m.type === 'CPS_BALANCE') {
+      out.push({ ...m, severity: 'warn' })
+      continue
+    }
+
+    if (m.type === 'MERGE_CANDIDATE') {
       out.push({ ...m, severity: 'warn' })
       continue
     }

@@ -2,7 +2,7 @@ import { Decoration, EditorView } from '@codemirror/view'
 import { RangeSetBuilder } from '@codemirror/state'
 import { defineDecorationsPlugin } from './defineDecorationsPlugin'
 import type { Finding } from '../analysis/types'
-import { mergeForward, parseBlockAt, type LineSource } from '../shared/tsvRuns'
+import { parseBlockAt, mergedRunPayloadIndices, type LineSource } from '../shared/tsvRuns'
 
 type FindingEntry = { finding: Finding; index: number }
 type Severity = 'error' | 'warn'
@@ -11,6 +11,18 @@ type PendingDecoration = {
   to: number
   className: string
   severity: Severity
+}
+
+function findingTsLineIndex(finding: Finding): number {
+  if (
+    (finding.type === 'MAX_CPS' ||
+      finding.type === 'MIN_CPS' ||
+      finding.type === 'CPS_BALANCE') &&
+    typeof finding.tsLineIndex === 'number'
+  ) {
+    return finding.tsLineIndex
+  }
+  return finding.lineIndex
 }
 
 export function sortFindingsForDecorations(findings: Finding[]): FindingEntry[] {
@@ -138,8 +150,8 @@ export function findingsDecorations(findings: Finding[], activeFindingId: string
       if (tsIndex < 0 || tsIndex >= doc.lines) return false
       const first = parseBlockAt(src, tsIndex)
       if (!first) return false
-      const run = mergeForward(src, first)
-      for (let i = run.payloadIndexStart; i <= run.payloadIndexEnd; i += 1) {
+      const payloadIndices = mergedRunPayloadIndices(src, first)
+      for (const i of payloadIndices) {
         underlineWholeLine(i, className, severity)
       }
       return true
@@ -159,7 +171,11 @@ export function findingsDecorations(findings: Finding[], activeFindingId: string
       }
 
       if (f.type === 'MAX_CPS' || f.type === 'MIN_CPS' || f.type === 'CPS_BALANCE') {
-        const didUnderlineRun = underlineCpsRunPayload(f.lineIndex, className, severity)
+        const didUnderlineRun = underlineCpsRunPayload(
+          findingTsLineIndex(f),
+          className,
+          severity
+        )
         if (!didUnderlineRun) {
           underlineWholeLine(f.lineIndex, className, severity)
         }
@@ -184,6 +200,12 @@ export function findingsDecorations(findings: Finding[], activeFindingId: string
         const from = Math.min(line.to, line.from + f.index)
         const to = Math.min(line.to, from + Math.max(f.count, 1))
         underline(from, to, className, severity)
+        continue
+      }
+
+      if (f.type === 'MERGE_CANDIDATE') {
+        underlineWholeLine(f.lineIndex, className, severity)
+        underlineWholeLine(f.nextLineIndex, className, severity)
         continue
       }
 

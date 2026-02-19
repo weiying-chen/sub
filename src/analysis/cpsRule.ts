@@ -82,6 +82,7 @@ function mergeForwardSegments(
     endFrames,
     text: first.text,
     tsIndex: first.tsIndex,
+    lineIndex: first.lineIndex,
   }
 }
 
@@ -121,7 +122,8 @@ export function cpsRule(
 
       const metric: CPSMetric = {
         type: 'CPS',
-        lineIndex: run.tsIndex,
+        lineIndex: run.lineIndex,
+        tsLineIndex: run.tsIndex,
         text: run.text,
         cps,
         maxCps,
@@ -155,7 +157,8 @@ export function cpsRule(
 
     const metric: CPSMetric = {
       type: 'CPS',
-      lineIndex: cur.tsIndex, // anchor to the timestamp line
+      lineIndex: run.payloadIndexStart,
+      tsLineIndex: run.startTsIndex,
       text: run.payloadText,
       cps,
       maxCps,

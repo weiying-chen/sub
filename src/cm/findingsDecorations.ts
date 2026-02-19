@@ -12,6 +12,10 @@ type PendingDecoration = {
   className: string
   severity: Severity
 }
+type PendingActiveDecoration = {
+  from: number
+  to: number
+}
 
 function findingTsLineIndex(finding: Finding): number {
   if (
@@ -99,6 +103,29 @@ export function subtractOverlapsBySeverity(
   return out.sort((a, b) => (a.from === b.from ? a.to - b.to : a.from - b.from))
 }
 
+export function buildDecorationLayers(
+  ranges: PendingDecoration[],
+  activeRanges: PendingActiveDecoration[]
+): Array<{ from: number; to: number; className: string }> {
+  const base = subtractOverlapsBySeverity(ranges).map((range) => ({
+    from: range.from,
+    to: range.to,
+    className: range.className,
+  }))
+
+  const active = activeRanges
+    .filter((range) => range.from < range.to)
+    .map((range) => ({
+      from: range.from,
+      to: range.to,
+      className: 'cm-finding-active',
+    }))
+
+  return [...base, ...active].sort((a, b) =>
+    a.from === b.from ? a.to - b.to : a.from - b.from
+  )
+}
+
 export function findingsDecorations(findings: Finding[], activeFindingId: string | null) {
   return defineDecorationsPlugin((view: EditorView) => {
     const builder = new RangeSetBuilder<Decoration>()
@@ -113,52 +140,59 @@ export function findingsDecorations(findings: Finding[], activeFindingId: string
     const findingId = (finding: Finding, index: number) =>
       `${finding.type}-${finding.lineIndex}-${index}`
 
-    const classFor = (finding: Finding, index: number) => {
+    const classFor = (finding: Finding) => {
       const severity =
         'severity' in finding && finding.severity ? finding.severity : 'warn'
-      const severityClass = severity === 'error' ? 'cm-finding-error' : 'cm-finding-warn'
-      const activeClass =
-        activeFindingId && activeFindingId === findingId(finding, index)
-          ? ' cm-finding-active'
-          : ''
-      return `${severityClass}${activeClass}`
+      return severity === 'error' ? 'cm-finding-error' : 'cm-finding-warn'
     }
 
     const pending: PendingDecoration[] = []
+    const activePending: PendingActiveDecoration[] = []
 
     const underline = (
       from: number,
       to: number,
       className: string,
-      severity: Severity
+      severity: Severity,
+      isActive: boolean
     ) => {
       if (from >= to) return
       pending.push({ from, to, className, severity })
+      if (isActive) {
+        activePending.push({ from, to })
+      }
     }
 
-    const underlineWholeLine = (lineIndex: number, className: string, severity: Severity) => {
+    const underlineWholeLine = (
+      lineIndex: number,
+      className: string,
+      severity: Severity,
+      isActive: boolean
+    ) => {
       if (lineIndex < 0 || lineIndex >= doc.lines) return
       const line = doc.line(lineIndex + 1)
-      underline(line.from, line.to, className, severity)
+      underline(line.from, line.to, className, severity, isActive)
     }
 
     const underlineCpsRunPayload = (
       tsIndex: number,
       className: string,
-      severity: Severity
+      severity: Severity,
+      isActive: boolean
     ) => {
       if (tsIndex < 0 || tsIndex >= doc.lines) return false
       const first = parseBlockAt(src, tsIndex)
       if (!first) return false
       const payloadIndices = mergedRunPayloadIndices(src, first)
       for (const i of payloadIndices) {
-        underlineWholeLine(i, className, severity)
+        underlineWholeLine(i, className, severity, isActive)
       }
       return true
     }
 
     for (const { finding: f, index } of sorted) {
-      const className = classFor(f, index)
+      const className = classFor(f)
+      const isActive = activeFindingId != null && activeFindingId === findingId(f, index)
       const severity: Severity =
         'severity' in f && f.severity === 'error' ? 'error' : 'warn'
       if (f.lineIndex < 0 || f.lineIndex >= doc.lines) continue
@@ -166,7 +200,7 @@ export function findingsDecorations(findings: Finding[], activeFindingId: string
       if (f.type === 'MAX_CHARS') {
         const line = doc.line(f.lineIndex + 1)
         const from = Math.min(line.to, line.from + f.maxAllowed)
-        underline(from, line.to, className, severity)
+        underline(from, line.to, className, severity, isActive)
         continue
       }
 
@@ -174,10 +208,11 @@ export function findingsDecorations(findings: Finding[], activeFindingId: string
         const didUnderlineRun = underlineCpsRunPayload(
           findingTsLineIndex(f),
           className,
-          severity
+          severity,
+          isActive
         )
         if (!didUnderlineRun) {
-          underlineWholeLine(f.lineIndex, className, severity)
+          underlineWholeLine(f.lineIndex, className, severity, isActive)
         }
         continue
       }
@@ -191,7 +226,7 @@ export function findingsDecorations(findings: Finding[], activeFindingId: string
         const tokenLength = f.token.length
         const from = Math.min(line.to, line.from + f.index)
         const to = Math.min(line.to, from + Math.max(tokenLength, 1))
-        underline(from, to, className, severity)
+        underline(from, to, className, severity, isActive)
         continue
       }
 
@@ -199,21 +234,21 @@ export function findingsDecorations(findings: Finding[], activeFindingId: string
         const line = doc.line(f.lineIndex + 1)
         const from = Math.min(line.to, line.from + f.index)
         const to = Math.min(line.to, from + Math.max(f.count, 1))
-        underline(from, to, className, severity)
+        underline(from, to, className, severity, isActive)
         continue
       }
 
       if (f.type === 'MERGE_CANDIDATE') {
-        underlineWholeLine(f.lineIndex, className, severity)
-        underlineWholeLine(f.nextLineIndex, className, severity)
+        underlineWholeLine(f.lineIndex, className, severity, isActive)
+        underlineWholeLine(f.nextLineIndex, className, severity, isActive)
         continue
       }
 
       // Fallback for line-anchored findings without token offsets.
-      underlineWholeLine(f.lineIndex, className, severity)
+      underlineWholeLine(f.lineIndex, className, severity, isActive)
     }
 
-    const merged = subtractOverlapsBySeverity(pending)
+    const merged = buildDecorationLayers(pending, activePending)
     for (const range of merged) {
       builder.add(range.from, range.to, Decoration.mark({ class: range.className }))
     }

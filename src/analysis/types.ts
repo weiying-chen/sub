@@ -146,7 +146,7 @@ export type MergeCandidateMetric = {
   nextText: string
   gapFrames: number
   editDistance: number
-  message: string
+  instruction: string
   severity?: 'error' | 'warn'
 }
 
@@ -168,4 +168,4 @@ export type Metric =
 // For now, Finding is just "a Metric that failed its threshold".
 // Same shape, different meaning.
 
-export type Finding = Metric
+export type Finding = Metric & { instruction?: string }

@@ -13,6 +13,7 @@ import { sortFindingsWithIndex } from "./shared/findingsSort"
 import { getFindingLabel } from "./shared/findingLabels"
 
 import { findingsDecorations } from "./cm/findingsDecorations"
+import { resolveFindingIdAtPos, type FindingRange } from "./cm/findingSelection"
 import { timestampLinkGutter } from "./cm/timestampLinkGutter"
 import { cmTheme } from "./cm/theme"
 import { getSelectedInlineText } from "./cm/selection"
@@ -43,12 +44,6 @@ type ScrollSnapshot = {
 
 function getFindingId(finding: Finding, index: number): string {
   return `${finding.type}-${finding.lineIndex}-${index}`
-}
-
-type FindingRange = {
-  id: string
-  from: number
-  to: number
 }
 
 function findingTsLineIndex(finding: Finding): number {
@@ -142,12 +137,10 @@ function getFindingRanges(view: EditorView, findings: Finding[]): FindingRange[]
 function findFindingIdAtPos(
   view: EditorView,
   findings: Finding[],
-  pos: number
+  pos: number,
+  preferredId: string | null
 ): string | null {
-  const hit = getFindingRanges(view, findings)
-    .filter((r) => pos >= r.from && pos < r.to)
-    .sort((a, b) => a.to - a.from - (b.to - b.from))[0]
-  return hit?.id ?? null
+  return resolveFindingIdAtPos(getFindingRanges(view, findings), pos, preferredId)
 }
 
 function getFindingParts(finding: Finding): {
@@ -168,8 +161,6 @@ function getFindingParts(finding: Finding): {
     snippet = finding.token.trim()
   } else if ("text" in finding && typeof finding.text === "string" && finding.text.trim()) {
     snippet = finding.text.trim()
-  } else if ("message" in finding && typeof finding.message === "string" && finding.message.trim()) {
-    snippet = finding.message.trim()
   }
 
   if (snippet && snippet.length > 72) {
@@ -178,16 +169,9 @@ function getFindingParts(finding: Finding): {
 
   const detail = getFindingLabel(finding)
   const explanation =
-    finding.type === "PUNCTUATION" &&
-    "instruction" in finding &&
-    typeof finding.instruction === "string" &&
-    finding.instruction.trim() !== ""
+    typeof finding.instruction === "string" && finding.instruction.trim() !== ""
       ? finding.instruction
-      : "message" in finding &&
-          typeof finding.message === "string" &&
-          finding.message.trim() !== ""
-        ? finding.message
-        : null
+      : null
   return { severityIconClass, severityColor, snippet, detail, explanation }
 }
 
@@ -349,7 +333,7 @@ export default function App({
       EditorView.updateListener.of((update) => {
         if (!update.selectionSet) return
         const pos = update.state.selection.main.head
-        const hitId = findFindingIdAtPos(update.view, findings, pos)
+        const hitId = findFindingIdAtPos(update.view, findings, pos, activeFindingId)
         if (hitId && hitId !== activeFindingId) {
           setActiveFindingId(hitId)
         }

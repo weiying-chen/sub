@@ -100,7 +100,7 @@ export function mergeCandidateRule(
       nextText: next.text,
       gapFrames,
       editDistance,
-      message:
+      instruction:
         "These adjacent lines are very similar and close in time; consider merging them into one timestamp span.",
     }
 

@@ -156,4 +156,43 @@ describe("getFindings severity", () => {
     expect(findings.some((f) => f.severity === "warn")).toBe(false)
     expect(findings.some((f) => f.type === "NUMBER_STYLE")).toBe(true)
   })
+
+  it("attaches instruction to all returned findings", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "This is 5 examples",
+      "",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      " this should be capitalized.",
+    ].join("\n")
+
+    const baseline = [
+      "00:00:01:00\t00:00:02:00\tDifferent baseline text",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "This should be capitalized.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [
+      maxCharsRule(5),
+      leadingWhitespaceRule(),
+      cpsRule(17, 10),
+      cpsBalanceRule(),
+      numberStyleRule(),
+      percentStyleRule(),
+      capitalizationRule({ terms: ["This"] }),
+      punctuationRule(),
+      mergeCandidateRule(),
+      baselineRule(baseline),
+    ])
+
+    const findings = getFindings(metrics)
+    expect(findings.length).toBeGreaterThan(0)
+    expect(
+      findings.every(
+        (finding) =>
+          typeof finding.instruction === "string" &&
+          finding.instruction.trim() !== ""
+      )
+    ).toBe(true)
+  })
 })

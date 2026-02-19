@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  buildDecorationLayers,
   sortFindingsForDecorations,
   subtractOverlapsBySeverity,
 } from "../src/cm/findingsDecorations"
@@ -97,5 +98,23 @@ describe("subtractOverlapsBySeverity", () => {
       { from: 7, to: 9, className: "cm-finding-error", severity: "error" },
       { from: 9, to: 12, className: "cm-finding-warn", severity: "warn" },
     ])
+  })
+})
+
+describe("buildDecorationLayers", () => {
+  it("keeps active highlight even when warning overlap is clipped by error", () => {
+    const out = buildDecorationLayers(
+      [
+        { from: 0, to: 10, className: "cm-finding-warn", severity: "warn" },
+        { from: 0, to: 10, className: "cm-finding-error", severity: "error" },
+      ],
+      [{ from: 0, to: 10 }]
+    )
+
+    expect(out).toContainEqual({
+      from: 0,
+      to: 10,
+      className: "cm-finding-active",
+    })
   })
 })

@@ -180,3 +180,27 @@ body {
 .finding-row-button.is-active {
   background: var(--panel-hover);
 }
+
+.finding-row-instruction {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+.finding-row-instruction.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition:
+    grid-template-rows 180ms ease,
+    opacity 160ms ease;
+}
+
+.finding-row-instruction-text {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}

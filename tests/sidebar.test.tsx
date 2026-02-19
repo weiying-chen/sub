@@ -166,17 +166,28 @@ describe("Sidebar", () => {
     expect(screen.getAllByText("Punctuation is incorrect").length).toBeGreaterThan(0)
     fireEvent.click(screen.getAllByText("Punctuation is incorrect")[0])
 
-    const explanationNodes = screen.getAllByText(/end this line with terminal punctuation/i)
-    expect(explanationNodes).toHaveLength(1)
-
     const activeRow = screen
       .getAllByText("Punctuation is incorrect")[0]
       ?.closest(".finding-row-button")
     expect(activeRow).not.toBeNull()
     if (!activeRow) return
+    const activeInstruction = activeRow.querySelector(".finding-row-instruction")
+    expect(activeInstruction).not.toBeNull()
+    expect(activeInstruction).toHaveClass("is-open")
+    expect(activeInstruction).toHaveAttribute("aria-hidden", "false")
     expect(activeRow.textContent?.toLowerCase()).toContain(
       "end this line with terminal punctuation"
     )
+
+    const numberRow = screen
+      .getAllByText("Number format is incorrect")[0]
+      ?.closest(".finding-row-button")
+    expect(numberRow).not.toBeNull()
+    if (!numberRow) return
+    const inactiveInstruction = numberRow.querySelector(".finding-row-instruction")
+    expect(inactiveInstruction).not.toBeNull()
+    expect(inactiveInstruction).not.toHaveClass("is-open")
+    expect(inactiveInstruction).toHaveAttribute("aria-hidden", "true")
   })
 
   it("orders errors before warnings in the findings list", () => {

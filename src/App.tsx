@@ -541,18 +541,12 @@ export default function App({
                         {detail}
                       </span>
                     </span>
-                    {isActive && explanation ? (
+                    {explanation ? (
                       <span
-                        style={{
-                          display: "block",
-                          marginTop: 2,
-                          color: "var(--muted)",
-                          fontSize: 11,
-                          overflowWrap: "anywhere",
-                          wordBreak: "break-word",
-                        }}
+                        className={`finding-row-instruction${isActive ? " is-open" : ""}`}
+                        aria-hidden={!isActive}
                       >
-                        {explanation}
+                        <span className="finding-row-instruction-text">{explanation}</span>
                       </span>
                     ) : null}
                     {snippet ? (

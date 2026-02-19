@@ -4,6 +4,7 @@ import { analyzeTextByType } from '../analysis/analyzeTextByType'
 import { numberStyleRule } from '../analysis/numberStyleRule'
 import type { Finding } from '../analysis/types'
 import { getFindings } from '../shared/findings'
+import { formatCliNumber } from './numberFormat'
 import type { Reporter } from './watch'
 
 const RESET = '\x1b[0m'
@@ -60,9 +61,7 @@ function formatFinding(f: Finding): string {
     }
 
     if (typeof value === 'number') {
-      const asNumber = Number.isFinite(value)
-        ? (value as number).toFixed(1)
-        : String(value)
+      const asNumber = formatCliNumber(key, value)
 
       // All numeric values in magenta + bold
       parts.push(`${key}: ${BOLD}${MAGENTA}${asNumber}${RESET}`)

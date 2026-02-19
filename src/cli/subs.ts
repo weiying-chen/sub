@@ -8,6 +8,7 @@ import type { Finding } from '../analysis/types'
 import type { Reporter } from './watch'
 import { findMarkerScope } from './markerScope'
 import { loadCapitalizationTerms, loadProperNouns } from './properNouns'
+import { formatCliNumber } from './numberFormat'
 
 // --- ANSI colors (use terminal theme palette) ---
 
@@ -141,9 +142,7 @@ function formatFinding(f: Finding): string {
     }
 
     if (typeof value === 'number') {
-      const asNumber = Number.isFinite(value)
-        ? (value as number).toFixed(1)
-        : String(value)
+      const asNumber = formatCliNumber(key, value)
 
       // All numeric values in magenta + bold
       parts.push(`${key}: ${BOLD}${MAGENTA}${asNumber}${RESET}`)

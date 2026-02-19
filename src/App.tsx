@@ -11,6 +11,7 @@ import type { Metric, Finding } from "./analysis/types"
 import { getFindings } from "./shared/findings"
 
 import { findingsDecorations } from "./cm/findingsDecorations"
+import { timestampLinkGutter } from "./cm/timestampLinkGutter"
 import { cmTheme } from "./cm/theme"
 import { getSelectedInlineText } from "./cm/selection"
 import { selectLineOnTripleClick } from "./cm/selectLineOnTripleClick"
@@ -245,7 +246,15 @@ function focusEditorContent(view: EditorView) {
   }
 }
 
-export default function App() {
+type AppProps = {
+  includeWarnings?: boolean
+  colorizeGutterIndicators?: boolean
+}
+
+export default function App({
+  includeWarnings = true,
+  colorizeGutterIndicators = false,
+}: AppProps) {
   const [theme, setTheme] = useState<"dark" | "light">("dark")
 
   useEffect(() => {
@@ -276,8 +285,8 @@ export default function App() {
   }, [value])
 
   const findings = useMemo<Finding[]>(() => {
-    return getFindings(metrics)
-  }, [metrics])
+    return getFindings(metrics, { includeWarnings })
+  }, [metrics, includeWarnings])
 
   useEffect(() => {
     if (findings.length === 0) {
@@ -307,6 +316,7 @@ export default function App() {
       ),
 
       selectLineOnTripleClick,
+      timestampLinkGutter(findings, { colorize: colorizeGutterIndicators }),
       findingsDecorations(findings, activeFindingId),
       EditorView.updateListener.of((update) => {
         if (!update.selectionSet) return
@@ -317,7 +327,7 @@ export default function App() {
         }
       }),
     ]
-  }, [findings, activeFindingId])
+  }, [findings, activeFindingId, colorizeGutterIndicators])
 
   const handleExtract = useCallback(() => {
     if (!view) return

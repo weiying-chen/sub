@@ -16,7 +16,7 @@ type WatchOptions = {
 // Parse CLI args once
 // Usage: watch <file> [--type subs|news] [--no-warn] [--baseline path] [--ignore-empty-lines]
 const args = process.argv.slice(2)
-const { filePath, type, showWarnings, baselinePath, ignoreEmptyLines } = parseArgs(args)
+const { filePath, type, includeWarnings, baselinePath, ignoreEmptyLines } = parseArgs(args)
 
 function debounce<TArgs extends any[]>(
   fn: (...args: TArgs) => void | Promise<void>,
@@ -101,9 +101,9 @@ if (normalizedType === 'news' && baselinePath) {
 
 const reporter =
   normalizedType === 'news'
-    ? createNewsReporter()
+    ? createNewsReporter({ includeWarnings })
     : createSubsReporter({
-        showWarnings,
+        includeWarnings,
         baselinePath: baselinePath ?? undefined,
         ignoreEmptyLines,
       })

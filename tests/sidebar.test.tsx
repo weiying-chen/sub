@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import { fireEvent, render, screen } from "@testing-library/react"
+import { fireEvent, render, screen, within } from "@testing-library/react"
 import { useEffect, useMemo } from "react"
 
 import App from "../src/App"
@@ -9,6 +9,14 @@ import App from "../src/App"
 const cmSpies = vi.hoisted(() => ({
   dispatch: vi.fn(),
   focus: vi.fn(),
+}))
+
+const gutterSpies = vi.hoisted(() => ({
+  timestampLinkGutter: vi.fn(() => ({ __mockTimestampLinkGutter: true })),
+}))
+
+vi.mock("../src/cm/timestampLinkGutter", () => ({
+  timestampLinkGutter: gutterSpies.timestampLinkGutter,
 }))
 
 vi.mock("@uiw/react-codemirror", () => ({
@@ -77,6 +85,7 @@ describe("Sidebar", () => {
   beforeEach(() => {
     cmSpies.dispatch.mockReset()
     cmSpies.focus.mockReset()
+    gutterSpies.timestampLinkGutter.mockClear()
   })
 
   it("renders a fixed findings sidebar with real findings", () => {
@@ -110,5 +119,27 @@ describe("Sidebar", () => {
       scrollIntoView: true,
     })
     expect(cmSpies.focus).not.toHaveBeenCalled()
+  })
+
+  it("can hide warning findings through includeWarnings prop", () => {
+    const { container } = render(<App includeWarnings={false} />)
+    expect(container.querySelector(".la-exclamation-triangle")).toBeNull()
+    expect(within(container).queryAllByText("MIN_CPS")).toHaveLength(0)
+  })
+
+  it("keeps gutter indicators and disables colorization by default", () => {
+    render(<App />)
+    expect(gutterSpies.timestampLinkGutter).toHaveBeenCalled()
+    expect(gutterSpies.timestampLinkGutter.mock.calls[0]?.[1]).toEqual({
+      colorize: false,
+    })
+  })
+
+  it("can colorize gutter indicators when enabled", () => {
+    render(<App colorizeGutterIndicators={true} />)
+    expect(gutterSpies.timestampLinkGutter).toHaveBeenCalled()
+    expect(gutterSpies.timestampLinkGutter.mock.calls[0]?.[1]).toEqual({
+      colorize: true,
+    })
   })
 })

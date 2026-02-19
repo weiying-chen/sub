@@ -7,6 +7,9 @@ import { type LineSource, parseBlockAt, mergeForward } from '../shared/tsvRuns'
 
 type LinkState = 'ok' | 'warn' | 'flagged'
 type LinkPart = 'start' | 'mid' | 'end'
+type TimestampLinkGutterOptions = {
+  colorize?: boolean
+}
 
 class LinkMarker extends GutterMarker {
   private part: LinkPart
@@ -27,7 +30,30 @@ class LinkMarker extends GutterMarker {
   }
 }
 
-export function timestampLinkGutter(findings: Finding[]) {
+export function getTimestampRunState(
+  findings: Finding[],
+  tsIndex: number,
+  colorize: boolean
+): LinkState {
+  if (!colorize) return 'ok'
+  if (findings.some((f) => (f.type === 'MAX_CPS' || f.type === 'CPS') && f.lineIndex === tsIndex)) {
+    return 'flagged'
+  }
+  if (
+    findings.some(
+      (f) => (f.type === 'MIN_CPS' || f.type === 'CPS_BALANCE') && f.lineIndex === tsIndex
+    )
+  ) {
+    return 'warn'
+  }
+  return 'ok'
+}
+
+export function timestampLinkGutter(
+  findings: Finding[],
+  options: TimestampLinkGutterOptions = {}
+) {
+  const colorize = options.colorize ?? true
   const flaggedRuns = new Set<number>()
   const warnRuns = new Set<number>()
 
@@ -73,11 +99,13 @@ export function timestampLinkGutter(findings: Finding[]) {
       }
 
       // Precedence: flagged (red) > warn (yellow) > ok
-      const runState: LinkState = flaggedRuns.has(run.startTsIndex)
-        ? 'flagged'
-        : warnRuns.has(run.startTsIndex)
-          ? 'warn'
-          : 'ok'
+      const runState: LinkState = colorize
+        ? flaggedRuns.has(run.startTsIndex)
+          ? 'flagged'
+          : warnRuns.has(run.startTsIndex)
+            ? 'warn'
+            : 'ok'
+        : 'ok'
 
       // Draw from first timestamp line down to the last payload line of the run
       for (let i = run.startTsIndex; i <= run.payloadIndexEnd; i++) {

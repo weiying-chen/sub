@@ -8,7 +8,7 @@ describe("watch parseArgs", () => {
     expect(result).toMatchObject({
       filePath: "file.txt",
       type: "subs",
-      showWarnings: true,
+      includeWarnings: true,
       baselinePath: null,
     })
   })
@@ -18,7 +18,7 @@ describe("watch parseArgs", () => {
     expect(result).toMatchObject({
       filePath: "file.txt",
       type: "subs",
-      showWarnings: false,
+      includeWarnings: false,
       baselinePath: null,
     })
   })

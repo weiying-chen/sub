@@ -123,4 +123,21 @@ describe("getFindings severity", () => {
     )
     expect(balanceFindings[0]?.severity).toBe("warn")
   })
+
+  it("can exclude warnings via includeWarnings=false", () => {
+    const text = [
+      "00:00:01:00\t00:00:03:00\tMarker",
+      "Hi",
+      "00:00:03:00\t00:00:04:00\tMarker",
+      "This is 5 examples.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [
+      cpsRule(17, 10),
+      numberStyleRule(),
+    ])
+    const findings = getFindings(metrics, { includeWarnings: false })
+    expect(findings.some((f) => f.severity === "warn")).toBe(false)
+    expect(findings.some((f) => f.type === "NUMBER_STYLE")).toBe(true)
+  })
 })

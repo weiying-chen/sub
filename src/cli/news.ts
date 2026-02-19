@@ -111,12 +111,14 @@ function formatFinding(f: Finding): string {
   return head
 }
 
-export function createNewsReporter(): Reporter {
+export function createNewsReporter(options: NewsOptions): Reporter {
   return async (path, { clearScreen }) => {
     const text = await readFile(path, 'utf8')
     const rules = [numberStyleRule()]
     const metrics = analyzeTextByType(text, 'news', rules)
-    const findings = getFindings(metrics) as Finding[]
+    const findings = getFindings(metrics, {
+      includeWarnings: options.includeWarnings,
+    }) as Finding[]
 
     clearScreen()
 
@@ -150,4 +152,7 @@ export function createNewsReporter(): Reporter {
       }
     })
   }
+}
+type NewsOptions = {
+  includeWarnings: boolean
 }

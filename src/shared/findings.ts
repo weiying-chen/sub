@@ -1,6 +1,14 @@
 import type { Metric, Finding } from '../analysis/types'
 
-export function getFindings(metrics: Metric[]): Finding[] {
+type FindingsOptions = {
+  includeWarnings?: boolean
+}
+
+export function getFindings(
+  metrics: Metric[],
+  options: FindingsOptions = {}
+): Finding[] {
+  const includeWarnings = options.includeWarnings ?? true
   const out: Finding[] = []
 
   for (const m of metrics) {
@@ -74,5 +82,8 @@ export function getFindings(metrics: Metric[]): Finding[] {
     }
   }
 
-  return out
+  if (includeWarnings) return out
+  return out.filter(
+    (finding) => !('severity' in finding) || finding.severity !== 'warn'
+  )
 }

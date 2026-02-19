@@ -22,7 +22,7 @@ const YELLOW = '\x1b[33m'
 const RED = '\x1b[31m'
 
 type SubsOptions = {
-  showWarnings: boolean
+  includeWarnings: boolean
   baselinePath?: string
   ignoreEmptyLines?: boolean
 }
@@ -271,11 +271,9 @@ async function printReport(
         (m) => m.lineIndex >= scope.start && m.lineIndex <= scope.end
       )
     : metrics
-  const allFindings = getFindings(scopedMetrics) as Finding[]
-
-  const findings = options.showWarnings
-    ? allFindings
-    : allFindings.filter((f: any) => f?.severity !== 'warn')
+  const findings = getFindings(scopedMetrics, {
+    includeWarnings: options.includeWarnings,
+  }) as Finding[]
 
   clearScreen()
 

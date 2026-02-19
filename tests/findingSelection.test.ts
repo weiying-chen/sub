@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest"
 
-import { resolveFindingIdAtPos, type FindingRange } from "../src/cm/findingSelection"
+import {
+  resolveFindingIdAtPos,
+  resolvePreferredFindingId,
+  type FindingRange,
+} from "../src/cm/findingSelection"
 
 describe("resolveFindingIdAtPos", () => {
   it("keeps preferred overlapping finding id", () => {
@@ -21,5 +25,10 @@ describe("resolveFindingIdAtPos", () => {
 
     const out = resolveFindingIdAtPos(ranges, 22, null)
     expect(out).toBe("token")
+  })
+
+  it("prefers pending clicked finding over stale active finding", () => {
+    const out = resolvePreferredFindingId("error", "warn")
+    expect(out).toBe("warn")
   })
 })

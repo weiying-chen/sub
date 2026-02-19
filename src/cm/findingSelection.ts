@@ -19,3 +19,10 @@ export function resolveFindingIdAtPos(
   const shortest = hits.sort((a, b) => a.to - a.from - (b.to - b.from))[0]
   return shortest?.id ?? null
 }
+
+export function resolvePreferredFindingId(
+  activeFindingId: string | null,
+  pendingClickedFindingId: string | null
+): string | null {
+  return pendingClickedFindingId ?? activeFindingId
+}

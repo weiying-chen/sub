@@ -13,7 +13,11 @@ import { sortFindingsWithIndex } from "./shared/findingsSort"
 import { getFindingLabel } from "./shared/findingLabels"
 
 import { findingsDecorations } from "./cm/findingsDecorations"
-import { resolveFindingIdAtPos, type FindingRange } from "./cm/findingSelection"
+import {
+  resolveFindingIdAtPos,
+  resolvePreferredFindingId,
+  type FindingRange,
+} from "./cm/findingSelection"
 import { timestampLinkGutter } from "./cm/timestampLinkGutter"
 import { cmTheme } from "./cm/theme"
 import { getSelectedInlineText } from "./cm/selection"
@@ -271,6 +275,7 @@ export default function App({
   const [extracted, setExtracted] = useState("")
   const [activeFindingId, setActiveFindingId] = useState<string | null>(null)
   const scrollAnimFrameRef = useRef<number | null>(null)
+  const pendingClickFindingIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     return () => {
@@ -333,7 +338,12 @@ export default function App({
       EditorView.updateListener.of((update) => {
         if (!update.selectionSet) return
         const pos = update.state.selection.main.head
-        const hitId = findFindingIdAtPos(update.view, findings, pos, activeFindingId)
+        const preferredId = resolvePreferredFindingId(
+          activeFindingId,
+          pendingClickFindingIdRef.current
+        )
+        const hitId = findFindingIdAtPos(update.view, findings, pos, preferredId)
+        pendingClickFindingIdRef.current = null
         if (hitId && hitId !== activeFindingId) {
           setActiveFindingId(hitId)
         }
@@ -367,6 +377,7 @@ export default function App({
   const handleFindingClick = useCallback(
     (finding: Finding, findingId: string) => {
       if (!view) return
+      pendingClickFindingIdRef.current = findingId
       setActiveFindingId(findingId)
       const anchor = getFindingAnchor(view, finding)
       const snapshots = collectScrollContainers(view)
@@ -492,6 +503,7 @@ export default function App({
             {sortedFindings.map(({ finding, index }) => {
               const { severityIconClass, severityColor, snippet, detail, explanation } = getFindingParts(finding)
               const findingId = getFindingId(finding, index)
+              const isActive = activeFindingId === findingId
               return (
                 <li
                   key={findingId}
@@ -500,7 +512,7 @@ export default function App({
                   <button
                     type="button"
                     onClick={() => handleFindingClick(finding, findingId)}
-                    className={`finding-row-button${activeFindingId === findingId ? " is-active" : ""}`}
+                    className={`finding-row-button${isActive ? " is-active" : ""}`}
                     style={{
                       width: "100%",
                       display: "block",
@@ -529,7 +541,7 @@ export default function App({
                         {detail}
                       </span>
                     </span>
-                    {explanation ? (
+                    {isActive && explanation ? (
                       <span
                         style={{
                           display: "block",

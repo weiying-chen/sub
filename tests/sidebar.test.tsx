@@ -164,9 +164,19 @@ describe("Sidebar", () => {
 
     expect(screen.getAllByText("Number format is incorrect").length).toBeGreaterThan(0)
     expect(screen.getAllByText("Punctuation is incorrect").length).toBeGreaterThan(0)
-    expect(
-      screen.getAllByText(/end this line with terminal punctuation/i).length
-    ).toBeGreaterThan(0)
+    fireEvent.click(screen.getAllByText("Punctuation is incorrect")[0])
+
+    const explanationNodes = screen.getAllByText(/end this line with terminal punctuation/i)
+    expect(explanationNodes).toHaveLength(1)
+
+    const activeRow = screen
+      .getAllByText("Punctuation is incorrect")[0]
+      ?.closest(".finding-row-button")
+    expect(activeRow).not.toBeNull()
+    if (!activeRow) return
+    expect(activeRow.textContent?.toLowerCase()).toContain(
+      "end this line with terminal punctuation"
+    )
   })
 
   it("orders errors before warnings in the findings list", () => {

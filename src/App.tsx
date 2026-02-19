@@ -525,7 +525,7 @@ export default function App({
                           display: "block",
                           marginTop: 2,
                           color: "var(--muted)",
-                          fontSize: 12,
+                          fontSize: 11,
                           overflowWrap: "anywhere",
                           wordBreak: "break-word",
                         }}

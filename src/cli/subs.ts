@@ -1,12 +1,9 @@
 import { readFile } from 'node:fs/promises'
 
 import { analyzeTextByType } from '../analysis/analyzeTextByType'
-import { baselineRule } from '../analysis/baselineRule'
-import { defaultSegmentRules } from '../analysis/defaultRules'
-import { numberStyleRule } from '../analysis/numberStyleRule'
-import { percentStyleRule } from '../analysis/percentStyleRule'
-import { punctuationRule } from '../analysis/punctuationRule'
+import { createSubsSegmentRules } from '../analysis/subsSegmentRules'
 import { getFindings } from '../shared/findings'
+import { sortFindingsWithIndex } from '../shared/findingsSort'
 import type { Finding } from '../analysis/types'
 import type { Reporter } from './watch'
 import { findMarkerScope } from './markerScope'
@@ -244,21 +241,12 @@ async function printReport(
   const properNouns = await loadProperNouns()
   const capitalizationTerms = await loadCapitalizationTerms()
 
-  const rules = [
-    ...defaultSegmentRules({
-      capitalizationTerms: capitalizationTerms ?? undefined,
-      ignoreEmptyLines: options.ignoreEmptyLines,
-    }),
-    numberStyleRule(),
-    percentStyleRule(),
-    punctuationRule({
-      properNouns: properNouns ?? undefined,
-      ignoreEmptyLines: options.ignoreEmptyLines,
-    }),
-  ]
-  if (baselineText != null) {
-    rules.push(baselineRule(baselineText))
-  }
+  const rules = createSubsSegmentRules({
+    capitalizationTerms: capitalizationTerms ?? undefined,
+    properNouns: properNouns ?? undefined,
+    baselineText: baselineText ?? undefined,
+    ignoreEmptyLines: options.ignoreEmptyLines,
+  })
 
   const metrics = analyzeTextByType(text, 'subs', rules, {
     parseOptions: {
@@ -285,18 +273,7 @@ async function printReport(
   console.log(`${findings.length} issues`)
   console.log('')
 
-  // Stable ordering: by anchor if possible, then by type string.
-  const sorted = [...findings].sort((a: any, b: any) => {
-    const ai =
-      asNum(a?.lineIndex) ?? asNum(a?.tsIndex) ?? asNum(a?.startTsIndex) ?? 1e12
-    const bi =
-      asNum(b?.lineIndex) ?? asNum(b?.tsIndex) ?? asNum(b?.startTsIndex) ?? 1e12
-    if (ai !== bi) return ai - bi
-
-    const at = typeof a?.type === 'string' ? a.type : ''
-    const bt = typeof b?.type === 'string' ? b.type : ''
-    return at.localeCompare(bt)
-  })
+  const sorted = sortFindingsWithIndex(findings).map((x) => x.finding)
 
   const baselineFindings = sorted.filter(
     (f: any) => typeof f?.type === 'string' && f.type === 'BASELINE'

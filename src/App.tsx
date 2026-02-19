@@ -4,11 +4,12 @@ import { EditorView, keymap } from "@codemirror/view"
 import { Prec } from "@codemirror/state"
 import { insertTab } from "@codemirror/commands"
 
-import { analyzeLines } from "./analysis/analyzeLines"
-import { defaultRules } from "./analysis/defaultRules"
+import { analyzeTextByType } from "./analysis/analyzeTextByType"
+import { createSubsSegmentRules } from "./analysis/subsSegmentRules"
 import type { Metric, Finding } from "./analysis/types"
 
 import { getFindings } from "./shared/findings"
+import { sortFindingsWithIndex } from "./shared/findingsSort"
 
 import { findingsDecorations } from "./cm/findingsDecorations"
 import { timestampLinkGutter } from "./cm/timestampLinkGutter"
@@ -20,6 +21,7 @@ import { mergeForward, parseBlockAt, type LineSource } from "./shared/tsvRuns"
 
 import { sampleSubtitles } from "./fixtures/subtitles"
 import capitalizationTermsText from "../capitalization-terms.txt?raw"
+import properNounsText from "../punctuation-proper-nouns.txt?raw"
 
 const FINDINGS_SIDEBAR_WIDTH = 320
 
@@ -31,6 +33,7 @@ function parseTextList(raw: string): string[] {
 }
 
 const capitalizationTerms = parseTextList(capitalizationTermsText)
+const properNouns = parseTextList(properNounsText)
 
 type ScrollSnapshot = {
   el: HTMLElement
@@ -45,23 +48,6 @@ type FindingRange = {
   id: string
   from: number
   to: number
-}
-
-function getSortedFindings(findings: Finding[]) {
-  return findings
-    .map((finding, index) => ({ finding, index }))
-    .sort((a, b) => {
-      if (a.finding.lineIndex !== b.finding.lineIndex) {
-        return a.finding.lineIndex - b.finding.lineIndex
-      }
-
-      const isCpsFinding = (f: Finding) =>
-        f.type === "MAX_CPS" || f.type === "MIN_CPS" || f.type === "CPS"
-
-      if (a.finding.type === "MAX_CHARS" && isCpsFinding(b.finding)) return -1
-      if (isCpsFinding(a.finding) && b.finding.type === "MAX_CHARS") return 1
-      return 0
-    })
 }
 
 function getFindingRanges(view: EditorView, findings: Finding[]): FindingRange[] {
@@ -83,7 +69,7 @@ function getFindingRanges(view: EditorView, findings: Finding[]): FindingRange[]
     addRange(id, line.from, line.to)
   }
 
-  for (const { finding: f, index } of getSortedFindings(findings)) {
+  for (const { finding: f, index } of sortFindingsWithIndex(findings)) {
     const id = getFindingId(f, index)
     if (f.lineIndex < 0 || f.lineIndex >= doc.lines) continue
 
@@ -276,10 +262,12 @@ export default function App({
   }, [])
 
   const metrics = useMemo<Metric[]>(() => {
-    return analyzeLines(
+    return analyzeTextByType(
       value,
-      defaultRules({
+      "subs",
+      createSubsSegmentRules({
         capitalizationTerms,
+        properNouns,
       })
     )
   }, [value])
@@ -287,21 +275,26 @@ export default function App({
   const findings = useMemo<Finding[]>(() => {
     return getFindings(metrics, { includeWarnings })
   }, [metrics, includeWarnings])
+  const sortedFindings = useMemo(() => sortFindingsWithIndex(findings), [findings])
 
   useEffect(() => {
-    if (findings.length === 0) {
+    if (sortedFindings.length === 0) {
       if (activeFindingId !== null) setActiveFindingId(null)
       return
     }
 
     const hasActive =
       activeFindingId !== null &&
-      findings.some((finding, index) => getFindingId(finding, index) === activeFindingId)
+      sortedFindings.some(
+        ({ finding, index }) => getFindingId(finding, index) === activeFindingId
+      )
 
     if (!hasActive) {
-      setActiveFindingId(getFindingId(findings[0], 0))
+      setActiveFindingId(
+        getFindingId(sortedFindings[0].finding, sortedFindings[0].index)
+      )
     }
-  }, [findings, activeFindingId])
+  }, [sortedFindings, activeFindingId])
 
   const extensions = useMemo(() => {
     return [
@@ -477,7 +470,7 @@ export default function App({
               fontSize: 13,
             }}
           >
-            {findings.map((finding, index) => {
+            {sortedFindings.map(({ finding, index }) => {
               const { severityIconClass, severityColor, snippet, detail } = getFindingParts(finding)
               const findingId = getFindingId(finding, index)
               return (

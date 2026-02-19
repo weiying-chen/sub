@@ -10,6 +10,7 @@ import type { Metric, Finding } from "./analysis/types"
 
 import { getFindings } from "./shared/findings"
 import { sortFindingsWithIndex } from "./shared/findingsSort"
+import { getFindingLabel } from "./shared/findingLabels"
 
 import { findingsDecorations } from "./cm/findingsDecorations"
 import { timestampLinkGutter } from "./cm/timestampLinkGutter"
@@ -157,7 +158,7 @@ function getFindingParts(finding: Finding): {
     snippet = `${snippet.slice(0, 72)}...`
   }
 
-  const detail = finding.type
+  const detail = getFindingLabel(finding)
   const explanation =
     finding.type === "PUNCTUATION" &&
     "instruction" in finding &&

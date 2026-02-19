@@ -93,8 +93,8 @@ describe("Sidebar", () => {
 
     expect(screen.getByRole("heading", { name: "Findings" })).toBeInTheDocument()
     expect(screen.queryByText("Dummy data for sidebar layout.")).not.toBeInTheDocument()
-    expect(screen.getAllByText("MAX_CPS").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("MIN_CPS").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Reading speed is too high").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Reading speed is too low").length).toBeGreaterThan(0)
     const errorIcon = container.querySelector(".la-times-circle")
     const warningIcon = container.querySelector(".la-exclamation-triangle")
     expect(errorIcon).not.toBeNull()
@@ -112,7 +112,7 @@ describe("Sidebar", () => {
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
     const firstLineLength = editor.value.split("\n")[0]?.length ?? 0
 
-    fireEvent.click(screen.getAllByText("MAX_CPS")[0])
+    fireEvent.click(screen.getAllByText("Reading speed is too high")[0])
 
     expect(cmSpies.dispatch).toHaveBeenCalledWith({
       selection: { anchor: firstLineLength + 1 },
@@ -124,7 +124,7 @@ describe("Sidebar", () => {
   it("can hide warning findings through includeWarnings prop", () => {
     const { container } = render(<App includeWarnings={false} />)
     expect(container.querySelector(".la-exclamation-triangle")).toBeNull()
-    expect(within(container).queryAllByText("MIN_CPS")).toHaveLength(0)
+    expect(within(container).queryAllByText("Reading speed is too low")).toHaveLength(0)
   })
 
   it("keeps gutter indicators and disables colorization by default", () => {
@@ -162,8 +162,8 @@ describe("Sidebar", () => {
       },
     })
 
-    expect(screen.getAllByText("NUMBER_STYLE").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("PUNCTUATION").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Number format is incorrect").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Punctuation is incorrect").length).toBeGreaterThan(0)
     expect(
       screen.getAllByText(/end this line with terminal punctuation/i).length
     ).toBeGreaterThan(0)
@@ -184,6 +184,6 @@ describe("Sidebar", () => {
 
     const findingButtons = screen.getAllByRole("button")
     const firstFindingText = findingButtons[0]?.textContent ?? ""
-    expect(firstFindingText).toContain("NUMBER_STYLE")
+    expect(firstFindingText).toContain("Number format is incorrect")
   })
 })

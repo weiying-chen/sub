@@ -1,10 +1,8 @@
 import { analyzeTextByType } from '../analysis/analyzeTextByType'
 import { capitalizationRule } from '../analysis/capitalizationRule'
-import { defaultSegmentRules } from '../analysis/defaultRules'
+import { createSubsSegmentRules } from '../analysis/subsSegmentRules'
 import { maxCharsRule } from '../analysis/maxCharsRule'
 import { numberStyleRule } from '../analysis/numberStyleRule'
-import { percentStyleRule } from '../analysis/percentStyleRule'
-import { punctuationRule } from '../analysis/punctuationRule'
 import type { Metric, Finding } from '../analysis/types'
 import { getFindings } from '../shared/findings'
 import { loadCapitalizationTerms, loadProperNouns } from './properNouns'
@@ -32,18 +30,11 @@ async function buildRules(
   }
 
   const properNouns = await loadProperNouns()
-  return [
-    ...defaultSegmentRules({
-      capitalizationTerms: capitalizationTerms ?? undefined,
-      ignoreEmptyLines,
-    }),
-    numberStyleRule(),
-    percentStyleRule(),
-    punctuationRule({
-      properNouns: properNouns ?? undefined,
-      ignoreEmptyLines,
-    }),
-  ]
+  return createSubsSegmentRules({
+    capitalizationTerms: capitalizationTerms ?? undefined,
+    properNouns: properNouns ?? undefined,
+    ignoreEmptyLines,
+  })
 }
 
 export async function buildMetricsOutput(

@@ -24,6 +24,10 @@
   --danger: #ef4444;
   --warning: #f59e0b;
   --ts-link: #64748b;
+
+  /* Finding activation motion */
+  --finding-active-duration: 180ms;
+  --finding-active-easing: ease;
 }
 
 [data-theme="dark"] {
@@ -117,6 +121,17 @@ body {
   padding-bottom: 0.14em;
   margin-top: -0.14em;
   margin-bottom: -0.14em;
+  animation: finding-active-fade-in var(--finding-active-duration)
+    var(--finding-active-easing);
+}
+
+@keyframes finding-active-fade-in {
+  from {
+    background: transparent;
+  }
+  to {
+    background: var(--panel-hover);
+  }
 }
 
 /* ---- Timestamp link gutter ---- */
@@ -191,8 +206,8 @@ body {
   grid-template-rows: 1fr;
   opacity: 1;
   transition:
-    grid-template-rows 180ms ease,
-    opacity 160ms ease;
+    grid-template-rows var(--finding-active-duration) var(--finding-active-easing),
+    opacity 160ms var(--finding-active-easing);
 }
 
 .finding-row-instruction-text {

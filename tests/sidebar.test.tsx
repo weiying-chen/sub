@@ -142,4 +142,48 @@ describe("Sidebar", () => {
       colorize: true,
     })
   })
+
+  it("shows segment-rule findings like number style and punctuation", () => {
+    render(<App />)
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+
+    fireEvent.change(editor, {
+      target: {
+        value: [
+          "00:00:01:00\t00:00:02:00\tMarker",
+          "This is 5 examples.",
+          "",
+          "00:00:02:00\t00:00:03:00\tMarker",
+          "Hello.",
+          "",
+          "00:00:03:00\t00:00:04:00\tMarker",
+          "this should be capitalized.",
+        ].join("\n"),
+      },
+    })
+
+    expect(screen.getAllByText("NUMBER_STYLE").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("PUNCTUATION").length).toBeGreaterThan(0)
+    expect(
+      screen.getAllByText(/end this line with terminal punctuation/i).length
+    ).toBeGreaterThan(0)
+  })
+
+  it("orders errors before warnings in the findings list", () => {
+    render(<App />)
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+
+    fireEvent.change(editor, {
+      target: {
+        value: [
+          "00:00:01:00\t00:00:10:00\tMarker",
+          "This is 5 examples.",
+        ].join("\n"),
+      },
+    })
+
+    const findingButtons = screen.getAllByRole("button")
+    const firstFindingText = findingButtons[0]?.textContent ?? ""
+    expect(firstFindingText).toContain("NUMBER_STYLE")
+  })
 })

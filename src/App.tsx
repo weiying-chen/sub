@@ -136,6 +136,7 @@ function getFindingParts(finding: Finding): {
   severityColor: string
   snippet: string | null
   detail: string
+  explanation: string | null
 } {
   const severity =
     "severity" in finding && finding.severity ? finding.severity : "warn"
@@ -157,7 +158,14 @@ function getFindingParts(finding: Finding): {
   }
 
   const detail = finding.type
-  return { severityIconClass, severityColor, snippet, detail }
+  const explanation =
+    finding.type === "PUNCTUATION" &&
+    "instruction" in finding &&
+    typeof finding.instruction === "string" &&
+    finding.instruction.trim() !== ""
+      ? finding.instruction
+      : null
+  return { severityIconClass, severityColor, snippet, detail, explanation }
 }
 
 function getFindingAnchor(view: EditorView, finding: Finding): number {
@@ -471,7 +479,7 @@ export default function App({
             }}
           >
             {sortedFindings.map(({ finding, index }) => {
-              const { severityIconClass, severityColor, snippet, detail } = getFindingParts(finding)
+              const { severityIconClass, severityColor, snippet, detail, explanation } = getFindingParts(finding)
               const findingId = getFindingId(finding, index)
               return (
                 <li
@@ -510,6 +518,20 @@ export default function App({
                         {detail}
                       </span>
                     </span>
+                    {explanation ? (
+                      <span
+                        style={{
+                          display: "block",
+                          marginTop: 2,
+                          color: "var(--muted)",
+                          fontSize: 12,
+                          overflowWrap: "anywhere",
+                          wordBreak: "break-word",
+                        }}
+                      >
+                        {explanation}
+                      </span>
+                    ) : null}
                     {snippet ? (
                       <span
                         style={{

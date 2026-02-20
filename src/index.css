@@ -241,7 +241,7 @@ body {
   color: var(--text);
   padding: 14px;
   opacity: 0;
-  transform: translateY(6px) scale(0.98);
+  transform: scale(0.98);
   transition:
     opacity 170ms ease,
     transform 170ms ease;
@@ -249,7 +249,7 @@ body {
 
 .rules-modal-overlay.is-open .rules-modal {
   opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: scale(1);
 }
 
 .rules-modal-header {

@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest"
 
 import { analyzeTextByType } from "../src/analysis/analyzeTextByType"
-import { createSubsSegmentRules } from "../src/analysis/subsSegmentRules"
+import {
+  createSubsMetricsRules,
+  createSubsSegmentRules,
+} from "../src/analysis/subsSegmentRules"
 import { getFindings } from "../src/shared/findings"
 
 describe("createSubsSegmentRules", () => {
@@ -48,5 +51,23 @@ describe("createSubsSegmentRules", () => {
     expect(maxOnlyFindings.some((finding) => finding.type === "MAX_CPS")).toBe(true)
     expect(maxOnlyFindings.some((finding) => finding.type === "MIN_CPS")).toBe(false)
     expect(maxOnlyFindings.some((finding) => finding.type === "CPS_BALANCE")).toBe(false)
+  })
+
+  it("uses raw CPS metrics assembly for metrics mode", () => {
+    const text = [
+      "00:00:01:00\t00:00:03:00\tMarker",
+      "Hi",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(
+      text,
+      "subs",
+      createSubsMetricsRules({
+        enabledFindingTypes: ["MAX_CPS"],
+      })
+    )
+
+    expect(metrics).toHaveLength(1)
+    expect(metrics[0]?.type).toBe("CPS")
   })
 })

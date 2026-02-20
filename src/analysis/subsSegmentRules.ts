@@ -13,13 +13,12 @@ import { punctuationRule } from "./punctuationRule"
 import type { SegmentRule } from "./segments"
 import type { Metric } from "./types"
 
-type CreateSubsSegmentRulesOptions = {
+export type CreateSubsSegmentRulesOptions = {
   capitalizationTerms?: string[]
   properNouns?: string[]
   baselineText?: string
   ignoreEmptyLines?: boolean
   enabledFindingTypes?: Iterable<Metric["type"]>
-  includeRawCpsMetrics?: boolean
 }
 
 function isEnabled(
@@ -31,9 +30,12 @@ function isEnabled(
   return enabled.has(types)
 }
 
-export function createSubsSegmentRules(
+function createSubsCommonRules(
   options: CreateSubsSegmentRulesOptions = {}
-): SegmentRule[] {
+): {
+  enabled: Set<Metric["type"]> | null
+  rules: SegmentRule[]
+} {
   const enabled = options.enabledFindingTypes
     ? new Set<Metric["type"]>(options.enabledFindingTypes)
     : null
@@ -44,34 +46,6 @@ export function createSubsSegmentRules(
   }
   if (isEnabled(enabled, "LEADING_WHITESPACE")) {
     rules.push(leadingWhitespaceRule())
-  }
-  if (options.includeRawCpsMetrics) {
-    if (
-      isEnabled(enabled, "CPS") ||
-      isEnabled(enabled, "MAX_CPS") ||
-      isEnabled(enabled, "MIN_CPS")
-    ) {
-      rules.push(
-        cpsRule(undefined, undefined, {
-          ignoreEmptyLines: options.ignoreEmptyLines,
-        })
-      )
-    }
-  } else {
-    if (isEnabled(enabled, "MAX_CPS")) {
-      rules.push(
-        maxCpsRule(undefined, undefined, {
-          ignoreEmptyLines: options.ignoreEmptyLines,
-        })
-      )
-    }
-    if (isEnabled(enabled, "MIN_CPS")) {
-      rules.push(
-        minCpsRule(undefined, undefined, {
-          ignoreEmptyLines: options.ignoreEmptyLines,
-        })
-      )
-    }
   }
   if (isEnabled(enabled, "CPS_BALANCE")) {
     rules.push(cpsBalanceRule({ ignoreEmptyLines: options.ignoreEmptyLines }))
@@ -97,9 +71,55 @@ export function createSubsSegmentRules(
     )
   }
 
+  return { enabled, rules }
+}
+
+export function createSubsFindingsRules(
+  options: CreateSubsSegmentRulesOptions = {}
+): SegmentRule[] {
+  const { enabled, rules } = createSubsCommonRules(options)
+
+  if (isEnabled(enabled, "MAX_CPS")) {
+    rules.push(
+      maxCpsRule(undefined, undefined, {
+        ignoreEmptyLines: options.ignoreEmptyLines,
+      })
+    )
+  }
+  if (isEnabled(enabled, "MIN_CPS")) {
+    rules.push(
+      minCpsRule(undefined, undefined, {
+        ignoreEmptyLines: options.ignoreEmptyLines,
+      })
+    )
+  }
   if (options.baselineText != null && isEnabled(enabled, "BASELINE")) {
     rules.push(baselineRule(options.baselineText))
   }
 
   return rules
 }
+
+export function createSubsMetricsRules(
+  options: CreateSubsSegmentRulesOptions = {}
+): SegmentRule[] {
+  const { enabled, rules } = createSubsCommonRules(options)
+  if (
+    isEnabled(enabled, "CPS") ||
+    isEnabled(enabled, "MAX_CPS") ||
+    isEnabled(enabled, "MIN_CPS")
+  ) {
+    rules.push(
+      cpsRule(undefined, undefined, {
+        ignoreEmptyLines: options.ignoreEmptyLines,
+      })
+    )
+  }
+  if (options.baselineText != null && isEnabled(enabled, "BASELINE")) {
+    rules.push(baselineRule(options.baselineText))
+  }
+  return rules
+}
+
+// Backward-compatible alias used by UI and watch findings paths.
+export const createSubsSegmentRules = createSubsFindingsRules

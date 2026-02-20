@@ -1,6 +1,9 @@
 import { analyzeTextByType } from '../analysis/analyzeTextByType'
 import { capitalizationRule } from '../analysis/capitalizationRule'
-import { createSubsSegmentRules } from '../analysis/subsSegmentRules'
+import {
+  createSubsFindingsRules,
+  createSubsMetricsRules,
+} from '../analysis/subsSegmentRules'
 import { maxCharsRule } from '../analysis/maxCharsRule'
 import { numberStyleRule } from '../analysis/numberStyleRule'
 import type { Metric, Finding } from '../analysis/types'
@@ -18,7 +21,7 @@ async function buildRules(
   type: 'subs' | 'news',
   ignoreEmptyLines?: boolean,
   enabledFindingTypes?: Metric['type'][],
-  includeRawCpsMetrics?: boolean
+  findingsOnly?: boolean
 ) {
   const enabled = enabledFindingTypes
     ? new Set<Metric['type']>(enabledFindingTypes)
@@ -39,12 +42,12 @@ async function buildRules(
   }
 
   const properNouns = await loadProperNouns()
-  return createSubsSegmentRules({
+  const assembly = findingsOnly ? createSubsFindingsRules : createSubsMetricsRules
+  return assembly({
     capitalizationTerms: capitalizationTerms ?? undefined,
     properNouns: properNouns ?? undefined,
     ignoreEmptyLines,
     enabledFindingTypes,
-    includeRawCpsMetrics,
   })
 }
 
@@ -60,7 +63,7 @@ export async function buildMetricsOutput(
     options.type,
     options.ignoreEmptyLines,
     enabledFindingTypes,
-    !options.findingsOnly
+    options.findingsOnly
   )
   const metrics = analyzeTextByType(text, options.type, rules, {
     parseOptions: {

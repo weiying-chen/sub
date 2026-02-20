@@ -31,7 +31,7 @@ import properNounsText from "../punctuation-proper-nouns.txt?raw"
 
 const FINDINGS_SIDEBAR_WIDTH = 320
 const RULES_MODAL_ANIMATION_MS = 170
-const RULE_FILTERS_STORAGE_KEY = "subs.ruleFilters.v1"
+const RULE_FILTERS_STORAGE_KEY = "subs.ruleFilters"
 
 type RuleOption = {
   type: Finding["type"]

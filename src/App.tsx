@@ -30,6 +30,7 @@ import capitalizationTermsText from "../capitalization-terms.txt?raw"
 import properNounsText from "../punctuation-proper-nouns.txt?raw"
 
 const FINDINGS_SIDEBAR_WIDTH = 320
+const RULES_MODAL_ANIMATION_MS = 170
 
 function parseTextList(raw: string): string[] {
   return raw
@@ -274,15 +275,43 @@ export default function App({
   const [view, setView] = useState<EditorView | null>(null)
   const [extracted, setExtracted] = useState("")
   const [activeFindingId, setActiveFindingId] = useState<string | null>(null)
+  const [isRulesModalOpen, setIsRulesModalOpen] = useState(false)
+  const [isRulesModalMounted, setIsRulesModalMounted] = useState(false)
   const scrollAnimFrameRef = useRef<number | null>(null)
   const pendingClickFindingIdRef = useRef<string | null>(null)
+  const rulesModalCloseTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     return () => {
       if (scrollAnimFrameRef.current !== null) {
         cancelAnimationFrame(scrollAnimFrameRef.current)
       }
+      if (rulesModalCloseTimerRef.current !== null) {
+        clearTimeout(rulesModalCloseTimerRef.current)
+      }
     }
+  }, [])
+
+  const openRulesModal = useCallback(() => {
+    if (rulesModalCloseTimerRef.current !== null) {
+      clearTimeout(rulesModalCloseTimerRef.current)
+      rulesModalCloseTimerRef.current = null
+    }
+    setIsRulesModalMounted(true)
+    requestAnimationFrame(() => {
+      setIsRulesModalOpen(true)
+    })
+  }, [])
+
+  const closeRulesModal = useCallback(() => {
+    setIsRulesModalOpen(false)
+    if (rulesModalCloseTimerRef.current !== null) {
+      clearTimeout(rulesModalCloseTimerRef.current)
+    }
+    rulesModalCloseTimerRef.current = window.setTimeout(() => {
+      setIsRulesModalMounted(false)
+      rulesModalCloseTimerRef.current = null
+    }, RULES_MODAL_ANIMATION_MS)
   }, [])
 
   const metrics = useMemo<Metric[]>(() => {
@@ -484,7 +513,17 @@ export default function App({
           overflowX: "hidden",
         }}
       >
-        <h3 style={{ margin: 0, marginBottom: 10, fontSize: 14 }}>Findings</h3>
+        <div className="sidebar-header">
+          <h3 style={{ margin: 0, fontSize: 14 }}>Findings</h3>
+          <button
+            type="button"
+            className="sidebar-gear-button"
+            aria-label="Open rules modal"
+            onClick={openRulesModal}
+          >
+            <i className="las la-cog" aria-hidden="true" />
+          </button>
+        </div>
         {findings.length === 0 ? (
           <div style={{ fontSize: 13, color: "var(--muted)" }}>No findings.</div>
         ) : (
@@ -568,6 +607,36 @@ export default function App({
           </ul>
         )}
       </aside>
+
+      {isRulesModalMounted ? (
+        <div
+          className={`rules-modal-overlay${isRulesModalOpen ? " is-open" : ""}`}
+          onClick={closeRulesModal}
+        >
+          <div
+            className="rules-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Rules"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="rules-modal-header">
+              <h3 style={{ margin: 0, fontSize: 16 }}>Rules</h3>
+              <button
+                type="button"
+                className="rules-modal-close-button"
+                aria-label="Close rules modal"
+                onClick={closeRulesModal}
+              >
+                <i className="las la-times" aria-hidden="true" />
+              </button>
+            </div>
+            <div style={{ fontSize: 14, color: "var(--muted)" }}>
+              Rule settings coming soon.
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div
         style={{

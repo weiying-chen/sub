@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import { fireEvent, render, screen, within } from "@testing-library/react"
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import { useEffect, useMemo } from "react"
 
 import App from "../src/App"
@@ -191,20 +191,40 @@ describe("Sidebar", () => {
   })
 
   it("orders errors before warnings in the findings list", () => {
-    render(<App />)
+    const { container } = render(<App />)
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
 
     fireEvent.change(editor, {
       target: {
         value: [
-          "00:00:01:00\t00:00:10:00\tMarker",
-          "This is 5 examples.",
+          "00:00:01:00\t00:00:02:00\tMarker",
+          "This payload is definitely too long for one second.",
         ].join("\n"),
       },
     })
 
-    const findingButtons = screen.getAllByRole("button")
+    const findingButtons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>(".finding-row-button")
+    )
     const firstFindingText = findingButtons[0]?.textContent ?? ""
-    expect(firstFindingText).toContain("Number format is incorrect")
+    expect(firstFindingText).toContain("Reading speed is too high")
+  })
+
+  it("opens and closes a rules modal from the findings gear button", async () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+
+    expect(ui.queryByRole("dialog", { name: "Rules" })).not.toBeInTheDocument()
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+
+    expect(ui.getByRole("dialog", { name: "Rules" })).toBeInTheDocument()
+    expect(ui.getByText("Rule settings coming soon.")).toBeInTheDocument()
+
+    fireEvent.click(ui.getByRole("button", { name: "Close rules modal" }))
+
+    await waitFor(() => {
+      expect(ui.queryByRole("dialog", { name: "Rules" })).not.toBeInTheDocument()
+    })
   })
 })

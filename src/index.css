@@ -196,6 +196,83 @@ body {
   background: var(--panel-hover);
 }
 
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.sidebar-gear-button {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+}
+
+.sidebar-gear-button:hover {
+  color: var(--text);
+}
+
+.rules-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  opacity: 0;
+  transition: opacity 170ms ease;
+}
+
+.rules-modal-overlay.is-open {
+  opacity: 1;
+}
+
+.rules-modal {
+  width: min(480px, calc(100vw - 32px));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  padding: 14px;
+  opacity: 0;
+  transform: translateY(6px) scale(0.98);
+  transition:
+    opacity 170ms ease,
+    transform 170ms ease;
+}
+
+.rules-modal-overlay.is-open .rules-modal {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.rules-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.rules-modal-close-button {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+}
+
+.rules-modal-close-button:hover {
+  color: var(--text);
+}
+
 .finding-row-instruction {
   display: grid;
   grid-template-rows: 0fr;

@@ -32,6 +32,7 @@ import properNounsText from "../punctuation-proper-nouns.txt?raw"
 const FINDINGS_SIDEBAR_WIDTH = 320
 const RULES_MODAL_ANIMATION_MS = 170
 const RULE_FILTERS_STORAGE_KEY = "subs.ruleFilters"
+const FINDINGS_MOTION_SUPPRESS_MS = 220
 
 type RuleOption = {
   type: Finding["type"]
@@ -329,9 +330,11 @@ export default function App({
   )
   const [isRulesModalOpen, setIsRulesModalOpen] = useState(false)
   const [isRulesModalMounted, setIsRulesModalMounted] = useState(false)
+  const [suppressFindingMotion, setSuppressFindingMotion] = useState(false)
   const scrollAnimFrameRef = useRef<number | null>(null)
   const pendingClickFindingIdRef = useRef<string | null>(null)
   const rulesModalCloseTimerRef = useRef<number | null>(null)
+  const findingMotionTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     return () => {
@@ -341,7 +344,21 @@ export default function App({
       if (rulesModalCloseTimerRef.current !== null) {
         clearTimeout(rulesModalCloseTimerRef.current)
       }
+      if (findingMotionTimerRef.current !== null) {
+        clearTimeout(findingMotionTimerRef.current)
+      }
     }
+  }, [])
+
+  const suppressFindingMotionForRuleChange = useCallback(() => {
+    setSuppressFindingMotion(true)
+    if (findingMotionTimerRef.current !== null) {
+      clearTimeout(findingMotionTimerRef.current)
+    }
+    findingMotionTimerRef.current = window.setTimeout(() => {
+      setSuppressFindingMotion(false)
+      findingMotionTimerRef.current = null
+    }, FINDINGS_MOTION_SUPPRESS_MS)
   }, [])
 
   useEffect(() => {
@@ -375,25 +392,29 @@ export default function App({
   }, [])
 
   const setAllRulesEnabled = useCallback(() => {
+    suppressFindingMotionForRuleChange()
     setEnabledRuleTypes(new Set(DEFAULT_ENABLED_RULE_TYPES))
-  }, [])
+  }, [suppressFindingMotionForRuleChange])
 
   const setNoRulesEnabled = useCallback(() => {
+    suppressFindingMotionForRuleChange()
     setEnabledRuleTypes(new Set())
-  }, [])
+  }, [suppressFindingMotionForRuleChange])
 
   const setDefaultRulesEnabled = useCallback(() => {
+    suppressFindingMotionForRuleChange()
     setEnabledRuleTypes(new Set(DEFAULT_ENABLED_RULE_TYPES))
-  }, [])
+  }, [suppressFindingMotionForRuleChange])
 
   const toggleRule = useCallback((type: Finding["type"]) => {
+    suppressFindingMotionForRuleChange()
     setEnabledRuleTypes((prev) => {
       const next = new Set(prev)
       if (next.has(type)) next.delete(type)
       else next.add(type)
       return next
     })
-  }, [])
+  }, [suppressFindingMotionForRuleChange])
 
   const metrics = useMemo<Metric[]>(() => {
     const analysisEnabledRuleTypes = includeWarnings
@@ -559,6 +580,7 @@ export default function App({
 
   return (
     <div
+      className={suppressFindingMotion ? "findings-motion-paused" : undefined}
       style={{
         width: "100vw",
         height: "100vh",

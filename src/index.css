@@ -315,6 +315,14 @@ body {
     opacity 160ms var(--finding-active-easing);
 }
 
+.findings-motion-paused .finding-row-instruction.is-open {
+  transition: none;
+}
+
+.findings-motion-paused .cm-finding-active {
+  animation: none;
+}
+
 .finding-row-instruction-text {
   display: block;
   margin-top: 2px;

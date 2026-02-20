@@ -65,6 +65,24 @@ export function getFindings(
       continue
     }
 
+    if (m.type === 'MAX_CPS') {
+      out.push({
+        ...m,
+        severity: 'error',
+        instruction: `Reduce reading speed to ${m.maxCps} CPS or lower.`,
+      })
+      continue
+    }
+
+    if (m.type === 'MIN_CPS') {
+      out.push({
+        ...m,
+        severity: 'warn',
+        instruction: `Increase reading speed to at least ${m.minCps} CPS.`,
+      })
+      continue
+    }
+
     if (m.type === 'CPS_BALANCE') {
       out.push({
         ...m,

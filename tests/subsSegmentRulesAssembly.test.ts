@@ -27,7 +27,7 @@ describe("createSubsSegmentRules", () => {
     expect(filteredMetrics.map((metric) => metric.type)).toEqual(["NUMBER_STYLE"])
   })
 
-  it("keeps cps rule active when either MAX_CPS or MIN_CPS is enabled", () => {
+  it("keeps only the selected cps rule active", () => {
     const text = [
       "00:00:01:00\t00:00:03:00\tMarker",
       "Hi",
@@ -46,7 +46,7 @@ describe("createSubsSegmentRules", () => {
       )
     )
     expect(maxOnlyFindings.some((finding) => finding.type === "MAX_CPS")).toBe(true)
-    expect(maxOnlyFindings.some((finding) => finding.type === "MIN_CPS")).toBe(true)
+    expect(maxOnlyFindings.some((finding) => finding.type === "MIN_CPS")).toBe(false)
     expect(maxOnlyFindings.some((finding) => finding.type === "CPS_BALANCE")).toBe(false)
   })
 })

@@ -17,17 +17,25 @@ export type MetricsOptions = {
 async function buildRules(
   type: 'subs' | 'news',
   ignoreEmptyLines?: boolean,
-  enabledFindingTypes?: Metric['type'][]
+  enabledFindingTypes?: Metric['type'][],
+  includeRawCpsMetrics?: boolean
 ) {
+  const enabled = enabledFindingTypes
+    ? new Set<Metric['type']>(enabledFindingTypes)
+    : null
   const capitalizationTerms = await loadCapitalizationTerms()
   if (type === 'news') {
-    return [
-      maxCharsRule(54),
-      numberStyleRule(),
-      capitalizationRule({
-        terms: capitalizationTerms ?? undefined,
-      }),
-    ]
+    const rules = []
+    if (!enabled || enabled.has('MAX_CHARS')) rules.push(maxCharsRule(54))
+    if (!enabled || enabled.has('NUMBER_STYLE')) rules.push(numberStyleRule())
+    if (!enabled || enabled.has('CAPITALIZATION')) {
+      rules.push(
+        capitalizationRule({
+          terms: capitalizationTerms ?? undefined,
+        })
+      )
+    }
+    return rules
   }
 
   const properNouns = await loadProperNouns()
@@ -36,6 +44,7 @@ async function buildRules(
     properNouns: properNouns ?? undefined,
     ignoreEmptyLines,
     enabledFindingTypes,
+    includeRawCpsMetrics,
   })
 }
 
@@ -43,24 +52,20 @@ export async function buildMetricsOutput(
   text: string,
   options: MetricsOptions
 ): Promise<Metric[] | Finding[]> {
+  const enabledFindingTypes =
+    (options.ruleFilters?.length ?? 0) > 0
+      ? (options.ruleFilters as Metric['type'][])
+      : undefined
   const rules = await buildRules(
     options.type,
     options.ignoreEmptyLines,
-    options.type === 'subs' && (options.ruleFilters?.length ?? 0) > 0
-      ? (options.ruleFilters as Metric['type'][])
-      : undefined
+    enabledFindingTypes,
+    !options.findingsOnly
   )
   const metrics = analyzeTextByType(text, options.type, rules, {
     parseOptions: {
       ignoreEmptyLines: options.ignoreEmptyLines,
     },
   })
-  const output = options.findingsOnly ? getFindings(metrics) : metrics
-  const filters = options.ruleFilters ?? []
-
-  if (filters.length === 0) {
-    return output
-  }
-
-  return output.filter((metric) => filters.includes(metric.type))
+  return options.findingsOnly ? getFindings(metrics) : metrics
 }

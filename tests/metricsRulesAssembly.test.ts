@@ -34,6 +34,7 @@ describe("metricsCore rule assembly", () => {
       capitalizationTerms: ["OpenAI"],
       properNouns: ["Taipei"],
       ignoreEmptyLines: true,
+      includeRawCpsMetrics: false,
     })
   })
 
@@ -51,6 +52,7 @@ describe("metricsCore rule assembly", () => {
       properNouns: ["Taipei"],
       ignoreEmptyLines: undefined,
       enabledFindingTypes: ["MAX_CHARS"],
+      includeRawCpsMetrics: true,
     })
   })
 })

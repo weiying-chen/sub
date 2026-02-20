@@ -4,7 +4,9 @@ import { cpsBalanceRule } from "./cpsBalanceRule"
 import { cpsRule } from "./cpsRule"
 import { leadingWhitespaceRule } from "./leadingWhitespaceRule"
 import { maxCharsRule } from "./maxCharsRule"
+import { maxCpsRule } from "./maxCpsRule"
 import { mergeCandidateRule } from "./mergeCandidateRule"
+import { minCpsRule } from "./minCpsRule"
 import { numberStyleRule } from "./numberStyleRule"
 import { percentStyleRule } from "./percentStyleRule"
 import { punctuationRule } from "./punctuationRule"
@@ -17,9 +19,8 @@ type CreateSubsSegmentRulesOptions = {
   baselineText?: string
   ignoreEmptyLines?: boolean
   enabledFindingTypes?: Iterable<Metric["type"]>
+  includeRawCpsMetrics?: boolean
 }
-
-const CPS_RULE_TYPES: Metric["type"][] = ["CPS", "MAX_CPS", "MIN_CPS"]
 
 function isEnabled(
   enabled: Set<Metric["type"]> | null,
@@ -44,12 +45,33 @@ export function createSubsSegmentRules(
   if (isEnabled(enabled, "LEADING_WHITESPACE")) {
     rules.push(leadingWhitespaceRule())
   }
-  if (isEnabled(enabled, CPS_RULE_TYPES)) {
-    rules.push(
-      cpsRule(undefined, undefined, {
-        ignoreEmptyLines: options.ignoreEmptyLines,
-      })
-    )
+  if (options.includeRawCpsMetrics) {
+    if (
+      isEnabled(enabled, "CPS") ||
+      isEnabled(enabled, "MAX_CPS") ||
+      isEnabled(enabled, "MIN_CPS")
+    ) {
+      rules.push(
+        cpsRule(undefined, undefined, {
+          ignoreEmptyLines: options.ignoreEmptyLines,
+        })
+      )
+    }
+  } else {
+    if (isEnabled(enabled, "MAX_CPS")) {
+      rules.push(
+        maxCpsRule(undefined, undefined, {
+          ignoreEmptyLines: options.ignoreEmptyLines,
+        })
+      )
+    }
+    if (isEnabled(enabled, "MIN_CPS")) {
+      rules.push(
+        minCpsRule(undefined, undefined, {
+          ignoreEmptyLines: options.ignoreEmptyLines,
+        })
+      )
+    }
   }
   if (isEnabled(enabled, "CPS_BALANCE")) {
     rules.push(cpsBalanceRule({ ignoreEmptyLines: options.ignoreEmptyLines }))

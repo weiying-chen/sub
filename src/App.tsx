@@ -416,14 +416,7 @@ export default function App({
   const findings = useMemo<Finding[]>(() => {
     return getFindings(metrics, { includeWarnings })
   }, [metrics, includeWarnings])
-  const visibleFindings = useMemo(
-    () => findings.filter((finding) => enabledRuleTypes.has(finding.type)),
-    [findings, enabledRuleTypes]
-  )
-  const sortedFindings = useMemo(
-    () => sortFindingsWithIndex(visibleFindings),
-    [visibleFindings]
-  )
+  const sortedFindings = useMemo(() => sortFindingsWithIndex(findings), [findings])
 
   useEffect(() => {
     if (sortedFindings.length === 0) {
@@ -457,8 +450,8 @@ export default function App({
       ),
 
       selectLineOnTripleClick,
-      timestampLinkGutter(visibleFindings, { colorize: colorizeGutterIndicators }),
-      findingsDecorations(visibleFindings, activeFindingId),
+      timestampLinkGutter(findings, { colorize: colorizeGutterIndicators }),
+      findingsDecorations(findings, activeFindingId),
       EditorView.updateListener.of((update) => {
         if (!update.selectionSet) return
         const pos = update.state.selection.main.head
@@ -466,14 +459,14 @@ export default function App({
           activeFindingId,
           pendingClickFindingIdRef.current
         )
-        const hitId = findFindingIdAtPos(update.view, visibleFindings, pos, preferredId)
+        const hitId = findFindingIdAtPos(update.view, findings, pos, preferredId)
         pendingClickFindingIdRef.current = null
         if (hitId && hitId !== activeFindingId) {
           setActiveFindingId(hitId)
         }
       }),
     ]
-  }, [visibleFindings, activeFindingId, colorizeGutterIndicators])
+  }, [findings, activeFindingId, colorizeGutterIndicators])
 
   const handleExtract = useCallback(() => {
     if (!view) return
@@ -619,7 +612,7 @@ export default function App({
             <i className="las la-cog" aria-hidden="true" />
           </button>
         </div>
-        {visibleFindings.length === 0 ? (
+        {findings.length === 0 ? (
           <div style={{ fontSize: 13, color: "var(--muted)" }}>No findings.</div>
         ) : (
           <ul

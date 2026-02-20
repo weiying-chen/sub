@@ -104,11 +104,11 @@ describe("Sidebar", () => {
     const warningIcon = container.querySelector(".la-exclamation-triangle")
     expect(errorIcon).not.toBeNull()
     expect(warningIcon).not.toBeNull()
-    expect(errorIcon).toHaveStyle("color: var(--danger)")
-    expect(warningIcon).toHaveStyle("color: var(--warning)")
+    expect(errorIcon).toHaveAttribute("data-severity", "error")
+    expect(warningIcon).toHaveAttribute("data-severity", "warn")
 
     const root = container.firstElementChild
-    expect(root).toHaveStyle("padding-right: 320px")
+    expect(root).toHaveClass("app-shell")
     expect(container.querySelectorAll(".finding-row-button.is-active").length).toBeGreaterThan(0)
   })
 

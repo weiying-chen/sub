@@ -29,7 +29,6 @@ import { sampleSubtitles } from "./fixtures/subtitles"
 import capitalizationTermsText from "../capitalization-terms.txt?raw"
 import properNounsText from "../punctuation-proper-nouns.txt?raw"
 
-const FINDINGS_SIDEBAR_WIDTH = 320
 const RULES_MODAL_ANIMATION_MS = 170
 const RULE_FILTERS_STORAGE_KEY = "subs.ruleFilters"
 const FINDINGS_MOTION_SUPPRESS_MS = 220
@@ -200,7 +199,7 @@ function findFindingIdAtPos(
 
 function getFindingParts(finding: Finding): {
   severityIconClass: string
-  severityColor: string
+  severityKind: "error" | "warn"
   snippet: string | null
   detail: string
   explanation: string | null
@@ -209,7 +208,6 @@ function getFindingParts(finding: Finding): {
     "severity" in finding && finding.severity ? finding.severity : "warn"
   const severityIconClass =
     severity === "error" ? "las la-times-circle" : "las la-exclamation-triangle"
-  const severityColor = severity === "error" ? "var(--danger)" : "var(--warning)"
 
   let snippet: string | null = null
   if ("token" in finding && typeof finding.token === "string" && finding.token.trim()) {
@@ -227,7 +225,7 @@ function getFindingParts(finding: Finding): {
     typeof finding.instruction === "string" && finding.instruction.trim() !== ""
       ? finding.instruction
       : null
-  return { severityIconClass, severityColor, snippet, detail, explanation }
+  return { severityIconClass, severityKind: severity, snippet, detail, explanation }
 }
 
 function getFindingAnchor(view: EditorView, finding: Finding): number {
@@ -580,18 +578,9 @@ export default function App({
 
   return (
     <div
-      className={suppressFindingMotion ? "findings-motion-paused" : undefined}
-      style={{
-        width: "100vw",
-        height: "100vh",
-        paddingRight: FINDINGS_SIDEBAR_WIDTH,
-        display: "flex",
-        flexDirection: "column",
-        background: "var(--bg)",
-        color: "var(--text)",
-      }}
+      className={`app-shell${suppressFindingMotion ? " findings-motion-paused" : ""}`}
     >
-      <div style={{ flex: 1, minHeight: 0 }}>
+      <div className="app-editor-wrap">
         <CodeMirror
           value={value}
           onChange={setValue}
@@ -609,22 +598,9 @@ export default function App({
         />
       </div>
 
-      <aside
-        style={{
-          position: "fixed",
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: FINDINGS_SIDEBAR_WIDTH,
-          borderLeft: "1px solid var(--border)",
-          background: "var(--bg)",
-          padding: 12,
-          overflowY: "auto",
-          overflowX: "hidden",
-        }}
-      >
+      <aside className="findings-sidebar">
         <div className="sidebar-header">
-          <h3 style={{ margin: 0, fontSize: 14 }}>Findings</h3>
+          <h3 className="sidebar-title">Findings</h3>
           <button
             type="button"
             className="sidebar-gear-button"
@@ -635,58 +611,28 @@ export default function App({
           </button>
         </div>
         {findings.length === 0 ? (
-          <div style={{ fontSize: 13, color: "var(--muted)" }}>No findings.</div>
+          <div className="sidebar-empty">No findings.</div>
         ) : (
-          <ul
-            style={{
-              margin: 0,
-              marginLeft: -12,
-              marginRight: -12,
-              padding: 0,
-              listStyle: "none",
-              display: "flex",
-              flexDirection: "column",
-              fontSize: 13,
-            }}
-          >
+          <ul className="findings-list">
             {sortedFindings.map(({ finding, index }) => {
-              const { severityIconClass, severityColor, snippet, detail, explanation } = getFindingParts(finding)
+              const { severityIconClass, severityKind, snippet, detail, explanation } =
+                getFindingParts(finding)
               const findingId = getFindingId(finding, index)
               const isActive = activeFindingId === findingId
               return (
-                <li
-                  key={findingId}
-                  style={{ display: "flex", alignItems: "flex-start" }}
-                >
+                <li key={findingId} className="findings-list-item">
                   <button
                     type="button"
                     onClick={() => handleFindingClick(finding, findingId)}
                     className={`finding-row-button${isActive ? " is-active" : ""}`}
-                    style={{
-                      width: "100%",
-                      display: "block",
-                      textAlign: "left",
-                      border: "none",
-                      padding: "6px 12px",
-                      color: "inherit",
-                      font: "inherit",
-                      cursor: "pointer",
-                    }}
                   >
-                    <span style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
+                    <span className="finding-row-head">
                       <i
                         className={severityIconClass}
                         aria-hidden="true"
-                        style={{ color: severityColor, marginTop: 2 }}
+                        data-severity={severityKind}
                       />
-                      <span
-                        style={{
-                          color: "var(--muted)",
-                          fontSize: 12,
-                          overflowWrap: "anywhere",
-                          wordBreak: "break-word",
-                        }}
-                      >
+                      <span className="finding-row-detail">
                         {detail}
                       </span>
                     </span>
@@ -699,14 +645,7 @@ export default function App({
                       </span>
                     ) : null}
                     {snippet ? (
-                      <span
-                        style={{
-                          display: "block",
-                          marginTop: 2,
-                          overflowWrap: "anywhere",
-                          wordBreak: "break-word",
-                        }}
-                      >
+                      <span className="finding-row-snippet">
                         {snippet}
                       </span>
                     ) : null}
@@ -731,7 +670,7 @@ export default function App({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="rules-modal-header">
-              <h3 style={{ margin: 0, fontSize: 16 }}>Rules</h3>
+              <h3 className="rules-modal-title">Rules</h3>
               <button
                 type="button"
                 className="rules-modal-close-button"
@@ -784,17 +723,8 @@ export default function App({
         </div>
       ) : null}
 
-      <div
-        style={{
-          borderTop: "1px solid var(--border)",
-          background: "var(--panel)",
-          padding: 12,
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-        }}
-      >
-        <div style={{ display: "flex", gap: 8 }}>
+      <div className="app-toolbar-panel">
+        <div className="app-toolbar-actions">
           <button onClick={handleExtract} disabled={!view}>
             Extract selection
           </button>
@@ -805,7 +735,7 @@ export default function App({
             Copy
           </button>
 
-          <button onClick={handleToggleTheme} style={{ marginLeft: "auto" }}>
+          <button onClick={handleToggleTheme} className="theme-toggle-button">
             Theme: {theme}
           </button>
         </div>
@@ -814,14 +744,7 @@ export default function App({
           value={extracted}
           onChange={(e) => setExtracted(e.target.value)}
           placeholder="Selected inline subtitle text will appear here..."
-          style={{
-            width: "100%",
-            height: 120,
-            resize: "none",
-            background: "var(--bg)",
-            color: "var(--text)",
-            border: "1px solid var(--border)",
-          }}
+          className="app-extracted-textarea"
         />
       </div>
     </div>

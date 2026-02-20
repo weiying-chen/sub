@@ -183,7 +183,69 @@ body {
   background-color: var(--cm-selection) !important;
 }
 
+.app-shell {
+  width: 100vw;
+  height: 100vh;
+  padding-right: 320px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app-editor-wrap {
+  flex: 1;
+  min-height: 0;
+}
+
+.findings-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 320px;
+  border-left: 1px solid var(--border);
+  background: var(--bg);
+  padding: 12px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-title {
+  margin: 0;
+  font-size: 14px;
+}
+
+.sidebar-empty {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.findings-list {
+  margin: 0;
+  margin-left: -12px;
+  margin-right: -12px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+
+.findings-list-item {
+  display: flex;
+  align-items: flex-start;
+}
+
 .finding-row-button {
+  width: 100%;
+  display: block;
+  text-align: left;
+  border: none;
+  padding: 6px 12px;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
   background: transparent;
   border-radius: 0;
 }
@@ -194,6 +256,36 @@ body {
 
 .finding-row-button.is-active {
   background: var(--panel-hover);
+}
+
+.finding-row-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.finding-row-head i[data-severity="error"] {
+  color: var(--danger);
+  margin-top: 2px;
+}
+
+.finding-row-head i[data-severity="warn"] {
+  color: var(--warning);
+  margin-top: 2px;
+}
+
+.finding-row-detail {
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.finding-row-snippet {
+  display: block;
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .sidebar-header {
@@ -257,6 +349,11 @@ body {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 10px;
+}
+
+.rules-modal-title {
+  margin: 0;
+  font-size: 16px;
 }
 
 .rules-modal-actions {
@@ -331,4 +428,31 @@ body {
   overflow: hidden;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.app-toolbar-panel {
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.app-toolbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.theme-toggle-button {
+  margin-left: auto;
+}
+
+.app-extracted-textarea {
+  width: 100%;
+  height: 120px;
+  resize: none;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
 }

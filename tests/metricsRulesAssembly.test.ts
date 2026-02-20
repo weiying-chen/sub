@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
   createSubsSegmentRulesMock: vi.fn(() => []),
@@ -16,6 +16,10 @@ vi.mock("../src/cli/properNouns", () => ({
 import { buildMetricsOutput } from "../src/cli/metricsCore"
 
 describe("metricsCore rule assembly", () => {
+  beforeEach(() => {
+    mocks.createSubsSegmentRulesMock.mockClear()
+  })
+
   it("uses shared subs segment rule assembly for subs type", async () => {
     await buildMetricsOutput(
       [
@@ -30,6 +34,23 @@ describe("metricsCore rule assembly", () => {
       capitalizationTerms: ["OpenAI"],
       properNouns: ["Taipei"],
       ignoreEmptyLines: true,
+    })
+  })
+
+  it("passes rule filters into shared subs rule assembly", async () => {
+    await buildMetricsOutput(
+      [
+        "00:00:01:00\t00:00:02:00\tMarker",
+        "Hello.",
+      ].join("\n"),
+      { type: "subs", ruleFilters: ["MAX_CHARS"] }
+    )
+
+    expect(mocks.createSubsSegmentRulesMock).toHaveBeenCalledWith({
+      capitalizationTerms: ["OpenAI"],
+      properNouns: ["Taipei"],
+      ignoreEmptyLines: undefined,
+      enabledFindingTypes: ["MAX_CHARS"],
     })
   })
 })

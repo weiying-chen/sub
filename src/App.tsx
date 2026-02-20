@@ -31,6 +31,55 @@ import properNounsText from "../punctuation-proper-nouns.txt?raw"
 
 const FINDINGS_SIDEBAR_WIDTH = 320
 const RULES_MODAL_ANIMATION_MS = 170
+const RULE_FILTERS_STORAGE_KEY = "subs.ruleFilters.v1"
+
+type RuleOption = {
+  type: Finding["type"]
+  label: string
+  severity: "error" | "warn"
+}
+
+const RULE_OPTIONS: RuleOption[] = [
+  { type: "MAX_CPS", label: "Reading speed is too high", severity: "error" },
+  { type: "MAX_CHARS", label: "Line has too many characters", severity: "error" },
+  { type: "NUMBER_STYLE", label: "Number format is incorrect", severity: "error" },
+  { type: "PERCENT_STYLE", label: "Percent format is incorrect", severity: "error" },
+  { type: "CAPITALIZATION", label: "Capitalization is incorrect", severity: "error" },
+  { type: "LEADING_WHITESPACE", label: "Line starts with extra spaces", severity: "error" },
+  { type: "PUNCTUATION", label: "Punctuation is incorrect", severity: "error" },
+  { type: "BASELINE", label: "Text does not match baseline", severity: "error" },
+  { type: "CPS_BALANCE", label: "Reading speed changes too much", severity: "warn" },
+  { type: "MIN_CPS", label: "Reading speed is too low", severity: "warn" },
+  { type: "MERGE_CANDIDATE", label: "Lines could be merged", severity: "warn" },
+]
+
+const DEFAULT_ENABLED_RULE_TYPES = RULE_OPTIONS.map((rule) => rule.type)
+const WARNING_RULE_TYPES = RULE_OPTIONS.filter((rule) => rule.severity === "warn").map(
+  (rule) => rule.type
+)
+
+function loadEnabledRuleTypes(): Set<Finding["type"]> {
+  const fallback = new Set<Finding["type"]>(DEFAULT_ENABLED_RULE_TYPES)
+  if (typeof window === "undefined") return fallback
+
+  try {
+    const raw = window.localStorage.getItem(RULE_FILTERS_STORAGE_KEY)
+    if (!raw) return fallback
+
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return fallback
+
+    const allowed = new Set(DEFAULT_ENABLED_RULE_TYPES)
+    const selected = parsed.filter(
+      (entry): entry is Finding["type"] =>
+        typeof entry === "string" && allowed.has(entry as Finding["type"])
+    )
+    if (selected.length === 0) return fallback
+    return new Set(selected)
+  } catch {
+    return fallback
+  }
+}
 
 function parseTextList(raw: string): string[] {
   return raw
@@ -275,6 +324,9 @@ export default function App({
   const [view, setView] = useState<EditorView | null>(null)
   const [extracted, setExtracted] = useState("")
   const [activeFindingId, setActiveFindingId] = useState<string | null>(null)
+  const [enabledRuleTypes, setEnabledRuleTypes] = useState<Set<Finding["type"]>>(
+    () => loadEnabledRuleTypes()
+  )
   const [isRulesModalOpen, setIsRulesModalOpen] = useState(false)
   const [isRulesModalMounted, setIsRulesModalMounted] = useState(false)
   const scrollAnimFrameRef = useRef<number | null>(null)
@@ -291,6 +343,14 @@ export default function App({
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(
+      RULE_FILTERS_STORAGE_KEY,
+      JSON.stringify(Array.from(enabledRuleTypes))
+    )
+  }, [enabledRuleTypes])
 
   const openRulesModal = useCallback(() => {
     if (rulesModalCloseTimerRef.current !== null) {
@@ -314,21 +374,56 @@ export default function App({
     }, RULES_MODAL_ANIMATION_MS)
   }, [])
 
+  const setAllRulesEnabled = useCallback(() => {
+    setEnabledRuleTypes(new Set(DEFAULT_ENABLED_RULE_TYPES))
+  }, [])
+
+  const setNoRulesEnabled = useCallback(() => {
+    setEnabledRuleTypes(new Set())
+  }, [])
+
+  const setDefaultRulesEnabled = useCallback(() => {
+    setEnabledRuleTypes(new Set(DEFAULT_ENABLED_RULE_TYPES))
+  }, [])
+
+  const toggleRule = useCallback((type: Finding["type"]) => {
+    setEnabledRuleTypes((prev) => {
+      const next = new Set(prev)
+      if (next.has(type)) next.delete(type)
+      else next.add(type)
+      return next
+    })
+  }, [])
+
   const metrics = useMemo<Metric[]>(() => {
+    const analysisEnabledRuleTypes = includeWarnings
+      ? Array.from(enabledRuleTypes)
+      : Array.from(enabledRuleTypes).filter(
+          (type) => !WARNING_RULE_TYPES.includes(type)
+        )
+
     return analyzeTextByType(
       value,
       "subs",
       createSubsSegmentRules({
         capitalizationTerms,
         properNouns,
+        enabledFindingTypes: analysisEnabledRuleTypes,
       })
     )
-  }, [value])
+  }, [value, enabledRuleTypes, includeWarnings])
 
   const findings = useMemo<Finding[]>(() => {
     return getFindings(metrics, { includeWarnings })
   }, [metrics, includeWarnings])
-  const sortedFindings = useMemo(() => sortFindingsWithIndex(findings), [findings])
+  const visibleFindings = useMemo(
+    () => findings.filter((finding) => enabledRuleTypes.has(finding.type)),
+    [findings, enabledRuleTypes]
+  )
+  const sortedFindings = useMemo(
+    () => sortFindingsWithIndex(visibleFindings),
+    [visibleFindings]
+  )
 
   useEffect(() => {
     if (sortedFindings.length === 0) {
@@ -362,8 +457,8 @@ export default function App({
       ),
 
       selectLineOnTripleClick,
-      timestampLinkGutter(findings, { colorize: colorizeGutterIndicators }),
-      findingsDecorations(findings, activeFindingId),
+      timestampLinkGutter(visibleFindings, { colorize: colorizeGutterIndicators }),
+      findingsDecorations(visibleFindings, activeFindingId),
       EditorView.updateListener.of((update) => {
         if (!update.selectionSet) return
         const pos = update.state.selection.main.head
@@ -371,14 +466,14 @@ export default function App({
           activeFindingId,
           pendingClickFindingIdRef.current
         )
-        const hitId = findFindingIdAtPos(update.view, findings, pos, preferredId)
+        const hitId = findFindingIdAtPos(update.view, visibleFindings, pos, preferredId)
         pendingClickFindingIdRef.current = null
         if (hitId && hitId !== activeFindingId) {
           setActiveFindingId(hitId)
         }
       }),
     ]
-  }, [findings, activeFindingId, colorizeGutterIndicators])
+  }, [visibleFindings, activeFindingId, colorizeGutterIndicators])
 
   const handleExtract = useCallback(() => {
     if (!view) return
@@ -524,7 +619,7 @@ export default function App({
             <i className="las la-cog" aria-hidden="true" />
           </button>
         </div>
-        {findings.length === 0 ? (
+        {visibleFindings.length === 0 ? (
           <div style={{ fontSize: 13, color: "var(--muted)" }}>No findings.</div>
         ) : (
           <ul
@@ -631,8 +726,44 @@ export default function App({
                 <i className="las la-times" aria-hidden="true" />
               </button>
             </div>
-            <div style={{ fontSize: 14, color: "var(--muted)" }}>
-              Rule settings coming soon.
+            <div className="rules-modal-actions">
+              <button type="button" onClick={setAllRulesEnabled}>
+                All
+              </button>
+              <button type="button" onClick={setNoRulesEnabled}>
+                None
+              </button>
+              <button type="button" onClick={setDefaultRulesEnabled}>
+                Defaults
+              </button>
+            </div>
+            <div className="rules-modal-groups">
+              <div className="rules-modal-group">
+                <div className="rules-modal-group-title">Errors</div>
+                {RULE_OPTIONS.filter((rule) => rule.severity === "error").map((rule) => (
+                  <label key={rule.type} className="rules-modal-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={enabledRuleTypes.has(rule.type)}
+                      onChange={() => toggleRule(rule.type)}
+                    />
+                    <span>{rule.label}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="rules-modal-group">
+                <div className="rules-modal-group-title">Warnings</div>
+                {RULE_OPTIONS.filter((rule) => rule.severity === "warn").map((rule) => (
+                  <label key={rule.type} className="rules-modal-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={enabledRuleTypes.has(rule.type)}
+                      onChange={() => toggleRule(rule.type)}
+                    />
+                    <span>{rule.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
         </div>

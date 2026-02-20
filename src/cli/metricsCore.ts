@@ -16,7 +16,8 @@ export type MetricsOptions = {
 
 async function buildRules(
   type: 'subs' | 'news',
-  ignoreEmptyLines?: boolean
+  ignoreEmptyLines?: boolean,
+  enabledFindingTypes?: Metric['type'][]
 ) {
   const capitalizationTerms = await loadCapitalizationTerms()
   if (type === 'news') {
@@ -34,6 +35,7 @@ async function buildRules(
     capitalizationTerms: capitalizationTerms ?? undefined,
     properNouns: properNouns ?? undefined,
     ignoreEmptyLines,
+    enabledFindingTypes,
   })
 }
 
@@ -41,7 +43,13 @@ export async function buildMetricsOutput(
   text: string,
   options: MetricsOptions
 ): Promise<Metric[] | Finding[]> {
-  const rules = await buildRules(options.type, options.ignoreEmptyLines)
+  const rules = await buildRules(
+    options.type,
+    options.ignoreEmptyLines,
+    options.type === 'subs' && (options.ruleFilters?.length ?? 0) > 0
+      ? (options.ruleFilters as Metric['type'][])
+      : undefined
+  )
   const metrics = analyzeTextByType(text, options.type, rules, {
     parseOptions: {
       ignoreEmptyLines: options.ignoreEmptyLines,

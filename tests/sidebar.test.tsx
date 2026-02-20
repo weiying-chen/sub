@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
-import { beforeEach, describe, expect, it, vi } from "vitest"
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import { useEffect, useMemo } from "react"
 
 import App from "../src/App"
@@ -82,7 +82,12 @@ vi.mock("@uiw/react-codemirror", () => ({
 }))
 
 describe("Sidebar", () => {
+  afterEach(() => {
+    cleanup()
+  })
+
   beforeEach(() => {
+    window.localStorage.clear()
     cmSpies.dispatch.mockReset()
     cmSpies.focus.mockReset()
     gutterSpies.timestampLinkGutter.mockClear()
@@ -143,7 +148,7 @@ describe("Sidebar", () => {
     })
   })
 
-  it("shows segment-rule findings like number style and punctuation", () => {
+  it("shows segment-rule findings like number style and leading whitespace", () => {
     render(<App />)
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
 
@@ -154,20 +159,20 @@ describe("Sidebar", () => {
           "This is 5 examples.",
           "",
           "00:00:02:00\t00:00:03:00\tMarker",
-          "Hello.",
+          "  Hello",
           "",
           "00:00:03:00\t00:00:04:00\tMarker",
-          "this should be capitalized.",
+          "This should be capitalized.",
         ].join("\n"),
       },
     })
 
     expect(screen.getAllByText("Number format is incorrect").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("Punctuation is incorrect").length).toBeGreaterThan(0)
-    fireEvent.click(screen.getAllByText("Punctuation is incorrect")[0])
+    expect(screen.getAllByText("Line starts with extra spaces").length).toBeGreaterThan(0)
+    fireEvent.click(screen.getAllByText("Line starts with extra spaces")[0])
 
     const activeRow = screen
-      .getAllByText("Punctuation is incorrect")[0]
+      .getAllByText("Line starts with extra spaces")[0]
       ?.closest(".finding-row-button")
     expect(activeRow).not.toBeNull()
     if (!activeRow) return
@@ -176,7 +181,7 @@ describe("Sidebar", () => {
     expect(activeInstruction).toHaveClass("is-open")
     expect(activeInstruction).toHaveAttribute("aria-hidden", "false")
     expect(activeRow.textContent?.toLowerCase()).toContain(
-      "end this line with terminal punctuation"
+      "remove leading spaces at the start of this line"
     )
 
     const numberRow = screen
@@ -219,12 +224,33 @@ describe("Sidebar", () => {
     fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
 
     expect(ui.getByRole("dialog", { name: "Rules" })).toBeInTheDocument()
-    expect(ui.getByText("Rule settings coming soon.")).toBeInTheDocument()
+    expect(ui.getByRole("button", { name: "All" })).toBeInTheDocument()
+    expect(ui.getByRole("button", { name: "None" })).toBeInTheDocument()
+    expect(ui.getByRole("button", { name: "Defaults" })).toBeInTheDocument()
+    expect(ui.getByRole("checkbox", { name: "Reading speed is too high" })).toBeInTheDocument()
 
     fireEvent.click(ui.getByRole("button", { name: "Close rules modal" }))
 
     await waitFor(() => {
       expect(ui.queryByRole("dialog", { name: "Rules" })).not.toBeInTheDocument()
+    })
+  })
+
+  it("filters findings when a rule is unchecked in the modal", async () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+    const countFindingRowsWithText = (text: string) =>
+      Array.from(container.querySelectorAll(".finding-row-button")).filter((el) =>
+        el.textContent?.includes(text)
+      ).length
+
+    expect(countFindingRowsWithText("Reading speed is too high")).toBeGreaterThan(0)
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+    fireEvent.click(ui.getByRole("checkbox", { name: "Reading speed is too high" }))
+
+    await waitFor(() => {
+      expect(countFindingRowsWithText("Reading speed is too high")).toBe(0)
     })
   })
 })

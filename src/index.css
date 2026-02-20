@@ -259,6 +259,34 @@ body {
   margin-bottom: 10px;
 }
 
+.rules-modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.rules-modal-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rules-modal-group-title {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rules-modal-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
 .rules-modal-close-button {
   border: none;
   background: transparent;

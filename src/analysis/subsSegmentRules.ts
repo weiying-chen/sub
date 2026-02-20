@@ -103,7 +103,10 @@ export function createSubsFindingsRules(
 export function createSubsMetricsRules(
   options: CreateSubsSegmentRulesOptions = {}
 ): SegmentRule[] {
-  const { enabled, rules } = createSubsCommonRules(options)
+  const enabled = options.enabledFindingTypes
+    ? new Set<Metric["type"]>(options.enabledFindingTypes)
+    : null
+  const rules: SegmentRule[] = []
   if (
     isEnabled(enabled, "CPS") ||
     isEnabled(enabled, "MAX_CPS") ||
@@ -114,9 +117,6 @@ export function createSubsMetricsRules(
         ignoreEmptyLines: options.ignoreEmptyLines,
       })
     )
-  }
-  if (options.baselineText != null && isEnabled(enabled, "BASELINE")) {
-    rules.push(baselineRule(options.baselineText))
   }
   return rules
 }

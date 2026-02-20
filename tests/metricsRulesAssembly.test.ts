@@ -47,14 +47,14 @@ describe("metricsCore rule assembly", () => {
         "00:00:01:00\t00:00:02:00\tMarker",
         "Hello.",
       ].join("\n"),
-      { type: "subs", ruleFilters: ["MAX_CHARS"] }
+      { type: "subs", ruleFilters: ["MAX_CPS"] }
     )
 
     expect(mocks.createSubsMetricsRulesMock).toHaveBeenCalledWith({
       capitalizationTerms: ["OpenAI"],
       properNouns: ["Taipei"],
       ignoreEmptyLines: undefined,
-      enabledFindingTypes: ["MAX_CHARS"],
+      enabledFindingTypes: ["MAX_CPS"],
     })
     expect(mocks.createSubsFindingsRulesMock).not.toHaveBeenCalled()
   })

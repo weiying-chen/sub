@@ -70,4 +70,16 @@ describe("createSubsSegmentRules", () => {
     expect(metrics).toHaveLength(1)
     expect(metrics[0]?.type).toBe("CPS")
   })
+
+  it("does not include violation-style rules in subs metrics assembly", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "This payload is definitely too long for one second.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", createSubsMetricsRules())
+    expect(metrics.some((metric) => metric.type === "MAX_CHARS")).toBe(false)
+    expect(metrics.some((metric) => metric.type === "PUNCTUATION")).toBe(false)
+    expect(metrics.some((metric) => metric.type === "CPS")).toBe(true)
+  })
 })

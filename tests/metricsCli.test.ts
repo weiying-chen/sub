@@ -24,7 +24,7 @@ describe("metrics CLI output", () => {
     expect(maxChars.map((metric) => metric.lineIndex)).toEqual([4, 5])
   })
 
-  it("filters subs metrics by rule type", async () => {
+  it("returns only CPS metrics for subs metrics mode", async () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "Short line.",
@@ -34,14 +34,28 @@ describe("metrics CLI output", () => {
 
     const output = (await buildMetricsOutput(text, {
       type: "subs",
-      ruleFilters: ["MAX_CHARS"],
     })) as Metric[]
 
     expect(output).toHaveLength(2)
-    expect(output.map((metric) => metric.type)).toEqual([
-      "MAX_CHARS",
-      "MAX_CHARS",
-    ])
+    expect(output.map((metric) => metric.type)).toEqual(["CPS", "CPS"])
+    expect(output.map((metric) => metric.lineIndex)).toEqual([1, 3])
+  })
+
+  it("can filter subs metrics by CPS family rule filter", async () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "Short line.",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "Another line.",
+    ].join("\n")
+
+    const output = (await buildMetricsOutput(text, {
+      type: "subs",
+      ruleFilters: ["MAX_CPS"],
+    })) as Metric[]
+
+    expect(output).toHaveLength(2)
+    expect(output.map((metric) => metric.type)).toEqual(["CPS", "CPS"])
     expect(output.map((metric) => metric.lineIndex)).toEqual([1, 3])
   })
 

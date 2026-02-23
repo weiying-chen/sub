@@ -1,8 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=SUSE:wght@400;600;700&family=SUSE+Mono:wght@400;600&display=swap');
+
 /* ---- Theme tokens ---- */
 
 :root {
   /* Fonts */
-  --font-mono: "Cousine", ui-monospace, SFMono-Regular, Menlo, Monaco,
+  --font-mono: "SUSE Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
     Consolas, "Liberation Mono", monospace;
 
   /* Surfaces */
@@ -65,7 +67,7 @@ body,
 
 /* ---- Base typography ---- */
 body {
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-family: "SUSE", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
 
 /* ---- CodeMirror interaction fixes ---- */

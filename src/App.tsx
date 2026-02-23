@@ -35,21 +35,77 @@ const FINDINGS_MOTION_SUPPRESS_MS = 220
 type RuleOption = {
   type: Finding["type"]
   label: string
+  explanation: string
   severity: "error" | "warn"
 }
 
 const RULE_OPTIONS: RuleOption[] = [
-  { type: "MAX_CPS", label: "Reading speed is too high", severity: "error" },
-  { type: "MAX_CHARS", label: "Line has too many characters", severity: "error" },
-  { type: "NUMBER_STYLE", label: "Number format is incorrect", severity: "error" },
-  { type: "PERCENT_STYLE", label: "Percent format is incorrect", severity: "error" },
-  { type: "CAPITALIZATION", label: "Capitalization is incorrect", severity: "error" },
-  { type: "LEADING_WHITESPACE", label: "Line starts with extra spaces", severity: "error" },
-  { type: "PUNCTUATION", label: "Punctuation is incorrect", severity: "error" },
-  { type: "BASELINE", label: "Text does not match baseline", severity: "error" },
-  { type: "CPS_BALANCE", label: "Reading speed changes too much", severity: "warn" },
-  { type: "MIN_CPS", label: "Reading speed is too low", severity: "warn" },
-  { type: "MERGE_CANDIDATE", label: "Lines could be merged", severity: "warn" },
+  {
+    type: "MAX_CPS",
+    label: "Reading speed is too high",
+    explanation: "Flags subtitle lines that exceed the maximum CPS limit.",
+    severity: "error",
+  },
+  {
+    type: "MAX_CHARS",
+    label: "Line has too many characters",
+    explanation: "Flags lines that exceed the maximum character count.",
+    severity: "error",
+  },
+  {
+    type: "NUMBER_STYLE",
+    label: "Number format is incorrect",
+    explanation: "Checks number formatting and spelling style conventions.",
+    severity: "error",
+  },
+  {
+    type: "PERCENT_STYLE",
+    label: "Percent format is incorrect",
+    explanation: "Checks percent formatting style (for example, percent vs %).",
+    severity: "error",
+  },
+  {
+    type: "CAPITALIZATION",
+    label: "Capitalization is incorrect",
+    explanation: "Checks capitalization against configured terms and patterns.",
+    severity: "error",
+  },
+  {
+    type: "LEADING_WHITESPACE",
+    label: "Line starts with extra spaces",
+    explanation: "Flags subtitle lines with unintended leading spaces.",
+    severity: "error",
+  },
+  {
+    type: "PUNCTUATION",
+    label: "Punctuation is incorrect",
+    explanation: "Checks punctuation, quote pairing, and line-to-line punctuation flow.",
+    severity: "error",
+  },
+  {
+    type: "BASELINE",
+    label: "Text does not match baseline",
+    explanation: "Compares text against the baseline reference when provided.",
+    severity: "error",
+  },
+  {
+    type: "CPS_BALANCE",
+    label: "Reading speed changes too much",
+    explanation: "Warns when adjacent subtitle speeds vary too sharply.",
+    severity: "warn",
+  },
+  {
+    type: "MIN_CPS",
+    label: "Reading speed is too low",
+    explanation: "Warns when reading speed falls below the minimum CPS limit.",
+    severity: "warn",
+  },
+  {
+    type: "MERGE_CANDIDATE",
+    label: "Lines could be merged",
+    explanation: "Warns when nearby cues look mergeable into one subtitle.",
+    severity: "warn",
+  },
 ]
 
 const DEFAULT_ENABLED_RULE_TYPES = RULE_OPTIONS.map((rule) => rule.type)
@@ -710,7 +766,14 @@ export default function App({
             </div>
             <div className="rules-modal-groups">
               <div className="rules-modal-group">
-                <div className="rules-modal-group-title">Errors</div>
+                <div className="rules-modal-group-title">
+                  <i
+                    className="las la-times-circle"
+                    aria-hidden="true"
+                    data-severity="error"
+                  />
+                  <span>Errors</span>
+                </div>
                 {RULE_OPTIONS.filter((rule) => rule.severity === "error").map((rule) => (
                   <label key={rule.type} className="rules-modal-checkbox">
                     <input
@@ -718,12 +781,20 @@ export default function App({
                       checked={enabledRuleTypes.has(rule.type)}
                       onChange={() => toggleRule(rule.type)}
                     />
-                    <span>{rule.label}</span>
+                    <span className="rules-modal-checkbox-label">{rule.label}</span>
+                    <span className="rules-modal-checkbox-help">{rule.explanation}</span>
                   </label>
                 ))}
               </div>
               <div className="rules-modal-group">
-                <div className="rules-modal-group-title">Warnings</div>
+                <div className="rules-modal-group-title">
+                  <i
+                    className="las la-exclamation-triangle"
+                    aria-hidden="true"
+                    data-severity="warn"
+                  />
+                  <span>Warnings</span>
+                </div>
                 {RULE_OPTIONS.filter((rule) => rule.severity === "warn").map((rule) => (
                   <label key={rule.type} className="rules-modal-checkbox">
                     <input
@@ -731,7 +802,8 @@ export default function App({
                       checked={enabledRuleTypes.has(rule.type)}
                       onChange={() => toggleRule(rule.type)}
                     />
-                    <span>{rule.label}</span>
+                    <span className="rules-modal-checkbox-label">{rule.label}</span>
+                    <span className="rules-modal-checkbox-help">{rule.explanation}</span>
                   </label>
                 ))}
               </div>

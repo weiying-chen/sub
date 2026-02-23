@@ -4,8 +4,7 @@ import { EditorView, keymap } from "@codemirror/view"
 import { Prec } from "@codemirror/state"
 import { insertTab } from "@codemirror/commands"
 
-import { analyzeTextByType } from "./analysis/analyzeTextByType"
-import { createSubsMetricsRules, createSubsSegmentRules } from "./analysis/subsSegmentRules"
+import { buildAnalysisOutput } from "./analysis/buildAnalysisOutput"
 import type { Metric, Finding } from "./analysis/types"
 
 import { getFindings } from "./shared/findings"
@@ -414,23 +413,25 @@ export default function App({
     })
   }, [suppressFindingMotionForRuleChange])
 
-  const rawRuleOutputs = useMemo<Metric[]>(() => {
-    const analysisEnabledRuleTypes = includeWarnings
+  const analysisEnabledRuleTypes = useMemo(() => {
+    return includeWarnings
       ? Array.from(enabledRuleTypes)
       : Array.from(enabledRuleTypes).filter(
           (type) => !WARNING_RULE_TYPES.includes(type)
         )
+  }, [enabledRuleTypes, includeWarnings])
 
-    return analyzeTextByType(
-      value,
-      "subs",
-      createSubsSegmentRules({
-        capitalizationTerms,
-        properNouns,
-        enabledFindingTypes: analysisEnabledRuleTypes,
-      })
-    )
-  }, [value, enabledRuleTypes, includeWarnings])
+  const rawRuleOutputs = useMemo<Metric[]>(() => {
+    return buildAnalysisOutput({
+      text: value,
+      type: "subs",
+      ruleSet: "findings",
+      output: "metrics",
+      enabledRuleTypes: analysisEnabledRuleTypes,
+      capitalizationTerms,
+      properNouns,
+    }) as Metric[]
+  }, [value, analysisEnabledRuleTypes])
 
   const findings = useMemo<Finding[]>(() => {
     return getFindings(rawRuleOutputs, { includeWarnings })
@@ -438,22 +439,16 @@ export default function App({
   const sortedFindings = useMemo(() => sortFindingsWithIndex(findings), [findings])
 
   const cpsMetrics = useMemo<Metric[]>(() => {
-    const analysisEnabledRuleTypes = includeWarnings
-      ? Array.from(enabledRuleTypes)
-      : Array.from(enabledRuleTypes).filter(
-          (type) => !WARNING_RULE_TYPES.includes(type)
-        )
-
-    return analyzeTextByType(
-      value,
-      "subs",
-      createSubsMetricsRules({
-        capitalizationTerms,
-        properNouns,
-        enabledFindingTypes: analysisEnabledRuleTypes,
-      })
-    )
-  }, [value, enabledRuleTypes, includeWarnings])
+    return buildAnalysisOutput({
+      text: value,
+      type: "subs",
+      ruleSet: "metrics",
+      output: "metrics",
+      enabledRuleTypes: analysisEnabledRuleTypes,
+      capitalizationTerms,
+      properNouns,
+    }) as Metric[]
+  }, [value, analysisEnabledRuleTypes])
 
   useEffect(() => {
     console.log("[analysis] cps metrics", cpsMetrics)

@@ -213,7 +213,8 @@ body {
 
 .sidebar-title {
   margin: 0;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .sidebar-empty {
@@ -354,6 +355,7 @@ body {
 .rules-modal-title {
   margin: 0;
   font-size: 16px;
+  font-weight: 600;
 }
 
 .rules-modal-actions {
@@ -380,7 +382,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 13px;
   margin-bottom: 6px;
 }
 

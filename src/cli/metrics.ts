@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 
 import { parseMetricsArgs } from './metricsArgs'
-import { buildMetricsOutput } from './metricsCore'
+import { buildMetricsOutput } from './metricsOutput'
 
 function printUsage() {
   console.error(

@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises"
 import path from "node:path"
 
 import type { Metric } from "../../src/analysis/types"
-import { buildMetricsOutput } from "../../src/cli/metricsCore"
+import { buildMetricsOutput } from "../../src/cli/metricsOutput"
 
 describe("metrics CLI integration fixtures", () => {
   it("treats empty lines as breaks between identical payloads", async () => {

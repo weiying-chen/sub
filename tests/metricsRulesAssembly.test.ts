@@ -15,9 +15,9 @@ vi.mock("../src/cli/properNouns", () => ({
   loadProperNouns: vi.fn(async () => ["Taipei"]),
 }))
 
-import { buildMetricsOutput } from "../src/cli/metricsCore"
+import { buildMetricsOutput } from "../src/cli/metricsOutput"
 
-describe("metricsCore rule assembly", () => {
+describe("metricsOutput rule assembly", () => {
   beforeEach(() => {
     mocks.createSubsFindingsRulesMock.mockClear()
     mocks.createSubsMetricsRulesMock.mockClear()

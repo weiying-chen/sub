@@ -5,7 +5,7 @@ import { buildMetricsOutput } from './metricsCore'
 
 function printUsage() {
   console.error(
-    'Usage: metrics <file>|--text/-t "..." [--type subs|news] [--rule NAME] [--findings] [--ignore-empty-lines]'
+    'Usage: metrics <file>|--text/-t "..." [--type subs|news] [--mode metrics|findings] [--rule NAME] [--ignore-empty-lines]'
   )
 }
 
@@ -21,6 +21,11 @@ function readStdin(): Promise<string> {
 }
 
 if (args.type !== 'subs' && args.type !== 'news') {
+  printUsage()
+  process.exit(1)
+}
+
+if (args.mode !== 'metrics' && args.mode !== 'findings') {
   printUsage()
   process.exit(1)
 }
@@ -48,8 +53,8 @@ if (!text.trim() && !args.filePath && !args.textArg) {
 
 const output = await buildMetricsOutput(text, {
   type: args.type,
+  mode: args.mode,
   ruleFilters: args.ruleFilters,
-  findingsOnly: args.findingsOnly,
   ignoreEmptyLines: args.ignoreEmptyLines,
 })
 

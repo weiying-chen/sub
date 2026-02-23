@@ -4,8 +4,8 @@ import { loadCapitalizationTerms, loadProperNouns } from './properNouns'
 
 export type MetricsOptions = {
   type: 'subs' | 'news'
+  mode?: 'metrics' | 'findings'
   ruleFilters?: string[]
-  findingsOnly?: boolean
   ignoreEmptyLines?: boolean
 }
 
@@ -19,12 +19,13 @@ export async function buildMetricsOutput(
       : undefined
   const capitalizationTerms = await loadCapitalizationTerms()
   const properNouns = options.type === 'subs' ? await loadProperNouns() : undefined
+  const mode = options.mode ?? 'metrics'
 
   return buildAnalysisOutput({
     text,
     type: options.type,
-    ruleSet: options.findingsOnly ? 'findings' : 'metrics',
-    output: options.findingsOnly ? 'findings' : 'metrics',
+    ruleSet: mode,
+    output: mode,
     enabledRuleTypes: enabledFindingTypes,
     capitalizationTerms: capitalizationTerms ?? undefined,
     properNouns: properNouns ?? undefined,

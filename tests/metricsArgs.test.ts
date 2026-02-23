@@ -11,4 +11,14 @@ describe("metrics CLI args", () => {
     const args = parseMetricsArgs(["-t", "Short line."])
     expect(args.textArg).toBe("Short line.")
   })
+
+  it("parses --mode findings", () => {
+    const args = parseMetricsArgs(["--mode", "findings", "-t", "x"])
+    expect(args.mode).toBe("findings")
+  })
+
+  it("defaults mode to metrics", () => {
+    const args = parseMetricsArgs(["-t", "x"])
+    expect(args.mode).toBe("metrics")
+  })
 })

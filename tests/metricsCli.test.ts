@@ -59,7 +59,7 @@ describe("metrics CLI output", () => {
     expect(output.map((metric) => metric.lineIndex)).toEqual([1, 3])
   })
 
-  it("returns findings only when requested", async () => {
+  it("returns findings in findings mode", async () => {
     const text = [
       "00:00:01:00\t00:00:03:00\tMarker",
       "Hi",
@@ -67,7 +67,7 @@ describe("metrics CLI output", () => {
 
     const output = (await buildMetricsOutput(text, {
       type: "subs",
-      findingsOnly: true,
+      mode: "findings",
     })) as Metric[]
 
     expect(output.some((metric) => metric.type === "CPS")).toBe(false)
@@ -84,7 +84,7 @@ describe("metrics CLI output", () => {
 
     const output = (await buildMetricsOutput(text, {
       type: "subs",
-      findingsOnly: true,
+      mode: "findings",
     })) as Metric[]
 
     expect(output.some((metric) => metric.type === "MERGE_CANDIDATE")).toBe(true)

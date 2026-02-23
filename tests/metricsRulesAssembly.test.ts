@@ -29,7 +29,7 @@ describe("metricsCore rule assembly", () => {
         "00:00:01:00\t00:00:02:00\tMarker",
         "Hello.",
       ].join("\n"),
-      { type: "subs", findingsOnly: true, ignoreEmptyLines: true }
+      { type: "subs", mode: "findings", ignoreEmptyLines: true }
     )
 
     expect(mocks.createSubsFindingsRulesMock).toHaveBeenCalled()

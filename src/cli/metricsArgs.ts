@@ -2,8 +2,8 @@ export type MetricsArgs = {
   filePath: string | null
   textArg: string
   type: 'subs' | 'news' | string
+  mode: 'metrics' | 'findings' | string
   ruleFilters: string[]
-  findingsOnly: boolean
   ignoreEmptyLines: boolean
   unknownFlags: string[]
 }
@@ -12,8 +12,8 @@ export function parseMetricsArgs(args: string[]): MetricsArgs {
   let filePath: string | null = null
   let textArg = ''
   let type: 'subs' | 'news' | string = 'subs'
+  let mode: 'metrics' | 'findings' | string = 'metrics'
   const ruleFilters: string[] = []
-  let findingsOnly = false
   let ignoreEmptyLines = false
   const unknownFlags: string[] = []
 
@@ -28,6 +28,17 @@ export function parseMetricsArgs(args: string[]): MetricsArgs {
 
     if (arg.startsWith('--type=')) {
       type = arg.slice('--type='.length) as 'subs' | 'news'
+      continue
+    }
+
+    if (arg === '--mode' && i + 1 < args.length) {
+      mode = args[i + 1] as 'metrics' | 'findings'
+      i += 1
+      continue
+    }
+
+    if (arg.startsWith('--mode=')) {
+      mode = arg.slice('--mode='.length) as 'metrics' | 'findings'
       continue
     }
 
@@ -53,11 +64,6 @@ export function parseMetricsArgs(args: string[]): MetricsArgs {
       continue
     }
 
-    if (arg === '--findings') {
-      findingsOnly = true
-      continue
-    }
-
     if (arg === '--ignore-empty-lines') {
       ignoreEmptyLines = true
       continue
@@ -78,8 +84,8 @@ export function parseMetricsArgs(args: string[]): MetricsArgs {
     filePath,
     textArg,
     type,
+    mode,
     ruleFilters,
-    findingsOnly,
     ignoreEmptyLines,
     unknownFlags,
   }

@@ -5,7 +5,7 @@ import { Prec } from "@codemirror/state"
 import { insertTab } from "@codemirror/commands"
 
 import { analyzeTextByType } from "./analysis/analyzeTextByType"
-import { createSubsSegmentRules } from "./analysis/subsSegmentRules"
+import { createSubsMetricsRules, createSubsSegmentRules } from "./analysis/subsSegmentRules"
 import type { Metric, Finding } from "./analysis/types"
 
 import { getFindings } from "./shared/findings"
@@ -414,7 +414,7 @@ export default function App({
     })
   }, [suppressFindingMotionForRuleChange])
 
-  const metrics = useMemo<Metric[]>(() => {
+  const rawRuleOutputs = useMemo<Metric[]>(() => {
     const analysisEnabledRuleTypes = includeWarnings
       ? Array.from(enabledRuleTypes)
       : Array.from(enabledRuleTypes).filter(
@@ -433,9 +433,31 @@ export default function App({
   }, [value, enabledRuleTypes, includeWarnings])
 
   const findings = useMemo<Finding[]>(() => {
-    return getFindings(metrics, { includeWarnings })
-  }, [metrics, includeWarnings])
+    return getFindings(rawRuleOutputs, { includeWarnings })
+  }, [rawRuleOutputs, includeWarnings])
   const sortedFindings = useMemo(() => sortFindingsWithIndex(findings), [findings])
+
+  const cpsMetrics = useMemo<Metric[]>(() => {
+    const analysisEnabledRuleTypes = includeWarnings
+      ? Array.from(enabledRuleTypes)
+      : Array.from(enabledRuleTypes).filter(
+          (type) => !WARNING_RULE_TYPES.includes(type)
+        )
+
+    return analyzeTextByType(
+      value,
+      "subs",
+      createSubsMetricsRules({
+        capitalizationTerms,
+        properNouns,
+        enabledFindingTypes: analysisEnabledRuleTypes,
+      })
+    )
+  }, [value, enabledRuleTypes, includeWarnings])
+
+  useEffect(() => {
+    console.log("[analysis] cps metrics", cpsMetrics)
+  }, [cpsMetrics])
 
   useEffect(() => {
     if (sortedFindings.length === 0) {

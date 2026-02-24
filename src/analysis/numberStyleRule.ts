@@ -132,6 +132,11 @@ function isPercentToken(text: string, index: number, length: number) {
   return /^\s*(%|percent\b)/i.test(tail)
 }
 
+function isMeasurementUnitToken(text: string, index: number, length: number) {
+  const tail = text.slice(index + length)
+  return /^\s*kg\b/i.test(tail)
+}
+
 function isCurrencyToken(text: string, index: number) {
   const prefix = text.slice(0, index)
   const window = prefix.slice(Math.max(0, prefix.length - 12))
@@ -266,6 +271,7 @@ function collectMetrics(
     if (isTimeToken(text, match.index, rawToken.length)) continue
     if (isAgeAdjective(text, match.index, rawToken.length)) continue
     if (isPercentToken(text, match.index, rawToken.length)) continue
+    if (isMeasurementUnitToken(text, match.index, rawToken.length)) continue
     if (isCurrencyToken(text, match.index)) continue
 
     const sentenceStart = isSentenceStart(
@@ -295,6 +301,7 @@ function collectMetrics(
     const value = parseNumberWords(parts)
     if (value == null || value <= 10) continue
     if (isAgeAdjective(text, match.index, match[0].length)) continue
+    if (isMeasurementUnitToken(text, match.index, match[0].length)) continue
 
     if (isSentenceStart(text, match.index, allowLeadingDoubleQuote)) continue
 

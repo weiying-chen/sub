@@ -85,6 +85,20 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores measurement abbreviations like kg", () => {
+    const segments = [
+      { lineIndex: 0, text: "Each blanket weighed nearly 5 kg." },
+      { lineIndex: 1, text: "The load was 12 kg total." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, text: segment.text }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    expect(findings).toHaveLength(0)
+  })
+
   it("flags sentence-start digits across line-start wrappers", () => {
     const segments = [
       { lineIndex: 0, text: "20 birds arrived." },

@@ -372,13 +372,18 @@ body {
   gap: 12px;
 }
 
+.rules-modal-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .rules-modal-group-title {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 12px;
   color: var(--muted);
-  margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -398,7 +403,6 @@ body {
   row-gap: 1px;
   align-items: start;
   font-size: 13px;
-  margin-bottom: 6px;
 }
 
 .rules-modal-checkbox i[data-severity="error"] {

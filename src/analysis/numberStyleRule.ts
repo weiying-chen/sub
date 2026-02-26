@@ -132,6 +132,11 @@ function isPercentToken(text: string, index: number, length: number) {
   return /^\s*(%|percent\b)/i.test(tail)
 }
 
+function isAmPmToken(text: string, index: number, length: number) {
+  const tail = text.slice(index + length)
+  return /^\s*(?:a\.m\.(?!\w)|p\.m\.(?!\w)|am\b|pm\b)/i.test(tail)
+}
+
 function isMeasurementUnitToken(text: string, index: number, length: number) {
   const tail = text.slice(index + length)
   return /^\s*kg\b/i.test(tail)
@@ -269,6 +274,7 @@ function collectMetrics(
     const value = Number.parseInt(normalized, 10)
     if (!Number.isFinite(value)) continue
     if (isTimeToken(text, match.index, rawToken.length)) continue
+    if (isAmPmToken(text, match.index, rawToken.length)) continue
     if (isAgeAdjective(text, match.index, rawToken.length)) continue
     if (isPercentToken(text, match.index, rawToken.length)) continue
     if (isMeasurementUnitToken(text, match.index, rawToken.length)) continue
@@ -300,6 +306,7 @@ function collectMetrics(
     if (isPrecededByDigitToken(text, match.index)) continue
     const value = parseNumberWords(parts)
     if (value == null || value <= 10) continue
+    if (isAmPmToken(text, match.index, match[0].length)) continue
     if (isAgeAdjective(text, match.index, match[0].length)) continue
     if (isMeasurementUnitToken(text, match.index, match[0].length)) continue
 

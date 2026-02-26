@@ -99,6 +99,21 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores AM/PM time notation", () => {
+    const segments = [
+      { lineIndex: 0, text: "The meeting starts at 3 PM." },
+      { lineIndex: 1, text: "Please arrive by 10 a.m." },
+      { lineIndex: 2, text: "The event ends at 11 PM." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, text: segment.text }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    expect(findings).toHaveLength(0)
+  })
+
   it("flags sentence-start digits across line-start wrappers", () => {
     const segments = [
       { lineIndex: 0, text: "20 birds arrived." },

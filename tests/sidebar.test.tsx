@@ -227,7 +227,9 @@ describe("Sidebar", () => {
     expect(ui.getByRole("button", { name: "All" })).toBeInTheDocument()
     expect(ui.getByRole("button", { name: "None" })).toBeInTheDocument()
     expect(ui.getByRole("button", { name: "Defaults" })).toBeInTheDocument()
-    expect(ui.getByRole("checkbox", { name: "Reading speed is too high" })).toBeInTheDocument()
+    expect(
+      ui.getByRole("checkbox", { name: /Reading speed is too high/i })
+    ).toBeInTheDocument()
 
     fireEvent.click(ui.getByRole("button", { name: "Close rules modal" }))
 
@@ -247,7 +249,7 @@ describe("Sidebar", () => {
     expect(countFindingRowsWithText("Reading speed is too high")).toBeGreaterThan(0)
 
     fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
-    fireEvent.click(ui.getByRole("checkbox", { name: "Reading speed is too high" }))
+    fireEvent.click(ui.getByRole("checkbox", { name: /Reading speed is too high/i }))
 
     await waitFor(() => {
       expect(countFindingRowsWithText("Reading speed is too high")).toBe(0)

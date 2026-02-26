@@ -5,7 +5,6 @@ import { TSV_RE } from '../shared/subtitles'
 import {
   type LineSource,
   type ParseBlockOptions,
-  hasEmptyLineBetween,
   parseBlockAt,
 } from '../shared/tsvRuns'
 import type { SegmentCtx, SegmentRule } from './segments'
@@ -160,6 +159,17 @@ function collectCues(
   return cues
 }
 
+function hasInterveningNonEmptyLine(
+  src: LineSource,
+  startIndex: number,
+  endIndex: number
+): boolean {
+  for (let i = startIndex + 1; i < endIndex; i += 1) {
+    if (src.getLine(i).trim() !== '') return true
+  }
+  return false
+}
+
 function cueTimestamp(cue: Cue): string {
   return `${cue.start} -> ${cue.end}`
 }
@@ -201,7 +211,6 @@ function collectMetrics(
   const cues = collectCues(src, options)
   const quoteTracker = createDoubleQuoteSpanTracker()
   const quoteStateByCue = cues.map((cue) => quoteTracker.inspect(cue.text))
-  const ignoreEmptyLines = options.ignoreEmptyLines ?? false
   const metrics: PunctuationMetric[] = []
 
   const reportedRule5 = new Set<string>()
@@ -245,10 +254,7 @@ function collectMetrics(
     const prev = cues[j]
     const next = cues[j + 1]
     if (next.text === prev.text) continue
-    if (
-      !ignoreEmptyLines &&
-      hasEmptyLineBetween(src, prev.payloadIndex, next.tsIndex)
-    ) {
+    if (hasInterveningNonEmptyLine(src, prev.payloadIndex, next.tsIndex)) {
       continue
     }
 

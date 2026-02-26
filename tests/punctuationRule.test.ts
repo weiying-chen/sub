@@ -102,7 +102,7 @@ describe("punctuationRule", () => {
     expect(findings).toHaveLength(0)
   })
 
-  it("skips cross-cue checks when empty lines separate cues", () => {
+  it("checks across empty lines between cues", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "Hello.",
@@ -121,27 +121,30 @@ describe("punctuationRule", () => {
     const metrics = analyzeLines(text, [punctuationRule()])
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
-    expect(findings).toHaveLength(0)
+    expect(
+      findings.some((f) => f.ruleCode === "LOWERCASE_AFTER_PERIOD")
+    ).toBe(true)
+    expect(
+      findings.some((f) => f.ruleCode === "MISSING_COLON_BEFORE_QUOTE")
+    ).toBe(true)
   })
 
-  it("opts into cross-cue checks across empty lines", () => {
+  it("does not compare across non-empty metadata lines between cues", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "Hello",
-      "",
+      "https://example.com/source",
       "00:00:02:00\t00:00:03:00\tMarker",
       "Next Starts Capital.",
       "",
     ].join("\n")
 
-    const metrics = analyzeLines(text, [
-      punctuationRule({ ignoreEmptyLines: true }),
-    ])
+    const metrics = analyzeLines(text, [punctuationRule()])
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
     expect(
       findings.some((f) => f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL")
-    ).toBe(true)
+    ).toBe(false)
   })
 
   it("flags dangling closing quote", () => {

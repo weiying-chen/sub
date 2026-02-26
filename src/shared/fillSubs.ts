@@ -82,6 +82,23 @@ function isNoSplitAbbrevEnding(text: string, matcher: RegExp | null): boolean {
   return matcher.test(text)
 }
 
+function isMeridiemInnerSplit(left: string, right: string): boolean {
+  return /(?:^|\s)[ap]\.$/i.test(left) && /^m\.(?:\s|$)/i.test(right)
+}
+
+function isMeridiemTimeSplit(left: string, right: string): boolean {
+  return /\b\d(?::\d{2})?\s*$/i.test(left) &&
+    /^(?:a\.m\.(?:\s|$)|p\.m\.(?:\s|$)|am\b|pm\b)/i.test(right)
+}
+
+function startsWithMeridiemTimePhrase(text: string): boolean {
+  return /^\d(?::\d{2})?\s+(?:a\.m\.(?:\s|$)|p\.m\.(?:\s|$)|am\b|pm\b)/i.test(text)
+}
+
+function endsWithMeridiemAbbrev(text: string): boolean {
+  return /(?:^|\s)(?:a\.m\.|p\.m\.|am|pm)$/i.test(text.trimEnd())
+}
+
 export function normalizeParagraph(text: string): string {
   return text
     .replace(/\u2014/g, '---')
@@ -174,6 +191,7 @@ function findRightmostStrongPunct(
     const right = window.slice(cut).trimStart()
     if (!left || !right) continue
     if (ch === '.' && isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher)) continue
+    if (ch === '.' && isMeridiemInnerSplit(left, right)) continue
     if (isToVerbSplit(left, right)) continue
     return cut
   }
@@ -487,6 +505,8 @@ function findRightmostSpace(window: string, nextText: string): number {
     const right = (window.slice(cut) + nextText).trimStart()
     if (!left || !right) continue
     if (isToVerbSplit(left, right)) continue
+    if (isMeridiemTimeSplit(left, right)) continue
+    if (startsWithMeridiemTimePhrase(right)) continue
     if (/\bto$/i.test(left) && DET_RE.test(right)) continue
     return cut
   }
@@ -515,6 +535,7 @@ function findSentenceBoundaryCut(
     const right = (window.slice(cut) + nextText).trimStart()
     if (!left || !right) continue
     if (ch === '.' && isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher)) continue
+    if (ch === '.' && isMeridiemInnerSplit(left, right)) continue
     if ((ch === '?' || ch === '!') && isDialogueTagStart(right)) {
       let hasLaterBoundary = false
       for (let j = i + 1; j < window.length; j++) {
@@ -1009,6 +1030,7 @@ function adjustSplitForNoSplitAbbrev(
     return { line, rest }
   }
   if (!/^[A-Za-z]/.test(trimmedRest)) return { line, rest }
+  if (endsWithMeridiemAbbrev(trimmedLine)) return { line, rest }
 
   const lastSpace = trimmedLine.lastIndexOf(' ')
   if (lastSpace > 0) {
@@ -1041,6 +1063,17 @@ function mergeNoSplitPhrases(
 
   const endsWithSentence =
     /[.!?]["']?\s*$/.test(trimmedLine) || /[.!?]["']?\s*$/.test(line)
+
+  if (/\b\d(?::\d{2})?$/i.test(trimmedLine)) {
+    const meridiemMatch = trimmedRest.match(
+      /^(?:a\.m\.(?:\s|$)|p\.m\.(?:\s|$)|am\b|pm\b)/i
+    )
+    if (meridiemMatch) {
+      const token = meridiemMatch[0]
+      const nextRest = trimmedRest.slice(token.length).trimStart()
+      return { line: appendToken(trimmedLine, token), rest: nextRest }
+    }
+  }
 
   const thatMatch = trimmedRest.match(/^that(?:'s)?\b/i)
   if (thatMatch && !endsWithSentence && !canSplitBeforeThat(trimmedLine)) {

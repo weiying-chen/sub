@@ -61,6 +61,58 @@ describe("punctuationRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("flags across blank separators between cues", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "continues here",
+      "",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "Next Sentence Starts.",
+      "",
+    ].join("\n")
+
+    const segments = parseSubs(text)
+    const metrics = analyzeSegments(segments, [punctuationRule()], {
+      lines: text.split("\n"),
+      sourceText: text,
+    })
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL" &&
+          f.text === "continues here"
+      )
+    ).toBe(true)
+  })
+
+  it("does not compare across non-empty metadata lines between cues", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "continues here",
+      "https://example.com/source",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "Next Sentence Starts.",
+      "",
+    ].join("\n")
+
+    const segments = parseSubs(text)
+    const metrics = analyzeSegments(segments, [punctuationRule()], {
+      lines: text.split("\n"),
+      sourceText: text,
+    })
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL" &&
+          f.text === "continues here"
+      )
+    ).toBe(false)
+  })
+
   it("flags dangling closing quote", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

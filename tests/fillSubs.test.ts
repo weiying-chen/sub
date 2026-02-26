@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest"
 import { __testTakeLine, fillSelectedTimestampLines } from "../src/shared/fillSubs"
 
-const NO_SPLIT_ABBREVIATIONS = ["Mr.", "Mrs.", "Ms.", "Dr.", "U.S."]
+const NO_SPLIT_ABBREVIATIONS = ["Mr.", "Mrs.", "Ms.", "Dr.", "U.S.", "a.m.", "p.m."]
 
 describe("fillSelectedTimestampLines", () => {
   it("fills selected timestamps and returns leftover", () => {
@@ -1162,6 +1162,46 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(payloads).not.toContain("U.")
   expect(payloads.some((line) => line.includes("U.S."))).toBe(true)
+  })
+
+  it("keeps p.m. together when split after p.", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "We met at 3 p.m. today.",
+    { maxChars: 12, inline: true, noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS }
+  )
+  const payloads = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(payloads).not.toContain("p.")
+  expect(payloads.some((line) => line.includes("p.m."))).toBe(true)
+  })
+
+  it("keeps time with meridiem together", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "We met at 3 p.m. today.",
+    { maxChars: 12, inline: true, noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS }
+  )
+  const payloads = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(payloads.some((line) => line.includes("3 p.m."))).toBe(true)
+  expect(payloads).not.toContain("3")
   })
 
   it("avoids splitting numeric comma groups", () => {

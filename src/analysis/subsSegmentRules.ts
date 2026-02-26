@@ -16,6 +16,7 @@ import type { Metric } from "./types"
 export type CreateSubsSegmentRulesOptions = {
   capitalizationTerms?: string[]
   properNouns?: string[]
+  abbreviations?: string[]
   baselineText?: string
   ignoreEmptyLines?: boolean
   enabledFindingTypes?: Iterable<Metric["type"]>
@@ -66,6 +67,7 @@ function createSubsCommonRules(
     rules.push(
       punctuationRule({
         properNouns: options.properNouns,
+        abbreviations: options.abbreviations,
         ignoreEmptyLines: options.ignoreEmptyLines,
       })
     )

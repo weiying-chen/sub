@@ -1,6 +1,10 @@
 import { buildAnalysisOutput } from '../analysis/buildAnalysisOutput'
 import type { Metric, Finding } from '../analysis/types'
-import { loadCapitalizationTerms, loadProperNouns } from './properNouns'
+import {
+  loadAbbreviations,
+  loadCapitalizationTerms,
+  loadProperNouns,
+} from './properNouns'
 
 export type MetricsOptions = {
   type: 'subs' | 'news'
@@ -19,6 +23,7 @@ export async function buildMetricsOutput(
       : undefined
   const capitalizationTerms = await loadCapitalizationTerms()
   const properNouns = options.type === 'subs' ? await loadProperNouns() : undefined
+  const abbreviations = options.type === 'subs' ? await loadAbbreviations() : undefined
   const mode = options.mode ?? 'metrics'
 
   return buildAnalysisOutput({
@@ -29,6 +34,7 @@ export async function buildMetricsOutput(
     enabledRuleTypes: enabledFindingTypes,
     capitalizationTerms: capitalizationTerms ?? undefined,
     properNouns: properNouns ?? undefined,
+    abbreviations: abbreviations ?? undefined,
     ignoreEmptyLines: options.ignoreEmptyLines,
   })
 }

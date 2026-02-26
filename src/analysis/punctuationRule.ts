@@ -28,6 +28,7 @@ type Cue = {
 
 type PunctuationRuleOptions = {
   properNouns?: string[]
+  abbreviations?: string[]
   ignoreEmptyLines?: boolean
 }
 
@@ -190,6 +191,7 @@ type PunctuationRule = Rule & SegmentRule
 function collectMetrics(
   lines: string[],
   properNounMatchers: RegExp[],
+  abbreviationMatchers: RegExp[],
   options: ParseBlockOptions = {}
 ): PunctuationMetric[] {
   const src: LineSource = {
@@ -279,6 +281,7 @@ function collectMetrics(
       !nextQuoteStart &&
       !startsWithIPronoun(next.text) &&
       !startsWithAcronym(next.text) &&
+      !startsWithProperNoun(next.text, abbreviationMatchers) &&
       !startsWithProperNoun(next.text, properNounMatchers) &&
       case1 === 'upper'
     ) {
@@ -328,14 +331,22 @@ export function punctuationRule(
   const properNounMatchers = buildProperNounMatchers(
     options.properNouns ?? []
   )
+  const abbreviationMatchers = buildProperNounMatchers(
+    options.abbreviations ?? []
+  )
   return ((ctx: RuleCtx | SegmentCtx) => {
     if ('segment' in ctx) {
       if (ctx.segmentIndex !== 0) return []
       if (!ctx.lines) return []
-      return collectMetrics(ctx.lines, properNounMatchers, options)
+      return collectMetrics(
+        ctx.lines,
+        properNounMatchers,
+        abbreviationMatchers,
+        options
+      )
     }
 
     if (ctx.lineIndex !== 0) return []
-    return collectMetrics(ctx.lines, properNounMatchers, options)
+    return collectMetrics(ctx.lines, properNounMatchers, abbreviationMatchers, options)
   }) as PunctuationRule
 }

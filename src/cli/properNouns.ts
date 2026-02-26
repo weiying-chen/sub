@@ -3,6 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const PROPER_NOUNS_FILE = 'punctuation-proper-nouns.txt'
+const ABBREVIATIONS_FILE = 'punctuation-abbreviations.txt'
 const CAPITALIZATION_TERMS_FILE = 'capitalization-terms.txt'
 
 async function pathExists(candidate: string): Promise<boolean> {
@@ -48,6 +49,10 @@ async function loadTextList(filename: string): Promise<string[] | null> {
 
 export async function loadProperNouns(): Promise<string[] | null> {
   return loadTextList(PROPER_NOUNS_FILE)
+}
+
+export async function loadAbbreviations(): Promise<string[] | null> {
+  return loadTextList(ABBREVIATIONS_FILE)
 }
 
 export async function loadCapitalizationTerms(): Promise<string[] | null> {

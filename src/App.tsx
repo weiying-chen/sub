@@ -26,6 +26,7 @@ import { mergeForward, mergedRunPayloadIndices, parseBlockAt, type LineSource } 
 
 import { sampleSubtitles } from "./fixtures/subtitles"
 import capitalizationTermsText from "../capitalization-terms.txt?raw"
+import punctuationAbbreviationsText from "../punctuation-abbreviations.txt?raw"
 import properNounsText from "../punctuation-proper-nouns.txt?raw"
 
 const RULES_MODAL_ANIMATION_MS = 170
@@ -144,6 +145,7 @@ function parseTextList(raw: string): string[] {
 }
 
 const capitalizationTerms = parseTextList(capitalizationTermsText)
+const punctuationAbbreviations = parseTextList(punctuationAbbreviationsText)
 const properNouns = parseTextList(properNounsText)
 
 type ScrollSnapshot = {
@@ -486,6 +488,7 @@ export default function App({
       enabledRuleTypes: analysisEnabledRuleTypes,
       capitalizationTerms,
       properNouns,
+      abbreviations: punctuationAbbreviations,
     }) as Metric[]
   }, [value, analysisEnabledRuleTypes])
 
@@ -503,6 +506,7 @@ export default function App({
       enabledRuleTypes: analysisEnabledRuleTypes,
       capitalizationTerms,
       properNouns,
+      abbreviations: punctuationAbbreviations,
     }) as Metric[]
   }, [value, analysisEnabledRuleTypes])
 

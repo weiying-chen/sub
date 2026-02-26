@@ -3,6 +3,16 @@ import {
   fillSelectedTimestampLines,
   type FillSubsOptions,
 } from '../shared/fillSubs'
+import abbreviationsText from '../../punctuation-abbreviations.txt?raw'
+
+function parseTextList(raw: string): string[] {
+  return raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line !== '' && !line.startsWith('#'))
+}
+
+const noSplitAbbreviations = parseTextList(abbreviationsText)
 
 function getSelectedLineIndices(view: EditorView): Set<number> {
   const { doc, selection } = view.state
@@ -34,7 +44,10 @@ export function fillSelectedTimestampSubs(
     lines,
     selectedLineIndices,
     paragraph,
-    options
+    {
+      ...options,
+      noSplitAbbreviations: options?.noSplitAbbreviations ?? noSplitAbbreviations,
+    }
   )
   if (typeof result.chosenCps === 'number') {
     console.log('[fillSubs] chosenCps', result.chosenCps.toFixed(2))

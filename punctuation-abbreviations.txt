@@ -1,0 +1,6 @@
+# Abbreviations with periods that should not be treated as split points.
+Mr.
+Mrs.
+Ms.
+Dr.
+U.S.

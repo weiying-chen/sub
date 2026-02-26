@@ -17,12 +17,21 @@ export type BuildAnalysisOutputOptions = {
   enabledRuleTypes?: Metric['type'][]
   capitalizationTerms?: string[]
   properNouns?: string[]
+  abbreviations?: string[]
   ignoreEmptyLines?: boolean
   includeWarnings?: boolean
 }
 
 function buildRules(options: BuildAnalysisOutputOptions) {
-  const { type, ruleSet, enabledRuleTypes, capitalizationTerms, properNouns, ignoreEmptyLines } =
+  const {
+    type,
+    ruleSet,
+    enabledRuleTypes,
+    capitalizationTerms,
+    properNouns,
+    abbreviations,
+    ignoreEmptyLines,
+  } =
     options
 
   if (type === 'news') {
@@ -44,6 +53,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
   return assembly({
     capitalizationTerms,
     properNouns,
+    abbreviations,
     ignoreEmptyLines,
     enabledFindingTypes: enabledRuleTypes,
   })

@@ -13,6 +13,7 @@ vi.mock("../src/analysis/subsSegmentRules", () => ({
 vi.mock("../src/cli/properNouns", () => ({
   loadCapitalizationTerms: vi.fn(async () => ["OpenAI"]),
   loadProperNouns: vi.fn(async () => ["Taipei"]),
+  loadAbbreviations: vi.fn(async () => ["Mr.", "U.S."]),
 }))
 
 import { buildMetricsOutput } from "../src/cli/metricsOutput"
@@ -36,6 +37,7 @@ describe("metricsOutput rule assembly", () => {
     expect(mocks.createSubsFindingsRulesMock).toHaveBeenCalledWith({
       capitalizationTerms: ["OpenAI"],
       properNouns: ["Taipei"],
+      abbreviations: ["Mr.", "U.S."],
       ignoreEmptyLines: true,
     })
     expect(mocks.createSubsMetricsRulesMock).not.toHaveBeenCalled()
@@ -53,6 +55,7 @@ describe("metricsOutput rule assembly", () => {
     expect(mocks.createSubsMetricsRulesMock).toHaveBeenCalledWith({
       capitalizationTerms: ["OpenAI"],
       properNouns: ["Taipei"],
+      abbreviations: ["Mr.", "U.S."],
       ignoreEmptyLines: undefined,
       enabledFindingTypes: ["MAX_CPS"],
     })

@@ -24,6 +24,8 @@ const MIN_TARGET_CPS = 10
 const MAX_SPAN_PER_LINE = 3
 const MIN_COMMA_SPLIT_CHARS = 12
 const MIN_COMMA_SPLIT_WORDS = 2
+const MIN_CLAUSE_START_SPLIT_CHARS = 12
+const MIN_CLAUSE_START_SPLIT_WORDS = 2
 const MIN_WITH_SPLIT_LEFT_CHARS = 12
 const MIN_WITH_SPLIT_LEFT_WORDS = 2
 
@@ -587,6 +589,10 @@ function findRightmostClauseStarterLead(window: string, nextText: string): numbe
 
     const left = window.slice(0, start).trimEnd()
     if (!left) continue
+    if (left.length < MIN_CLAUSE_START_SPLIT_CHARS) continue
+    if (left.split(/\s+/).filter(Boolean).length < MIN_CLAUSE_START_SPLIT_WORDS) {
+      continue
+    }
     const right = (window.slice(start) + nextText).trimStart()
     if (!right) continue
     if (!CLAUSE_STARTER_RE.test(right)) continue

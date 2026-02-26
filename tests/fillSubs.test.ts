@@ -409,6 +409,19 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("does not split before clause starters when the left side is too short", () => {
+  const split = __testTakeLine(
+    "That's when I finally understood what real happiness feels.",
+    54,
+    null,
+    false,
+    { allowHeuristicSplitsWhenFits: true }
+  )
+
+  expect(split.line).not.toBe("That's")
+  expect(split.rest.startsWith("when ")).toBe(false)
+  })
+
   it("keeps 'like that' together", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

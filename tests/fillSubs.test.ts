@@ -422,6 +422,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.startsWith("when ")).toBe(false)
   })
 
+  it("does not leave pronoun contractions stranded at line end", () => {
+  const split = __testTakeLine(
+    "It was the best piece of clothing he'd ever owned.",
+    42,
+    null,
+    false
+  )
+
+  expect(split.line.endsWith("he'd")).toBe(false)
+  expect(split.line.includes("he'd ever")).toBe(true)
+  })
+
   it("keeps 'like that' together", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

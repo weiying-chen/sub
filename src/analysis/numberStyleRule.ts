@@ -178,6 +178,11 @@ function isPrecededByDigitToken(text: string, index: number) {
   return sawDigit
 }
 
+function isApproximateQuantityPhrase(text: string, index: number) {
+  const prefix = text.slice(0, index).toLowerCase()
+  return /(?:\ba\s+few|\bfew|\bseveral)\s+$/.test(prefix)
+}
+
 function parseNumberWords(words: string[]): number | null {
   let total = 0
   let current = 0
@@ -304,6 +309,7 @@ function collectMetrics(
     const parts = match[0].split(/[\s-]+/).filter(Boolean)
     if (isHyphenatedDigitSequence(match[0], parts)) continue
     if (isPrecededByDigitToken(text, match.index)) continue
+    if (isApproximateQuantityPhrase(text, match.index)) continue
     const value = parseNumberWords(parts)
     if (value == null || value <= 10) continue
     if (isAmPmToken(text, match.index, match[0].length)) continue

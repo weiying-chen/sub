@@ -101,6 +101,12 @@ function endsWithMeridiemAbbrev(text: string): boolean {
   return /(?:^|\s)(?:a\.m\.|p\.m\.|am|pm)$/i.test(text.trimEnd())
 }
 
+function endsWithPronounContraction(text: string): boolean {
+  return /(?:^|\s)(?:i|you|we|they|he|she|it|that|there|what|who|where|when|why|how)'(?:d|ll|m|re|ve|s)$/i.test(
+    text.trimEnd()
+  )
+}
+
 export function normalizeParagraph(text: string): string {
   return text
     .replace(/\u2014/g, '---')
@@ -465,6 +471,12 @@ function startsWithCopularClause(text: string): boolean {
   const trimmed = text.trimStart()
   if (!trimmed) return false
   return COPULAR_CLAUSE_START_RE.test(trimmed) || CLAUSE_START_RE.test(trimmed)
+}
+
+function endsWithClauseStarter(text: string): boolean {
+  return /\b(?:because|since|as|although|though|while|if|when)$/i.test(
+    text.trimEnd()
+  )
 }
 
 function findRightmostCopularLead(window: string, nextText: string): number {
@@ -1070,6 +1082,15 @@ function mergeNoSplitPhrases(
   const endsWithSentence =
     /[.!?]["']?\s*$/.test(trimmedLine) || /[.!?]["']?\s*$/.test(line)
 
+  if (endsWithPronounContraction(trimmedLine)) {
+    const wordMatch = trimmedRest.match(/^[^\s]+/)
+    if (wordMatch) {
+      const token = wordMatch[0]
+      const nextRest = trimmedRest.slice(token.length).trimStart()
+      return { line: appendToken(trimmedLine, token), rest: nextRest }
+    }
+  }
+
   if (/\b\d(?::\d{2})?$/i.test(trimmedLine)) {
     const meridiemMatch = trimmedRest.match(
       /^(?:a\.m\.(?:\s|$)|p\.m\.(?:\s|$)|am\b|pm\b)/i
@@ -1082,7 +1103,12 @@ function mergeNoSplitPhrases(
   }
 
   const thatMatch = trimmedRest.match(/^that(?:'s)?\b/i)
-  if (thatMatch && !endsWithSentence && !canSplitBeforeThat(trimmedLine)) {
+  if (
+    thatMatch &&
+    !endsWithSentence &&
+    !endsWithClauseStarter(trimmedLine) &&
+    !canSplitBeforeThat(trimmedLine)
+  ) {
     const token = thatMatch[0]
     const nextRest = trimmedRest.slice(token.length).trimStart()
     return { line: appendToken(trimmedLine, token), rest: nextRest }

@@ -411,7 +411,7 @@ describe("fillSelectedTimestampLines", () => {
 
   it("does not split before clause starters when the left side is too short", () => {
   const split = __testTakeLine(
-    "That's when I finally understood what real happiness feels.",
+    "That's when I finally understood how the system worked.",
     54,
     null,
     false,
@@ -424,7 +424,7 @@ describe("fillSelectedTimestampLines", () => {
 
   it("does not leave pronoun contractions stranded at line end", () => {
   const split = __testTakeLine(
-    "It was the best piece of clothing he'd ever owned.",
+    "It was the strangest result he'd ever seen.",
     42,
     null,
     false

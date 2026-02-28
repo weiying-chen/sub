@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import { readFile } from 'node:fs/promises'
 
-import { parseSegmentsArgs } from './segmentsArgs'
-import { buildSegmentsOutput } from './segmentsOutput'
+import { parseInspectArgs } from './inspectArgs'
+import { buildInspectOutput } from './inspectOutput'
 
 function printUsage() {
   console.error(
-    'Usage: segments <file>|--text/-t "..." [--type subs|news] [--segment N] [--ignore-empty-lines] [--compact]'
+    'Usage: inspect <file>|--text/-t "..." [--type subs|news] [--segment N] [--ignore-empty-lines] [--compact]'
   )
 }
 
@@ -19,7 +19,7 @@ function readStdin(): Promise<string> {
   })
 }
 
-const args = parseSegmentsArgs(process.argv.slice(2))
+const args = parseInspectArgs(process.argv.slice(2))
 
 if (args.type !== 'subs' && args.type !== 'news') {
   printUsage()
@@ -47,7 +47,7 @@ if (!text.trim() && !args.filePath && !args.textArg) {
   process.exit(1)
 }
 
-const output = buildSegmentsOutput(text, {
+const output = buildInspectOutput(text, {
   type: args.type,
   segmentIndex: args.segmentIndex,
   ignoreEmptyLines: args.ignoreEmptyLines,

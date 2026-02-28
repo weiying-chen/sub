@@ -6,16 +6,16 @@ import {
   loadProperNouns,
 } from './properNouns'
 
-export type MetricsOptions = {
+export type AnalyzeOptions = {
   type: 'subs' | 'news'
   mode?: 'metrics' | 'findings'
   ruleFilters?: string[]
   ignoreEmptyLines?: boolean
 }
 
-export async function buildMetricsOutput(
+export async function buildAnalyzeOutput(
   text: string,
-  options: MetricsOptions
+  options: AnalyzeOptions
 ): Promise<Metric[] | Finding[]> {
   const enabledFindingTypes =
     (options.ruleFilters?.length ?? 0) > 0

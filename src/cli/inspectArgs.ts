@@ -1,19 +1,19 @@
-export type MetricsArgs = {
+export type InspectArgs = {
   filePath: string | null
   textArg: string
   type: 'subs' | 'news' | string
-  mode: 'metrics' | 'findings' | string
-  ruleFilters: string[]
+  segmentIndex: number | null
+  compact: boolean
   ignoreEmptyLines: boolean
   unknownFlags: string[]
 }
 
-export function parseMetricsArgs(args: string[]): MetricsArgs {
+export function parseInspectArgs(args: string[]): InspectArgs {
   let filePath: string | null = null
   let textArg = ''
   let type: 'subs' | 'news' | string = 'subs'
-  let mode: 'metrics' | 'findings' | string = 'metrics'
-  const ruleFilters: string[] = []
+  let segmentIndex: number | null = null
+  let compact = false
   let ignoreEmptyLines = false
   const unknownFlags: string[] = []
 
@@ -31,17 +31,6 @@ export function parseMetricsArgs(args: string[]): MetricsArgs {
       continue
     }
 
-    if (arg === '--mode' && i + 1 < args.length) {
-      mode = args[i + 1] as 'metrics' | 'findings'
-      i += 1
-      continue
-    }
-
-    if (arg.startsWith('--mode=')) {
-      mode = arg.slice('--mode='.length) as 'metrics' | 'findings'
-      continue
-    }
-
     if ((arg === '--text' || arg === '-t') && i + 1 < args.length) {
       textArg = args[i + 1]
       i += 1
@@ -53,14 +42,21 @@ export function parseMetricsArgs(args: string[]): MetricsArgs {
       continue
     }
 
-    if (arg === '--rule' && i + 1 < args.length) {
-      ruleFilters.push(args[i + 1])
+    if (arg === '--segment' && i + 1 < args.length) {
+      const value = Number.parseInt(args[i + 1], 10)
+      segmentIndex = Number.isInteger(value) ? value : null
       i += 1
       continue
     }
 
-    if (arg.startsWith('--rule=')) {
-      ruleFilters.push(arg.slice('--rule='.length))
+    if (arg.startsWith('--segment=')) {
+      const value = Number.parseInt(arg.slice('--segment='.length), 10)
+      segmentIndex = Number.isInteger(value) ? value : null
+      continue
+    }
+
+    if (arg === '--compact') {
+      compact = true
       continue
     }
 
@@ -76,7 +72,6 @@ export function parseMetricsArgs(args: string[]): MetricsArgs {
 
     if (!filePath) {
       filePath = arg
-      continue
     }
   }
 
@@ -84,8 +79,8 @@ export function parseMetricsArgs(args: string[]): MetricsArgs {
     filePath,
     textArg,
     type,
-    mode,
-    ruleFilters,
+    segmentIndex,
+    compact,
     ignoreEmptyLines,
     unknownFlags,
   }

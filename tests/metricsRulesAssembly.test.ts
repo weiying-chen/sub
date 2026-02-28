@@ -16,16 +16,16 @@ vi.mock("../src/cli/properNouns", () => ({
   loadAbbreviations: vi.fn(async () => ["Mr.", "U.S."]),
 }))
 
-import { buildMetricsOutput } from "../src/cli/metricsOutput"
+import { buildAnalyzeOutput } from "../src/cli/analyzeOutput"
 
-describe("metricsOutput rule assembly", () => {
+describe("analyzeOutput rule assembly", () => {
   beforeEach(() => {
     mocks.createSubsFindingsRulesMock.mockClear()
     mocks.createSubsMetricsRulesMock.mockClear()
   })
 
   it("uses shared subs findings assembly for subs findings mode", async () => {
-    await buildMetricsOutput(
+    await buildAnalyzeOutput(
       [
         "00:00:01:00\t00:00:02:00\tMarker",
         "Hello.",
@@ -44,7 +44,7 @@ describe("metricsOutput rule assembly", () => {
   })
 
   it("uses shared subs metrics assembly for subs metrics mode", async () => {
-    await buildMetricsOutput(
+    await buildAnalyzeOutput(
       [
         "00:00:01:00\t00:00:02:00\tMarker",
         "Hello.",

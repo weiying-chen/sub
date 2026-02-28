@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest"
 
-import { parseSegmentsArgs } from "../src/cli/segmentsArgs"
+import { parseInspectArgs } from "../src/cli/inspectArgs"
 
-describe("segments CLI args", () => {
+describe("inspect CLI args", () => {
   it("parses type, text, and segment filter", () => {
-    const args = parseSegmentsArgs([
+    const args = parseInspectArgs([
       "--type",
       "news",
       "--segment",
@@ -19,12 +19,12 @@ describe("segments CLI args", () => {
   })
 
   it("parses compact output flag", () => {
-    const args = parseSegmentsArgs(["--compact", "-t", "x"])
+    const args = parseInspectArgs(["--compact", "-t", "x"])
     expect(args.compact).toBe(true)
   })
 
   it("defaults to subs with pretty output", () => {
-    const args = parseSegmentsArgs(["-t", "x"])
+    const args = parseInspectArgs(["-t", "x"])
     expect(args.type).toBe("subs")
     expect(args.compact).toBe(false)
   })

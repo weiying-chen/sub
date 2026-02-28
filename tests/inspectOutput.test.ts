@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest"
 
-import { buildSegmentsOutput } from "../src/cli/segmentsOutput"
+import { buildInspectOutput } from "../src/cli/inspectOutput"
 
-describe("segments output", () => {
+describe("inspect output", () => {
   it("builds subs segment structures", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
@@ -12,7 +12,7 @@ describe("segments output", () => {
       "Second line.",
     ].join("\n")
 
-    const output = buildSegmentsOutput(text, { type: "subs" })
+    const output = buildInspectOutput(text, { type: "subs" })
 
     expect(output).toHaveLength(2)
     expect(output[0]).toMatchObject({
@@ -36,7 +36,7 @@ describe("segments output", () => {
       "",
     ].join("\n")
 
-    const output = buildSegmentsOutput(text, { type: "news" })
+    const output = buildInspectOutput(text, { type: "news" })
 
     expect(output).toHaveLength(2)
     expect(output[0]).toMatchObject({
@@ -63,7 +63,7 @@ describe("segments output", () => {
       "Second line.",
     ].join("\n")
 
-    const output = buildSegmentsOutput(text, {
+    const output = buildInspectOutput(text, {
       type: "subs",
       segmentIndex: 1,
     })

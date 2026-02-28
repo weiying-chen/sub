@@ -1,19 +1,19 @@
-export type SegmentsArgs = {
+export type AnalyzeArgs = {
   filePath: string | null
   textArg: string
   type: 'subs' | 'news' | string
-  segmentIndex: number | null
-  compact: boolean
+  mode: 'metrics' | 'findings' | string
+  ruleFilters: string[]
   ignoreEmptyLines: boolean
   unknownFlags: string[]
 }
 
-export function parseSegmentsArgs(args: string[]): SegmentsArgs {
+export function parseAnalyzeArgs(args: string[]): AnalyzeArgs {
   let filePath: string | null = null
   let textArg = ''
   let type: 'subs' | 'news' | string = 'subs'
-  let segmentIndex: number | null = null
-  let compact = false
+  let mode: 'metrics' | 'findings' | string = 'metrics'
+  const ruleFilters: string[] = []
   let ignoreEmptyLines = false
   const unknownFlags: string[] = []
 
@@ -31,6 +31,17 @@ export function parseSegmentsArgs(args: string[]): SegmentsArgs {
       continue
     }
 
+    if (arg === '--mode' && i + 1 < args.length) {
+      mode = args[i + 1] as 'metrics' | 'findings'
+      i += 1
+      continue
+    }
+
+    if (arg.startsWith('--mode=')) {
+      mode = arg.slice('--mode='.length) as 'metrics' | 'findings'
+      continue
+    }
+
     if ((arg === '--text' || arg === '-t') && i + 1 < args.length) {
       textArg = args[i + 1]
       i += 1
@@ -42,21 +53,14 @@ export function parseSegmentsArgs(args: string[]): SegmentsArgs {
       continue
     }
 
-    if (arg === '--segment' && i + 1 < args.length) {
-      const value = Number.parseInt(args[i + 1], 10)
-      segmentIndex = Number.isInteger(value) ? value : null
+    if (arg === '--rule' && i + 1 < args.length) {
+      ruleFilters.push(args[i + 1])
       i += 1
       continue
     }
 
-    if (arg.startsWith('--segment=')) {
-      const value = Number.parseInt(arg.slice('--segment='.length), 10)
-      segmentIndex = Number.isInteger(value) ? value : null
-      continue
-    }
-
-    if (arg === '--compact') {
-      compact = true
+    if (arg.startsWith('--rule=')) {
+      ruleFilters.push(arg.slice('--rule='.length))
       continue
     }
 
@@ -72,6 +76,7 @@ export function parseSegmentsArgs(args: string[]): SegmentsArgs {
 
     if (!filePath) {
       filePath = arg
+      continue
     }
   }
 
@@ -79,8 +84,8 @@ export function parseSegmentsArgs(args: string[]): SegmentsArgs {
     filePath,
     textArg,
     type,
-    segmentIndex,
-    compact,
+    mode,
+    ruleFilters,
     ignoreEmptyLines,
     unknownFlags,
   }

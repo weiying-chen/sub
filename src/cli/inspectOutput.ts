@@ -1,14 +1,14 @@
 import { parseNews, parseSubs, type Segment } from '../analysis/segments'
 
-export type BuildSegmentsOptions = {
+export type BuildInspectOptions = {
   type: 'subs' | 'news'
   segmentIndex?: number | null
   ignoreEmptyLines?: boolean
 }
 
-export function buildSegmentsOutput(
+export function buildInspectOutput(
   text: string,
-  options: BuildSegmentsOptions
+  options: BuildInspectOptions
 ): Segment[] {
   const segments =
     options.type === 'subs'

@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest"
 
 import type { Metric } from "../src/analysis/types"
-import { buildMetricsOutput } from "../src/cli/metricsOutput"
+import { buildAnalyzeOutput } from "../src/cli/analyzeOutput"
 
-describe("metrics CLI output", () => {
+describe("analyze CLI output", () => {
   it("returns MAX_CHARS metrics for news SUPER lines", async () => {
     const text = [
       "Intro line.",
@@ -16,7 +16,7 @@ describe("metrics CLI output", () => {
       "VO line.",
     ].join("\n")
 
-    const output = (await buildMetricsOutput(text, {
+    const output = (await buildAnalyzeOutput(text, {
       type: "news",
     })) as Metric[]
 
@@ -32,7 +32,7 @@ describe("metrics CLI output", () => {
       "Another line.",
     ].join("\n")
 
-    const output = (await buildMetricsOutput(text, {
+    const output = (await buildAnalyzeOutput(text, {
       type: "subs",
     })) as Metric[]
 
@@ -49,7 +49,7 @@ describe("metrics CLI output", () => {
       "Another line.",
     ].join("\n")
 
-    const output = (await buildMetricsOutput(text, {
+    const output = (await buildAnalyzeOutput(text, {
       type: "subs",
       ruleFilters: ["MAX_CPS"],
     })) as Metric[]
@@ -65,7 +65,7 @@ describe("metrics CLI output", () => {
       "Hi",
     ].join("\n")
 
-    const output = (await buildMetricsOutput(text, {
+    const output = (await buildAnalyzeOutput(text, {
       type: "subs",
       mode: "findings",
     })) as Metric[]
@@ -82,7 +82,7 @@ describe("metrics CLI output", () => {
       "Gap text.",
     ].join("\n")
 
-    const output = (await buildMetricsOutput(text, {
+    const output = (await buildAnalyzeOutput(text, {
       type: "subs",
       mode: "findings",
     })) as Metric[]

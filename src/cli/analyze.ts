@@ -1,15 +1,15 @@
 import { readFile } from 'node:fs/promises'
 
-import { parseMetricsArgs } from './metricsArgs'
-import { buildMetricsOutput } from './metricsOutput'
+import { parseAnalyzeArgs } from './analyzeArgs'
+import { buildAnalyzeOutput } from './analyzeOutput'
 
 function printUsage() {
   console.error(
-    'Usage: metrics <file>|--text/-t "..." [--type subs|news] [--mode metrics|findings] [--rule NAME] [--ignore-empty-lines]'
+    'Usage: analyze <file>|--text/-t "..." [--type subs|news] [--mode metrics|findings] [--rule NAME] [--ignore-empty-lines]'
   )
 }
 
-const args = parseMetricsArgs(process.argv.slice(2))
+const args = parseAnalyzeArgs(process.argv.slice(2))
 
 function readStdin(): Promise<string> {
   return new Promise((resolve) => {
@@ -51,7 +51,7 @@ if (!text.trim() && !args.filePath && !args.textArg) {
   process.exit(1)
 }
 
-const output = await buildMetricsOutput(text, {
+const output = await buildAnalyzeOutput(text, {
   type: args.type,
   mode: args.mode,
   ruleFilters: args.ruleFilters,

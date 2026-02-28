@@ -3,9 +3,9 @@ import { readFile } from "node:fs/promises"
 import path from "node:path"
 
 import type { Metric } from "../../src/analysis/types"
-import { buildMetricsOutput } from "../../src/cli/metricsOutput"
+import { buildAnalyzeOutput } from "../../src/cli/analyzeOutput"
 
-describe("metrics CLI integration fixtures", () => {
+describe("analyze CLI integration fixtures", () => {
   it("treats empty lines as breaks between identical payloads", async () => {
     const fixturePath = path.join(
       __dirname,
@@ -14,7 +14,7 @@ describe("metrics CLI integration fixtures", () => {
     )
     const text = await readFile(fixturePath, "utf8")
 
-    const output = (await buildMetricsOutput(text, {
+    const output = (await buildAnalyzeOutput(text, {
       type: "subs",
     })) as Metric[]
 

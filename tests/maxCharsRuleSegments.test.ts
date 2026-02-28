@@ -21,7 +21,7 @@ describe("maxCharsRule (segments)", () => {
     expect(byLine.get(3)?.actual).toBe(12)
   })
 
-  it("applies to SUPER lines when parsing news", () => {
+  it("checks any news segment it is directly applied to", () => {
     const text = [
       "Intro line ignored.",
       "/*SUPER:",
@@ -36,8 +36,9 @@ describe("maxCharsRule (segments)", () => {
     const metrics = analyzeTextByType(text, "news", [maxCharsRule(12)])
 
     const byLine = new Map(metrics.map((m) => [m.lineIndex, m]))
+    expect(byLine.get(0)?.actual).toBe(19)
     expect(byLine.get(4)?.actual).toBe(11)
     expect(byLine.get(5)?.actual).toBe(33)
-    expect(byLine.has(7)).toBe(false)
+    expect(byLine.get(7)?.actual).toBe(24)
   })
 })

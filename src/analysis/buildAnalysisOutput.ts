@@ -5,6 +5,7 @@ import { maxCharsRule } from './maxCharsRule'
 import { numberStyleRule } from './numberStyleRule'
 import type { Metric, Finding } from './types'
 import { getFindings } from '../shared/findings'
+import { filterSegments } from './segmentRuleFilters'
 
 export type AnalysisRuleSet = 'findings' | 'metrics'
 export type AnalysisOutputMode = 'metrics' | 'findings'
@@ -37,7 +38,9 @@ function buildRules(options: BuildAnalysisOutputOptions) {
   if (type === 'news') {
     const enabled = enabledRuleTypes ? new Set<Metric['type']>(enabledRuleTypes) : null
     const rules = []
-    if (!enabled || enabled.has('MAX_CHARS')) rules.push(maxCharsRule(54))
+    if (!enabled || enabled.has('MAX_CHARS')) {
+      rules.push(filterSegments((segment) => segment.blockType === 'super', maxCharsRule(54)))
+    }
     if (!enabled || enabled.has('NUMBER_STYLE')) rules.push(numberStyleRule())
     if (!enabled || enabled.has('CAPITALIZATION')) {
       rules.push(

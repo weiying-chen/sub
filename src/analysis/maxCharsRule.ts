@@ -15,20 +15,16 @@ function getTextAndAnchor(
 ): { text: string; anchorIndex: number } | null {
   if ('segment' in ctx) {
     const seg = ctx.segment as Segment
-    if (seg.blockType === 'vo') return null
-    if (seg.blockType === 'super') {
+    if (
+      typeof seg.startFrames !== 'number' ||
+      typeof seg.endFrames !== 'number'
+    ) {
       const candidates = seg.targetLines?.length
         ? seg.targetLines
         : [{ lineIndex: seg.lineIndex, text: seg.text }]
       const first = candidates.find((candidate) => candidate.text.trim() !== '')
       if (!first) return null
       return { text: first.text, anchorIndex: first.lineIndex }
-    }
-    if (
-      typeof seg.startFrames !== 'number' ||
-      typeof seg.endFrames !== 'number'
-    ) {
-      return null
     }
 
     const text = ctx.segment.text
@@ -61,7 +57,11 @@ export const maxCharsRule = (
     const extracted = getTextAndAnchor(ctx, options)
     if (!extracted) return []
 
-    if ('segment' in ctx && ctx.segment.blockType === 'super') {
+    if (
+      'segment' in ctx &&
+      typeof ctx.segment.startFrames !== 'number' &&
+      typeof ctx.segment.endFrames !== 'number'
+    ) {
       const candidates = ctx.segment.targetLines?.length
         ? ctx.segment.targetLines
         : [{ lineIndex: extracted.anchorIndex, text: extracted.text }]

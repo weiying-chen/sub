@@ -61,6 +61,7 @@ describe("parseNews", () => {
         lineIndexEnd: 2,
         text: "First sentence.",
         blockType: "vo",
+        marker: { raw: "1_0001", index: 1, time: 1, valid: true, lineIndex: 0 },
       },
       {
         lineIndex: 7,
@@ -107,6 +108,29 @@ describe("parseNews", () => {
         blockType: "super",
         targetLines: [],
         sourceText: "人物名稱// 這是一段字卡",
+      },
+    ])
+  })
+
+  it("preserves marker metadata on following news blocks", () => {
+    const text = [
+      "1_0001",
+      "First sentence.",
+      "",
+      "2_0008",
+      "Second sentence.",
+    ].join("\n")
+
+    const segments = parseNews(text)
+
+    expect(segments).toMatchObject([
+      {
+        lineIndex: 1,
+        marker: { raw: "1_0001", index: 1, time: 1, valid: true, lineIndex: 0 },
+      },
+      {
+        lineIndex: 4,
+        marker: { raw: "2_0008", index: 2, time: 8, valid: true, lineIndex: 3 },
       },
     ])
   })

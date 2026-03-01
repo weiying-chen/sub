@@ -13,6 +13,7 @@ const FINDING_LABELS: Partial<Record<Finding["type"], string>> = {
   PUNCTUATION: "Punctuation is incorrect",
   BASELINE: "Text does not match baseline",
   MISSING_TRANSLATION: "Translation is missing",
+  NEWS_MARKER: "News marker is incorrect",
 }
 
 export function getFindingLabel(finding: Finding): string {

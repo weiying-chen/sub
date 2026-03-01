@@ -7,11 +7,20 @@ export type CandidateLine = {
   text: string
 }
 
+export type NewsMarker = {
+  raw: string
+  lineIndex: number
+  index: number | null
+  time: number | null
+  valid: boolean
+}
+
 export type Segment = {
   lineIndex: number
   lineIndexEnd?: number
   text: string
   blockType?: 'vo' | 'super'
+  marker?: NewsMarker
   sourceText?: string
   tsIndex?: number
   payloadIndex?: number
@@ -96,6 +105,8 @@ export function parseNews(text: string): Segment[] {
   let sourceBuffer: CandidateLine[] = []
   let targetBuffer: CandidateLine[] = []
   let currentBlock: Segment['blockType'] | null = null
+  let currentMarker: NewsMarker | undefined
+  let pendingMarker: NewsMarker | undefined
   let inComment = false
   let inSuperComment = false
   let superActive = false
@@ -114,6 +125,7 @@ export function parseNews(text: string): Segment[] {
     segments.push({
       lineIndex,
       lineIndexEnd,
+      marker: currentMarker,
       text: targetBuffer.map((line) => line.text.trim()).join(' '),
       sourceText: sourceBuffer.map((line) => line.text.trim()).join(' '),
       sourceLines: sourceBuffer,
@@ -123,6 +135,7 @@ export function parseNews(text: string): Segment[] {
     sourceBuffer = []
     targetBuffer = []
     currentBlock = null
+    currentMarker = undefined
   }
 
   for (let i = 0; i < lines.length; i += 1) {
@@ -158,7 +171,21 @@ export function parseNews(text: string): Segment[] {
       continue
     }
 
-    if (trimmed === '' || isNewsStructureLine(trimmed)) {
+    if (trimmed === '') {
+      flush()
+      superActive = false
+      continue
+    }
+
+    const parsedMarker = parseNewsMarker(trimmed, i)
+    if (parsedMarker) {
+      flush()
+      pendingMarker = parsedMarker
+      superActive = false
+      continue
+    }
+
+    if (isNewsStructureLine(trimmed)) {
       flush()
       superActive = false
       continue
@@ -170,6 +197,10 @@ export function parseNews(text: string): Segment[] {
         flush()
       }
 
+      if (!currentBlock) {
+        currentMarker = pendingMarker
+        pendingMarker = undefined
+      }
       currentBlock = blockType
       targetBuffer.push({ lineIndex: i, text: raw })
       continue
@@ -181,6 +212,10 @@ export function parseNews(text: string): Segment[] {
         flush()
       }
 
+      if (!currentBlock) {
+        currentMarker = pendingMarker
+        pendingMarker = undefined
+      }
       currentBlock = blockType
       sourceBuffer.push({ lineIndex: i, text: raw.trim() })
       continue
@@ -204,9 +239,31 @@ function isNewsLabel(text: string): boolean {
 
 function isNewsStructureLine(text: string): boolean {
   if (isNewsLabel(text)) return true
-  if (/^\d+_\d+$/.test(text)) return true
   if (/^[<>]+$/.test(text)) return true
   return false
+}
+
+function parseNewsMarker(text: string, lineIndex: number): NewsMarker | null {
+  if (!/^\S+_\S+$/.test(text)) return null
+
+  const match = /^(\d+)_([0-9]{4})$/.exec(text)
+  if (!match) {
+    return {
+      raw: text,
+      lineIndex,
+      index: null,
+      time: null,
+      valid: false,
+    }
+  }
+
+  return {
+    raw: text,
+    lineIndex,
+    index: Number(match[1]),
+    time: Number(match[2]),
+    valid: true,
+  }
 }
 
 function isNewsSourceLine(text: string): boolean {

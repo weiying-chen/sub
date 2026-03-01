@@ -153,6 +153,22 @@ export function getFindings(
       })
       continue
     }
+
+    if (m.type === 'NEWS_MARKER') {
+      const instruction =
+        m.ruleCode === 'INVALID_FORMAT'
+          ? 'Use the marker format N_0000.'
+          : m.ruleCode === 'NON_SEQUENTIAL_INDEX'
+            ? 'Keep marker numbers increasing by exactly one.'
+            : 'Keep marker time values increasing from one block to the next.'
+
+      out.push({
+        ...m,
+        severity: 'error',
+        instruction,
+      })
+      continue
+    }
   }
 
   if (includeWarnings) return out

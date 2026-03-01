@@ -172,6 +172,7 @@ export type Metric =
   | PunctuationMetric
   | MergeCandidateMetric
   | MissingTranslationMetric
+  | import('./newsMarkerRule').NewsMarkerMetric
   | BaselineMetric
 
 // ---- Findings (violations only; derived from metrics) ----

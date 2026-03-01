@@ -57,6 +57,45 @@ describe("analyze CLI output", () => {
     ])
   })
 
+  it("returns news marker findings for bad format, order, and backward time", async () => {
+    const text = [
+      "1_0010",
+      "First sentence.",
+      "",
+      "3_0008",
+      "Second sentence.",
+      "",
+      "bad_marker",
+      "Third sentence.",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "news",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(output).toMatchObject([
+      {
+        type: "NEWS_MARKER",
+        lineIndex: 3,
+        markerRaw: "3_0008",
+        ruleCode: "NON_SEQUENTIAL_INDEX",
+      },
+      {
+        type: "NEWS_MARKER",
+        lineIndex: 3,
+        markerRaw: "3_0008",
+        ruleCode: "NON_INCREASING_TIME",
+      },
+      {
+        type: "NEWS_MARKER",
+        lineIndex: 6,
+        markerRaw: "bad_marker",
+        ruleCode: "INVALID_FORMAT",
+      },
+    ])
+  })
+
   it("returns only CPS metrics for subs metrics mode", async () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

@@ -3,6 +3,7 @@ import { capitalizationRule } from './capitalizationRule'
 import { createSubsFindingsRules, createSubsMetricsRules } from './subsSegmentRules'
 import { maxCharsRule } from './maxCharsRule'
 import { missingTranslationRule } from './missingTranslationRule'
+import { newsMarkerRule } from './newsMarkerRule'
 import { numberStyleRule } from './numberStyleRule'
 import type { Metric, Finding } from './types'
 import { getFindings } from '../shared/findings'
@@ -44,6 +45,9 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     }
     if (!enabled || enabled.has('MISSING_TRANSLATION')) {
       rules.push(missingTranslationRule())
+    }
+    if (!enabled || enabled.has('NEWS_MARKER')) {
+      rules.push(newsMarkerRule())
     }
     if (!enabled || enabled.has('NUMBER_STYLE')) rules.push(numberStyleRule())
     if (!enabled || enabled.has('CAPITALIZATION')) {

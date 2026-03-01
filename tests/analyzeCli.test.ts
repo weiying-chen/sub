@@ -24,6 +24,39 @@ describe("analyze CLI output", () => {
     expect(maxChars.map((metric) => metric.lineIndex)).toEqual([4, 5])
   })
 
+  it("returns missing-translation findings for untranslated news blocks", async () => {
+    const text = [
+      "1_0001",
+      "這是一段旁白",
+      "",
+      "/*SUPER:",
+      "人物名稱//",
+      "這是一段字卡",
+      "*/",
+      "",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "news",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(output).toMatchObject([
+      {
+        type: "MISSING_TRANSLATION",
+        lineIndex: 1,
+        blockType: "vo",
+        text: "這是一段旁白",
+      },
+      {
+        type: "MISSING_TRANSLATION",
+        lineIndex: 4,
+        blockType: "super",
+        text: "人物名稱// 這是一段字卡",
+      },
+    ])
+  })
+
   it("returns only CPS metrics for subs metrics mode", async () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

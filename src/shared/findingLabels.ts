@@ -12,6 +12,7 @@ const FINDING_LABELS: Partial<Record<Finding["type"], string>> = {
   LEADING_WHITESPACE: "Line starts with extra spaces",
   PUNCTUATION: "Punctuation is incorrect",
   BASELINE: "Text does not match baseline",
+  MISSING_TRANSLATION: "Translation is missing",
 }
 
 export function getFindingLabel(finding: Finding): string {

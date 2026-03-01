@@ -2,6 +2,7 @@ import { analyzeTextByType, type AnalysisType } from './analyzeTextByType'
 import { capitalizationRule } from './capitalizationRule'
 import { createSubsFindingsRules, createSubsMetricsRules } from './subsSegmentRules'
 import { maxCharsRule } from './maxCharsRule'
+import { missingTranslationRule } from './missingTranslationRule'
 import { numberStyleRule } from './numberStyleRule'
 import type { Metric, Finding } from './types'
 import { getFindings } from '../shared/findings'
@@ -40,6 +41,9 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     const rules = []
     if (!enabled || enabled.has('MAX_CHARS')) {
       rules.push(filterSegments((segment) => segment.blockType === 'super', maxCharsRule(54)))
+    }
+    if (!enabled || enabled.has('MISSING_TRANSLATION')) {
+      rules.push(missingTranslationRule())
     }
     if (!enabled || enabled.has('NUMBER_STYLE')) rules.push(numberStyleRule())
     if (!enabled || enabled.has('CAPITALIZATION')) {

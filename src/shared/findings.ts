@@ -141,6 +141,18 @@ export function getFindings(
       })
       continue
     }
+
+    if (m.type === 'MISSING_TRANSLATION') {
+      out.push({
+        ...m,
+        severity: 'error',
+        instruction:
+          m.blockType === 'super'
+            ? 'Translate this SUPER block.'
+            : 'Translate this VO block.',
+      })
+      continue
+    }
   }
 
   if (includeWarnings) return out

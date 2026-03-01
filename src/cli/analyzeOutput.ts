@@ -11,6 +11,7 @@ export type AnalyzeOptions = {
   mode?: 'metrics' | 'findings'
   ruleFilters?: string[]
   ignoreEmptyLines?: boolean
+  includeWarnings?: boolean
 }
 
 export async function buildAnalyzeOutput(
@@ -36,5 +37,6 @@ export async function buildAnalyzeOutput(
     properNouns: properNouns ?? undefined,
     abbreviations: abbreviations ?? undefined,
     ignoreEmptyLines: options.ignoreEmptyLines,
+    includeWarnings: options.includeWarnings,
   })
 }

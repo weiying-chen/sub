@@ -1,11 +1,9 @@
 import { readFile } from 'node:fs/promises'
 
-import { analyzeTextByType } from '../analysis/analyzeTextByType'
-import { numberStyleRule } from '../analysis/numberStyleRule'
 import type { Finding } from '../analysis/types'
-import { getFindings } from '../shared/findings'
 import { formatCliNumber } from './numberFormat'
 import type { Reporter } from './watch'
+import { buildAnalyzeOutput } from './analyzeOutput'
 
 const RESET = '\x1b[0m'
 const BOLD = '\x1b[1m'
@@ -113,11 +111,11 @@ function formatFinding(f: Finding): string {
 export function createNewsReporter(options: NewsOptions): Reporter {
   return async (path, { clearScreen }) => {
     const text = await readFile(path, 'utf8')
-    const rules = [numberStyleRule()]
-    const metrics = analyzeTextByType(text, 'news', rules)
-    const findings = getFindings(metrics, {
+    const findings = (await buildAnalyzeOutput(text, {
+      type: 'news',
+      mode: 'findings',
       includeWarnings: options.includeWarnings,
-    }) as Finding[]
+    })) as Finding[]
 
     clearScreen()
 

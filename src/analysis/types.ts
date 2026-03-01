@@ -150,6 +150,15 @@ export type MergeCandidateMetric = {
   severity?: 'error' | 'warn'
 }
 
+export type MissingTranslationMetric = {
+  type: 'MISSING_TRANSLATION'
+  lineIndex: number
+  blockType: 'vo' | 'super'
+  text: string
+  sourceLineIndex?: number
+  severity?: 'error' | 'warn'
+}
+
 export type Metric =
   | MaxCharsMetric
   | LeadingWhitespaceMetric
@@ -162,6 +171,7 @@ export type Metric =
   | CapitalizationMetric
   | PunctuationMetric
   | MergeCandidateMetric
+  | MissingTranslationMetric
   | BaselineMetric
 
 // ---- Findings (violations only; derived from metrics) ----

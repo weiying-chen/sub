@@ -76,4 +76,38 @@ describe("parseNews", () => {
       },
     ])
   })
+
+  it("keeps untranslated VO and SUPER blocks as segments with empty targets", () => {
+    const text = [
+      "1_0001",
+      "這是一段旁白",
+      "",
+      "/*SUPER:",
+      "人物名稱//",
+      "這是一段字卡",
+      "*/",
+      "",
+    ].join("\n")
+
+    const segments = parseNews(text)
+
+    expect(segments).toMatchObject([
+      {
+        lineIndex: 1,
+        lineIndexEnd: 1,
+        text: "",
+        blockType: "vo",
+        targetLines: [],
+        sourceText: "這是一段旁白",
+      },
+      {
+        lineIndex: 4,
+        lineIndexEnd: 5,
+        text: "",
+        blockType: "super",
+        targetLines: [],
+        sourceText: "人物名稱// 這是一段字卡",
+      },
+    ])
+  })
 })

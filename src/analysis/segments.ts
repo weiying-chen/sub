@@ -12,10 +12,12 @@ export type Segment = {
   lineIndexEnd?: number
   text: string
   blockType?: 'vo' | 'super'
+  sourceText?: string
   tsIndex?: number
   payloadIndex?: number
   startFrames?: number
   endFrames?: number
+  sourceLines?: CandidateLine[]
   targetLines?: CandidateLine[]
 }
 
@@ -91,32 +93,35 @@ export function parseNews(text: string): Segment[] {
   const lines = text.split('\n')
   const segments: Segment[] = []
 
-  let buffer: CandidateLine[] = []
-  let bufferText: string[] = []
+  let sourceBuffer: CandidateLine[] = []
+  let targetBuffer: CandidateLine[] = []
   let currentBlock: Segment['blockType'] | null = null
   let inComment = false
   let inSuperComment = false
   let superActive = false
 
   const flush = () => {
-    if (!currentBlock || buffer.length === 0) {
-      buffer = []
-      bufferText = []
+    if (!currentBlock || (sourceBuffer.length === 0 && targetBuffer.length === 0)) {
+      sourceBuffer = []
+      targetBuffer = []
       currentBlock = null
       return
     }
 
-    const lineIndex = buffer[0].lineIndex
-    const lineIndexEnd = buffer[buffer.length - 1].lineIndex
+    const anchorLines = targetBuffer.length > 0 ? targetBuffer : sourceBuffer
+    const lineIndex = anchorLines[0].lineIndex
+    const lineIndexEnd = anchorLines[anchorLines.length - 1].lineIndex
     segments.push({
       lineIndex,
       lineIndexEnd,
-      text: bufferText.join(' '),
-      targetLines: buffer,
+      text: targetBuffer.map((line) => line.text.trim()).join(' '),
+      sourceText: sourceBuffer.map((line) => line.text.trim()).join(' '),
+      sourceLines: sourceBuffer,
+      targetLines: targetBuffer,
       blockType: currentBlock,
     })
-    buffer = []
-    bufferText = []
+    sourceBuffer = []
+    targetBuffer = []
     currentBlock = null
   }
 
@@ -141,6 +146,10 @@ export function parseNews(text: string): Segment[] {
     }
 
     if (inComment) {
+      if (inSuperComment && isNewsSourceLine(raw)) {
+        currentBlock = 'super'
+        sourceBuffer.push({ lineIndex: i, text: raw.trim() })
+      }
       if (isCommentEnd) {
         inComment = false
         if (inSuperComment) superActive = true
@@ -149,9 +158,31 @@ export function parseNews(text: string): Segment[] {
       continue
     }
 
-    if (trimmed === '' || isNewsLabel(trimmed)) {
+    if (trimmed === '' || isNewsStructureLine(trimmed)) {
       flush()
       superActive = false
+      continue
+    }
+
+    if (isEnglishLikeLine(raw)) {
+      const blockType: Segment['blockType'] = superActive ? 'super' : 'vo'
+      if (currentBlock && currentBlock !== blockType) {
+        flush()
+      }
+
+      currentBlock = blockType
+      targetBuffer.push({ lineIndex: i, text: raw })
+      continue
+    }
+
+    if (isNewsSourceLine(raw)) {
+      const blockType: Segment['blockType'] = superActive ? 'super' : 'vo'
+      if (targetBuffer.length > 0 || (currentBlock && currentBlock !== blockType)) {
+        flush()
+      }
+
+      currentBlock = blockType
+      sourceBuffer.push({ lineIndex: i, text: raw.trim() })
       continue
     }
 
@@ -160,15 +191,6 @@ export function parseNews(text: string): Segment[] {
       superActive = false
       continue
     }
-
-    const blockType: Segment['blockType'] = superActive ? 'super' : 'vo'
-    if (currentBlock && currentBlock !== blockType) {
-      flush()
-    }
-
-    currentBlock = blockType
-    buffer.push({ lineIndex: i, text: raw })
-    bufferText.push(trimmed)
   }
 
   flush()
@@ -178,6 +200,24 @@ export function parseNews(text: string): Segment[] {
 
 function isNewsLabel(text: string): boolean {
   return /^[A-Z]{2,5}:$/.test(text)
+}
+
+function isNewsStructureLine(text: string): boolean {
+  if (isNewsLabel(text)) return true
+  if (/^\d+_\d+$/.test(text)) return true
+  if (/^[<>]+$/.test(text)) return true
+  return false
+}
+
+function isNewsSourceLine(text: string): boolean {
+  const trimmed = text.trim()
+  if (trimmed === '') return false
+  if (trimmed.startsWith('(') || trimmed.startsWith('[')) return false
+  if (trimmed.startsWith('/*') || trimmed === '*/') return false
+  if (isNewsStructureLine(trimmed)) return false
+
+  const cjkRe = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/
+  return cjkRe.test(trimmed)
 }
 
 function isEnglishLikeLine(text: string): boolean {

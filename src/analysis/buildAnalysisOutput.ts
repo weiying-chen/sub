@@ -5,6 +5,7 @@ import { maxCharsRule } from './maxCharsRule'
 import { missingTranslationRule } from './missingTranslationRule'
 import { newsMarkerRule } from './newsMarkerRule'
 import { numberStyleRule } from './numberStyleRule'
+import { superPeopleRule } from './superPeopleRule'
 import type { Metric, Finding } from './types'
 import { getFindings } from '../shared/findings'
 import { filterSegments } from './segmentRuleFilters'
@@ -48,6 +49,9 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     }
     if (!enabled || enabled.has('NEWS_MARKER')) {
       rules.push(newsMarkerRule())
+    }
+    if (!enabled || enabled.has('SUPER_PEOPLE')) {
+      rules.push(superPeopleRule())
     }
     if (!enabled || enabled.has('NUMBER_STYLE')) rules.push(numberStyleRule())
     if (!enabled || enabled.has('CAPITALIZATION')) {

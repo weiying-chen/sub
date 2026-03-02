@@ -96,6 +96,66 @@ describe("analyze CLI output", () => {
     ])
   })
 
+  it("returns SUPER_PEOPLE findings for swapped name-title order and title case", async () => {
+    const text = [
+      "SUPER_PEOPLE:",
+      "病患 | 羅伯托",
+      "Patient care coordinator",
+      "Roberto Lin",
+      "",
+      "醫師 | 林醫師",
+      "Dr. Lin",
+      "Chief Physician",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "news",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(output).toMatchObject([
+      {
+        type: "SUPER_PEOPLE",
+        lineIndex: 2,
+        ruleCode: "NAME_TITLE_ORDER",
+      },
+      {
+        type: "SUPER_PEOPLE",
+        lineIndex: 7,
+        ruleCode: "TITLE_NOT_SENTENCE_CASE",
+      },
+    ])
+  })
+
+  it("returns SUPER_PEOPLE findings for missing English name and title", async () => {
+    const text = [
+      "SUPER_PEOPLE:",
+      "病患 | 羅伯托",
+      "Patient coordinator",
+      "",
+      "醫師 | 林醫師",
+      "Dr. Lin",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "news",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(output).toMatchObject([
+      {
+        type: "SUPER_PEOPLE",
+        lineIndex: 2,
+        ruleCode: "MISSING_EN_NAME",
+      },
+      {
+        type: "SUPER_PEOPLE",
+        lineIndex: 5,
+        ruleCode: "MISSING_EN_TITLE",
+      },
+    ])
+  })
+
   it("returns only CPS metrics for subs metrics mode", async () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

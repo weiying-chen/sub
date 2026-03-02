@@ -15,12 +15,21 @@ export type NewsMarker = {
   valid: boolean
 }
 
+export type SuperPersonEntry = {
+  zhTitle: string
+  zhName: string
+  enName: string
+  enTitle: string
+  organization?: string
+}
+
 export type Segment = {
   lineIndex: number
   lineIndexEnd?: number
   text: string
-  blockType?: 'vo' | 'super'
+  blockType?: 'vo' | 'super' | 'super_people'
   marker?: NewsMarker
+  superPerson?: SuperPersonEntry
   sourceText?: string
   tsIndex?: number
   payloadIndex?: number
@@ -109,6 +118,8 @@ export function parseNews(text: string): Segment[] {
   let pendingMarker: NewsMarker | undefined
   let inComment = false
   let inSuperComment = false
+  let inSuperPeopleSection = false
+  let superPeopleBuffer: CandidateLine[] = []
   let superActive = false
 
   const flush = () => {
@@ -138,9 +149,59 @@ export function parseNews(text: string): Segment[] {
     currentMarker = undefined
   }
 
+  const flushSuperPeople = () => {
+    if (superPeopleBuffer.length === 0) return
+
+    const first = superPeopleBuffer[0]
+    const last = superPeopleBuffer[superPeopleBuffer.length - 1]
+    const entry = parseSuperPersonEntry(superPeopleBuffer)
+
+    segments.push({
+      lineIndex: first.lineIndex,
+      lineIndexEnd: last.lineIndex,
+      text: superPeopleBuffer.map((line) => line.text.trim()).join(' '),
+      blockType: 'super_people',
+      targetLines: [...superPeopleBuffer],
+      superPerson: entry,
+    })
+
+    superPeopleBuffer = []
+  }
+
   for (let i = 0; i < lines.length; i += 1) {
     const raw = lines[i]
     const trimmed = raw.trim()
+
+    if (trimmed === 'SUPER_PEOPLE:') {
+      flush()
+      inSuperPeopleSection = true
+      superActive = false
+      continue
+    }
+
+    if (inSuperPeopleSection) {
+      if (trimmed === '') {
+        flushSuperPeople()
+        continue
+      }
+
+      const parsedMarker = parseNewsMarker(trimmed, i)
+      if (parsedMarker) {
+        flushSuperPeople()
+        inSuperPeopleSection = false
+        pendingMarker = parsedMarker
+        continue
+      }
+
+      if (trimmed === '字幕：') {
+        flushSuperPeople()
+        inSuperPeopleSection = false
+        continue
+      }
+
+      superPeopleBuffer.push({ lineIndex: i, text: raw })
+      continue
+    }
 
     const isSuperStart = trimmed.startsWith('/*SUPER')
     const isCommentStart = trimmed.startsWith('/*')
@@ -228,9 +289,51 @@ export function parseNews(text: string): Segment[] {
     }
   }
 
+  if (inSuperPeopleSection) flushSuperPeople()
   flush()
 
   return segments
+}
+
+function parseSuperPersonEntry(lines: CandidateLine[]): SuperPersonEntry {
+  const [zhLine, ...englishLines] = lines.map((line) => line.text.trim())
+  const [zhTitle = '', zhName = ''] = zhLine.split('|').map((part) => part.trim())
+  let enName = ''
+  let enTitle = ''
+  let organization: string | undefined
+
+  if (englishLines.length >= 2) {
+    enName = englishLines[0] ?? ''
+    enTitle = englishLines[1] ?? ''
+    organization = englishLines.slice(2).join(' ').trim() || undefined
+  } else if (englishLines.length === 1) {
+    const loneLine = englishLines[0] ?? ''
+    if (looksLikeSuperPersonName(loneLine)) {
+      enName = loneLine
+    } else {
+      enTitle = loneLine
+    }
+  }
+
+  return {
+    zhTitle,
+    zhName,
+    enName,
+    enTitle,
+    organization,
+  }
+}
+
+function looksLikeSuperPersonName(text: string): boolean {
+  const words = text.match(/[A-Za-z][A-Za-z.'-]*/g) ?? []
+  if (words.length === 0 || words.length > 4) return false
+
+  return words.every(
+    (word) =>
+      /^[A-Z][a-z.'-]*$/.test(word) ||
+      /^[A-Z]{2,}$/.test(word) ||
+      /^(?:Dr|Mr|Mrs|Ms)\.?$/.test(word)
+  )
 }
 
 function isNewsLabel(text: string): boolean {

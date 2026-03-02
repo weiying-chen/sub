@@ -169,6 +169,24 @@ export function getFindings(
       })
       continue
     }
+
+    if (m.type === 'SUPER_PEOPLE') {
+      const instruction =
+        m.ruleCode === 'NAME_TITLE_ORDER'
+          ? 'Keep the English name on line 2 and the English title on line 3.'
+          : m.ruleCode === 'TITLE_NOT_SENTENCE_CASE'
+            ? 'Use sentence case for the English title.'
+            : m.ruleCode === 'MISSING_EN_NAME'
+              ? 'Add the English name on line 2.'
+              : 'Add the English title on line 3.'
+
+      out.push({
+        ...m,
+        severity: 'error',
+        instruction,
+      })
+      continue
+    }
   }
 
   if (includeWarnings) return out

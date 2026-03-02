@@ -159,6 +159,14 @@ export type MissingTranslationMetric = {
   severity?: 'error' | 'warn'
 }
 
+export type SuperPeopleMetric = {
+  type: 'SUPER_PEOPLE'
+  lineIndex: number
+  ruleCode: import('./superPeopleRule').SuperPeopleRuleCode
+  text: string
+  severity?: 'error' | 'warn'
+}
+
 export type Metric =
   | MaxCharsMetric
   | LeadingWhitespaceMetric
@@ -172,6 +180,7 @@ export type Metric =
   | PunctuationMetric
   | MergeCandidateMetric
   | MissingTranslationMetric
+  | SuperPeopleMetric
   | import('./newsMarkerRule').NewsMarkerMetric
   | BaselineMetric
 

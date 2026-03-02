@@ -20,20 +20,20 @@ describe("parseSubs", () => {
 
     expect(segments.find((s) => s.lineIndex === 1)?.text).toBe("Hello world.")
     expect(segments.find((s) => s.lineIndex === 4)?.text).toBe("Second line.")
-  expect(segments.find((s) => s.lineIndex === 8)?.text).toBe("Third line.")
+    expect(segments.find((s) => s.lineIndex === 8)?.text).toBe("Third line.")
   })
 
   it("recognizes timestamp lines with leading markers", () => {
-  const text = [
-    "XXX 00:00:01:00\t00:00:02:00\tMarker",
-    "Hello world.",
-  ].join("\n")
+    const text = [
+      "XXX 00:00:01:00\t00:00:02:00\tMarker",
+      "Hello world.",
+    ].join("\n")
 
-  const segments = parseSubs(text)
+    const segments = parseSubs(text)
 
-  expect(segments).toHaveLength(1)
-  expect(segments[0]?.lineIndex).toBe(1)
-  expect(segments[0]?.text).toBe("Hello world.")
+    expect(segments).toHaveLength(1)
+    expect(segments[0]?.lineIndex).toBe(1)
+    expect(segments[0]?.text).toBe("Hello world.")
   })
 })
 
@@ -131,6 +131,58 @@ describe("parseNews", () => {
       {
         lineIndex: 4,
         marker: { raw: "2_0008", index: 2, time: 8, valid: true, lineIndex: 3 },
+      },
+    ])
+  })
+
+  it("parses SUPER_PEOPLE entries as dedicated news segments", () => {
+    const text = [
+      "SUPER_PEOPLE:",
+      "病患 | 羅伯托",
+      "Roberto",
+      "Patient",
+      "",
+      "醫師 | 林醫師",
+      "Dr. Lin",
+      "Chief Physician",
+      "Harbor Clinic",
+      "",
+      "1_0001",
+      "中文內文。",
+      "English line.",
+    ].join("\n")
+
+    const segments = parseNews(text)
+
+    expect(segments).toMatchObject([
+      {
+        lineIndex: 1,
+        lineIndexEnd: 3,
+        blockType: "super_people",
+        superPerson: {
+          zhTitle: "病患",
+          zhName: "羅伯托",
+          enName: "Roberto",
+          enTitle: "Patient",
+        },
+      },
+      {
+        lineIndex: 5,
+        lineIndexEnd: 8,
+        blockType: "super_people",
+        superPerson: {
+          zhTitle: "醫師",
+          zhName: "林醫師",
+          enName: "Dr. Lin",
+          enTitle: "Chief Physician",
+          organization: "Harbor Clinic",
+        },
+      },
+      {
+        lineIndex: 12,
+        blockType: "vo",
+        sourceText: "中文內文。",
+        text: "English line.",
       },
     ])
   })

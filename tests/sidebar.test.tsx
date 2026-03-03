@@ -215,6 +215,44 @@ describe("Sidebar", () => {
     expect(firstFindingText).toContain("Reading speed is too high")
   })
 
+  it("shows actual CPS and character count in finding explanations", () => {
+    render(<App />)
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+
+    fireEvent.change(editor, {
+      target: {
+        value: [
+          "00:00:01:00\t00:00:02:00\tMarker",
+          "This payload is definitely too long for one second.",
+          "",
+          "00:00:02:00\t00:00:06:00\tMarker",
+          "This line is definitely longer than the configured maximum character count for one subtitle row.",
+          "",
+          "00:00:06:00\t00:00:08:00\tMarker",
+          "OK.",
+        ].join("\n"),
+      },
+    })
+
+    fireEvent.click(screen.getAllByText("Reading speed is too high")[0])
+    const maxCpsRow = screen
+      .getAllByText("Reading speed is too high")[0]
+      ?.closest(".finding-row-button")
+    expect(maxCpsRow?.textContent).toContain("Current: 51.0 CPS.")
+
+    fireEvent.click(screen.getAllByText("Reading speed is too low")[0])
+    const minCpsRow = screen
+      .getAllByText("Reading speed is too low")[0]
+      ?.closest(".finding-row-button")
+    expect(minCpsRow?.textContent).toContain("Current: 1.5 CPS.")
+
+    fireEvent.click(screen.getAllByText("Line has too many characters")[0])
+    const maxCharsRow = screen
+      .getAllByText("Line has too many characters")[0]
+      ?.closest(".finding-row-button")
+    expect(maxCharsRow?.textContent).toContain("Current: 96 characters.")
+  })
+
   it("opens and closes a rules modal from the findings gear button", async () => {
     const { container } = render(<App />)
     const ui = within(container)

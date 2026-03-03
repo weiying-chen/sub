@@ -278,11 +278,29 @@ function getFindingParts(finding: Finding): {
   }
 
   const detail = getFindingLabel(finding)
-  const explanation =
-    typeof finding.instruction === "string" && finding.instruction.trim() !== ""
-      ? finding.instruction
-      : null
+  const explanation = getFindingExplanation(finding)
   return { severityIconClass, severityKind: severity, snippet, detail, explanation }
+}
+
+function getFindingExplanation(finding: Finding): string | null {
+  const instruction =
+    typeof finding.instruction === "string" && finding.instruction.trim() !== ""
+      ? finding.instruction.trim()
+      : null
+
+  if (finding.type === "MAX_CPS" || finding.type === "MIN_CPS") {
+    return instruction
+      ? `${instruction} Current: ${finding.cps.toFixed(1)} CPS.`
+      : `Current: ${finding.cps.toFixed(1)} CPS.`
+  }
+
+  if (finding.type === "MAX_CHARS") {
+    return instruction
+      ? `${instruction} Current: ${finding.actual} characters.`
+      : `Current: ${finding.actual} characters.`
+  }
+
+  return instruction
 }
 
 function getFindingAnchor(view: EditorView, finding: Finding): number {

@@ -259,6 +259,41 @@ describe("fillSelectedTimestampLines", () => {
   expect(maxRun).toBeLessThanOrEqual(3)
   })
 
+  it("chooses a target CPS that reaches the end of long quoted paragraphs", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:15\tMarker",
+    "00:00:01:15\t00:00:03:00\tMarker",
+    "00:00:03:00\t00:00:04:15\tMarker",
+    "00:00:04:15\t00:00:06:00\tMarker",
+    "00:00:06:00\t00:00:09:00\tMarker",
+    "00:00:09:00\t00:00:12:00\tMarker",
+    "00:00:12:00\t00:00:14:00\tMarker",
+    "00:00:14:00\t00:00:15:00\tMarker",
+    "00:00:15:00\t00:00:17:00\tMarker",
+    "00:00:17:00\t00:00:20:00\tMarker",
+    "00:00:20:00\t00:00:22:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, index) => index))
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    `If you don't know what to do, say so. "I don't know what's best, but maybe we can find someone to help us figure it out." And keep showing you care. "If you want to talk, call me. You're not bothering me. What can I do to help you feel a little better?"`,
+    { maxChars: 54, inline: true }
+  )
+
+  const payloads = result.lines.filter(
+    (line) => line.trim() !== "" && !/^\d{2}:\d{2}:\d{2}:\d{2}\t/.test(line)
+  )
+
+  expect(result.remaining).toBe("")
+  expect(payloads.at(-1)).toContain("little better?")
+  expect(payloads.at(-1)?.startsWith('"')).toBe(true)
+  expect(payloads.filter((line) => line === `"I don't know what's best,"`).length).toBeLessThan(
+    payloads.length / 2
+  )
+  })
+
   it("avoids splitting list items at commas", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
@@ -1327,6 +1362,21 @@ describe("fillSelectedTimestampLines", () => {
   const split = __testTakeLine('"', 54, null, false)
   expect(split.line).toBe("")
   expect(split.rest).toBe('"')
+  })
+
+  it("keeps consuming long text that starts with an opening quote", () => {
+  const split = __testTakeLine(
+    `"but maybe we can find someone to help us figure it out." And keep showing you care.`,
+    54,
+    null,
+    false
+  )
+
+  expect(split.line).not.toBe("")
+  expect(split.line.startsWith('"')).toBe(true)
+  expect(split.rest.length).toBeLessThan(
+    `"but maybe we can find someone to help us figure it out." And keep showing you care.`.length
+  )
   })
 
   it("moves trailing bare conjunctions to the next split chunk", () => {

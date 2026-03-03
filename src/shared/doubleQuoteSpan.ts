@@ -34,14 +34,12 @@ export function analyzeDoubleQuoteSpan(
   const isWrapped = hasLeadingQuote && hasTrailingQuote && !quoteOpen
   const leadingQuoteIsContinuation = hasLeadingQuote && quoteOpen
 
-  let nextQuoteOpen = quoteOpen
-  if (isWrapped) {
-    nextQuoteOpen = false
-  } else if (isOpeningAtStart) {
-    nextQuoteOpen = !hasTrailingQuote
-  } else if (isClosingAtEnd) {
-    nextQuoteOpen = false
-  }
+  const effectiveQuoteCount = Math.max(
+    0,
+    quoteCount - (leadingQuoteIsContinuation ? 1 : 0)
+  )
+  const nextQuoteOpen =
+    effectiveQuoteCount % 2 === 0 ? quoteOpen : !quoteOpen
 
   return {
     quoteCount,

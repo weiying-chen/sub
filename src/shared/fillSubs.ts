@@ -176,6 +176,16 @@ function isSentenceBoundaryChar(ch: string): boolean {
   return ch === '.' || ch === '!' || ch === '?'
 }
 
+function isVeryShortSentenceTail(text: string): boolean {
+  const trimmed = text.trimEnd()
+  const words = trimmed
+    .replace(/^["']+|["']+$/g, '')
+    .split(/\s+/)
+    .map((word) => word.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, ''))
+    .filter(Boolean)
+  return words.length <= 1
+}
+
 function findRightmostStrongPunct(
   window: string,
   noSplitAbbrevMatcher: RegExp | null
@@ -550,6 +560,12 @@ function findSentenceBoundaryCut(
     if (!left || !right) continue
     if (ch === '.' && isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher)) continue
     if (ch === '.' && isMeridiemInnerSplit(left, right)) continue
+    if (
+      isVeryShortSentenceTail(left) &&
+      (isQuoteChar(window[cut] ?? '') || /["']\s*$/.test(left))
+    ) {
+      continue
+    }
     if ((ch === '?' || ch === '!') && isDialogueTagStart(right)) {
       let hasLaterBoundary = false
       for (let j = i + 1; j < window.length; j++) {
@@ -710,6 +726,27 @@ function takeLine(
   if (!s) return { line: '', rest: '' }
   const allowHeuristicSplitsWhenFits =
     options.allowHeuristicSplitsWhenFits ?? false
+
+  // Long quoted segments should keep making progress instead of stalling on
+  // the leading quote marker.
+  if (s.startsWith('"') && s.length > limit && countDoubleQuotes(s) >= 2) {
+    const inner = takeLine(
+      s.slice(1),
+      Math.max(1, limit - 1),
+      noSplitAbbrevMatcher,
+      noSplitUsAbbreviation,
+      options
+    )
+    if (inner.line) {
+      const line = `"${inner.line}`
+      const quoteInfo = analyzeDoubleQuoteSpan(line, false)
+      const rest =
+        inner.rest && quoteInfo.nextQuoteOpen && !inner.rest.startsWith('"')
+          ? `"${inner.rest}`
+          : inner.rest
+      return normalizeSplit(line, rest)
+    }
+  }
 
   if (
     s.length <= limit &&
@@ -1192,20 +1229,23 @@ function adjustSplitForNoSplitAbbrevAndQuotes(
 }
 
 type QuoteMeta = {
+  quoteCount: number
   isOpening: boolean
   isClosing: boolean
   isWrapped: boolean
+  leadingQuoteIsContinuation: boolean
+  nextQuoteOpen: boolean
 }
 
 function getQuoteMeta(rawLine: string, quoteOpen: boolean): QuoteMeta {
   const quoteInfo = analyzeDoubleQuoteSpan(rawLine, quoteOpen)
-  if (quoteInfo.quoteCount % 2 === 0) {
-    return { isOpening: false, isClosing: false, isWrapped: false }
-  }
   return {
+    quoteCount: quoteInfo.quoteCount,
     isOpening: quoteInfo.isOpeningAtStart,
     isClosing: quoteInfo.isClosingAtEnd,
     isWrapped: quoteInfo.hasLeadingQuote && quoteInfo.hasTrailingQuote,
+    leadingQuoteIsContinuation: quoteInfo.leadingQuoteIsContinuation,
+    nextQuoteOpen: quoteInfo.nextQuoteOpen,
   }
 }
 
@@ -1217,29 +1257,30 @@ function applyQuoteCarry(
   isLastInSpan: boolean
 ): { text: string; quoteOpen: boolean } {
   let text = rawLine
-  const shouldOpen = meta.isOpening || meta.isWrapped
-  const shouldClose = meta.isClosing || meta.isWrapped
+  const shouldAddLeading = quoteOpen && !hasLeadingDoubleQuote(text)
+  const shouldAddTrailing =
+    !hasTrailingDoubleQuote(text) &&
+    (meta.isWrapped ||
+      (quoteOpen && meta.quoteCount === 0) ||
+      (quoteOpen && meta.leadingQuoteIsContinuation && meta.quoteCount === 1) ||
+      (meta.isOpening && meta.quoteCount === 1))
 
-  if (
-    (quoteOpen || shouldOpen || shouldClose) &&
-    !hasLeadingDoubleQuote(text)
-  ) {
+  if (shouldAddLeading) {
     text = `"${text}`
   }
 
-  if (
-    (quoteOpen || shouldOpen || shouldClose) &&
-    !hasTrailingDoubleQuote(text)
-  ) {
+  if (shouldAddTrailing) {
     text = `${text}"`
   }
 
   let nextQuoteOpen = quoteOpen
-  if (meta.isWrapped) {
+  if (meta.quoteCount > 0) {
+    nextQuoteOpen = meta.nextQuoteOpen
+  } else if (meta.isWrapped) {
     nextQuoteOpen = false
-  } else if (shouldOpen && isFirstInSpan) {
+  } else if (meta.isOpening && isFirstInSpan) {
     nextQuoteOpen = true
-  } else if (shouldClose && isLastInSpan) {
+  } else if (meta.isClosing && isLastInSpan) {
     nextQuoteOpen = false
   }
 
@@ -1350,7 +1391,7 @@ function runInlineFill(
     lastFilledIndex = i
   }
 
-  if (!dryRun && lastPayload && lastFilledIndex != null) {
+  if (!dryRun && !remaining && lastPayload && lastFilledIndex != null) {
     for (let i = lastFilledIndex + 1; i < lines.length; i += 1) {
       if (!isFillableTimestamp(lines, selectedLineIndices, i)) continue
       if (payloads.has(i)) continue
@@ -1395,48 +1436,51 @@ function chooseTargetCps(
   const totalSlots = countFillableSlots(lines, selectedLineIndices)
   if (totalSlots === 0) return maxCps
 
-  const runAtMax = runInlineFill(
-    lines,
-    selectedLineIndices,
-    paragraph,
-    limit,
-    maxCps,
-    true,
-    noSplitAbbrevMatcher,
-    noSplitUsAbbreviation
-  )
-  if (runAtMax.overflow) return maxCps
+  const candidates = new Set<number>([maxCps, minCps])
+  for (let cps = minCps; cps <= maxCps; cps += 0.25) {
+    candidates.add(Number(cps.toFixed(2)))
+  }
 
-  let low = minCps
-  let high = maxCps
   let best = maxCps
-  let bestSlots = runAtMax.usedSlots
+  let bestRemainingLength = Number.POSITIVE_INFINITY
+  let bestSlots = -1
 
-  if (bestSlots >= totalSlots) return maxCps
-
-  for (let i = 0; i < 24; i += 1) {
-    const mid = (low + high) / 2
+  for (const cps of [...candidates].sort((a, b) => b - a)) {
     const run = runInlineFill(
       lines,
       selectedLineIndices,
       paragraph,
       limit,
-      mid,
+      cps,
       true,
       noSplitAbbrevMatcher,
       noSplitUsAbbreviation
     )
-    if (run.overflow) {
-      low = mid
+    if (run.overflow) continue
+
+    const remainingLength = run.remaining.length
+    if (remainingLength < bestRemainingLength) {
+      bestRemainingLength = remainingLength
+      bestSlots = run.usedSlots
+      best = cps
       continue
     }
+    if (remainingLength > bestRemainingLength) continue
+
     if (run.usedSlots > bestSlots) {
       bestSlots = run.usedSlots
-      best = mid
-    } else if (run.usedSlots === bestSlots && mid < best) {
-      best = mid
+      best = cps
+      continue
     }
-    high = mid
+    if (run.usedSlots < bestSlots) continue
+
+    if (remainingLength === 0 && run.usedSlots >= totalSlots && cps > best) {
+      best = cps
+      continue
+    }
+    if (cps < best) {
+      best = cps
+    }
   }
 
   return best

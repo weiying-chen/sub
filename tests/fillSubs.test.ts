@@ -1364,6 +1364,19 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe('"')
   })
 
+  it("does not split inside quoted ellipses before trailing narration", () => {
+  const split = __testTakeLine(
+    `"Please do not put me through that..." But they cut him off.`,
+    54,
+    null,
+    false
+  )
+
+  expect(split.line).toContain('that..."')
+  expect(split.line).not.toBe('"."')
+  expect(split.rest.startsWith("But they cut him off.")).toBe(true)
+  })
+
   it("keeps consuming long text that starts with an opening quote", () => {
   const split = __testTakeLine(
     `"but maybe we can find someone to help us figure it out." And keep showing you care.`,

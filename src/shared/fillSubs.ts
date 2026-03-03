@@ -176,6 +176,10 @@ function isSentenceBoundaryChar(ch: string): boolean {
   return ch === '.' || ch === '!' || ch === '?'
 }
 
+function isEllipsisDot(text: string, index: number): boolean {
+  return text[index] === '.' && (text[index - 1] === '.' || text[index + 1] === '.')
+}
+
 function isVeryShortSentenceTail(text: string): boolean {
   const trimmed = text.trimEnd()
   const words = trimmed
@@ -554,6 +558,7 @@ function findSentenceBoundaryCut(
   for (let i = 0; i < window.length; i++) {
     const ch = window[i]
     if (!isSentenceBoundaryChar(ch)) continue
+    if (ch === '.' && isEllipsisDot(window, i)) continue
     const cut = i + 1
     const left = window.slice(0, cut).trimEnd()
     const right = (window.slice(cut) + nextText).trimStart()

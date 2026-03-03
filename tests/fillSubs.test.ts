@@ -457,6 +457,46 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.startsWith("when ")).toBe(false)
   })
 
+  it("does not split after short copular heads", () => {
+  const split = __testTakeLine(
+    "This is what I've learned from years of practice.",
+    80,
+    null,
+    false,
+    { allowHeuristicSplitsWhenFits: true }
+  )
+
+  expect(split.line).not.toBe("This is")
+  expect(split.rest.startsWith("what ")).toBe(false)
+  })
+
+  it("does not start the next chunk with a comma", () => {
+  const lines = [
+    "00:00:01:00\t00:00:03:00\tMarker",
+    "00:00:03:00\t00:00:05:00\tMarker",
+    "00:00:05:00\t00:00:07:00\tMarker",
+    "00:00:07:00\t00:00:09:00\tMarker",
+  ]
+  const selected = new Set([0, 1, 2, 3])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "and now online with Chinese communities in Europe and the U.S., I've seen the same pattern before.",
+    {
+      maxChars: 54,
+      inline: true,
+      noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS,
+    }
+  )
+
+  const payloads = result.lines.filter(
+    (line) => line.trim() !== "" && !line.includes("\t")
+  )
+  expect(payloads.some((line) => line.trimStart().startsWith(","))).toBe(false)
+  expect(payloads.some((line) => line.endsWith("U.S.,"))).toBe(true)
+  })
+
   it("does not leave pronoun contractions stranded at line end", () => {
   const split = __testTakeLine(
     "It was the strangest result he'd ever seen.",

@@ -466,6 +466,13 @@ function findRightmostCopularBreak(window: string, nextText: string): number {
 
     const left = window.slice(0, end).trimEnd()
     if (!left) continue
+    const leftWordCount = left.split(/\s+/).filter(Boolean).length
+    if (
+      left.length < MIN_CLAUSE_START_SPLIT_CHARS ||
+      leftWordCount < MIN_CLAUSE_START_SPLIT_WORDS + 1
+    ) {
+      continue
+    }
     const tail = (window.slice(end) + nextText).trimStart()
     if (!tail) continue
     if (
@@ -972,6 +979,17 @@ function normalizeTrailingPrepositionHead(
   return { line: left, rest: `${word} ${rest}` }
 }
 
+function normalizeLeadingCommaRest(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmedRest = rest.trimStart()
+  if (!line || !trimmedRest.startsWith(",")) return { line, rest }
+
+  const nextRest = trimmedRest.slice(1).trimStart()
+  return { line: `${line.trimEnd()},`, rest: nextRest }
+}
+
 function normalizeSplit(line: string, rest: string): { line: string; rest: string } {
   const quoteNormalized = normalizeQuoteOnlyHead(line, rest)
   const conjunctionNormalized = normalizeTrailingConjunctionHead(
@@ -986,9 +1004,13 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     articleNormalized.line,
     articleNormalized.rest
   )
-  return normalizeTrailingPrepositionHead(
+  const prepositionNormalized = normalizeTrailingPrepositionHead(
     subordinatorNormalized.line,
     subordinatorNormalized.rest
+  )
+  return normalizeLeadingCommaRest(
+    prepositionNormalized.line,
+    prepositionNormalized.rest
   )
 }
 

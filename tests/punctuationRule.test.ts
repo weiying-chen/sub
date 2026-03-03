@@ -15,7 +15,7 @@ describe("punctuationRule", () => {
       "00:00:04:00\t00:00:05:00\tMarker",
       "Next Starts Capital.",
       "00:00:05:00\t00:00:06:00\tMarker",
-      "He said",
+      "He said,",
       "00:00:06:00\t00:00:07:00\tMarker",
       "\"Hello there.\"",
       "00:00:07:00\t00:00:08:00\tMarker",
@@ -29,9 +29,9 @@ describe("punctuationRule", () => {
 
     const ruleCodes = findings.map((f) => f.ruleCode).sort()
     expect(ruleCodes).toEqual([
+      "COMMA_BEFORE_QUOTE",
       "LOWERCASE_AFTER_PERIOD",
       "MISSING_CLOSING_QUOTE",
-      "MISSING_COLON_BEFORE_QUOTE",
       "MISSING_END_PUNCTUATION",
       "MISSING_PUNCTUATION_BEFORE_CAPITAL",
     ])
@@ -43,7 +43,7 @@ describe("punctuationRule", () => {
     expect(byRuleCode.get("MISSING_PUNCTUATION_BEFORE_CAPITAL")?.text).toBe(
       "This continues"
     )
-    expect(byRuleCode.get("MISSING_COLON_BEFORE_QUOTE")?.text).toBe("He said")
+    expect(byRuleCode.get("COMMA_BEFORE_QUOTE")?.text).toBe("He said,")
     expect(byRuleCode.get("MISSING_END_PUNCTUATION")?.text).toBe(
       "This line lacks terminal"
     )
@@ -111,7 +111,7 @@ describe("punctuationRule", () => {
       "this should be capitalized.",
       "",
       "00:00:03:00\t00:00:04:00\tMarker",
-      "He said",
+      "He said,",
       "",
       "00:00:04:00\t00:00:05:00\tMarker",
       "\"Hello there.\"",
@@ -125,7 +125,7 @@ describe("punctuationRule", () => {
       findings.some((f) => f.ruleCode === "LOWERCASE_AFTER_PERIOD")
     ).toBe(true)
     expect(
-      findings.some((f) => f.ruleCode === "MISSING_COLON_BEFORE_QUOTE")
+      findings.some((f) => f.ruleCode === "COMMA_BEFORE_QUOTE")
     ).toBe(true)
   })
 
@@ -174,8 +174,40 @@ describe("punctuationRule", () => {
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
     expect(
-      findings.some((f) => f.ruleCode === "MISSING_COLON_BEFORE_QUOTE")
+      findings.some((f) => f.ruleCode === "COMMA_BEFORE_QUOTE")
     ).toBe(false)
+  })
+
+  it("does not require ':' before a quoted line when the previous line has no comma", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "This phrase introduces",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "\"a quoted term.\"",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some((f) => f.ruleCode === "COMMA_BEFORE_QUOTE")
+    ).toBe(false)
+  })
+
+  it("requires ':' only when a comma introduces the next quoted line", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "He said,",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "\"Hello there.\"",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some((f) => f.ruleCode === "COMMA_BEFORE_QUOTE")
+    ).toBe(true)
   })
 
   it('flags unclosed opening quote even when it is mid-line', () => {

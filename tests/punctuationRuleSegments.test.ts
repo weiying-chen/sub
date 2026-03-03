@@ -15,7 +15,7 @@ describe("punctuationRule (segments)", () => {
       "00:00:04:00\t00:00:05:00\tMarker",
       "Next Starts Capital.",
       "00:00:05:00\t00:00:06:00\tMarker",
-      "He said",
+      "He said,",
       "00:00:06:00\t00:00:07:00\tMarker",
       "\"Hello there.\"",
       "00:00:07:00\t00:00:08:00\tMarker",
@@ -33,9 +33,9 @@ describe("punctuationRule (segments)", () => {
 
     const ruleCodes = findings.map((f) => f.ruleCode).sort()
     expect(ruleCodes).toEqual([
+      "COMMA_BEFORE_QUOTE",
       "LOWERCASE_AFTER_PERIOD",
       "MISSING_CLOSING_QUOTE",
-      "MISSING_COLON_BEFORE_QUOTE",
       "MISSING_END_PUNCTUATION",
       "MISSING_PUNCTUATION_BEFORE_CAPITAL",
     ])
@@ -179,7 +179,7 @@ describe("punctuationRule (segments)", () => {
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
     expect(
-      findings.some((f) => f.ruleCode === "MISSING_COLON_BEFORE_QUOTE")
+      findings.some((f) => f.ruleCode === "COMMA_BEFORE_QUOTE")
     ).toBe(false)
   })
 
@@ -199,7 +199,27 @@ describe("punctuationRule (segments)", () => {
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
     expect(
-      findings.some((f) => f.ruleCode === "MISSING_COLON_BEFORE_QUOTE")
+      findings.some((f) => f.ruleCode === "COMMA_BEFORE_QUOTE")
+    ).toBe(false)
+  })
+
+  it("does not require ':' for non-comma lead-ins before quoted cues across timestamps", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "This phrase introduces",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "\"a quoted term.\"",
+    ].join("\n")
+
+    const segments = parseSubs(text)
+    const metrics = analyzeSegments(segments, [punctuationRule()], {
+      lines: text.split("\n"),
+      sourceText: text,
+    })
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some((f) => f.ruleCode === "COMMA_BEFORE_QUOTE")
     ).toBe(false)
   })
 

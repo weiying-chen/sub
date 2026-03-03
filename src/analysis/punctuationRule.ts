@@ -307,6 +307,7 @@ function collectMetrics(
     if (
       nextQuoteStart &&
       !nextIsQuoteContinuation &&
+      prevTrim.endsWith(',') &&
       !prevTrim.endsWith(':') &&
       !endsSentenceBoundary(prevTrim) &&
       prevQuoteOpenIndex === null
@@ -314,7 +315,7 @@ function collectMetrics(
       metrics.push({
         type: 'PUNCTUATION',
         lineIndex: prev.lineIndex,
-        ruleCode: 'MISSING_COLON_BEFORE_QUOTE',
+        ruleCode: 'COMMA_BEFORE_QUOTE',
         instruction: "End this line with ':' before the next quoted line.",
         text: prev.text,
         timestamp: cueTimestamp(prev),

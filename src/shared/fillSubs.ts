@@ -31,6 +31,7 @@ const MIN_WITH_SPLIT_LEFT_WORDS = 2
 const INFINITIVE_LEAD_NOUNS = new Set([
   'chance',
   'ability',
+  'confidence',
   'opportunity',
   'way',
   'time',

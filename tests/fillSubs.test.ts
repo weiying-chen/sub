@@ -578,6 +578,19 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("splits before 'that' after a comma", () => {
+  const split = __testTakeLine(
+    "He reminded her how much she mattered, that being together meant everything.",
+    44,
+    null,
+    false,
+    { allowHeuristicSplitsWhenFits: true }
+  )
+
+  expect(split.line).toBe("He reminded her how much she mattered,")
+  expect(split.rest).toBe("that being together meant everything.")
+  })
+
   it("avoids starting a line with 'that' after noun phrases", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

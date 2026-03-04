@@ -352,6 +352,27 @@ function findRightmostOnHowBreak(window: string): number {
   return best
 }
 
+function findRightmostCommaThatStart(window: string): number {
+  let best = -1
+  const re = new RegExp(THAT_RE.source, 'gi')
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const end = start + m[0].length
+
+    const prev = window[start - 1] ?? ''
+    const next = window[end] ?? ''
+    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
+
+    const left = window.slice(0, start).trimEnd()
+    const right = window.slice(start).trimStart()
+    if (!left || !right) continue
+    if (!left.endsWith(',')) continue
+    best = start
+  }
+  return best
+}
+
 function findRightmostThatStart(window: string): number {
   let best = -1
   const re = new RegExp(THAT_RE.source, 'gi')
@@ -748,6 +769,9 @@ function findBestCut(
   const whoCut = findRightmostWhoStart(window)
   if (whoCut >= 0) return whoCut
 
+  const commaThatCut = findRightmostCommaThatStart(window)
+  if (commaThatCut >= 0) return commaThatCut
+
   const thatCut = findRightmostThatStart(window)
   if (thatCut >= 0) return thatCut
 
@@ -1045,6 +1069,17 @@ function normalizeLeadingCommaRest(
   return { line: `${line.trimEnd()},`, rest: nextRest }
 }
 
+function normalizeTrailingCommaThat(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmedLine = line.trimEnd()
+  if (!/,\s+that$/i.test(trimmedLine) || !rest.trimStart()) return { line, rest }
+
+  const nextLine = trimmedLine.replace(/\s+that$/i, '')
+  return { line: nextLine, rest: `that ${rest.trimStart()}` }
+}
+
 function normalizeSplit(line: string, rest: string): { line: string; rest: string } {
   const quoteNormalized = normalizeQuoteOnlyHead(line, rest)
   const conjunctionNormalized = normalizeTrailingConjunctionHead(
@@ -1063,9 +1098,13 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     subordinatorNormalized.line,
     subordinatorNormalized.rest
   )
-  return normalizeLeadingCommaRest(
+  const commaThatNormalized = normalizeTrailingCommaThat(
     prepositionNormalized.line,
     prepositionNormalized.rest
+  )
+  return normalizeLeadingCommaRest(
+    commaThatNormalized.line,
+    commaThatNormalized.rest
   )
 }
 

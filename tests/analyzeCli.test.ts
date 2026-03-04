@@ -99,12 +99,12 @@ describe("analyze CLI output", () => {
   it("returns SUPER_PEOPLE findings for swapped name-title order and title case", async () => {
     const text = [
       "SUPER_PEOPLE:",
-      "病患 | 羅伯托",
+      "病患 | 王大明",
       "Patient care coordinator",
-      "Roberto Lin",
+      "Alex Wang",
       "",
-      "醫師 | 林醫師",
-      "Dr. Lin",
+      "醫師 | 陳醫師",
+      "Dr. Chen",
       "Chief Physician",
     ].join("\n")
 

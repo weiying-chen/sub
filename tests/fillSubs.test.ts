@@ -482,7 +482,7 @@ describe("fillSelectedTimestampLines", () => {
   const result = fillSelectedTimestampLines(
     lines,
     selected,
-    "and now online with Chinese communities in Europe and the U.S., I've seen the same pattern before.",
+    "and now in local groups across the U.S., I've seen the same pattern before.",
     {
       maxChars: 54,
       inline: true,

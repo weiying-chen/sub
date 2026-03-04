@@ -138,12 +138,12 @@ describe("parseNews", () => {
   it("parses SUPER_PEOPLE entries as dedicated news segments", () => {
     const text = [
       "SUPER_PEOPLE:",
-      "病患 | 羅伯托",
-      "Roberto",
+      "病患 | 王大明",
+      "Alex Wang",
       "Patient",
       "",
-      "醫師 | 林醫師",
-      "Dr. Lin",
+      "醫師 | 陳醫師",
+      "Dr. Chen",
       "Chief Physician",
       "Harbor Clinic",
       "",
@@ -161,8 +161,8 @@ describe("parseNews", () => {
         blockType: "super_people",
         superPerson: {
           zhTitle: "病患",
-          zhName: "羅伯托",
-          enName: "Roberto",
+          zhName: "王大明",
+          enName: "Alex Wang",
           enTitle: "Patient",
         },
       },
@@ -172,8 +172,8 @@ describe("parseNews", () => {
         blockType: "super_people",
         superPerson: {
           zhTitle: "醫師",
-          zhName: "林醫師",
-          enName: "Dr. Lin",
+          zhName: "陳醫師",
+          enName: "Dr. Chen",
           enTitle: "Chief Physician",
           organization: "Harbor Clinic",
         },

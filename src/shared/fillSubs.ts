@@ -1108,6 +1108,23 @@ function normalizeLeadingCommaRest(
   return { line: `${line.trimEnd()},`, rest: nextRest }
 }
 
+function normalizeTrailingHyphenCompound(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmedLine = line.trimEnd()
+  const trimmedRest = rest.trimStart()
+  if (!/[A-Za-z]-$/.test(trimmedLine) || !/^[A-Za-z][A-Za-z-]*/.test(trimmedRest)) {
+    return { line, rest }
+  }
+
+  const token = trimmedRest.match(/^[A-Za-z][A-Za-z-]*/)?.[0]
+  if (!token) return { line, rest }
+
+  const nextRest = trimmedRest.slice(token.length).trimStart()
+  return { line: `${trimmedLine}${token}`, rest: nextRest }
+}
+
 function normalizeTrailingCommaThat(
   line: string,
   rest: string
@@ -1137,9 +1154,13 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     subordinatorNormalized.line,
     subordinatorNormalized.rest
   )
-  const commaThatNormalized = normalizeTrailingCommaThat(
+  const hyphenNormalized = normalizeTrailingHyphenCompound(
     prepositionNormalized.line,
     prepositionNormalized.rest
+  )
+  const commaThatNormalized = normalizeTrailingCommaThat(
+    hyphenNormalized.line,
+    hyphenNormalized.rest
   )
   return normalizeLeadingCommaRest(
     commaThatNormalized.line,

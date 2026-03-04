@@ -1179,6 +1179,28 @@ describe("fillSelectedTimestampLines", () => {
   expect(payloads.some((line) => line.includes("now--- that"))).toBe(false)
   })
 
+  it("keeps hyphenated compounds glued without inserting spaces", () => {
+  const lines = [
+    "00:00:00:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:04:00\tMarker",
+    "00:00:04:00\t00:00:06:00\tMarker",
+    "00:00:06:00\t00:00:08:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+  const paragraph =
+    "This is a foundation in the grief-and-loss workshops we lead."
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    inline: false,
+    maxChars: 42,
+  })
+  const payloads = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(payloads.some((line) => line.includes("grief-and-loss"))).toBe(true)
+  expect(payloads.some((line) => /grief-\s*$/.test(line))).toBe(false)
+  expect(payloads.some((line) => /^and-loss\b/.test(line))).toBe(false)
+  })
+
   it("keeps 'to' with the following verb", () => {
   const lines = [
     "00:00:00:00\t00:00:02:00\tMarker",

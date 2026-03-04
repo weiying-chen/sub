@@ -898,6 +898,19 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("prefers splitting before infinitive clauses after noun phrases", () => {
+  const split = __testTakeLine(
+    "We don't always get the chance to say what matters most.",
+    44,
+    null,
+    false,
+    { allowHeuristicSplitsWhenFits: true }
+  )
+
+  expect(split.line).toBe("We don't always get the chance")
+  expect(split.rest).toBe("to say what matters most.")
+  })
+
   it("splits before 'with' as a low-priority fallback", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

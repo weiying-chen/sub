@@ -28,6 +28,16 @@ const MIN_CLAUSE_START_SPLIT_CHARS = 12
 const MIN_CLAUSE_START_SPLIT_WORDS = 2
 const MIN_WITH_SPLIT_LEFT_CHARS = 12
 const MIN_WITH_SPLIT_LEFT_WORDS = 2
+const INFINITIVE_LEAD_NOUNS = new Set([
+  'chance',
+  'ability',
+  'opportunity',
+  'way',
+  'time',
+  'decision',
+  'desire',
+  'plan',
+])
 
 const CONJ_RE = /\b(and|but|or|so|yet|nor)\b/i
 const CLAUSE_START_RE =
@@ -607,6 +617,48 @@ function findRightmostToVerbObjectBreak(window: string, nextText: string): numbe
   return -1
 }
 
+function startsWithInfinitiveClause(text: string): boolean {
+  return /^to\s+[A-Za-z]+(?:\b|['-])/i.test(text.trimStart())
+}
+
+function endsWithInfinitiveLeadNoun(left: string): boolean {
+  const words = left
+    .trimEnd()
+    .split(/\s+/)
+    .map((word) => word.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, '').toLowerCase())
+    .filter(Boolean)
+  if (words.length === 0) return false
+  return INFINITIVE_LEAD_NOUNS.has(words[words.length - 1])
+}
+
+function findRightmostInfinitiveLead(window: string, nextText: string): number {
+  let best = -1
+  const re = /\bto\b/gi
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const end = start + m[0].length
+    const prev = window[start - 1] ?? ''
+    const next = window[end] ?? ''
+    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
+
+    const left = window.slice(0, start).trimEnd()
+    if (!left) continue
+    if (left.length < MIN_CLAUSE_START_SPLIT_CHARS) continue
+    if (left.split(/\s+/).filter(Boolean).length < MIN_CLAUSE_START_SPLIT_WORDS) {
+      continue
+    }
+    if (!endsWithInfinitiveLeadNoun(left)) continue
+
+    const right = (window.slice(start) + nextText).trimStart()
+    if (!right) continue
+    if (!startsWithInfinitiveClause(right)) continue
+
+    best = start
+  }
+  return best
+}
+
 function isToVerbSplit(left: string, right: string): boolean {
   if (!/\bto$/i.test(left)) return false
   const firstWord = right.split(/\s+/)[0] ?? ''
@@ -701,6 +753,9 @@ function findBestCut(
 
   const thatPronounCut = findRightmostThatPronounBreak(window, nextText)
   if (thatPronounCut >= 0) return thatPronounCut
+
+  const infinitiveLeadCut = findRightmostInfinitiveLead(window, nextText)
+  if (infinitiveLeadCut >= 0) return infinitiveLeadCut
 
   const clauseLeadCut = findRightmostClauseStarterLead(window, nextText)
   if (clauseLeadCut >= 0) return clauseLeadCut

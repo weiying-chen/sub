@@ -201,6 +201,35 @@ function isVeryShortSentenceTail(text: string): boolean {
   return words.length <= 1
 }
 
+function looksLikeSentenceFragment(text: string): boolean {
+  const trimmed = text.trim()
+  if (!trimmed) return true
+
+  const firstAlpha = trimmed.match(/[A-Za-z]/)?.[0] ?? ''
+  if (firstAlpha && firstAlpha === firstAlpha.toLowerCase()) return true
+
+  const words = trimmed
+    .replace(/^["']+|["']+$/g, '')
+    .split(/\s+/)
+    .map((word) => word.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, ''))
+    .filter(Boolean)
+
+  if (words.length <= 1) return true
+
+  const firstWord = (words[0] ?? '').toLowerCase()
+  if (!firstWord) return true
+  if (CONJ_RE.test(firstWord)) return true
+
+  return false
+}
+
+function shouldKeepShortSentencePairTogether(left: string, right: string): boolean {
+  if (looksLikeSentenceFragment(left) || looksLikeSentenceFragment(right)) {
+    return false
+  }
+  return true
+}
+
 function findRightmostStrongPunct(
   window: string,
   noSplitAbbrevMatcher: RegExp | null
@@ -853,6 +882,15 @@ function takeLine(
     if (sentenceCut > 0 && sentenceCut < s.length) {
       const left = s.slice(0, sentenceCut).trimEnd()
       const right = s.slice(sentenceCut).trimStart()
+      if (
+        left &&
+        right &&
+        !/["']\s*$/.test(left) &&
+        !/^["']/.test(right) &&
+        shouldKeepShortSentencePairTogether(left, right)
+      ) {
+        return normalizeSplit(s.trimEnd(), '')
+      }
       if (
         left &&
         right &&

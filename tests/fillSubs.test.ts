@@ -729,7 +729,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("splits after periods even for full sentences", () => {
+  it("keeps short full sentences together when they fit", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -744,8 +744,29 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "It is true.",
-    "My wife does this all the time.",
+    "It is true. My wife does this all the time.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
+  it("keeps two short full sentences together when they fit", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Don't rush. First loosen the soil.",
+    { maxChars: 60, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "Don't rush. First loosen the soil.",
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
   ])
@@ -769,6 +790,29 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.lines).toEqual([
     "breather.",
     "My wife does this all the time.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
+  it("splits full sentence before a trailing fragment even under maxChars", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "She nodded. still unsure what to do next.",
+    { maxChars: 60, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "She nodded.",
+    "still unsure what to do next.",
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
   ])

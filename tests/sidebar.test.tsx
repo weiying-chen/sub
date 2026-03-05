@@ -9,6 +9,10 @@ import App from "../src/App"
 const cmSpies = vi.hoisted(() => ({
   dispatch: vi.fn(),
   focus: vi.fn(),
+  lastView: null as {
+    scrollDOM: { scrollTop: number }
+    state: { doc: { lines: number; line: (n: number) => { from: number; to: number; text: string } } }
+  } | null,
 }))
 
 const gutterSpies = vi.hoisted(() => ({
@@ -68,6 +72,7 @@ vi.mock("@uiw/react-codemirror", () => ({
     }, [value])
 
     useEffect(() => {
+      cmSpies.lastView = view
       onCreateEditor?.(view)
     }, [onCreateEditor, view])
 
@@ -90,6 +95,7 @@ describe("Sidebar", () => {
     window.localStorage.clear()
     cmSpies.dispatch.mockReset()
     cmSpies.focus.mockReset()
+    cmSpies.lastView = null
     gutterSpies.timestampLinkGutter.mockClear()
   })
 
@@ -119,11 +125,34 @@ describe("Sidebar", () => {
 
     fireEvent.click(screen.getAllByText("Reading speed is too high")[0])
 
-    expect(cmSpies.dispatch).toHaveBeenCalledWith({
-      selection: { anchor: firstLineLength + 1 },
-      scrollIntoView: true,
+    expect(cmSpies.dispatch).toHaveBeenCalledTimes(1)
+    expect(cmSpies.dispatch.mock.calls[0]?.[0]?.selection).toEqual({
+      anchor: firstLineLength + 1,
     })
+    expect(cmSpies.dispatch.mock.calls[0]?.[0]?.effects).toBeDefined()
     expect(cmSpies.focus).not.toHaveBeenCalled()
+  })
+
+  it("scrolls the editor down when clicking a bottom finding", () => {
+    cmSpies.dispatch.mockImplementation((spec: { selection?: { anchor: number } }) => {
+      const view = cmSpies.lastView
+      const anchor = spec.selection?.anchor
+      if (!view || typeof anchor !== "number") return
+      const lineCount = view.state.doc.lines
+      for (let n = 1; n <= lineCount; n += 1) {
+        const line = view.state.doc.line(n)
+        if (anchor >= line.from && anchor <= line.to) {
+          view.scrollDOM.scrollTop = n * 20
+          return
+        }
+      }
+    })
+
+    render(<App />)
+
+    fireEvent.click(screen.getAllByText("Line has too many characters").at(-1)!)
+
+    expect(cmSpies.lastView?.scrollDOM.scrollTop).toBeGreaterThan(0)
   })
 
   it("can hide warning findings through includeWarnings prop", () => {

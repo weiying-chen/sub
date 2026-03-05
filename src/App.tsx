@@ -148,11 +148,6 @@ const capitalizationTerms = parseTextList(capitalizationTermsText)
 const punctuationAbbreviations = parseTextList(punctuationAbbreviationsText)
 const properNouns = parseTextList(properNounsText)
 
-type ScrollSnapshot = {
-  el: HTMLElement
-  top: number
-}
-
 function getFindingId(finding: Finding, index: number): string {
   return `${finding.type}-${finding.lineIndex}-${index}`
 }
@@ -345,30 +340,6 @@ function getFindingAnchor(view: EditorView, finding: Finding): number {
   return line.from
 }
 
-function collectScrollContainers(view: EditorView): ScrollSnapshot[] {
-  const snapshots: ScrollSnapshot[] = []
-  const seen = new Set<HTMLElement>()
-  let cur: HTMLElement | null = view.scrollDOM
-  while (cur) {
-    if (!seen.has(cur) && cur.scrollHeight > cur.clientHeight + 1) {
-      seen.add(cur)
-      snapshots.push({ el: cur, top: cur.scrollTop })
-    }
-    cur = cur.parentElement
-  }
-
-  const docScroller = view.scrollDOM.ownerDocument?.scrollingElement
-  if (
-    docScroller instanceof HTMLElement &&
-    !seen.has(docScroller) &&
-    docScroller.scrollHeight > docScroller.clientHeight + 1
-  ) {
-    snapshots.push({ el: docScroller, top: docScroller.scrollTop })
-  }
-
-  return snapshots
-}
-
 function focusEditorContent(view: EditorView) {
   const content = view.contentDOM as HTMLElement | null
   if (!content || typeof content.focus !== "function") return
@@ -376,6 +347,37 @@ function focusEditorContent(view: EditorView) {
     content.focus({ preventScroll: true })
   } catch {
     content.focus()
+  }
+}
+
+function withTemporarySmoothScroll(view: EditorView, fn: () => void) {
+  const touched = new Map<HTMLElement, string>()
+
+  const apply = (el: Element | null | undefined) => {
+    if (!(el instanceof HTMLElement) || touched.has(el)) return
+    touched.set(el, el.style.scrollBehavior)
+    el.style.scrollBehavior = "smooth"
+  }
+
+  apply(view.scrollDOM)
+
+  let cur: HTMLElement | null = view.scrollDOM.parentElement
+  while (cur) {
+    if (cur.scrollHeight > cur.clientHeight + 1) apply(cur)
+    cur = cur.parentElement
+  }
+
+  const docScroller = view.scrollDOM.ownerDocument?.scrollingElement
+  if (docScroller instanceof HTMLElement) apply(docScroller)
+
+  try {
+    fn()
+  } finally {
+    window.setTimeout(() => {
+      for (const [el, previous] of touched) {
+        el.style.scrollBehavior = previous
+      }
+    }, 450)
   }
 }
 
@@ -404,16 +406,12 @@ export default function App({
   const [isRulesModalOpen, setIsRulesModalOpen] = useState(false)
   const [isRulesModalMounted, setIsRulesModalMounted] = useState(false)
   const [suppressFindingMotion, setSuppressFindingMotion] = useState(false)
-  const scrollAnimFrameRef = useRef<number | null>(null)
   const pendingClickFindingIdRef = useRef<string | null>(null)
   const rulesModalCloseTimerRef = useRef<number | null>(null)
   const findingMotionTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     return () => {
-      if (scrollAnimFrameRef.current !== null) {
-        cancelAnimationFrame(scrollAnimFrameRef.current)
-      }
       if (rulesModalCloseTimerRef.current !== null) {
         clearTimeout(rulesModalCloseTimerRef.current)
       }
@@ -611,62 +609,14 @@ export default function App({
       pendingClickFindingIdRef.current = findingId
       setActiveFindingId(findingId)
       const anchor = getFindingAnchor(view, finding)
-      const snapshots = collectScrollContainers(view)
 
-      view.dispatch({
-        selection: { anchor },
-        scrollIntoView: true,
+      withTemporarySmoothScroll(view, () => {
+        view.dispatch({
+          selection: { anchor },
+          effects: EditorView.scrollIntoView(anchor, { y: "center" }),
+        })
       })
-
-      if (scrollAnimFrameRef.current !== null) {
-        cancelAnimationFrame(scrollAnimFrameRef.current)
-      }
-
-      scrollAnimFrameRef.current = requestAnimationFrame(() => {
-        const moved = snapshots
-          .map(({ el, top }) => ({ el, startTop: top, targetTop: el.scrollTop }))
-          .filter(({ startTop, targetTop }) => Math.abs(targetTop - startTop) > 0.5)
-
-        if (moved.length === 0) {
-          focusEditorContent(view)
-          scrollAnimFrameRef.current = null
-          return
-        }
-
-        const primary = moved.reduce((best, cur) =>
-          Math.abs(cur.targetTop - cur.startTop) > Math.abs(best.targetTop - best.startTop)
-            ? cur
-            : best
-        )
-
-        const { el, startTop, targetTop } = primary
-        const delta = targetTop - startTop
-        if (Math.abs(delta) < 1) {
-          focusEditorContent(view)
-          scrollAnimFrameRef.current = null
-          return
-        }
-
-        el.scrollTop = startTop
-        const durationMs = 420
-        const start = performance.now()
-        const easeInOutCubic = (t: number) =>
-          t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
-
-        const step = (now: number) => {
-          const elapsed = now - start
-          const t = Math.min(1, elapsed / durationMs)
-          el.scrollTop = startTop + delta * easeInOutCubic(t)
-          if (t < 1) {
-            scrollAnimFrameRef.current = requestAnimationFrame(step)
-          } else {
-            scrollAnimFrameRef.current = null
-            focusEditorContent(view)
-          }
-        }
-
-        scrollAnimFrameRef.current = requestAnimationFrame(step)
-      })
+      focusEditorContent(view)
     },
     [view]
   )

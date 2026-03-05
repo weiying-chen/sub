@@ -22,6 +22,7 @@ export type BuildAnalysisOutputOptions = {
   capitalizationTerms?: string[]
   properNouns?: string[]
   abbreviations?: string[]
+  baselineText?: string
   ignoreEmptyLines?: boolean
   includeWarnings?: boolean
 }
@@ -34,6 +35,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     capitalizationTerms,
     properNouns,
     abbreviations,
+    baselineText,
     ignoreEmptyLines,
   } =
     options
@@ -69,6 +71,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     capitalizationTerms,
     properNouns,
     abbreviations,
+    baselineText,
     ignoreEmptyLines,
     enabledFindingTypes: enabledRuleTypes,
   })

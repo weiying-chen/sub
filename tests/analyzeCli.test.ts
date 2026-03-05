@@ -221,4 +221,24 @@ describe("analyze CLI output", () => {
 
     expect(output.some((metric) => metric.type === "MERGE_CANDIDATE")).toBe(true)
   })
+
+  it("includes baseline findings in subs findings mode when baseline text is provided", async () => {
+    const baseline = [
+      "00:00:01:00\t00:00:02:00\tSRC1",
+      "First line.",
+    ].join("\n")
+
+    const current = [
+      "00:00:01:00\t00:00:02:00\tSRC1 changed",
+      "First line.",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(current, {
+      type: "subs",
+      mode: "findings",
+      baselineText: baseline,
+    })) as Metric[]
+
+    expect(output.some((metric) => metric.type === "BASELINE")).toBe(true)
+  })
 })

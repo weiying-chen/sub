@@ -5,7 +5,7 @@ import { buildAnalyzeOutput } from './analyzeOutput'
 
 function printUsage() {
   console.error(
-    'Usage: analyze <file>|--text/-t "..." [--type subs|news] [--mode metrics|findings] [--rule NAME] [--ignore-empty-lines]'
+    'Usage: analyze <file>|--text/-t "..." [--type subs|news] [--mode metrics|findings] [--rule NAME] [--baseline path] [--ignore-empty-lines]'
   )
 }
 
@@ -51,10 +51,20 @@ if (!text.trim() && !args.filePath && !args.textArg) {
   process.exit(1)
 }
 
+if (args.type === 'news' && args.baselinePath) {
+  console.warn('WARN --baseline is only supported with --type subs; ignoring.')
+}
+
+const baselineText =
+  args.type === 'subs' && args.baselinePath
+    ? await readFile(args.baselinePath, 'utf8')
+    : undefined
+
 const output = await buildAnalyzeOutput(text, {
   type: args.type,
   mode: args.mode,
   ruleFilters: args.ruleFilters,
+  baselineText,
   ignoreEmptyLines: args.ignoreEmptyLines,
 })
 

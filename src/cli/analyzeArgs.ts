@@ -4,6 +4,7 @@ export type AnalyzeArgs = {
   type: 'subs' | 'news' | string
   mode: 'metrics' | 'findings' | string
   ruleFilters: string[]
+  baselinePath: string | null
   ignoreEmptyLines: boolean
   unknownFlags: string[]
 }
@@ -14,6 +15,7 @@ export function parseAnalyzeArgs(args: string[]): AnalyzeArgs {
   let type: 'subs' | 'news' | string = 'subs'
   let mode: 'metrics' | 'findings' | string = 'metrics'
   const ruleFilters: string[] = []
+  let baselinePath: string | null = null
   let ignoreEmptyLines = false
   const unknownFlags: string[] = []
 
@@ -64,6 +66,17 @@ export function parseAnalyzeArgs(args: string[]): AnalyzeArgs {
       continue
     }
 
+    if (arg === '--baseline' && i + 1 < args.length) {
+      baselinePath = args[i + 1]
+      i += 1
+      continue
+    }
+
+    if (arg.startsWith('--baseline=')) {
+      baselinePath = arg.slice('--baseline='.length)
+      continue
+    }
+
     if (arg === '--ignore-empty-lines') {
       ignoreEmptyLines = true
       continue
@@ -86,6 +99,7 @@ export function parseAnalyzeArgs(args: string[]): AnalyzeArgs {
     type,
     mode,
     ruleFilters,
+    baselinePath,
     ignoreEmptyLines,
     unknownFlags,
   }

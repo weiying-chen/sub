@@ -10,6 +10,7 @@ export type AnalyzeOptions = {
   type: 'subs' | 'news'
   mode?: 'metrics' | 'findings'
   ruleFilters?: string[]
+  baselineText?: string
   ignoreEmptyLines?: boolean
   includeWarnings?: boolean
 }
@@ -36,6 +37,7 @@ export async function buildAnalyzeOutput(
     capitalizationTerms: capitalizationTerms ?? undefined,
     properNouns: properNouns ?? undefined,
     abbreviations: abbreviations ?? undefined,
+    baselineText: options.baselineText,
     ignoreEmptyLines: options.ignoreEmptyLines,
     includeWarnings: options.includeWarnings,
   })

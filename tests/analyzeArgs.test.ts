@@ -21,4 +21,14 @@ describe("analyze CLI args", () => {
     const args = parseAnalyzeArgs(["-t", "x"])
     expect(args.mode).toBe("metrics")
   })
+
+  it("parses --baseline argument", () => {
+    const args = parseAnalyzeArgs(["--baseline", "base.txt", "-t", "x"])
+    expect(args.baselinePath).toBe("base.txt")
+  })
+
+  it("parses --baseline=... argument", () => {
+    const args = parseAnalyzeArgs(["--baseline=base.txt", "-t", "x"])
+    expect(args.baselinePath).toBe("base.txt")
+  })
 })

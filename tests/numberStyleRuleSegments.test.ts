@@ -128,6 +128,21 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores approximate number ranges like one or two hundred", () => {
+    const segments = [
+      { lineIndex: 0, text: "I must have one or two hundred outfits." },
+      { lineIndex: 1, text: "They waited one or two thousand hours." },
+      { lineIndex: 2, text: "We need twenty or thirty chairs." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, text: segment.text }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    expect(findings).toHaveLength(0)
+  })
+
   it("flags sentence-start digits across line-start wrappers", () => {
     const segments = [
       { lineIndex: 0, text: "20 birds arrived." },

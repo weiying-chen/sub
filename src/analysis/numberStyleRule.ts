@@ -61,6 +61,14 @@ const WORD_NUMBER_RE = new RegExp(
   `\\b(?:${WORD_LIST})(?:[\\s-]+(?:${WORD_LIST}))*\\b`,
   'gi'
 )
+const APPROXIMATE_RANGE_PREFIX_RE = new RegExp(
+  `\\b(?:${WORD_LIST})(?:[\\s-]+(?:${WORD_LIST}))*\\s+or\\s+$`,
+  'i'
+)
+const APPROXIMATE_RANGE_SUFFIX_RE = new RegExp(
+  `^\\s+or\\s+(?:${WORD_LIST})(?:[\\s-]+(?:${WORD_LIST}))*\\b`,
+  'i'
+)
 
 function isSpace(ch: string) {
   return ch === ' ' || ch === '\t'
@@ -181,6 +189,15 @@ function isPrecededByDigitToken(text: string, index: number) {
 function isApproximateQuantityPhrase(text: string, index: number) {
   const prefix = text.slice(0, index).toLowerCase()
   return /(?:\ba\s+few|\bfew|\bseveral)\s+$/.test(prefix)
+}
+
+function isApproximateOrRange(text: string, index: number, length: number) {
+  const prefix = text.slice(0, index)
+  const suffix = text.slice(index + length)
+  return (
+    APPROXIMATE_RANGE_PREFIX_RE.test(prefix) ||
+    APPROXIMATE_RANGE_SUFFIX_RE.test(suffix)
+  )
 }
 
 function parseNumberWords(words: string[]): number | null {
@@ -310,6 +327,7 @@ function collectMetrics(
     if (isHyphenatedDigitSequence(match[0], parts)) continue
     if (isPrecededByDigitToken(text, match.index)) continue
     if (isApproximateQuantityPhrase(text, match.index)) continue
+    if (isApproximateOrRange(text, match.index, match[0].length)) continue
     const value = parseNumberWords(parts)
     if (value == null || value <= 10) continue
     if (isAmPmToken(text, match.index, match[0].length)) continue

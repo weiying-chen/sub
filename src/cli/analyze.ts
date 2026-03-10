@@ -5,7 +5,7 @@ import { buildAnalyzeOutput } from './analyzeOutput'
 
 function printUsage() {
   console.error(
-    'Usage: analyze <file>|--text/-t "..." [--type subs|news] [--mode metrics|findings] [--rule NAME] [--baseline path] [--ignore-empty-lines]'
+    'Usage: analyze <file>|--text/-t "..." [--type subs|news] [--mode metrics|findings] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines]'
   )
 }
 
@@ -66,6 +66,7 @@ const output = await buildAnalyzeOutput(text, {
   ruleFilters: args.ruleFilters,
   baselineText,
   ignoreEmptyLines: args.ignoreEmptyLines,
+  includeWarnings: args.includeWarnings,
 })
 
 console.log(JSON.stringify(output, null, 2))

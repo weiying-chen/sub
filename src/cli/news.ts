@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises'
 
-import type { Finding } from '../analysis/types'
+import type { Finding, Metric } from '../analysis/types'
 import { formatCliNumber } from './numberFormat'
 import type { Reporter } from './watch'
 import { buildAnalyzeOutput } from './analyzeOutput'
@@ -114,6 +114,7 @@ export function createNewsReporter(options: NewsOptions): Reporter {
     const findings = (await buildAnalyzeOutput(text, {
       type: 'news',
       mode: 'findings',
+      ruleFilters: options.ruleFilters,
       includeWarnings: options.includeWarnings,
     })) as Finding[]
 
@@ -152,4 +153,5 @@ export function createNewsReporter(options: NewsOptions): Reporter {
 }
 type NewsOptions = {
   includeWarnings: boolean
+  ruleFilters?: Metric['type'][]
 }

@@ -4,7 +4,7 @@ import { analyzeTextByType } from '../analysis/analyzeTextByType'
 import { createSubsSegmentRules } from '../analysis/subsSegmentRules'
 import { getFindings } from '../shared/findings'
 import { sortFindingsWithIndex } from '../shared/findingsSort'
-import type { Finding } from '../analysis/types'
+import type { Finding, Metric } from '../analysis/types'
 import type { Reporter } from './watch'
 import { findMarkerScope } from './markerScope'
 import { loadCapitalizationTerms, loadProperNouns } from './properNouns'
@@ -21,6 +21,7 @@ const RED = '\x1b[31m'
 
 type SubsOptions = {
   includeWarnings: boolean
+  ruleFilters?: Metric['type'][]
   baselinePath?: string
   ignoreEmptyLines?: boolean
 }
@@ -241,6 +242,7 @@ async function printReport(
   const capitalizationTerms = await loadCapitalizationTerms()
 
   const rules = createSubsSegmentRules({
+    enabledFindingTypes: options.ruleFilters,
     capitalizationTerms: capitalizationTerms ?? undefined,
     properNouns: properNouns ?? undefined,
     baselineText: baselineText ?? undefined,

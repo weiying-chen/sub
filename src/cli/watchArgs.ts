@@ -1,24 +1,23 @@
+import { parseSharedCliFlags } from './sharedArgs'
+import type { Metric } from '../analysis/types'
+
 type WatchArgs = {
   filePath?: string
   type: string
   includeWarnings: boolean
+  ruleFilters: Metric['type'][]
   baselinePath: string | null
   ignoreEmptyLines: boolean
 }
 
 export function parseArgs(argv: string[]): WatchArgs {
   const positionals: string[] = []
-  let type = 'subs'
-  let includeWarnings = true
+  const shared = parseSharedCliFlags(argv)
   let baselinePath: string | null = null
-  let ignoreEmptyLines = false
 
   for (let i = 0; i < argv.length; i += 1) {
+    if (shared.consumedIndexes.has(i)) continue
     const arg = argv[i]
-    if (arg === '--no-warn') {
-      includeWarnings = false
-      continue
-    }
 
     if (arg === '--baseline') {
       const next = argv[i + 1]
@@ -27,25 +26,6 @@ export function parseArgs(argv: string[]): WatchArgs {
         i += 1
         continue
       }
-    }
-
-    if (arg === '--ignore-empty-lines') {
-      ignoreEmptyLines = true
-      continue
-    }
-
-    if (arg === '--type') {
-      const next = argv[i + 1]
-      if (next) {
-        type = next
-        i += 1
-        continue
-      }
-    }
-
-    if (arg.startsWith('--type=')) {
-      type = arg.slice('--type='.length)
-      continue
     }
 
     if (arg.startsWith('--baseline=')) {
@@ -57,5 +37,12 @@ export function parseArgs(argv: string[]): WatchArgs {
     positionals.push(arg)
   }
 
-  return { filePath: positionals[0], type, includeWarnings, baselinePath, ignoreEmptyLines }
+  return {
+    filePath: positionals[0],
+    type: shared.type,
+    includeWarnings: shared.includeWarnings,
+    ruleFilters: shared.ruleFilters as Metric['type'][],
+    baselinePath,
+    ignoreEmptyLines: shared.ignoreEmptyLines,
+  }
 }

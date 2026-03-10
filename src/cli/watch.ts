@@ -14,9 +14,9 @@ type WatchOptions = {
 }
 
 // Parse CLI args once
-// Usage: watch <file> [--type subs|news] [--no-warn] [--baseline path] [--ignore-empty-lines]
+// Usage: watch <file> [--type subs|news] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines]
 const args = process.argv.slice(2)
-const { filePath, type, includeWarnings, baselinePath, ignoreEmptyLines } = parseArgs(args)
+const { filePath, type, includeWarnings, ruleFilters, baselinePath, ignoreEmptyLines } = parseArgs(args)
 
 function debounce<TArgs extends any[]>(
   fn: (...args: TArgs) => void | Promise<void>,
@@ -84,14 +84,14 @@ export async function watch(
 // --- CLI entry ---
 
 if (!filePath) {
-  console.error('Usage: watch <file> [--type subs|news] [--no-warn] [--baseline path] [--ignore-empty-lines]')
+  console.error('Usage: watch <file> [--type subs|news] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines]')
   process.exit(1)
 }
 
 const normalizedType = type.trim().toLowerCase()
 
 if (normalizedType !== 'subs' && normalizedType !== 'news') {
-  console.error('Usage: watch <file> [--type subs|news] [--no-warn] [--baseline path] [--ignore-empty-lines]')
+  console.error('Usage: watch <file> [--type subs|news] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines]')
   process.exit(1)
 }
 
@@ -101,9 +101,10 @@ if (normalizedType === 'news' && baselinePath) {
 
 const reporter =
   normalizedType === 'news'
-    ? createNewsReporter({ includeWarnings })
+    ? createNewsReporter({ includeWarnings, ruleFilters })
     : createSubsReporter({
         includeWarnings,
+        ruleFilters,
         baselinePath: baselinePath ?? undefined,
         ignoreEmptyLines,
       })

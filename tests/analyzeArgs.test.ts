@@ -31,4 +31,20 @@ describe("analyze CLI args", () => {
     const args = parseAnalyzeArgs(["--baseline=base.txt", "-t", "x"])
     expect(args.baselinePath).toBe("base.txt")
   })
+
+  it("disables warnings with --no-warn", () => {
+    const args = parseAnalyzeArgs(["--no-warn", "-t", "x"])
+    expect(args.includeWarnings).toBe(false)
+  })
+
+  it("parses repeated --rule filters", () => {
+    const args = parseAnalyzeArgs([
+      "--rule",
+      "MAX_CHARS",
+      "--rule=PUNCTUATION",
+      "-t",
+      "x",
+    ])
+    expect(args.ruleFilters).toEqual(["MAX_CHARS", "PUNCTUATION"])
+  })
 })

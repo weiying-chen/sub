@@ -22,4 +22,14 @@ describe("watch parseArgs", () => {
       baselinePath: null,
     })
   })
+
+  it("parses repeated --rule filters", () => {
+    const result = parseArgs([
+      "--rule",
+      "MAX_CHARS",
+      "--rule=PUNCTUATION",
+      "file.txt",
+    ])
+    expect(result.ruleFilters).toEqual(["MAX_CHARS", "PUNCTUATION"])
+  })
 })

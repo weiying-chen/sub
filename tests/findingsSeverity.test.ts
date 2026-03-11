@@ -12,6 +12,7 @@ import { mergeCandidateRule } from "../src/analysis/mergeCandidateRule"
 import { numberStyleRule } from "../src/analysis/numberStyleRule"
 import { percentStyleRule } from "../src/analysis/percentStyleRule"
 import { punctuationRule } from "../src/analysis/punctuationRule"
+import { spanGapRule } from "../src/analysis/spanGapRule"
 import { getFindings } from "../src/shared/findings"
 
 describe("getFindings severity", () => {
@@ -138,6 +139,21 @@ describe("getFindings severity", () => {
       (m) => m.type === "MERGE_CANDIDATE"
     )
     expect(mergeCandidateFindings[0]?.severity).toBe("warn")
+
+    const spanGapMetrics = analyzeTextByType(
+      [
+        "00:00:01:00\t00:00:02:00\tMarker",
+        "Hello there.",
+        "00:00:03:00\t00:00:04:00\tMarker",
+        "Hello there.",
+      ].join("\n"),
+      "subs",
+      [spanGapRule()]
+    )
+    const spanGapFindings = getFindings(spanGapMetrics).filter(
+      (m) => m.type === "SPAN_GAP"
+    )
+    expect(spanGapFindings[0]?.severity).toBe("warn")
   })
 
   it("can exclude warnings via includeWarnings=false", () => {

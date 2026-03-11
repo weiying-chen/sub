@@ -10,6 +10,7 @@ import { minCpsRule } from "./minCpsRule"
 import { numberStyleRule } from "./numberStyleRule"
 import { percentStyleRule } from "./percentStyleRule"
 import { punctuationRule } from "./punctuationRule"
+import { spanGapRule } from "./spanGapRule"
 import type { SegmentRule } from "./segments"
 import type { Metric } from "./types"
 
@@ -50,6 +51,9 @@ function createSubsCommonRules(
   }
   if (isEnabled(enabled, "CPS_BALANCE")) {
     rules.push(cpsBalanceRule({ ignoreEmptyLines: options.ignoreEmptyLines }))
+  }
+  if (isEnabled(enabled, "SPAN_GAP")) {
+    rules.push(spanGapRule())
   }
   if (isEnabled(enabled, "MERGE_CANDIDATE")) {
     rules.push(mergeCandidateRule({ ignoreEmptyLines: options.ignoreEmptyLines }))

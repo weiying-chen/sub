@@ -4,6 +4,7 @@ const FINDING_LABELS: Partial<Record<Finding["type"], string>> = {
   MAX_CPS: "Reading speed is too high",
   MIN_CPS: "Reading speed is too low",
   CPS_BALANCE: "Reading speed changes too much",
+  SPAN_GAP: "Line spans across a timing gap",
   MERGE_CANDIDATE: "Lines could be merged",
   MAX_CHARS: "Line has too many characters",
   NUMBER_STYLE: "Number format is incorrect",

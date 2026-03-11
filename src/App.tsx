@@ -96,6 +96,12 @@ const RULE_OPTIONS: RuleOption[] = [
     severity: "warn",
   },
   {
+    type: "SPAN_GAP",
+    label: "Line spans across a timing gap",
+    explanation: "Warns when the same line disappears and then reappears after a real timing gap.",
+    severity: "warn",
+  },
+  {
     type: "MIN_CPS",
     label: "Reading speed is too low",
     explanation: "Warns when reading speed falls below the minimum CPS limit.",
@@ -229,6 +235,12 @@ function getFindingRanges(view: EditorView, findings: Finding[]): FindingRange[]
     }
 
     if (f.type === "MERGE_CANDIDATE") {
+      addWholeLine(id, f.lineIndex)
+      addWholeLine(id, f.nextLineIndex)
+      continue
+    }
+
+    if (f.type === "SPAN_GAP") {
       addWholeLine(id, f.lineIndex)
       addWholeLine(id, f.nextLineIndex)
       continue

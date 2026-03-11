@@ -98,6 +98,11 @@ export function getFindings(
       continue
     }
 
+    if (m.type === 'SPAN_GAP') {
+      out.push({ ...m, severity: 'warn', instruction: m.instruction })
+      continue
+    }
+
     if (m.type === 'NUMBER_STYLE') {
       out.push({
         ...m,

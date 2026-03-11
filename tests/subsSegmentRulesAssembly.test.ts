@@ -30,6 +30,28 @@ describe("createSubsSegmentRules", () => {
     expect(filteredMetrics.map((metric) => metric.type)).toEqual(["NUMBER_STYLE"])
   })
 
+  it("can enable only the span-gap finding", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "Hello there.",
+      "00:00:03:00\t00:00:04:00\tMarker",
+      "Hello there.",
+    ].join("\n")
+
+    const findings = getFindings(
+      analyzeTextByType(
+        text,
+        "subs",
+        createSubsSegmentRules({
+          enabledFindingTypes: ["SPAN_GAP"],
+        })
+      )
+    )
+
+    expect(findings).toHaveLength(1)
+    expect(findings[0]?.type).toBe("SPAN_GAP")
+  })
+
   it("keeps only the selected cps rule active", () => {
     const text = [
       "00:00:01:00\t00:00:03:00\tMarker",

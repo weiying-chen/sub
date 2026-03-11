@@ -9,6 +9,7 @@ import { percentStyleRule } from './percentStyleRule'
 import { mergeCandidateRule } from './mergeCandidateRule'
 import { maxCpsRule } from './maxCpsRule'
 import { minCpsRule } from './minCpsRule'
+import { spanGapRule } from './spanGapRule'
 
 type DefaultRulesOptions = {
   capitalizationTerms?: string[]
@@ -44,6 +45,7 @@ export function defaultSegmentRules(
       ignoreEmptyLines: options.ignoreEmptyLines,
     }),
     cpsBalanceRule({ ignoreEmptyLines: options.ignoreEmptyLines }),
+    spanGapRule(),
     mergeCandidateRule({ ignoreEmptyLines: options.ignoreEmptyLines }),
     capitalizationRule({ terms: options.capitalizationTerms }),
     percentStyleRule(),

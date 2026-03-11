@@ -150,6 +150,17 @@ export type MergeCandidateMetric = {
   severity?: 'error' | 'warn'
 }
 
+export type SpanGapMetric = {
+  type: 'SPAN_GAP'
+  lineIndex: number
+  nextLineIndex: number
+  text: string
+  nextText: string
+  gapFrames: number
+  instruction: string
+  severity?: 'error' | 'warn'
+}
+
 export type MissingTranslationMetric = {
   type: 'MISSING_TRANSLATION'
   lineIndex: number
@@ -179,6 +190,7 @@ export type Metric =
   | CapitalizationMetric
   | PunctuationMetric
   | MergeCandidateMetric
+  | SpanGapMetric
   | MissingTranslationMetric
   | SuperPeopleMetric
   | import('./newsMarkerRule').NewsMarkerMetric

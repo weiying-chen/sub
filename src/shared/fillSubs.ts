@@ -61,6 +61,8 @@ const CLAUSE_STARTER_RE =
   /^(?:because|since|as|although|though|while|if|when)\b/i
 const CLAUSE_STARTER_ANY_RE =
   /\b(?:because|since|as|although|though|while|if|when)\b/i
+const COORDINATED_PHRASE_STOP_RE =
+  /^(?:who|whom|whose|that|which|to|with|for|from|before|after|while|because|since|if|when|as|would|could|should|will|can|may|might|must|is|are|was|were|be|being|been|am|do|does|did|has|have|had)\b/i
 const THAT_FOLLOW_PRONOUN_RE =
   /^(?:it|we|he|she|they|i|this|that|there)\b/i
 const TO_VERB_HELPER_RE =
@@ -337,7 +339,64 @@ function isCommaJoinedConjunction(
   return true
 }
 
-function findRightmostConjunctionStart(window: string): number {
+function getPhraseWords(text: string): string[] {
+  return text
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, '').toLowerCase())
+    .filter(Boolean)
+}
+
+function findCoordinationStopIndex(text: string): number {
+  const trimmed = text.trimStart()
+  if (!trimmed) return -1
+
+  const tokens = trimmed.split(/\s+/)
+  let offset = 0
+  for (const token of tokens) {
+    const clean = token.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, '')
+    if (clean && COORDINATED_PHRASE_STOP_RE.test(clean)) {
+      return offset
+    }
+    offset += token.length + 1
+  }
+
+  return -1
+}
+
+function looksLikeCoordinatedPhraseFragment(text: string): boolean {
+  const words = getPhraseWords(text)
+  if (words.length === 0 || words.length > 8) return false
+  if (CLAUSE_START_RE.test(text.trimStart())) return false
+  if (words.some((word) => SENTENCE_VERB_RE.test(word))) return false
+  if (words.some((word) => THAT_SPLIT_VERB_RE.test(word))) return false
+  return true
+}
+
+function isLikelyCoordinatedPhraseSplit(
+  left: string,
+  right: string,
+  conjunction: string
+): boolean {
+  if (!/^(and|or|nor)$/i.test(conjunction)) return false
+
+  const stopIndex = findCoordinationStopIndex(right)
+  if (stopIndex < 0) return false
+
+  const rightPhrase = right.slice(0, stopIndex).trim()
+  if (!new RegExp(`^${conjunction}\\b`, 'i').test(rightPhrase)) return false
+
+  const leftFragment = left.trim()
+  const rightFragment = rightPhrase.replace(new RegExp(`^${conjunction}\\b\\s*`, 'i'), '')
+  if (!leftFragment || !rightFragment) return false
+
+  return (
+    looksLikeCoordinatedPhraseFragment(leftFragment) &&
+    looksLikeCoordinatedPhraseFragment(rightFragment)
+  )
+}
+
+function findRightmostConjunctionStart(window: string, nextText: string): number {
   let best = -1
   const re = new RegExp(CONJ_RE.source, 'gi')
   let m: RegExpExecArray | null
@@ -358,10 +417,11 @@ function findRightmostConjunctionStart(window: string): number {
     }
 
     const left = window.slice(0, start).trimEnd()
-    const right = window.slice(start).trimStart()
+    const right = (window.slice(start) + nextText).trimStart()
     if (!left || !right) continue
     const leftWords = left.split(/\s+/).filter(Boolean)
     if (leftWords.length === 1 && CONJ_RE.test(leftWords[0])) continue
+    if (isLikelyCoordinatedPhraseSplit(left, right, m[0])) continue
     best = start
   }
   return best
@@ -600,6 +660,10 @@ function findRightmostSpace(window: string, nextText: string): number {
     const left = window.slice(0, cut).trimEnd()
     const right = (window.slice(cut) + nextText).trimStart()
     if (!left || !right) continue
+    const rightConjunction = right.match(/^(and|or|nor)\b/i)?.[0] ?? ''
+    if (rightConjunction && isLikelyCoordinatedPhraseSplit(left, right, rightConjunction)) {
+      continue
+    }
     if (isToVerbSplit(left, right)) continue
     if (isMeridiemTimeSplit(left, right)) continue
     if (startsWithMeridiemTimePhrase(right)) continue
@@ -793,7 +857,7 @@ function findBestCut(
   const onHowCut = findRightmostOnHowBreak(window)
   if (onHowCut >= 0) return onHowCut
 
-  const conjCut = findRightmostConjunctionStart(window)
+  const conjCut = findRightmostConjunctionStart(window, nextText)
   if (conjCut >= 0) return conjCut
 
   const whoCut = findRightmostWhoStart(window)

@@ -1612,4 +1612,37 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.line).toBe("The update happened")
   expect(split.rest.toLowerCase().startsWith("to the ")).toBe(true)
   })
+
+  it("keeps coordinated profession phrases together before a who-clause", () => {
+  const split = __testTakeLine(
+    "An orthopedic surgeon or neurosurgeon who specializes in the spine would perform surgery.",
+    40,
+    null,
+    false
+  )
+  expect(split.line).toBe("An orthopedic surgeon or neurosurgeon")
+  expect(split.rest).toBe("who specializes in the spine would perform surgery.")
+  })
+
+  it("keeps reversed coordinated profession phrases together", () => {
+  const split = __testTakeLine(
+    "A neurosurgeon or orthopedic surgeon would perform surgery.",
+    40,
+    null,
+    false
+  )
+  expect(split.line).toBe("A neurosurgeon or orthopedic surgeon")
+  expect(split.rest).toBe("would perform surgery.")
+  })
+
+  it("keeps longer coordinated noun phrases together", () => {
+  const split = __testTakeLine(
+    "Back pain and numbness and weakness or tingling can worsen overnight.",
+    50,
+    null,
+    false
+  )
+  expect(split.line).toBe("Back pain and numbness and weakness or tingling")
+  expect(split.rest).toBe("can worsen overnight.")
+  })
 })

@@ -3,6 +3,7 @@ import chokidar from 'chokidar'
 import { createNewsReporter } from './news'
 import { createSubsReporter } from './subs'
 import { parseArgs } from './watchArgs'
+import { normalizeRuleFilters } from './watchRuleFilters'
 
 export type Reporter = (
   path: string,
@@ -99,12 +100,14 @@ if (normalizedType === 'news' && baselinePath) {
   console.warn('WARN --baseline is only supported with --type subs; ignoring.')
 }
 
+const ruleFiltersOrUndefined = normalizeRuleFilters(ruleFilters)
+
 const reporter =
   normalizedType === 'news'
-    ? createNewsReporter({ includeWarnings, ruleFilters })
+    ? createNewsReporter({ includeWarnings, ruleFilters: ruleFiltersOrUndefined })
     : createSubsReporter({
         includeWarnings,
-        ruleFilters,
+        ruleFilters: ruleFiltersOrUndefined,
         baselinePath: baselinePath ?? undefined,
         ignoreEmptyLines,
       })

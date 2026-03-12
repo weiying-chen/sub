@@ -2,7 +2,7 @@
 
 export const FPS = 30
 export const MAX_CPS = 17
-export const MIN_CPS = 10
+export const MIN_CPS = 7
 
 // hh:mm:ss:ff
 export const TIME_RE =

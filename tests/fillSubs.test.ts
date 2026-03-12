@@ -660,6 +660,29 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("prefers splitting after 'that' before noun phrase subjects", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "He likes to tell people that my hands and feet are always cold.",
+    { maxChars: 34, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "He likes to tell people that",
+    "my hands and feet are always cold.",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
   it("prefers splitting before relative who clauses", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
@@ -1644,5 +1667,40 @@ describe("fillSelectedTimestampLines", () => {
   )
   expect(split.line).toBe("Back pain and numbness and weakness or tingling")
   expect(split.rest).toBe("can worsen overnight.")
+  })
+
+  it("keeps short paired noun phrases together before a verb phrase", () => {
+  const split = __testTakeLine(
+    "my hands and feet are always cold, so every night before bed he warms them up.",
+    24,
+    null,
+    false
+  )
+  expect(split.line).toBe("my hands and feet")
+  expect(split.rest).toBe("are always cold, so every night before bed he warms them up.")
+  })
+
+  it("keeps body-part pairs together in inline fill", () => {
+  const lines = [
+    "00:03:15:18\t00:03:17:24\t常常跟人家炫耀說",
+    "00:03:17:24\t00:03:19:08\t他晚上做什麼",
+    "00:03:19:08\t00:03:20:09\t他說他太太",
+    "00:03:20:09\t00:03:21:25\t因為手腳都是冷的",
+    "00:03:21:25\t00:03:24:03\t睡前一定要把它弄熱",
+    "00:03:24:03\t00:03:26:05\t所以他用他的身體",
+    "00:03:26:05\t00:03:29:09\t在弄熱太太的手跟腳",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "He likes to tell people that my hands and feet are always cold, so every night before bed he warms them up with his own body.",
+    { inline: true }
+  )
+
+  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  expect(payloads).not.toContain("and feet are always cold,")
+  expect(payloads.some((line) => line.includes("my hands and feet"))).toBe(true)
   })
 })

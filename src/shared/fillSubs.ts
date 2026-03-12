@@ -65,6 +65,8 @@ const COORDINATED_PHRASE_STOP_RE =
   /^(?:who|whom|whose|that|which|to|with|for|from|before|after|while|because|since|if|when|as|would|could|should|will|can|may|might|must|is|are|was|were|be|being|been|am|do|does|did|has|have|had)\b/i
 const THAT_FOLLOW_PRONOUN_RE =
   /^(?:it|we|he|she|they|i|this|that|there)\b/i
+const THAT_FOLLOW_NOUN_PHRASE_SUBJECT_RE =
+  /^(?:the|a|an|this|that|these|those|my|your|his|her|our|their)\s+\S+(?:\s+(?:and|or|nor)\s+\S+)?\s+(?:am|is|are|was|were|has|have|had|do|does|did|can|could|will|would|should|may|might|must)\b/i
 const TO_VERB_HELPER_RE =
   /\b(?:have|has|had|need|needs|want|wants|wanted|going)\s+to\s+[A-Za-z]+$/i
 const SENTENCE_VERB_RE =
@@ -373,6 +375,16 @@ function looksLikeCoordinatedPhraseFragment(text: string): boolean {
   return true
 }
 
+function getTailPhraseCandidates(text: string): string[] {
+  const tokens = text.trim().split(/\s+/).filter(Boolean)
+  const out: string[] = []
+  for (let count = 2; count <= 4; count += 1) {
+    if (tokens.length < count) continue
+    out.push(tokens.slice(tokens.length - count).join(' '))
+  }
+  return out
+}
+
 function isLikelyCoordinatedPhraseSplit(
   left: string,
   right: string,
@@ -390,9 +402,11 @@ function isLikelyCoordinatedPhraseSplit(
   const rightFragment = rightPhrase.replace(new RegExp(`^${conjunction}\\b\\s*`, 'i'), '')
   if (!leftFragment || !rightFragment) return false
 
-  return (
-    looksLikeCoordinatedPhraseFragment(leftFragment) &&
-    looksLikeCoordinatedPhraseFragment(rightFragment)
+  const leftCandidates = [leftFragment, ...getTailPhraseCandidates(leftFragment)]
+  return leftCandidates.some(
+    (candidate) =>
+      looksLikeCoordinatedPhraseFragment(candidate) &&
+      looksLikeCoordinatedPhraseFragment(rightFragment)
   )
 }
 
@@ -568,6 +582,33 @@ function findRightmostThatPronounBreak(
     if (!right) continue
     if (canSplitBeforeThat(window.slice(0, start))) continue
     if (!THAT_FOLLOW_PRONOUN_RE.test(right)) continue
+
+    best = end
+  }
+  return best
+}
+
+function findRightmostThatNounPhraseBreak(
+  window: string,
+  nextText: string
+): number {
+  let best = -1
+  const re = new RegExp(THAT_RE.source, 'gi')
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const end = start + m[0].length
+
+    const prev = window[start - 1] ?? ''
+    const next = window[end] ?? ''
+    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
+
+    const left = window.slice(0, end).trimEnd()
+    if (!left) continue
+    const right = (window.slice(end) + nextText).trimStart()
+    if (!right) continue
+    if (canSplitBeforeThat(window.slice(0, start))) continue
+    if (!THAT_FOLLOW_NOUN_PHRASE_SUBJECT_RE.test(right)) continue
 
     best = end
   }
@@ -871,6 +912,9 @@ function findBestCut(
 
   const thatPronounCut = findRightmostThatPronounBreak(window, nextText)
   if (thatPronounCut >= 0) return thatPronounCut
+
+  const thatNounPhraseCut = findRightmostThatNounPhraseBreak(window, nextText)
+  if (thatNounPhraseCut >= 0) return thatNounPhraseCut
 
   const infinitiveLeadCut = findRightmostInfinitiveLead(window, nextText)
   if (infinitiveLeadCut >= 0) return infinitiveLeadCut

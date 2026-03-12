@@ -1,6 +1,8 @@
 import type { Segment, SegmentCtx, SegmentRule } from "./segments"
 import type { SpanGapMetric } from "./types"
 
+const MIN_SPAN_GAP_FRAMES = 3
+
 function hasTiming(
   segment: Segment
 ): segment is Segment & { startFrames: number; endFrames: number } {
@@ -22,7 +24,7 @@ export function spanGapRule(): SegmentRule {
     if (!hasTiming(cur) || !hasTiming(next)) return []
 
     const gapFrames = next.startFrames - cur.endFrames
-    if (gapFrames <= 0) return []
+    if (gapFrames < MIN_SPAN_GAP_FRAMES) return []
 
     const left = normalizeTextForCompare(cur.text)
     const right = normalizeTextForCompare(next.text)

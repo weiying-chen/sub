@@ -35,6 +35,18 @@ describe("spanGapRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
+  it("does not flag when the repeated text only has a tiny frame gap", () => {
+    const text = [
+      "00:10:23:10\t00:10:24:15\tMarker",
+      "the Taipei Waterworks Museum, or even all the way",
+      "00:10:24:17\t00:10:28:07\tMarker",
+      "the Taipei Waterworks Museum, or even all the way",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [spanGapRule()])
+    expect(metrics).toHaveLength(0)
+  })
+
   it("does not flag when the text changes across the gap", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

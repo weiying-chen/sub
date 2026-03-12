@@ -14,6 +14,7 @@ const I_PRONOUN_RE = /^\s*I(\b|')/
 const ACRONYM_RE =
   /^\s*(["'\(\[\{])?\s*(?:[A-Z]{2,}(?:'s\b|\b)|(?:[A-Z]\.){2,}[A-Z]?(?:'s\b)?)/
 const SENT_BOUNDARY_RE = /(?:[.!?:]|…|—|–|---)(?:["'\)\]\}]+)?\s*$/
+const CAPITALIZATION_BOUNDARY_RE = /(?:[.!?:]|…)(?:["'\)\]\}]+)?\s*$/
 const TERMINAL_RE = /(?:\.{3}|[.!?:…]|—|–|---)(?:["'\)\]\}]+)?\s*$/
 
 type Cue = {
@@ -82,6 +83,10 @@ function startsWithAcronym(s: string): boolean {
 
 function endsSentenceBoundary(s: string): boolean {
   return SENT_BOUNDARY_RE.test(s.trimEnd())
+}
+
+function endsCapitalizationBoundary(s: string): boolean {
+  return CAPITALIZATION_BOUNDARY_RE.test(s.trimEnd())
 }
 
 function endsTerminal(s: string): boolean {
@@ -283,7 +288,7 @@ function collectMetrics(
     }
 
     if (
-      !endsSentenceBoundary(prevTrim) &&
+      !endsCapitalizationBoundary(prevTrim) &&
       !nextQuoteStart &&
       !startsWithIPronoun(next.text) &&
       !startsWithAcronym(next.text) &&

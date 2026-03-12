@@ -287,11 +287,12 @@ function collectMetrics(
 ): NumberStyleMetric[] {
   const metrics: NumberStyleMetric[] = []
 
-  const digitsRe = /\b\d{1,3}(?:,\d{3})+\b|\b\d+\b/g
+  const digitsRe = /\b\d{1,3}(?:,\d{3})+(?:\.\d+)?\b|\b\d+(?:\.\d+)?\b/g
   let match: RegExpExecArray | null = null
 
   while ((match = digitsRe.exec(text))) {
     const rawToken = match[0]
+    if (rawToken.includes('.')) continue
     const normalized = rawToken.replace(/,/g, '')
     const value = Number.parseInt(normalized, 10)
     if (!Number.isFinite(value)) continue

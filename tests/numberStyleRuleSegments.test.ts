@@ -143,6 +143,20 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores decimal quantities like 8.47 years", () => {
+    const segments = [
+      { lineIndex: 0, text: "People spend about 8.47 years in poor health." },
+      { lineIndex: 1, text: "The rate rose to 10.5 percent." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, text: segment.text }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    expect(findings).toHaveLength(0)
+  })
+
   it("flags sentence-start digits across line-start wrappers", () => {
     const segments = [
       { lineIndex: 0, text: "20 birds arrived." },

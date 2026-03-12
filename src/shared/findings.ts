@@ -133,6 +133,17 @@ export function getFindings(
       continue
     }
 
+    if (m.type === 'DASH_STYLE') {
+      const expected =
+        m.expected === 'em_dash' ? 'an em dash (—)' : 'triple hyphens (---)'
+      out.push({
+        ...m,
+        severity: 'error',
+        instruction: `Use ${expected} for this text type.`,
+      })
+      continue
+    }
+
     if (m.type === 'PUNCTUATION') {
       out.push({ ...m, severity: 'error', instruction: m.instruction })
       continue

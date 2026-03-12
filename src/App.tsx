@@ -60,6 +60,12 @@ const RULE_OPTIONS: RuleOption[] = [
     severity: "error",
   },
   {
+    type: "DASH_STYLE",
+    label: "Dash style is incorrect",
+    explanation: "Checks whether the text uses the required dash form for subs, VO, and SUPER.",
+    severity: "error",
+  },
+  {
     type: "PERCENT_STYLE",
     label: "Percent format is incorrect",
     explanation: "Checks percent formatting style (for example, percent vs %).",
@@ -215,6 +221,7 @@ function getFindingRanges(view: EditorView, findings: Finding[]): FindingRange[]
 
     if (
       f.type === "NUMBER_STYLE" ||
+      f.type === "DASH_STYLE" ||
       f.type === "PERCENT_STYLE" ||
       f.type === "CAPITALIZATION"
     ) {

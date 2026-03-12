@@ -52,6 +52,26 @@ describe("createSubsSegmentRules", () => {
     expect(findings[0]?.type).toBe("SPAN_GAP")
   })
 
+  it("can enable only the dash-style finding", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "This should drift—apart.",
+    ].join("\n")
+
+    const findings = getFindings(
+      analyzeTextByType(
+        text,
+        "subs",
+        createSubsSegmentRules({
+          enabledFindingTypes: ["DASH_STYLE"],
+        })
+      )
+    )
+
+    expect(findings).toHaveLength(1)
+    expect(findings[0]?.type).toBe("DASH_STYLE")
+  })
+
   it("keeps only the selected cps rule active", () => {
     const text = [
       "00:00:01:00\t00:00:03:00\tMarker",

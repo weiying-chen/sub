@@ -13,9 +13,14 @@ const OPEN_QUOTE_RE = /^\s*(["'])/
 const I_PRONOUN_RE = /^\s*I(\b|')/
 const ACRONYM_RE =
   /^\s*(["'\(\[\{])?\s*(?:[A-Z]{2,}(?:'s\b|\b)|(?:[A-Z]\.){2,}[A-Z]?(?:'s\b)?)/
-const SENT_BOUNDARY_RE = /(?:[.!?:]|…|—|–|---)(?:["'\)\]\}]+)?\s*$/
+const DASH_TERMINAL_RE = /(?:—|---)/
+const SENT_BOUNDARY_RE = new RegExp(
+  `(?:[.!?:]|…|${DASH_TERMINAL_RE.source})(?:["'\\)\\]\\}]+)?\\s*$`
+)
 const CAPITALIZATION_BOUNDARY_RE = /(?:[.!?:]|…)(?:["'\)\]\}]+)?\s*$/
-const TERMINAL_RE = /(?:\.{3}|[.!?:…]|—|–|---)(?:["'\)\]\}]+)?\s*$/
+const TERMINAL_RE = new RegExp(
+  `(?:\\.{3}|[.!?:…]|${DASH_TERMINAL_RE.source})(?:["'\\)\\]\\}]+)?\\s*$`
+)
 
 type Cue = {
   start: string
@@ -44,7 +49,7 @@ function buildProperNounMatchers(properNouns: string[]): RegExp[] {
       const boundary =
         /[A-Za-z0-9_]$/.test(noun)
           ? '\\b'
-          : '(?=$|\\s|["\'\\)\\]\\}\\.,!?:;…—–-])'
+          : '(?=$|\\s|["\'\\)\\]\\}\\.,!?:;…—-])'
       return new RegExp(
         `^\\s*(?:["'\\(\\[\\{]\\s*)?${escapeRegExp(noun)}${boundary}`
       )

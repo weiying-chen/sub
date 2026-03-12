@@ -2,6 +2,7 @@ import { baselineRule } from "./baselineRule"
 import { capitalizationRule } from "./capitalizationRule"
 import { cpsBalanceRule } from "./cpsBalanceRule"
 import { cpsRule } from "./cpsRule"
+import { dashStyleRule } from "./dashStyleRule"
 import { leadingWhitespaceRule } from "./leadingWhitespaceRule"
 import { maxCharsRule } from "./maxCharsRule"
 import { maxCpsRule } from "./maxCpsRule"
@@ -60,6 +61,9 @@ function createSubsCommonRules(
   }
   if (isEnabled(enabled, "CAPITALIZATION")) {
     rules.push(capitalizationRule({ terms: options.capitalizationTerms }))
+  }
+  if (isEnabled(enabled, "DASH_STYLE")) {
+    rules.push(dashStyleRule())
   }
   if (isEnabled(enabled, "PERCENT_STYLE")) {
     rules.push(percentStyleRule())

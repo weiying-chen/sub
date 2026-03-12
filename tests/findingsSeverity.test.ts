@@ -7,6 +7,7 @@ import { capitalizationRule } from "../src/analysis/capitalizationRule"
 import { cpsBalanceRule } from "../src/analysis/cpsBalanceRule"
 import { cpsRule } from "../src/analysis/cpsRule"
 import { leadingWhitespaceRule } from "../src/analysis/leadingWhitespaceRule"
+import { dashStyleRule } from "../src/analysis/dashStyleRule"
 import { maxCharsRule } from "../src/analysis/maxCharsRule"
 import { mergeCandidateRule } from "../src/analysis/mergeCandidateRule"
 import { numberStyleRule } from "../src/analysis/numberStyleRule"
@@ -76,6 +77,19 @@ describe("getFindings severity", () => {
       (m) => m.type === "LEADING_WHITESPACE"
     )
     expect(leadingFindings[0]?.severity).toBe("error")
+
+    const dashMetrics = analyzeTextByType(
+      [
+        "00:00:01:00\t00:00:02:00\tMarker",
+        "This should drift—apart.",
+      ].join("\n"),
+      "subs",
+      [dashStyleRule()]
+    )
+    const dashFindings = getFindings(dashMetrics).filter(
+      (m) => m.type === "DASH_STYLE"
+    )
+    expect(dashFindings[0]?.severity).toBe("error")
   })
 
   it("marks punctuation findings as error", () => {

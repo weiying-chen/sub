@@ -1,6 +1,7 @@
 import { analyzeTextByType, type AnalysisType } from './analyzeTextByType'
 import { capitalizationRule } from './capitalizationRule'
 import { createSubsFindingsRules, createSubsMetricsRules } from './subsSegmentRules'
+import { dashStyleRule } from './dashStyleRule'
 import { maxCharsRule } from './maxCharsRule'
 import { missingTranslationRule } from './missingTranslationRule'
 import { newsMarkerRule } from './newsMarkerRule'
@@ -56,6 +57,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
       rules.push(superPeopleRule())
     }
     if (!enabled || enabled.has('NUMBER_STYLE')) rules.push(numberStyleRule())
+    if (!enabled || enabled.has('DASH_STYLE')) rules.push(dashStyleRule())
     if (!enabled || enabled.has('CAPITALIZATION')) {
       rules.push(
         capitalizationRule({

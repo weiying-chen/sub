@@ -180,6 +180,30 @@ describe("punctuationRule (segments)", () => {
         (f) =>
           f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL" &&
           f.text === "But it only pushed him farther and farther away---"
+        )
+    ).toBe(true)
+  })
+
+  it("flags uppercase continuation after em dash", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "But it only pushed him farther and farther away—",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "Until we ended up completely apart.",
+    ].join("\n")
+
+    const segments = parseSubs(text)
+    const metrics = analyzeSegments(segments, [punctuationRule()], {
+      lines: text.split("\n"),
+      sourceText: text,
+    })
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL" &&
+          f.text === "But it only pushed him farther and farther away—"
       )
     ).toBe(true)
   })

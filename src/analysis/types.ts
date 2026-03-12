@@ -104,6 +104,18 @@ export type CapitalizationMetric = {
   severity?: 'error' | 'warn'
 }
 
+export type DashStyleMetric = {
+  type: 'DASH_STYLE'
+  lineIndex: number
+  index: number
+  token: string
+  text: string
+  expected: 'em_dash' | 'triple_hyphen'
+  found: 'em_dash' | 'triple_hyphen'
+  blockType: 'subs' | 'vo' | 'super'
+  severity?: 'error' | 'warn'
+}
+
 export type PunctuationMetric = {
   type: 'PUNCTUATION'
   lineIndex: number
@@ -188,6 +200,7 @@ export type Metric =
   | NumberStyleMetric
   | PercentStyleMetric
   | CapitalizationMetric
+  | DashStyleMetric
   | PunctuationMetric
   | MergeCandidateMetric
   | SpanGapMetric

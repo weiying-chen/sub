@@ -1357,7 +1357,7 @@ function mergeNoSplitPhrases(
   const trimmedLine = line.trimEnd()
   const trimmedRest = rest.trimStart()
   const appendToken = (base: string, token: string) => {
-    const noSpace = /(?:---|—|–)$/.test(base)
+    const noSpace = /(?:---|—)$/.test(base)
     return noSpace ? `${base}${token}` : `${base} ${token}`
   }
 

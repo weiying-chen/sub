@@ -10,12 +10,13 @@ const BOLD = '\x1b[1m'
 const CYAN = '\x1b[36m'
 const MAGENTA = '\x1b[35m'
 const YELLOW = '\x1b[33m'
+const RED = '\x1b[31m'
 
 function asNum(v: unknown): number | null {
   return typeof v === 'number' && Number.isFinite(v) ? v : null
 }
 
-function formatFinding(f: Finding): string {
+export function formatFinding(f: Finding): string {
   const anyF: any = f
 
   // Anchor (shown once). Prefer lineIndex if present.
@@ -31,6 +32,11 @@ function formatFinding(f: Finding): string {
     (typeof anyF.type === 'string' && anyF.type) ||
     (typeof anyF.rule === 'string' && anyF.rule) ||
     'ISSUE'
+  const severity =
+    typeof anyF.severity === 'string'
+      ? anyF.severity.toUpperCase()
+      : 'ERROR'
+  const severityColor = severity === 'WARN' ? YELLOW : RED
 
   const parts: string[] = []
   const previewKeys = ['text', 'payloadText', 'line', 'message']
@@ -40,6 +46,7 @@ function formatFinding(f: Finding): string {
 
   for (const [key, value] of Object.entries(anyF)) {
     if (key === 'type' || key === 'rule') continue
+    if (key === 'severity') continue
     if (key === 'lineIndex') continue // already covered by anchor
     if (value == null) continue
 
@@ -84,10 +91,10 @@ function formatFinding(f: Finding): string {
   }
 
   // Line number cyan+bold, type yellow, rest plain (except magenta numbers)
-  const head = `${BOLD}${CYAN}${anchor}${RESET}  ${YELLOW}${type}${RESET}${
+  const head = `${BOLD}${CYAN}${anchor}${RESET}  ${severityColor}${severity}${RESET}  ${type}${
     parts.length ? `  ${parts.join('  ')}` : ''
   }`
-  const headNoAnchor = `${YELLOW}${type}${RESET}${
+  const headNoAnchor = `${severityColor}${severity}${RESET}  ${type}${
     parts.length ? `  ${parts.join('  ')}` : ''
   }`
 

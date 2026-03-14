@@ -96,6 +96,25 @@ describe("analyze CLI output", () => {
     ])
   })
 
+  it("does not return news marker findings for markers before SUPER blocks", async () => {
+    const text = [
+      "1_0001",
+      "/*SUPER:",
+      "人物名稱//",
+      "*/",
+      "Super line.",
+      "",
+      "VO line.",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "news",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(output.some((metric) => metric.type === "NEWS_MARKER")).toBe(false)
+  })
+
   it("returns SUPER_PEOPLE findings for swapped name-title order and title case", async () => {
     const text = [
       "SUPER_PEOPLE:",

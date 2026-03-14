@@ -135,6 +135,33 @@ describe("parseNews", () => {
     ])
   })
 
+  it("does not attach markers to following SUPER blocks", () => {
+    const text = [
+      "1_0001",
+      "/*SUPER:",
+      "人物名稱//",
+      "*/",
+      "Super line.",
+      "",
+      "Trailing VO line.",
+    ].join("\n")
+
+    const segments = parseNews(text)
+
+    expect(segments).toMatchObject([
+      {
+        lineIndex: 4,
+        blockType: "super",
+      },
+      {
+        lineIndex: 6,
+        blockType: "vo",
+      },
+    ])
+    expect(segments[0]?.marker).toBeUndefined()
+    expect(segments[1]?.marker).toBeUndefined()
+  })
+
   it("parses SUPER_PEOPLE entries as dedicated news segments", () => {
     const text = [
       "SUPER_PEOPLE:",

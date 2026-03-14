@@ -209,6 +209,9 @@ export function parseNews(text: string): Segment[] {
 
     if (isCommentStart) {
       flush()
+      if (isSuperStart) {
+        pendingMarker = undefined
+      }
       inComment = true
       inSuperComment = isSuperStart
       if (isCommentEnd) {

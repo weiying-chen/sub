@@ -63,18 +63,31 @@ const CLAUSE_STARTER_ANY_RE =
   /\b(?:because|since|as|although|though|while|if|when)\b/i
 const COORDINATED_PHRASE_STOP_RE =
   /^(?:who|whom|whose|that|which|to|with|for|from|before|after|while|because|since|if|when|as|would|could|should|will|can|may|might|must|is|are|was|were|be|being|been|am|do|does|did|has|have|had)\b/i
-const THAT_FOLLOW_PRONOUN_RE =
-  /^(?:it|we|he|she|they|i|this|that|there)\b/i
-const THAT_FOLLOW_NOUN_PHRASE_SUBJECT_RE =
-  /^(?:the|a|an|this|that|these|those|my|your|his|her|our|their)\s+\S+(?:\s+(?:and|or|nor)\s+\S+)?\s+(?:am|is|are|was|were|has|have|had|do|does|did|can|could|will|would|should|may|might|must)\b/i
 const TO_VERB_HELPER_RE =
   /\b(?:have|has|had|need|needs|want|wants|wanted|going)\s+to\s+[A-Za-z]+$/i
 const SENTENCE_VERB_RE =
   /\b(am|is|are|was|were|be|being|been|have|has|had|do|does|did|can|will|would|should|must)\b/i
+const THAT_CLAUSE_EXPLICIT_SUBJECT_RE =
+  /^(?:it|he|she|they|we|i|this|there|my|your|his|her|our|their|the|a|an|someone|somebody|anyone|anybody|everyone|everybody|noone|nobody|no|something|anything|everything|nothing)\b/i
 const STRONG_PUNCT = new Set(['.', '?', '!', ':', '\u2014'])
 const SEMICOLON_PUNCT = new Set([';'])
 const COMMA_PUNCT = new Set([','])
 const DIALOGUE_TAG_VERBS = ['said', 'asked', 'replied', 'told']
+const THAT_SPLIT_AUDIENCE_OBJECT_NOUNS = new Set([
+  'people',
+  'person',
+  'audience',
+  'audiences',
+  'viewer',
+  'viewers',
+  'listener',
+  'listeners',
+  'reader',
+  'readers',
+  'crowd',
+  'crowds',
+  'folks',
+])
 
 function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -496,6 +509,71 @@ function findRightmostThatStart(window: string): number {
   return best
 }
 
+function shouldSplitBeforeThatClause(left: string, right: string): boolean {
+  const trimmedLeft = left.trimEnd()
+  const trimmedRight = right.trimStart()
+  if (!trimmedLeft || !trimmedRight) return false
+  if (!looksLikeThatClauseStart(trimmedRight)) return false
+
+  const words = trimmedLeft.split(/\s+/).filter(Boolean)
+  const lastWord = (words[words.length - 1] ?? '').toLowerCase()
+  if (CONJ_RE.test(lastWord)) return false
+
+  return true
+}
+
+function cleanWord(word: string): string {
+  return word.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, '').toLowerCase()
+}
+
+function looksLikeFiniteVerbToken(word: string): boolean {
+  if (!word) return false
+  if (SENTENCE_VERB_RE.test(word)) return true
+  if (/^(?:felt|found|left|lost|made|paid|said|saw|went|won)$/i.test(word)) {
+    return true
+  }
+  return /^[a-z]+(?:s|ed)$/.test(word)
+}
+
+function looksLikeThatClauseStart(right: string): boolean {
+  const trimmedRight = right.trimStart()
+  const thatMatch = trimmedRight.match(/^that\b\s*(.*)$/i)
+  if (!thatMatch) return false
+
+  const tail = thatMatch[1]?.trim() ?? ''
+  if (!tail) return false
+
+  const tokens = tail
+    .split(/\s+/)
+    .map(cleanWord)
+    .filter(Boolean)
+  if (tokens.length < 2) return false
+  if (looksLikeFiniteVerbToken(tokens[0] ?? '')) return false
+
+  const first = tokens[0] ?? ''
+  const startsExplicitly =
+    first === 'no' || THAT_CLAUSE_EXPLICIT_SUBJECT_RE.test(first)
+  const maxVerbIndex = startsExplicitly ? 4 : 3
+
+  for (let i = 1; i < tokens.length && i <= maxVerbIndex; i += 1) {
+    if (looksLikeFiniteVerbToken(tokens[i] ?? '')) return true
+  }
+
+  return false
+}
+
+function isAudienceObjectTail(words: string[]): boolean {
+  if (words.length === 1) {
+    return THAT_SPLIT_AUDIENCE_OBJECT_NOUNS.has(cleanWord(words[0] ?? ''))
+  }
+
+  if (words.length === 2 && DET_RE.test(words[0] ?? '')) {
+    return THAT_SPLIT_AUDIENCE_OBJECT_NOUNS.has(cleanWord(words[1] ?? ''))
+  }
+
+  return false
+}
+
 function canSplitBeforeThat(left: string): boolean {
   const trimmed = left.trimEnd()
   if (!trimmed) return false
@@ -513,6 +591,7 @@ function canSplitBeforeThat(left: string): boolean {
     if (tail.length === 1 && THAT_SPLIT_OBJECT_RE.test(tail[0] ?? '')) {
       return true
     }
+    if (isAudienceObjectTail(tail)) return true
   }
 
   return false
@@ -561,7 +640,7 @@ function findRightmostWhoStart(window: string): number {
   return best
 }
 
-function findRightmostThatPronounBreak(
+function findRightmostThatClauseStart(
   window: string,
   nextText: string
 ): number {
@@ -576,41 +655,12 @@ function findRightmostThatPronounBreak(
     const next = window[end] ?? ''
     if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
 
-    const left = window.slice(0, end).trimEnd()
-    if (!left) continue
-    const right = (window.slice(end) + nextText).trimStart()
-    if (!right) continue
-    if (canSplitBeforeThat(window.slice(0, start))) continue
-    if (!THAT_FOLLOW_PRONOUN_RE.test(right)) continue
+    const left = window.slice(0, start).trimEnd()
+    const right = (window.slice(start) + nextText).trimStart()
+    if (!left || !right) continue
+    if (!shouldSplitBeforeThatClause(left, right)) continue
 
-    best = end
-  }
-  return best
-}
-
-function findRightmostThatNounPhraseBreak(
-  window: string,
-  nextText: string
-): number {
-  let best = -1
-  const re = new RegExp(THAT_RE.source, 'gi')
-  let m: RegExpExecArray | null
-  while ((m = re.exec(window)) !== null) {
-    const start = m.index
-    const end = start + m[0].length
-
-    const prev = window[start - 1] ?? ''
-    const next = window[end] ?? ''
-    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
-
-    const left = window.slice(0, end).trimEnd()
-    if (!left) continue
-    const right = (window.slice(end) + nextText).trimStart()
-    if (!right) continue
-    if (canSplitBeforeThat(window.slice(0, start))) continue
-    if (!THAT_FOLLOW_NOUN_PHRASE_SUBJECT_RE.test(right)) continue
-
-    best = end
+    best = start
   }
   return best
 }
@@ -907,14 +957,11 @@ function findBestCut(
   const commaThatCut = findRightmostCommaThatStart(window)
   if (commaThatCut >= 0) return commaThatCut
 
+  const thatClauseCut = findRightmostThatClauseStart(window, nextText)
+  if (thatClauseCut >= 0) return thatClauseCut
+
   const thatCut = findRightmostThatStart(window)
   if (thatCut >= 0) return thatCut
-
-  const thatPronounCut = findRightmostThatPronounBreak(window, nextText)
-  if (thatPronounCut >= 0) return thatPronounCut
-
-  const thatNounPhraseCut = findRightmostThatNounPhraseBreak(window, nextText)
-  if (thatNounPhraseCut >= 0) return thatNounPhraseCut
 
   const infinitiveLeadCut = findRightmostInfinitiveLead(window, nextText)
   if (infinitiveLeadCut >= 0) return infinitiveLeadCut
@@ -1433,7 +1480,8 @@ function mergeNoSplitPhrases(
     thatMatch &&
     !endsWithSentence &&
     !endsWithClauseStarter(trimmedLine) &&
-    !canSplitBeforeThat(trimmedLine)
+    !canSplitBeforeThat(trimmedLine) &&
+    !shouldSplitBeforeThatClause(trimmedLine, trimmedRest)
   ) {
     const token = thatMatch[0]
     const nextRest = trimmedRest.slice(token.length).trimStart()

@@ -637,7 +637,31 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("prefers splitting after 'that' before pronoun", () => {
+  it("splits before 'that' when it starts a pronoun-led clause", () => {
+  const split = __testTakeLine(
+    "The biggest benefit is that it opens up my perspective.",
+    22,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("The biggest benefit is")
+  expect(split.rest).toBe("that it opens up my perspective.")
+  })
+
+  it("splits before 'that' after reporting verbs with audience noun objects", () => {
+  const split = __testTakeLine(
+    "He likes to tell people that my hands and feet are always cold.",
+    24,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("He likes to tell people")
+  expect(split.rest).toBe("that my hands and feet are always cold.")
+  })
+
+  it("splits before 'that' when it starts an indefinite-subject clause", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -647,20 +671,20 @@ describe("fillSelectedTimestampLines", () => {
   const result = fillSelectedTimestampLines(
     lines,
     selected,
-    "The biggest benefit is that it opens up my perspective.",
-    { maxChars: 30, inline: false }
+    "The truth is that something changed.",
+    { maxChars: 25, inline: false }
   )
 
   expect(result.lines).toEqual([
-    "The biggest benefit is that",
-    "it opens up my perspective.",
+    "The truth is",
+    "that something changed.",
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
   ])
   expect(result.remaining).toBe("")
   })
 
-  it("prefers splitting after 'that' before noun phrase subjects", () => {
+  it("splits before 'that' when it starts a bare indefinite-subject clause", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -670,17 +694,29 @@ describe("fillSelectedTimestampLines", () => {
   const result = fillSelectedTimestampLines(
     lines,
     selected,
-    "He likes to tell people that my hands and feet are always cold.",
-    { maxChars: 34, inline: false }
+    "The truth is that nobody noticed.",
+    { maxChars: 25, inline: false }
   )
 
   expect(result.lines).toEqual([
-    "He likes to tell people that",
-    "my hands and feet are always cold.",
+    "The truth is",
+    "that nobody noticed.",
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
   ])
   expect(result.remaining).toBe("")
+  })
+
+  it("splits before 'that' when it starts a bare noun-subject clause", () => {
+  const split = __testTakeLine(
+    "Everyone kept telling me that dementia was a long goodbye.",
+    25,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("Everyone kept telling me")
+  expect(split.rest).toBe("that dementia was a long goodbye.")
   })
 
   it("prefers splitting before relative who clauses", () => {

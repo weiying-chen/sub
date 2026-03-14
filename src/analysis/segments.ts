@@ -115,7 +115,7 @@ export function parseNews(text: string): Segment[] {
   let targetBuffer: CandidateLine[] = []
   let currentBlock: Segment['blockType'] | null = null
   let currentMarker: NewsMarker | undefined
-  let pendingMarker: NewsMarker | undefined
+  let pendingVoMarker: NewsMarker | undefined
   let inComment = false
   let inSuperComment = false
   let inSuperPeopleSection = false
@@ -189,7 +189,7 @@ export function parseNews(text: string): Segment[] {
       if (parsedMarker) {
         flushSuperPeople()
         inSuperPeopleSection = false
-        pendingMarker = parsedMarker
+        pendingVoMarker = parsedMarker
         continue
       }
 
@@ -210,7 +210,7 @@ export function parseNews(text: string): Segment[] {
     if (isCommentStart) {
       flush()
       if (isSuperStart) {
-        pendingMarker = undefined
+        pendingVoMarker = undefined
       }
       inComment = true
       inSuperComment = isSuperStart
@@ -244,7 +244,7 @@ export function parseNews(text: string): Segment[] {
     const parsedMarker = parseNewsMarker(trimmed, i)
     if (parsedMarker) {
       flush()
-      pendingMarker = parsedMarker
+      pendingVoMarker = parsedMarker
       superActive = false
       continue
     }
@@ -262,8 +262,10 @@ export function parseNews(text: string): Segment[] {
       }
 
       if (!currentBlock) {
-        currentMarker = pendingMarker
-        pendingMarker = undefined
+        if (blockType === 'vo') {
+          currentMarker = pendingVoMarker
+          pendingVoMarker = undefined
+        }
       }
       currentBlock = blockType
       targetBuffer.push({ lineIndex: i, text: raw })
@@ -277,8 +279,10 @@ export function parseNews(text: string): Segment[] {
       }
 
       if (!currentBlock) {
-        currentMarker = pendingMarker
-        pendingMarker = undefined
+        if (blockType === 'vo') {
+          currentMarker = pendingVoMarker
+          pendingVoMarker = undefined
+        }
       }
       currentBlock = blockType
       sourceBuffer.push({ lineIndex: i, text: raw.trim() })

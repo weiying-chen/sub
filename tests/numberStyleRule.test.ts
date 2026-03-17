@@ -50,4 +50,18 @@ describe("numberStyleRule", () => {
     expect(byToken.get("12")?.expected).toBe("words")
     expect(byToken.get("12")?.found).toBe("digits")
   })
+
+  it("ignores digit ranges in statistical age phrases", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "They are quite common among kids aged 3 to 17.",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "The survey covered children ages 3-17.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
 })

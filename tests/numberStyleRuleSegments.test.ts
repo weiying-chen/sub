@@ -157,6 +157,20 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores digit ranges in statistical age phrases", () => {
+    const segments = [
+      { lineIndex: 0, text: "They are quite common among kids aged 3 to 17." },
+      { lineIndex: 1, text: "The survey covered children ages 3-17." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, text: segment.text }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    expect(findings).toHaveLength(0)
+  })
+
   it("flags sentence-start digits across line-start wrappers", () => {
     const segments = [
       { lineIndex: 0, text: "20 birds arrived." },

@@ -200,6 +200,15 @@ function isApproximateOrRange(text: string, index: number, length: number) {
   )
 }
 
+function isDigitRangeToken(text: string, index: number, length: number) {
+  const prefix = text.slice(0, index)
+  const suffix = text.slice(index + length)
+  return (
+    /\b\d+\s*(?:to|[-–—])\s*$/i.test(prefix) ||
+    /^\s*(?:to|[-–—])\s*\d+\b/i.test(suffix)
+  )
+}
+
 function parseNumberWords(words: string[]): number | null {
   let total = 0
   let current = 0
@@ -299,6 +308,7 @@ function collectMetrics(
     if (isTimeToken(text, match.index, rawToken.length)) continue
     if (isAmPmToken(text, match.index, rawToken.length)) continue
     if (isAgeAdjective(text, match.index, rawToken.length)) continue
+    if (isDigitRangeToken(text, match.index, rawToken.length)) continue
     if (isPercentToken(text, match.index, rawToken.length)) continue
     if (isMeasurementUnitToken(text, match.index, rawToken.length)) continue
     if (isCurrencyToken(text, match.index)) continue

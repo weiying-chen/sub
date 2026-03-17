@@ -171,6 +171,20 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores statistical ratio phrases like three in a thousand", () => {
+    const segments = [
+      { lineIndex: 0, text: "About three in a thousand babies have hearing loss." },
+      { lineIndex: 1, text: "About 3 in 1,000 babies have hearing loss." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, text: segment.text }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    expect(findings).toHaveLength(0)
+  })
+
   it("flags sentence-start digits across line-start wrappers", () => {
     const segments = [
       { lineIndex: 0, text: "20 birds arrived." },

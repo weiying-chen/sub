@@ -209,6 +209,12 @@ function isDigitRangeToken(text: string, index: number, length: number) {
   )
 }
 
+function isStatisticalRatioToken(text: string, index: number, length: number) {
+  const prefix = text.slice(0, index)
+  const suffix = text.slice(index + length)
+  return /\bin(?:\s+a)?\s+$/i.test(prefix) || /^\s+in\b/i.test(suffix)
+}
+
 function parseNumberWords(words: string[]): number | null {
   let total = 0
   let current = 0
@@ -309,6 +315,7 @@ function collectMetrics(
     if (isAmPmToken(text, match.index, rawToken.length)) continue
     if (isAgeAdjective(text, match.index, rawToken.length)) continue
     if (isDigitRangeToken(text, match.index, rawToken.length)) continue
+    if (isStatisticalRatioToken(text, match.index, rawToken.length)) continue
     if (isPercentToken(text, match.index, rawToken.length)) continue
     if (isMeasurementUnitToken(text, match.index, rawToken.length)) continue
     if (isCurrencyToken(text, match.index)) continue
@@ -339,6 +346,7 @@ function collectMetrics(
     if (isPrecededByDigitToken(text, match.index)) continue
     if (isApproximateQuantityPhrase(text, match.index)) continue
     if (isApproximateOrRange(text, match.index, match[0].length)) continue
+    if (isStatisticalRatioToken(text, match.index, match[0].length)) continue
     const value = parseNumberWords(parts)
     if (value == null || value <= 10) continue
     if (isAmPmToken(text, match.index, match[0].length)) continue

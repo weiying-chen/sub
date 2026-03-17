@@ -64,4 +64,18 @@ describe("numberStyleRule", () => {
 
     expect(findings).toHaveLength(0)
   })
+
+  it("ignores statistical ratio phrases like three in a thousand", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "About three in a thousand babies have hearing loss.",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "About 3 in 1,000 babies have hearing loss.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
 })

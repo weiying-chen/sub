@@ -1415,6 +1415,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(payloads.some((line) => line.includes("U.S."))).toBe(true)
   })
 
+  it("keeps U.S. Supreme Court together as a phrase", () => {
+  const result = __testTakeLine(
+    "the first woman on the U.S. Supreme Court.",
+    29,
+    /(?:^|\s)(?:Mr\.|Mrs\.|Ms\.|Dr\.|U\.S\.|a\.m\.|p\.m\.)$/i,
+    true
+  )
+
+  expect(result.line).not.toMatch(/U\.S\.$/)
+  expect(result.rest).toContain("U.S. Supreme Court.")
+  })
+
   it("keeps p.m. together when split after p.", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

@@ -1406,37 +1406,37 @@ function adjustSplitForNoSplitAbbrev(
 ): { line: string; rest: string } {
   if (!line || !rest) return { line, rest }
 
-  const trimmedLine = line.trimEnd()
-  const trimmedRest = rest.trimStart()
+  let nextLine = line.trimEnd()
+  let nextRest = rest.trimStart()
 
-  const usMatch = noSplitUsAbbreviation && /(?:^|\s)U\.$/i.test(trimmedLine)
-  const sMatch = /^S\./i.test(trimmedRest)
+  const usMatch = noSplitUsAbbreviation && /(?:^|\s)U\.$/i.test(nextLine)
+  const sMatch = /^S\./i.test(nextRest)
   if (usMatch && sMatch) {
-    const token = trimmedRest.match(/^S\./i)?.[0] ?? 'S.'
-    const nextRest = trimmedRest.slice(token.length).trimStart()
-    return { line: `${trimmedLine}${token}`, rest: nextRest }
+    const token = nextRest.match(/^S\./i)?.[0] ?? 'S.'
+    nextLine = `${nextLine}${token}`
+    nextRest = nextRest.slice(token.length).trimStart()
   }
 
-  if (!isNoSplitAbbrevEnding(trimmedLine, noSplitAbbrevMatcher)) {
+  if (!isNoSplitAbbrevEnding(nextLine, noSplitAbbrevMatcher)) {
     return { line, rest }
   }
-  if (!/^[A-Za-z]/.test(trimmedRest)) return { line, rest }
-  if (endsWithMeridiemAbbrev(trimmedLine)) return { line, rest }
+  if (!/^[A-Za-z]/.test(nextRest)) return { line: nextLine, rest: nextRest }
+  if (endsWithMeridiemAbbrev(nextLine)) return { line: nextLine, rest: nextRest }
 
-  const lastSpace = trimmedLine.lastIndexOf(' ')
+  const lastSpace = nextLine.lastIndexOf(' ')
   if (lastSpace > 0) {
-    const nextLine = trimmedLine.slice(0, lastSpace).trimEnd()
-    const nextRest = `${trimmedLine.slice(lastSpace).trimStart()} ${trimmedRest}`
-    if (nextLine) {
-      return { line: nextLine, rest: nextRest.trimStart() }
+    const rebalanceLine = nextLine.slice(0, lastSpace).trimEnd()
+    const rebalanceRest = `${nextLine.slice(lastSpace).trimStart()} ${nextRest}`
+    if (rebalanceLine) {
+      return { line: rebalanceLine, rest: rebalanceRest.trimStart() }
     }
   }
 
-  const wordMatch = trimmedRest.match(/^[^\s]+/)
-  if (!wordMatch) return { line, rest }
+  const wordMatch = nextRest.match(/^[^\s]+/)
+  if (!wordMatch) return { line: nextLine, rest: nextRest }
   const word = wordMatch[0]
-  const nextRest = trimmedRest.slice(word.length).trimStart()
-  return { line: `${trimmedLine} ${word}`, rest: nextRest }
+  const trailingRest = nextRest.slice(word.length).trimStart()
+  return { line: `${nextLine} ${word}`, rest: trailingRest }
 }
 
 function mergeNoSplitPhrases(

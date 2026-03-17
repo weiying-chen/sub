@@ -135,6 +135,28 @@ function endsWithPronounContraction(text: string): boolean {
   )
 }
 
+function isPartialDottedAcronymSplit(left: string, right: string): boolean {
+  return /(?:^|\s)[A-Z]\.$/.test(left.trimEnd()) && /^[A-Z]\./.test(right.trimStart())
+}
+
+function endsWithIncompleteLeadIn(text: string): boolean {
+  const trimmed = text.trimEnd()
+  return (
+    /\baccording to$/i.test(trimmed) ||
+    /\bbecause of$/i.test(trimmed) ||
+    /\bdue to$/i.test(trimmed) ||
+    /\binstead of$/i.test(trimmed) ||
+    /\bsuch as$/i.test(trimmed) ||
+    /\brather than$/i.test(trimmed) ||
+    /\bbased on$/i.test(trimmed)
+  )
+}
+
+function startsWithAcronymPhrase(text: string): boolean {
+  const trimmed = text.trimStart()
+  return /^(?:(?:[A-Z]\.){2,}|[A-Z]{2,}(?:'s|s)?\b)/.test(trimmed)
+}
+
 export function normalizeParagraph(text: string): string {
   return text
     .replace(/\u2014/g, '---')
@@ -270,6 +292,7 @@ function findRightmostStrongPunct(
     const right = window.slice(cut).trimStart()
     if (!left || !right) continue
     if (ch === '.' && isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher)) continue
+    if (ch === '.' && isPartialDottedAcronymSplit(left, right)) continue
     if (ch === '.' && isMeridiemInnerSplit(left, right)) continue
     if (isToVerbSplit(left, right)) continue
     return cut
@@ -755,6 +778,7 @@ function findRightmostSpace(window: string, nextText: string): number {
     if (rightConjunction && isLikelyCoordinatedPhraseSplit(left, right, rightConjunction)) {
       continue
     }
+    if (endsWithIncompleteLeadIn(left)) continue
     if (isToVerbSplit(left, right)) continue
     if (isMeridiemTimeSplit(left, right)) continue
     if (startsWithMeridiemTimePhrase(right)) continue
@@ -787,6 +811,7 @@ function findSentenceBoundaryCut(
     const right = (window.slice(cut) + nextText).trimStart()
     if (!left || !right) continue
     if (ch === '.' && isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher)) continue
+    if (ch === '.' && isPartialDottedAcronymSplit(left, right)) continue
     if (ch === '.' && isMeridiemInnerSplit(left, right)) continue
     if (
       isVeryShortSentenceTail(left) &&
@@ -1205,7 +1230,7 @@ function normalizeTrailingArticleHead(
     .split(/\s+/)
     .map((word) => word.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, ''))
     .filter(Boolean).length
-  if (leftWordCount <= 3) return { line, rest }
+  if (leftWordCount <= 3 && !startsWithAcronymPhrase(rest)) return { line, rest }
 
   if (!rest) return { line: left, rest: article }
   if (rest.trimStart().toLowerCase().startsWith(`${article} `)) {
@@ -1422,9 +1447,6 @@ function adjustSplitForNoSplitAbbrev(
   }
   if (!/^[A-Za-z]/.test(nextRest)) return { line: nextLine, rest: nextRest }
   if (endsWithMeridiemAbbrev(nextLine)) return { line: nextLine, rest: nextRest }
-  if (/\baccording to\s+\S+$/i.test(nextLine)) {
-    return { line: nextLine, rest: nextRest }
-  }
 
   const lastSpace = nextLine.lastIndexOf(' ')
   if (lastSpace > 0) {
@@ -1453,21 +1475,6 @@ function mergeNoSplitPhrases(
   const appendToken = (base: string, token: string) => {
     const noSpace = /(?:---|—|(?:^|\s)[A-Z]\.)$/.test(base)
     return noSpace ? `${base}${token}` : `${base} ${token}`
-  }
-  const consumeUntilComma = (base: string, source: string, maxCount: number) => {
-    let nextLine = base
-    let nextRest = source
-
-    for (let i = 0; i < maxCount; i += 1) {
-      const wordMatch = nextRest.match(/^[^\s]+/)
-      if (!wordMatch) break
-      const token = wordMatch[0]
-      nextLine = appendToken(nextLine, token)
-      nextRest = nextRest.slice(token.length).trimStart()
-      if (/[,:;]$/.test(token)) break
-    }
-
-    return { line: nextLine, rest: nextRest }
   }
 
   const endsWithSentence =
@@ -1538,10 +1545,6 @@ function mergeNoSplitPhrases(
       const nextRest = trimmedRest.slice(token.length).trimStart()
       return { line: appendToken(trimmedLine, token), rest: nextRest }
     }
-  }
-
-  if (/\baccording to(?:\s+\S+){0,2}$/i.test(trimmedLine)) {
-    return consumeUntilComma(trimmedLine, trimmedRest, 4)
   }
 
   return { line, rest }
@@ -1734,7 +1737,10 @@ function runInlineFill(
     )
     if (!spanInfo.satisfied) overflow = true
     spanText = fillLine
-    spanTotal = Math.max(1, spanInfo.count)
+    const availableSlots = countFillableSlotsFrom(lines, selectedLineIndices, i)
+    const maxSpanCount =
+      remaining && availableSlots > 1 ? availableSlots - 1 : availableSlots
+    spanTotal = Math.max(1, Math.min(spanInfo.count, maxSpanCount))
     spanIndex = 0
     spanRemaining = Math.max(0, spanTotal - 1)
     const carried = applyQuoteCarry(
@@ -1777,6 +1783,18 @@ function countFillableSlots(
 ): number {
   let count = 0
   for (let i = 0; i < lines.length; i += 1) {
+    if (isFillableTimestamp(lines, selectedLineIndices, i)) count += 1
+  }
+  return count
+}
+
+function countFillableSlotsFrom(
+  lines: string[],
+  selectedLineIndices: Set<number>,
+  startIndex: number
+): number {
+  let count = 0
+  for (let i = startIndex; i < lines.length; i += 1) {
     if (isFillableTimestamp(lines, selectedLineIndices, i)) count += 1
   }
   return count

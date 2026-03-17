@@ -1696,6 +1696,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("to the ")).toBe(true)
   })
 
+  it("moves trailing 'the' with acronym phrases", () => {
+  const split = __testTakeLine(
+    "hugely respected in the U.S.",
+    26,
+    /(?:^|\s)(?:Mr\.|Mrs\.|Ms\.|Dr\.|U\.S\.|a\.m\.|p\.m\.)$/i,
+    true
+  )
+  expect(split.line).toBe("hugely respected in")
+  expect(split.rest).toBe("the U.S.")
+  })
+
   it("keeps coordinated profession phrases together before a who-clause", () => {
   const split = __testTakeLine(
     "An orthopedic surgeon or neurosurgeon who specializes in the spine would perform surgery.",

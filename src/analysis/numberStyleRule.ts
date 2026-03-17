@@ -61,6 +61,9 @@ const WORD_NUMBER_RE = new RegExp(
   `\\b(?:${WORD_LIST})(?:[\\s-]+(?:${WORD_LIST}))*\\b`,
   'gi'
 )
+const DIGIT_TOKEN_RE_SOURCE = '\\b\\d{1,3}(?:,\\d{3})+(?:\\.\\d+)?\\b|\\b\\d+(?:\\.\\d+)?\\b'
+const NUMBER_TOKEN_RE_SOURCE =
+  `(?:${DIGIT_TOKEN_RE_SOURCE}|(?:${WORD_LIST})(?:[\\s-]+(?:${WORD_LIST}))*)`
 const APPROXIMATE_RANGE_PREFIX_RE = new RegExp(
   `\\b(?:${WORD_LIST})(?:[\\s-]+(?:${WORD_LIST}))*\\s+or\\s+$`,
   'i'
@@ -68,6 +71,10 @@ const APPROXIMATE_RANGE_PREFIX_RE = new RegExp(
 const APPROXIMATE_RANGE_SUFFIX_RE = new RegExp(
   `^\\s+or\\s+(?:${WORD_LIST})(?:[\\s-]+(?:${WORD_LIST}))*\\b`,
   'i'
+)
+const COORDINATED_NUMBER_LIST_RE = new RegExp(
+  `\\b${NUMBER_TOKEN_RE_SOURCE}(?:\\s*,\\s*${NUMBER_TOKEN_RE_SOURCE})*(?:\\s*,?\\s+(?:and|or)\\s+${NUMBER_TOKEN_RE_SOURCE})\\s+[A-Za-z]+\\b`,
+  'gi'
 )
 
 function isSpace(ch: string) {
@@ -215,6 +222,26 @@ function isStatisticalRatioToken(text: string, index: number, length: number) {
   return /\bin(?:\s+a)?\s+$/i.test(prefix) || /^\s+in\b/i.test(suffix)
 }
 
+function getCoordinatedNumberListSpans(text: string): Array<{ start: number; end: number }> {
+  const spans: Array<{ start: number; end: number }> = []
+  let match: RegExpExecArray | null = null
+
+  while ((match = COORDINATED_NUMBER_LIST_RE.exec(text))) {
+    spans.push({ start: match.index, end: match.index + match[0].length })
+  }
+
+  return spans
+}
+
+function isWithinAnySpan(
+  spans: Array<{ start: number; end: number }>,
+  index: number,
+  length: number
+) {
+  const end = index + length
+  return spans.some((span) => index >= span.start && end <= span.end)
+}
+
 function parseNumberWords(words: string[]): number | null {
   let total = 0
   let current = 0
@@ -301,8 +328,9 @@ function collectMetrics(
   allowLeadingDoubleQuote = true
 ): NumberStyleMetric[] {
   const metrics: NumberStyleMetric[] = []
+  const coordinatedListSpans = getCoordinatedNumberListSpans(text)
 
-  const digitsRe = /\b\d{1,3}(?:,\d{3})+(?:\.\d+)?\b|\b\d+(?:\.\d+)?\b/g
+  const digitsRe = new RegExp(DIGIT_TOKEN_RE_SOURCE, 'g')
   let match: RegExpExecArray | null = null
 
   while ((match = digitsRe.exec(text))) {
@@ -315,6 +343,7 @@ function collectMetrics(
     if (isAmPmToken(text, match.index, rawToken.length)) continue
     if (isAgeAdjective(text, match.index, rawToken.length)) continue
     if (isDigitRangeToken(text, match.index, rawToken.length)) continue
+    if (isWithinAnySpan(coordinatedListSpans, match.index, rawToken.length)) continue
     if (isStatisticalRatioToken(text, match.index, rawToken.length)) continue
     if (isPercentToken(text, match.index, rawToken.length)) continue
     if (isMeasurementUnitToken(text, match.index, rawToken.length)) continue
@@ -346,6 +375,7 @@ function collectMetrics(
     if (isPrecededByDigitToken(text, match.index)) continue
     if (isApproximateQuantityPhrase(text, match.index)) continue
     if (isApproximateOrRange(text, match.index, match[0].length)) continue
+    if (isWithinAnySpan(coordinatedListSpans, match.index, match[0].length)) continue
     if (isStatisticalRatioToken(text, match.index, match[0].length)) continue
     const value = parseNumberWords(parts)
     if (value == null || value <= 10) continue

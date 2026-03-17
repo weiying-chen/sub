@@ -78,4 +78,18 @@ describe("numberStyleRule", () => {
 
     expect(findings).toHaveLength(0)
   })
+
+  it("ignores coordinated numeric lists with a shared unit", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "with full evaluations at 6, 12, and 24 months.",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "follow-up visits at six, twelve, and twenty-four months.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
 })

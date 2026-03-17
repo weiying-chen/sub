@@ -1427,6 +1427,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.rest).toContain("U.S. Supreme Court.")
   })
 
+  it("keeps 'according to' with its full phrase", () => {
+  const result = __testTakeLine(
+    "According to U.S. statistics, NDDs are common.",
+    34,
+    /(?:^|\s)(?:Mr\.|Mrs\.|Ms\.|Dr\.|U\.S\.|a\.m\.|p\.m\.)$/i,
+    true
+  )
+
+  expect(result.line).toBe("According to U.S. statistics,")
+  expect(result.rest).toBe("NDDs are common.")
+  })
+
   it("keeps p.m. together when split after p.", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

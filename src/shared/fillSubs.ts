@@ -1422,6 +1422,9 @@ function adjustSplitForNoSplitAbbrev(
   }
   if (!/^[A-Za-z]/.test(nextRest)) return { line: nextLine, rest: nextRest }
   if (endsWithMeridiemAbbrev(nextLine)) return { line: nextLine, rest: nextRest }
+  if (/\baccording to\s+\S+$/i.test(nextLine)) {
+    return { line: nextLine, rest: nextRest }
+  }
 
   const lastSpace = nextLine.lastIndexOf(' ')
   if (lastSpace > 0) {
@@ -1448,8 +1451,23 @@ function mergeNoSplitPhrases(
   const trimmedLine = line.trimEnd()
   const trimmedRest = rest.trimStart()
   const appendToken = (base: string, token: string) => {
-    const noSpace = /(?:---|—)$/.test(base)
+    const noSpace = /(?:---|—|(?:^|\s)[A-Z]\.)$/.test(base)
     return noSpace ? `${base}${token}` : `${base} ${token}`
+  }
+  const consumeUntilComma = (base: string, source: string, maxCount: number) => {
+    let nextLine = base
+    let nextRest = source
+
+    for (let i = 0; i < maxCount; i += 1) {
+      const wordMatch = nextRest.match(/^[^\s]+/)
+      if (!wordMatch) break
+      const token = wordMatch[0]
+      nextLine = appendToken(nextLine, token)
+      nextRest = nextRest.slice(token.length).trimStart()
+      if (/[,:;]$/.test(token)) break
+    }
+
+    return { line: nextLine, rest: nextRest }
   }
 
   const endsWithSentence =
@@ -1520,6 +1538,10 @@ function mergeNoSplitPhrases(
       const nextRest = trimmedRest.slice(token.length).trimStart()
       return { line: appendToken(trimmedLine, token), rest: nextRest }
     }
+  }
+
+  if (/\baccording to(?:\s+\S+){0,2}$/i.test(trimmedLine)) {
+    return consumeUntilComma(trimmedLine, trimmedRest, 4)
   }
 
   return { line, rest }

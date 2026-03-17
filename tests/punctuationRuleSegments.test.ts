@@ -61,6 +61,26 @@ describe("punctuationRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores acronym plurals starting the next cue", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "According to U.S. statistics,",
+      "",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "NDDs and cognitive disabilities.",
+      "",
+    ].join("\n")
+
+    const segments = parseSubs(text)
+    const metrics = analyzeSegments(segments, [punctuationRule()], {
+      lines: text.split("\n"),
+      sourceText: text,
+    })
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("flags across blank separators between cues", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

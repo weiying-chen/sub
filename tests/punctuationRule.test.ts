@@ -66,6 +66,22 @@ describe("punctuationRule", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores acronym plurals starting the next cue", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "According to U.S. statistics,",
+      "",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "NDDs and cognitive disabilities.",
+      "",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("ignores configured proper nouns starting the next cue", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

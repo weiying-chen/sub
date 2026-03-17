@@ -12,7 +12,7 @@ import type { SegmentCtx, SegmentRule } from './segments'
 const OPEN_QUOTE_RE = /^\s*(["'])/
 const I_PRONOUN_RE = /^\s*I(\b|')/
 const ACRONYM_RE =
-  /^\s*(["'\(\[\{])?\s*(?:[A-Z]{2,}(?:'s\b|\b)|(?:[A-Z]\.){2,}[A-Z]?(?:'s\b)?)/
+  /^\s*(["'\(\[\{])?\s*(?:[A-Z]{2,}(?:'s\b|s\b|\b)|(?:[A-Z]\.){2,}[A-Z]?(?:'s\b|s\b)?)/ 
 const DASH_TERMINAL_RE = /(?:—|---)/
 const SENT_BOUNDARY_RE = new RegExp(
   `(?:[.!?:]|…|${DASH_TERMINAL_RE.source})(?:["'\\)\\]\\}]+)?\\s*$`

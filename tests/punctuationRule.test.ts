@@ -82,6 +82,28 @@ describe("punctuationRule", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores lowercase continuation after abbreviation-ending cue text", () => {
+    const text = [
+      "00:18:51:00\t00:18:52:04\tMarker",
+      "A top expert in developmental delays in the U.S.",
+      "00:18:52:04\t00:18:54:25\tMarker",
+      "A top expert in developmental delays in the U.S.",
+      "00:18:54:25\t00:18:56:15\tMarker",
+      "once said the real therapy happens between visits,",
+      "00:18:56:15\t00:18:59:00\tMarker",
+      "once said the real therapy happens between visits,",
+      "00:18:59:00\t00:18:59:20\tMarker",
+      "not in squeezing in five sessions a week.",
+      "00:18:59:20\t00:19:01:27\tMarker",
+      "not in squeezing in five sessions a week.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("ignores configured proper nouns starting the next cue", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

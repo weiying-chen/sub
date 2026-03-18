@@ -13,6 +13,8 @@ const OPEN_QUOTE_RE = /^\s*(["'])/
 const I_PRONOUN_RE = /^\s*I(\b|')/
 const ACRONYM_RE =
   /^\s*(["'\(\[\{])?\s*(?:[A-Z]{2,}(?:'s\b|s\b|\b)|(?:[A-Z]\.){2,}[A-Z]?(?:'s\b|s\b)?)/ 
+const ACRONYM_END_RE =
+  /(?:^|\s)(?:[A-Z]{2,}(?:'s\b|s\b|\b)|(?:[A-Z]\.){2,}[A-Z]?(?:'s\b|s\b)?)(?:["'\)\]\}]+)?\s*$/ 
 const DASH_TERMINAL_RE = /(?:—|---)/
 const SENT_BOUNDARY_RE = new RegExp(
   `(?:[.!?:]|…|${DASH_TERMINAL_RE.source})(?:["'\\)\\]\\}]+)?\\s*$`
@@ -84,6 +86,10 @@ function startsWithIPronoun(s: string): boolean {
 
 function startsWithAcronym(s: string): boolean {
   return ACRONYM_RE.test(s)
+}
+
+function endsWithAcronym(s: string): boolean {
+  return ACRONYM_END_RE.test(s.trimEnd())
 }
 
 function endsSentenceBoundary(s: string): boolean {
@@ -279,7 +285,7 @@ function collectMetrics(
       nextQuoteStart === '"' &&
       (quoteStateByCue[j + 1]?.leadingQuoteIsContinuation ?? false)
 
-    if (prevTrim.endsWith('.') && case1 === 'lower') {
+    if (prevTrim.endsWith('.') && case1 === 'lower' && !endsWithAcronym(prevTrim)) {
       metrics.push({
         type: 'PUNCTUATION',
         lineIndex: next.lineIndex,

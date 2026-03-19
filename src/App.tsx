@@ -361,18 +361,55 @@ function clampScrollTop(value: number, scrollDOM: HTMLElement) {
   return Math.min(Math.max(0, value), maxScrollTop)
 }
 
-function centerAnchorInEditor(view: EditorView, anchor: number) {
+function centerAnchorInContainer(
+  view: EditorView,
+  anchor: number,
+  container: HTMLElement | null
+) {
+  if (!container) return
+  const measuredView = view as EditorView & {
+    coordsAtPos?: (pos: number, side?: number) => DOMRect | null
+    requestMeasure?: (spec: {
+      read: (view: EditorView) => { coords: DOMRect | null; containerTop: number } | null
+      write: (
+        data: { coords: DOMRect | null; containerTop: number } | null,
+        view: EditorView
+      ) => void
+    }) => void
+  }
+
+  if (
+    typeof measuredView.requestMeasure === "function" &&
+    typeof measuredView.coordsAtPos === "function"
+  ) {
+    measuredView.requestMeasure({
+      read() {
+        return {
+          coords: measuredView.coordsAtPos?.(anchor, 1) ?? null,
+          containerTop: container.getBoundingClientRect().top,
+        }
+      },
+      write(data) {
+        if (!data?.coords) return
+        const currentTop = container.scrollTop
+        const top = data.coords.top - data.containerTop + currentTop
+        const bottom = data.coords.bottom - data.containerTop + currentTop
+        const targetScrollTop = (top + bottom) / 2 - container.clientHeight / 2
+        container.scrollTop = clampScrollTop(targetScrollTop, container)
+      },
+    })
+    return
+  }
+
   const lineBlockAt = (view as EditorView & {
     lineBlockAt?: (pos: number) => { top: number; bottom: number }
   }).lineBlockAt
   if (typeof lineBlockAt !== "function") return
-
   const lineBlock = lineBlockAt(anchor)
   if (!lineBlock) return
-
   const lineCenter = (lineBlock.top + lineBlock.bottom) / 2
-  const targetScrollTop = lineCenter - view.scrollDOM.clientHeight / 2
-  view.scrollDOM.scrollTop = clampScrollTop(targetScrollTop, view.scrollDOM)
+  const targetScrollTop = lineCenter - container.clientHeight / 2
+  container.scrollTop = clampScrollTop(targetScrollTop, container)
 }
 
 function withTemporarySmoothScroll(view: EditorView, fn: () => void) {
@@ -416,6 +453,7 @@ export default function App({
   colorizeGutterIndicators = false,
 }: AppProps) {
   const [theme, setTheme] = useState<"dark" | "light">("dark")
+  const editorPaneRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -640,7 +678,7 @@ export default function App({
           selection: { anchor },
           effects: EditorView.scrollIntoView(anchor, { y: "center" }),
         })
-        centerAnchorInEditor(view, anchor)
+        centerAnchorInContainer(view, anchor, editorPaneRef.current)
       })
       focusEditorContent(view)
     },
@@ -651,22 +689,23 @@ export default function App({
     <div
       className={`app-shell${suppressFindingMotion ? " findings-motion-paused" : ""}`}
     >
-      <div className="app-editor-wrap">
-        <CodeMirror
-          value={value}
-          onChange={setValue}
-          height="100%"
-          width="100%"
-          basicSetup={{
-            lineNumbers: false,
-            drawSelection: true,
-            highlightActiveLine: false,
-            highlightActiveLineGutter: false,
-            highlightSelectionMatches: false,
-          }}
-          extensions={extensions}
-          onCreateEditor={(v) => setView(v)}
-        />
+      <div className="app-editor-wrap" ref={editorPaneRef}>
+        <div className="app-editor-inner">
+          <CodeMirror
+            value={value}
+            onChange={setValue}
+            width="100%"
+            basicSetup={{
+              lineNumbers: false,
+              drawSelection: true,
+              highlightActiveLine: false,
+              highlightActiveLineGutter: false,
+              highlightSelectionMatches: false,
+            }}
+            extensions={extensions}
+            onCreateEditor={(v) => setView(v)}
+          />
+        </div>
       </div>
 
       <aside className="findings-sidebar">

@@ -179,7 +179,7 @@ describe("Sidebar", () => {
   })
 
   it("scrolls the editor down when clicking a bottom finding", () => {
-    render(<App />)
+    const { container } = render(<App />)
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
 
     const lines: string[] = []
@@ -200,24 +200,38 @@ describe("Sidebar", () => {
       },
     })
 
+    const editorWrap = container.querySelector(".app-editor-wrap") as HTMLDivElement | null
     fireEvent.click(screen.getAllByText("Line has too many characters").at(-1)!)
 
     const view = cmSpies.lastView
     const anchor = cmSpies.dispatch.mock.calls.at(-1)?.[0]?.selection?.anchor
     expect(view).not.toBeNull()
+    expect(editorWrap).not.toBeNull()
     expect(typeof anchor).toBe("number")
-    if (!view || typeof anchor !== "number") return
+    if (!view || !editorWrap || typeof anchor !== "number") return
+
+    Object.defineProperty(editorWrap, "clientHeight", { value: 200, configurable: true })
+    Object.defineProperty(editorWrap, "scrollHeight", {
+      value: Math.max(200, lines.length * 20),
+      configurable: true,
+    })
+    Object.defineProperty(editorWrap, "getBoundingClientRect", {
+      value: () => ({ top: 0 }),
+      configurable: true,
+    })
+
+    fireEvent.click(screen.getAllByText("Line has too many characters").at(-1)!)
 
     const block = view.lineBlockAt(anchor)
     const expected = Math.min(
-      Math.max(0, (block.top + block.bottom) / 2 - view.scrollDOM.clientHeight / 2),
-      view.scrollDOM.scrollHeight - view.scrollDOM.clientHeight
+      Math.max(0, (block.top + block.bottom) / 2 - editorWrap.clientHeight / 2),
+      editorWrap.scrollHeight - editorWrap.clientHeight
     )
-    expect(view.scrollDOM.scrollTop).toBe(expected)
+    expect(editorWrap.scrollTop).toBe(expected)
   })
 
   it("centers long-document findings when there is room", () => {
-    render(<App />)
+    const { container } = render(<App />)
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
 
     const lines: string[] = []
@@ -234,24 +248,36 @@ describe("Sidebar", () => {
       },
     })
 
+    const editorWrap = container.querySelector(".app-editor-wrap") as HTMLDivElement | null
     fireEvent.click(screen.getAllByText("Line has too many characters")[0])
 
     const view = cmSpies.lastView
     const anchor = cmSpies.dispatch.mock.calls.at(-1)?.[0]?.selection?.anchor
     expect(view).not.toBeNull()
+    expect(editorWrap).not.toBeNull()
     expect(typeof anchor).toBe("number")
-    if (!view || typeof anchor !== "number") return
+    if (!view || !editorWrap || typeof anchor !== "number") return
+
+    Object.defineProperty(editorWrap, "clientHeight", { value: 200, configurable: true })
+    Object.defineProperty(editorWrap, "scrollHeight", {
+      value: Math.max(200, lines.length * 20),
+      configurable: true,
+    })
+    Object.defineProperty(editorWrap, "getBoundingClientRect", {
+      value: () => ({ top: 0 }),
+      configurable: true,
+    })
+
+    fireEvent.click(screen.getAllByText("Line has too many characters")[0])
 
     const block = view.lineBlockAt(anchor)
     const expected = Math.min(
-      Math.max(0, (block.top + block.bottom) / 2 - view.scrollDOM.clientHeight / 2),
-      view.scrollDOM.scrollHeight - view.scrollDOM.clientHeight
+      Math.max(0, (block.top + block.bottom) / 2 - editorWrap.clientHeight / 2),
+      editorWrap.scrollHeight - editorWrap.clientHeight
     )
-    expect(view.scrollDOM.scrollTop).toBe(expected)
-    expect(view.scrollDOM.scrollTop).toBeGreaterThan(0)
-    expect(view.scrollDOM.scrollTop).toBeLessThan(
-      view.scrollDOM.scrollHeight - view.scrollDOM.clientHeight
-    )
+    expect(editorWrap.scrollTop).toBe(expected)
+    expect(editorWrap.scrollTop).toBeGreaterThan(0)
+    expect(editorWrap.scrollTop).toBeLessThan(editorWrap.scrollHeight - editorWrap.clientHeight)
   })
 
   it("can hide warning findings through includeWarnings prop", () => {

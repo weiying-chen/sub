@@ -115,6 +115,19 @@ describe("Sidebar", () => {
 
   it("renders a fixed findings sidebar with real findings", () => {
     const { container } = render(<App />)
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+
+    fireEvent.change(editor, {
+      target: {
+        value: [
+          "00:00:01:00\t00:00:02:00\tMarker",
+          "This payload is definitely too long for one second.",
+          "",
+          "00:00:02:00\t00:00:06:00\tMarker",
+          "OK.",
+        ].join("\n"),
+      },
+    })
 
     expect(screen.getByRole("heading", { name: "Findings" })).toBeInTheDocument()
     expect(screen.queryByText("Dummy data for sidebar layout.")).not.toBeInTheDocument()
@@ -132,9 +145,27 @@ describe("Sidebar", () => {
     expect(container.querySelectorAll(".finding-row-button.is-active").length).toBeGreaterThan(0)
   })
 
+  it("loads the provided cervical spine transcript as the default sample", () => {
+    render(<App />)
+
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+    expect(editor.value).toContain("00:07:09:14\t00:07:11:23\t手麻 不舒服")
+    expect(editor.value).toContain("ossification of the posterior longitudinal ligament.")
+  })
+
   it("jumps editor selection when clicking a finding", () => {
     render(<App />)
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+
+    fireEvent.change(editor, {
+      target: {
+        value: [
+          "00:00:01:00\t00:00:02:00\tMarker",
+          "This payload is definitely too long for one second.",
+        ].join("\n"),
+      },
+    })
+
     const firstLineLength = editor.value.split("\n")[0]?.length ?? 0
 
     fireEvent.click(screen.getAllByText("Reading speed is too high")[0])
@@ -149,6 +180,25 @@ describe("Sidebar", () => {
 
   it("scrolls the editor down when clicking a bottom finding", () => {
     render(<App />)
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+
+    const lines: string[] = []
+    for (let i = 0; i < 30; i += 1) {
+      const start = String(i).padStart(2, "0")
+      const end = String(i + 1).padStart(2, "0")
+      lines.push(`00:00:${start}:00\t00:00:${end}:00\tMarker`)
+      lines.push(
+        i === 29
+          ? "This line is definitely longer than the configured maximum character count for one subtitle row."
+          : "OK."
+      )
+    }
+
+    fireEvent.change(editor, {
+      target: {
+        value: lines.join("\n"),
+      },
+    })
 
     fireEvent.click(screen.getAllByText("Line has too many characters").at(-1)!)
 
@@ -357,10 +407,23 @@ describe("Sidebar", () => {
   it("filters findings when a rule is unchecked in the modal", async () => {
     const { container } = render(<App />)
     const ui = within(container)
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
     const countFindingRowsWithText = (text: string) =>
       Array.from(container.querySelectorAll(".finding-row-button")).filter((el) =>
         el.textContent?.includes(text)
       ).length
+
+    fireEvent.change(editor, {
+      target: {
+        value: [
+          "00:00:01:00\t00:00:02:00\tMarker",
+          "This payload is definitely too long for one second.",
+          "",
+          "00:00:02:00\t00:00:03:00\tMarker",
+          "OK.",
+        ].join("\n"),
+      },
+    })
 
     expect(countFindingRowsWithText("Reading speed is too high")).toBeGreaterThan(0)
 

@@ -22,7 +22,7 @@ import { cmTheme } from "./cm/theme"
 import { getSelectedInlineText } from "./cm/selection"
 import { selectLineOnTripleClick } from "./cm/selectLineOnTripleClick"
 import { fillSelectedTimestampSubs } from "./cm/fillSubs"
-import { mergeForward, mergedRunPayloadIndices, parseBlockAt, type LineSource } from "./shared/tsvRuns"
+import { mergedRunPayloadIndices, parseBlockAt, type LineSource } from "./shared/tsvRuns"
 
 import { sampleSubtitles } from "./fixtures/subtitles"
 import capitalizationTermsText from "../capitalization-terms.txt?raw"
@@ -327,19 +327,6 @@ function getFindingAnchor(view: EditorView, finding: Finding): number {
     finding.type === "MIN_CPS" ||
     finding.type === "CPS_BALANCE"
   ) {
-    const src: LineSource = {
-      lineCount: doc.lines,
-      getLine: (i) => doc.line(i + 1).text,
-    }
-    const tsLineIndex = Math.min(
-      Math.max(findingTsLineIndex(finding), 0),
-      doc.lines - 1
-    )
-    const block = parseBlockAt(src, tsLineIndex)
-    if (block) {
-      const run = mergeForward(src, block)
-      return doc.line(run.payloadIndexStart + 1).from
-    }
     return line.from
   }
 
@@ -367,6 +354,25 @@ function focusEditorContent(view: EditorView) {
   } catch {
     content.focus()
   }
+}
+
+function clampScrollTop(value: number, scrollDOM: HTMLElement) {
+  const maxScrollTop = Math.max(0, scrollDOM.scrollHeight - scrollDOM.clientHeight)
+  return Math.min(Math.max(0, value), maxScrollTop)
+}
+
+function centerAnchorInEditor(view: EditorView, anchor: number) {
+  const lineBlockAt = (view as EditorView & {
+    lineBlockAt?: (pos: number) => { top: number; bottom: number }
+  }).lineBlockAt
+  if (typeof lineBlockAt !== "function") return
+
+  const lineBlock = lineBlockAt(anchor)
+  if (!lineBlock) return
+
+  const lineCenter = (lineBlock.top + lineBlock.bottom) / 2
+  const targetScrollTop = lineCenter - view.scrollDOM.clientHeight / 2
+  view.scrollDOM.scrollTop = clampScrollTop(targetScrollTop, view.scrollDOM)
 }
 
 function withTemporarySmoothScroll(view: EditorView, fn: () => void) {
@@ -634,6 +640,7 @@ export default function App({
           selection: { anchor },
           effects: EditorView.scrollIntoView(anchor, { y: "center" }),
         })
+        centerAnchorInEditor(view, anchor)
       })
       focusEditorContent(view)
     },

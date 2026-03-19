@@ -35,6 +35,7 @@ vi.mock("@uiw/react-codemirror", () => ({
   }) => {
     const view = useMemo(() => {
       const lines = value.split("\n")
+      const lineHeight = 20
       const starts: number[] = []
       let offset = 0
       for (const line of lines) {
@@ -54,6 +55,19 @@ vi.mock("@uiw/react-codemirror", () => ({
             },
           },
         },
+        lineBlockAt: (pos: number) => {
+          for (let n = 1; n <= lines.length; n += 1) {
+            const i = n - 1
+            const from = starts[i] ?? 0
+            const to = from + (lines[i]?.length ?? 0)
+            if (pos >= from && pos <= to) {
+              const top = i * lineHeight
+              return { top, bottom: top + lineHeight }
+            }
+          }
+          const fallbackTop = Math.max(0, lines.length - 1) * lineHeight
+          return { top: fallbackTop, bottom: fallbackTop + lineHeight }
+        },
         dispatch: cmSpies.dispatch,
         focus: cmSpies.focus,
         contentDOM: {
@@ -61,7 +75,7 @@ vi.mock("@uiw/react-codemirror", () => ({
         },
         scrollDOM: {
           scrollTop: 0,
-          scrollHeight: 2000,
+          scrollHeight: Math.max(200, lines.length * lineHeight),
           clientHeight: 200,
           parentElement: null,
           ownerDocument: {
@@ -134,25 +148,60 @@ describe("Sidebar", () => {
   })
 
   it("scrolls the editor down when clicking a bottom finding", () => {
-    cmSpies.dispatch.mockImplementation((spec: { selection?: { anchor: number } }) => {
-      const view = cmSpies.lastView
-      const anchor = spec.selection?.anchor
-      if (!view || typeof anchor !== "number") return
-      const lineCount = view.state.doc.lines
-      for (let n = 1; n <= lineCount; n += 1) {
-        const line = view.state.doc.line(n)
-        if (anchor >= line.from && anchor <= line.to) {
-          view.scrollDOM.scrollTop = n * 20
-          return
-        }
-      }
-    })
-
     render(<App />)
 
     fireEvent.click(screen.getAllByText("Line has too many characters").at(-1)!)
 
-    expect(cmSpies.lastView?.scrollDOM.scrollTop).toBeGreaterThan(0)
+    const view = cmSpies.lastView
+    const anchor = cmSpies.dispatch.mock.calls.at(-1)?.[0]?.selection?.anchor
+    expect(view).not.toBeNull()
+    expect(typeof anchor).toBe("number")
+    if (!view || typeof anchor !== "number") return
+
+    const block = view.lineBlockAt(anchor)
+    const expected = Math.min(
+      Math.max(0, (block.top + block.bottom) / 2 - view.scrollDOM.clientHeight / 2),
+      view.scrollDOM.scrollHeight - view.scrollDOM.clientHeight
+    )
+    expect(view.scrollDOM.scrollTop).toBe(expected)
+  })
+
+  it("centers long-document findings when there is room", () => {
+    render(<App />)
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+
+    const lines: string[] = []
+    for (let i = 0; i < 40; i += 1) {
+      const start = String(i).padStart(2, "0")
+      const end = String(i + 1).padStart(2, "0")
+      lines.push(`00:00:${start}:00\t00:00:${end}:00\tMarker`)
+      lines.push(i === 25 ? "This line is definitely longer than the configured maximum character count for one subtitle row." : "OK.")
+    }
+
+    fireEvent.change(editor, {
+      target: {
+        value: lines.join("\n"),
+      },
+    })
+
+    fireEvent.click(screen.getAllByText("Line has too many characters")[0])
+
+    const view = cmSpies.lastView
+    const anchor = cmSpies.dispatch.mock.calls.at(-1)?.[0]?.selection?.anchor
+    expect(view).not.toBeNull()
+    expect(typeof anchor).toBe("number")
+    if (!view || typeof anchor !== "number") return
+
+    const block = view.lineBlockAt(anchor)
+    const expected = Math.min(
+      Math.max(0, (block.top + block.bottom) / 2 - view.scrollDOM.clientHeight / 2),
+      view.scrollDOM.scrollHeight - view.scrollDOM.clientHeight
+    )
+    expect(view.scrollDOM.scrollTop).toBe(expected)
+    expect(view.scrollDOM.scrollTop).toBeGreaterThan(0)
+    expect(view.scrollDOM.scrollTop).toBeLessThan(
+      view.scrollDOM.scrollHeight - view.scrollDOM.clientHeight
+    )
   })
 
   it("can hide warning findings through includeWarnings prop", () => {

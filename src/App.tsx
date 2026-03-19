@@ -615,6 +615,7 @@ export default function App({
   const extensions = useMemo(() => {
     return [
       cmTheme,
+      EditorView.lineWrapping,
 
       // Hard override: Tab ALWAYS inserts a tab character.
       Prec.highest(
@@ -707,66 +708,65 @@ export default function App({
               onCreateEditor={(v) => setView(v)}
             />
           </div>
+          <aside className="findings-sidebar">
+            <div className="sidebar-header">
+              <h3 className="sidebar-title">Findings</h3>
+              <button
+                type="button"
+                className="sidebar-gear-button"
+                aria-label="Open rules modal"
+                onClick={openRulesModal}
+              >
+                <i className="las la-cog" aria-hidden="true" />
+              </button>
+            </div>
+            {findings.length === 0 ? (
+              <div className="sidebar-empty">No findings.</div>
+            ) : (
+              <ul className="findings-list">
+                {sortedFindings.map(({ finding, index }) => {
+                  const { severityIconClass, severityKind, snippet, detail, explanation } =
+                    getFindingParts(finding)
+                  const findingId = getFindingId(finding, index)
+                  const isActive = activeFindingId === findingId
+                  return (
+                    <li key={findingId} className="findings-list-item">
+                      <button
+                        type="button"
+                        onClick={() => handleFindingClick(finding, findingId)}
+                        className={`finding-row-button${isActive ? " is-active" : ""}`}
+                      >
+                        <span className="finding-row-head">
+                          <i
+                            className={severityIconClass}
+                            aria-hidden="true"
+                            data-severity={severityKind}
+                          />
+                          <span className="finding-row-detail">
+                            {detail}
+                          </span>
+                        </span>
+                        {explanation ? (
+                          <span
+                            className={`finding-row-instruction${isActive ? " is-open" : ""}`}
+                            aria-hidden={!isActive}
+                          >
+                            <span className="finding-row-instruction-text">{explanation}</span>
+                          </span>
+                        ) : null}
+                        {snippet ? (
+                          <span className="finding-row-snippet">
+                            {snippet}
+                          </span>
+                        ) : null}
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </aside>
         </div>
-
-        <aside className="findings-sidebar">
-          <div className="sidebar-header">
-            <h3 className="sidebar-title">Findings</h3>
-            <button
-              type="button"
-              className="sidebar-gear-button"
-              aria-label="Open rules modal"
-              onClick={openRulesModal}
-            >
-              <i className="las la-cog" aria-hidden="true" />
-            </button>
-          </div>
-          {findings.length === 0 ? (
-            <div className="sidebar-empty">No findings.</div>
-          ) : (
-            <ul className="findings-list">
-              {sortedFindings.map(({ finding, index }) => {
-                const { severityIconClass, severityKind, snippet, detail, explanation } =
-                  getFindingParts(finding)
-                const findingId = getFindingId(finding, index)
-                const isActive = activeFindingId === findingId
-                return (
-                  <li key={findingId} className="findings-list-item">
-                    <button
-                      type="button"
-                      onClick={() => handleFindingClick(finding, findingId)}
-                      className={`finding-row-button${isActive ? " is-active" : ""}`}
-                    >
-                      <span className="finding-row-head">
-                        <i
-                          className={severityIconClass}
-                          aria-hidden="true"
-                          data-severity={severityKind}
-                        />
-                        <span className="finding-row-detail">
-                          {detail}
-                        </span>
-                      </span>
-                      {explanation ? (
-                        <span
-                          className={`finding-row-instruction${isActive ? " is-open" : ""}`}
-                          aria-hidden={!isActive}
-                        >
-                          <span className="finding-row-instruction-text">{explanation}</span>
-                        </span>
-                      ) : null}
-                      {snippet ? (
-                        <span className="finding-row-snippet">
-                          {snippet}
-                        </span>
-                      ) : null}
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </aside>
       </div>
 
       {isRulesModalMounted ? (

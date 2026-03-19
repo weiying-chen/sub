@@ -1,14 +1,21 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import { useEffect, useMemo } from "react"
+import { EditorView } from "@codemirror/view"
 
 import App from "../src/App"
+
+const indexCss = readFileSync(join(process.cwd(), "src/index.css"), "utf8")
 
 const cmSpies = vi.hoisted(() => ({
   dispatch: vi.fn(),
   focus: vi.fn(),
+  lastExtensions: null as unknown[] | null,
   lastView: null as {
     scrollDOM: { scrollTop: number }
     state: { doc: { lines: number; line: (n: number) => { from: number; to: number; text: string } } }
@@ -28,10 +35,12 @@ vi.mock("@uiw/react-codemirror", () => ({
     value,
     onChange,
     onCreateEditor,
+    extensions,
   }: {
     value: string
     onChange: (value: string) => void
     onCreateEditor?: (view: unknown) => void
+    extensions?: unknown[]
   }) => {
     const view = useMemo(() => {
       const lines = value.split("\n")
@@ -87,8 +96,9 @@ vi.mock("@uiw/react-codemirror", () => ({
 
     useEffect(() => {
       cmSpies.lastView = view
+      cmSpies.lastExtensions = extensions ?? null
       onCreateEditor?.(view)
-    }, [onCreateEditor, view])
+    }, [extensions, onCreateEditor, view])
 
     return (
       <textarea
@@ -109,6 +119,7 @@ describe("Sidebar", () => {
     window.localStorage.clear()
     cmSpies.dispatch.mockReset()
     cmSpies.focus.mockReset()
+    cmSpies.lastExtensions = null
     cmSpies.lastView = null
     gutterSpies.timestampLinkGutter.mockClear()
   })
@@ -151,6 +162,23 @@ describe("Sidebar", () => {
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
     expect(editor.value).toContain("00:07:09:14\t00:07:11:23\t手麻 不舒服")
     expect(editor.value).toContain("ossification of the posterior longitudinal ligament.")
+  })
+
+  it("enables line wrapping in the editor", () => {
+    render(<App />)
+
+    expect(cmSpies.lastExtensions).toContain(EditorView.lineWrapping)
+  })
+
+  it("does not reserve a scrollbar gutter on the shared editor scroll container", () => {
+    expect(indexCss).toMatch(/\.app-editor-scroll\s*\{[\s\S]*padding:\s*0;/)
+    expect(indexCss).not.toMatch(/\.app-editor-scroll\s*\{[\s\S]*scrollbar-gutter:/)
+  })
+
+  it("keeps the toolbar panel as a compact bottom-right dock", () => {
+    expect(indexCss).toMatch(/\.app-toolbar-panel\s*\{[\s\S]*left:\s*auto;/)
+    expect(indexCss).toMatch(/\.app-toolbar-panel\s*\{[\s\S]*right:\s*28px;/)
+    expect(indexCss).toMatch(/\.app-toolbar-panel\s*\{[\s\S]*width:\s*min\(420px,\s*calc\(100vw - 356px\)\);/)
   })
 
   it("jumps editor selection when clicking a finding", () => {

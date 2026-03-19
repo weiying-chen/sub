@@ -227,7 +227,7 @@ body {
 .findings-sidebar {
   position: absolute;
   top: 0;
-  right: 28px;
+  right: 16px;
   bottom: 0;
   width: 308px;
   border-left: 1px solid var(--border);

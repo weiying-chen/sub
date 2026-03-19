@@ -200,7 +200,7 @@ describe("Sidebar", () => {
       },
     })
 
-    const editorWrap = container.querySelector(".app-editor-wrap") as HTMLDivElement | null
+    const editorWrap = container.querySelector(".app-editor-scroll") as HTMLDivElement | null
     fireEvent.click(screen.getAllByText("Line has too many characters").at(-1)!)
 
     const view = cmSpies.lastView
@@ -248,7 +248,7 @@ describe("Sidebar", () => {
       },
     })
 
-    const editorWrap = container.querySelector(".app-editor-wrap") as HTMLDivElement | null
+    const editorWrap = container.querySelector(".app-editor-scroll") as HTMLDivElement | null
     fireEvent.click(screen.getAllByText("Line has too many characters")[0])
 
     const view = cmSpies.lastView

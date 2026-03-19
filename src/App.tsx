@@ -453,7 +453,7 @@ export default function App({
   colorizeGutterIndicators = false,
 }: AppProps) {
   const [theme, setTheme] = useState<"dark" | "light">("dark")
-  const editorPaneRef = useRef<HTMLDivElement | null>(null)
+  const editorScrollRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -678,7 +678,7 @@ export default function App({
           selection: { anchor },
           effects: EditorView.scrollIntoView(anchor, { y: "center" }),
         })
-        centerAnchorInContainer(view, anchor, editorPaneRef.current)
+        centerAnchorInContainer(view, anchor, editorScrollRef.current)
       })
       focusEditorContent(view)
     },
@@ -689,83 +689,85 @@ export default function App({
     <div
       className={`app-shell${suppressFindingMotion ? " findings-motion-paused" : ""}`}
     >
-      <div className="app-editor-wrap" ref={editorPaneRef}>
-        <div className="app-editor-inner">
-          <CodeMirror
-            value={value}
-            onChange={setValue}
-            width="100%"
-            basicSetup={{
-              lineNumbers: false,
-              drawSelection: true,
-              highlightActiveLine: false,
-              highlightActiveLineGutter: false,
-              highlightSelectionMatches: false,
-            }}
-            extensions={extensions}
-            onCreateEditor={(v) => setView(v)}
-          />
+      <div className="app-editor-wrap">
+        <div className="app-editor-scroll" ref={editorScrollRef}>
+          <div className="app-editor-inner">
+            <CodeMirror
+              value={value}
+              onChange={setValue}
+              width="100%"
+              basicSetup={{
+                lineNumbers: false,
+                drawSelection: true,
+                highlightActiveLine: false,
+                highlightActiveLineGutter: false,
+                highlightSelectionMatches: false,
+              }}
+              extensions={extensions}
+              onCreateEditor={(v) => setView(v)}
+            />
+          </div>
         </div>
-      </div>
 
-      <aside className="findings-sidebar">
-        <div className="sidebar-header">
-          <h3 className="sidebar-title">Findings</h3>
-          <button
-            type="button"
-            className="sidebar-gear-button"
-            aria-label="Open rules modal"
-            onClick={openRulesModal}
-          >
-            <i className="las la-cog" aria-hidden="true" />
-          </button>
-        </div>
-        {findings.length === 0 ? (
-          <div className="sidebar-empty">No findings.</div>
-        ) : (
-          <ul className="findings-list">
-            {sortedFindings.map(({ finding, index }) => {
-              const { severityIconClass, severityKind, snippet, detail, explanation } =
-                getFindingParts(finding)
-              const findingId = getFindingId(finding, index)
-              const isActive = activeFindingId === findingId
-              return (
-                <li key={findingId} className="findings-list-item">
-                  <button
-                    type="button"
-                    onClick={() => handleFindingClick(finding, findingId)}
-                    className={`finding-row-button${isActive ? " is-active" : ""}`}
-                  >
-                    <span className="finding-row-head">
-                      <i
-                        className={severityIconClass}
-                        aria-hidden="true"
-                        data-severity={severityKind}
-                      />
-                      <span className="finding-row-detail">
-                        {detail}
+        <aside className="findings-sidebar">
+          <div className="sidebar-header">
+            <h3 className="sidebar-title">Findings</h3>
+            <button
+              type="button"
+              className="sidebar-gear-button"
+              aria-label="Open rules modal"
+              onClick={openRulesModal}
+            >
+              <i className="las la-cog" aria-hidden="true" />
+            </button>
+          </div>
+          {findings.length === 0 ? (
+            <div className="sidebar-empty">No findings.</div>
+          ) : (
+            <ul className="findings-list">
+              {sortedFindings.map(({ finding, index }) => {
+                const { severityIconClass, severityKind, snippet, detail, explanation } =
+                  getFindingParts(finding)
+                const findingId = getFindingId(finding, index)
+                const isActive = activeFindingId === findingId
+                return (
+                  <li key={findingId} className="findings-list-item">
+                    <button
+                      type="button"
+                      onClick={() => handleFindingClick(finding, findingId)}
+                      className={`finding-row-button${isActive ? " is-active" : ""}`}
+                    >
+                      <span className="finding-row-head">
+                        <i
+                          className={severityIconClass}
+                          aria-hidden="true"
+                          data-severity={severityKind}
+                        />
+                        <span className="finding-row-detail">
+                          {detail}
+                        </span>
                       </span>
-                    </span>
-                    {explanation ? (
-                      <span
-                        className={`finding-row-instruction${isActive ? " is-open" : ""}`}
-                        aria-hidden={!isActive}
-                      >
-                        <span className="finding-row-instruction-text">{explanation}</span>
-                      </span>
-                    ) : null}
-                    {snippet ? (
-                      <span className="finding-row-snippet">
-                        {snippet}
-                      </span>
-                    ) : null}
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </aside>
+                      {explanation ? (
+                        <span
+                          className={`finding-row-instruction${isActive ? " is-open" : ""}`}
+                          aria-hidden={!isActive}
+                        >
+                          <span className="finding-row-instruction-text">{explanation}</span>
+                        </span>
+                      ) : null}
+                      {snippet ? (
+                        <span className="finding-row-snippet">
+                          {snippet}
+                        </span>
+                      ) : null}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </aside>
+      </div>
 
       {isRulesModalMounted ? (
         <div

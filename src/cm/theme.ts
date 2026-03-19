@@ -6,7 +6,7 @@ export const cmTheme = EditorView.theme(
     "&": {
       color: "var(--text)",
       backgroundColor: "var(--bg)",
-      border: "1px solid var(--border)",
+      border: "none",
       fontFamily: "var(--font-mono)",
       fontSize: "14px",
       lineHeight: "1.5",

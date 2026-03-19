@@ -1439,6 +1439,32 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.rest).toBe("NDDs are common.")
   })
 
+  it("does not split decimal percentages across cues", () => {
+  const lines = [
+    "00:05:28:24\t00:05:30:21\t像自閉症好了",
+    "00:05:30:21\t00:05:32:19\t在二三十年前認為",
+    "00:05:32:19\t00:05:33:19\t大概一萬個",
+    "00:05:33:19\t00:05:35:04\t只有四五個孩子",
+    "00:05:35:04\t00:05:38:06\t0.4% 0.5%這樣子",
+    "00:05:38:06\t00:05:39:04\t現在已經認為",
+    "00:05:39:04\t00:05:40:10\t大概有三十三分之一",
+    "00:05:40:10\t00:05:42:06\t有占百分之三的孩子",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Twenty or thirty years ago, people thought about 40 or 50 kids out of 10,000 had autism, around 0.4 or 0.5 percent. Now it's estimated at about one in 33 children, roughly 3 percent.",
+    { inline: true, noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS }
+  )
+  const payloads = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(payloads).not.toContain("autism, around 0.")
+  expect(payloads).not.toContain("4 or 0.")
+  expect(payloads.some((line) => line.includes("0.4 or 0.5 percent."))).toBe(true)
+  })
+
   it("keeps p.m. together when split after p.", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

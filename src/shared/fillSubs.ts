@@ -116,6 +116,10 @@ function isMeridiemInnerSplit(left: string, right: string): boolean {
   return /(?:^|\s)[ap]\.$/i.test(left) && /^m\.(?:\s|$)/i.test(right)
 }
 
+function isDecimalInnerSplit(left: string, right: string): boolean {
+  return /\d\.$/.test(left.trimEnd()) && /^\d/.test(right.trimStart())
+}
+
 function isMeridiemTimeSplit(left: string, right: string): boolean {
   return /\b\d(?::\d{2})?\s*$/i.test(left) &&
     /^(?:a\.m\.(?:\s|$)|p\.m\.(?:\s|$)|am\b|pm\b)/i.test(right)
@@ -293,6 +297,7 @@ function findRightmostStrongPunct(
     if (!left || !right) continue
     if (ch === '.' && isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher)) continue
     if (ch === '.' && isPartialDottedAcronymSplit(left, right)) continue
+    if (ch === '.' && isDecimalInnerSplit(left, right)) continue
     if (ch === '.' && isMeridiemInnerSplit(left, right)) continue
     if (isToVerbSplit(left, right)) continue
     return cut
@@ -812,6 +817,7 @@ function findSentenceBoundaryCut(
     if (!left || !right) continue
     if (ch === '.' && isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher)) continue
     if (ch === '.' && isPartialDottedAcronymSplit(left, right)) continue
+    if (ch === '.' && isDecimalInnerSplit(left, right)) continue
     if (ch === '.' && isMeridiemInnerSplit(left, right)) continue
     if (
       isVeryShortSentenceTail(left) &&

@@ -78,16 +78,7 @@ export function blockStructureRule(
 
       const nextTsIndex = findNextTimestampIndex(lines, i)
       const payloadIndex = findPayloadIndex(lines, i, ignoreEmptyLines)
-
-      if (payloadIndex == null) {
-        metrics.push({
-          type: 'BLOCK_STRUCTURE',
-          lineIndex: i,
-          ruleCode: 'MISSING_PAYLOAD',
-          text: line,
-        })
-        continue
-      }
+      if (payloadIndex == null) continue
 
       if (nextTsIndex == null) continue
       const nextPayloadIndex = findPayloadIndex(lines, nextTsIndex, ignoreEmptyLines)

@@ -35,32 +35,6 @@ describe("blockStructureRule (segments)", () => {
     ])
   })
 
-  it("flags timestamps that have no payload line", () => {
-    const text = [
-      "00:00:01:00\t00:00:02:00\t只有時間",
-      "00:00:02:00\t00:00:03:00\t下一行",
-      "Hello there.",
-    ].join("\n")
-
-    const findings = getFindings(
-      analyzeTextByType(
-        text,
-        "subs",
-        createSubsSegmentRules({
-          enabledFindingTypes: ["BLOCK_STRUCTURE" as any],
-        })
-      )
-    )
-
-    expect(findings).toMatchObject([
-      {
-        type: "BLOCK_STRUCTURE",
-        lineIndex: 0,
-        ruleCode: "MISSING_PAYLOAD",
-      },
-    ])
-  })
-
   it("does not flag trailing source or metadata lines outside timestamp blocks", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\t第一句",

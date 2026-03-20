@@ -36,10 +36,7 @@ export function getFindings(
       out.push({
         ...m,
         severity: 'error',
-        instruction:
-          m.ruleCode === 'ORPHAN_PAYLOAD'
-            ? 'Attach this payload line to a timestamp block or remove it.'
-            : 'Add the missing payload line below this timestamp.',
+        instruction: 'Attach this payload line to a timestamp block or remove it.',
       })
       continue
     }

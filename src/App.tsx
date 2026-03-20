@@ -56,7 +56,7 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "BLOCK_STRUCTURE",
     label: "Subtitle block structure is broken",
-    explanation: "Flags orphan payload lines and timestamps that have no payload line.",
+    explanation: "Flags detached payload lines that drift outside their timestamp block.",
     severity: "error",
   },
   {

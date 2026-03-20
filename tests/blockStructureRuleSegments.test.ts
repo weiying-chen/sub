@@ -5,6 +5,45 @@ import { createSubsSegmentRules } from "../src/analysis/subsSegmentRules"
 import { getFindings } from "../src/shared/findings"
 
 describe("blockStructureRule (segments)", () => {
+  it("flags missing payloads only inside subtitle sections that already contain translations", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\t第一句",
+      "Hello there.",
+      "00:00:02:00\t00:00:03:00\t第二句",
+      "",
+      "00:00:10:00\t00:00:11:00\t第三句",
+      "Translated line.",
+      "00:00:11:00\t00:00:12:00\t第四句",
+      "Another translated line.",
+      "00:00:12:00\t00:00:13:00\t第五句",
+    ].join("\n")
+
+    const findings = getFindings(
+      analyzeTextByType(
+        text,
+        "subs",
+        createSubsSegmentRules({
+          enabledFindingTypes: ["BLOCK_STRUCTURE"],
+        })
+      )
+    )
+
+    expect(findings).toMatchObject([
+      {
+        type: "BLOCK_STRUCTURE",
+        lineIndex: 2,
+        ruleCode: "MISSING_PAYLOAD",
+        text: "00:00:02:00\t00:00:03:00\t第二句",
+      },
+      {
+        type: "BLOCK_STRUCTURE",
+        lineIndex: 8,
+        ruleCode: "MISSING_PAYLOAD",
+        text: "00:00:12:00\t00:00:13:00\t第五句",
+      },
+    ])
+  })
+
   it("flags orphan payload lines between subtitle cues", () => {
     const text = [
       "00:10:00:20\t00:10:02:13\t把他們整個改過來",

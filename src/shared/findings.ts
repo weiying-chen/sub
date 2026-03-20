@@ -36,7 +36,10 @@ export function getFindings(
       out.push({
         ...m,
         severity: 'error',
-        instruction: 'Attach this payload line to a timestamp block or remove it.',
+        instruction:
+          m.ruleCode === 'MISSING_PAYLOAD'
+            ? 'Add the missing English line below this timestamp.'
+            : 'Attach this payload line to a timestamp block or remove it.',
       })
       continue
     }

@@ -27,11 +27,24 @@ function findPreviousNonEmptyIndex(lines: string[], index: number): number | nul
   return null
 }
 
-function findNextTimestampIndex(lines: string[], index: number): number | null {
-  for (let i = index + 1; i < lines.length; i += 1) {
-    if (TSV_RE.test(lines[i] ?? '')) return i
+function findSectionEnd(lines: string[], startIndex: number): number {
+  let endIndex = startIndex
+  while (endIndex < lines.length && (lines[endIndex] ?? '').trim() !== '') {
+    endIndex += 1
   }
-  return null
+  return endIndex
+}
+
+function collectTimestampIndices(
+  lines: string[],
+  startIndex: number,
+  endIndex: number
+): number[] {
+  const indices: number[] = []
+  for (let i = startIndex; i < endIndex; i += 1) {
+    if (TSV_RE.test(lines[i] ?? '')) indices.push(i)
+  }
+  return indices
 }
 
 function findPayloadIndex(
@@ -58,6 +71,14 @@ function findPayloadIndex(
   return payloadIndex
 }
 
+function isWithinSection(
+  index: number | null,
+  startIndex: number,
+  endIndex: number
+): index is number {
+  return index != null && index >= startIndex && index < endIndex
+}
+
 export function blockStructureRule(
   options: BlockStructureRuleOptions = {}
 ): SegmentRule {
@@ -69,24 +90,58 @@ export function blockStructureRule(
     const lines = ctx.lines
     const metrics: BlockStructureMetric[] = []
 
-    for (let i = 0; i < lines.length; i += 1) {
-      const line = lines[i] ?? ''
-      const trimmed = line.trim()
-      if (trimmed === '') continue
+    for (let sectionStart = 0; sectionStart < lines.length; ) {
+      while (sectionStart < lines.length && (lines[sectionStart] ?? '').trim() === '') {
+        sectionStart += 1
+      }
+      if (sectionStart >= lines.length) break
 
-      if (!TSV_RE.test(line)) continue
+      const sectionEnd = findSectionEnd(lines, sectionStart)
+      const timestampIndices = collectTimestampIndices(lines, sectionStart, sectionEnd)
+      if (timestampIndices.length === 0) {
+        sectionStart = sectionEnd + 1
+        continue
+      }
 
-      const nextTsIndex = findNextTimestampIndex(lines, i)
-      const payloadIndex = findPayloadIndex(lines, i, ignoreEmptyLines)
+      const payloadByTimestamp = new Map<number, number | null>()
+      let sectionHasAnyPayload = false
+      for (const tsIndex of timestampIndices) {
+        const payloadIndex = findPayloadIndex(lines, tsIndex, ignoreEmptyLines)
+        const sectionPayloadIndex = isWithinSection(payloadIndex, sectionStart, sectionEnd)
+          ? payloadIndex
+          : null
+        payloadByTimestamp.set(tsIndex, sectionPayloadIndex)
+        if (sectionPayloadIndex != null) sectionHasAnyPayload = true
+      }
+
+      if (sectionHasAnyPayload) {
+        for (const tsIndex of timestampIndices) {
+          if (payloadByTimestamp.get(tsIndex) != null) continue
+          metrics.push({
+            type: 'BLOCK_STRUCTURE',
+            lineIndex: tsIndex,
+            ruleCode: 'MISSING_PAYLOAD',
+            text: (lines[tsIndex] ?? '').trim(),
+          })
+        }
+      }
+
+      sectionStart = sectionEnd + 1
+    }
+
+    const timestampIndices = collectTimestampIndices(lines, 0, lines.length)
+    for (let j = 0; j < timestampIndices.length - 1; j += 1) {
+      const tsIndex = timestampIndices[j]
+      const nextTsIndex = timestampIndices[j + 1]
+      const payloadIndex = findPayloadIndex(lines, tsIndex, ignoreEmptyLines)
       if (payloadIndex == null) continue
 
-      if (nextTsIndex == null) continue
       const nextPayloadIndex = findPayloadIndex(lines, nextTsIndex, ignoreEmptyLines)
       const nextPayloadText =
         nextPayloadIndex != null ? (lines[nextPayloadIndex] ?? '').trim() : ''
 
       let scanIndex = payloadIndex + 1
-      while (scanIndex < lines.length && scanIndex !== nextTsIndex) {
+      while (scanIndex < nextTsIndex) {
         const scanLine = lines[scanIndex] ?? ''
         const scanTrimmed = scanLine.trim()
         if (scanTrimmed === '') {

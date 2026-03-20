@@ -54,6 +54,12 @@ const RULE_OPTIONS: RuleOption[] = [
     severity: "error",
   },
   {
+    type: "BLOCK_STRUCTURE",
+    label: "Subtitle block structure is broken",
+    explanation: "Flags orphan payload lines and timestamps that have no payload line.",
+    severity: "error",
+  },
+  {
     type: "NUMBER_STYLE",
     label: "Number format is incorrect",
     explanation: "Checks number formatting and spelling style conventions.",

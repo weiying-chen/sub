@@ -7,6 +7,7 @@ const FINDING_LABELS: Partial<Record<Finding["type"], string>> = {
   SPAN_GAP: "Line spans across a timing gap",
   MERGE_CANDIDATE: "Lines could be merged",
   MAX_CHARS: "Line has too many characters",
+  BLOCK_STRUCTURE: "Subtitle block structure is broken",
   NUMBER_STYLE: "Number format is incorrect",
   DASH_STYLE: "Dash style is incorrect",
   PERCENT_STYLE: "Percent format is incorrect",

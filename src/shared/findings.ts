@@ -32,6 +32,18 @@ export function getFindings(
       continue
     }
 
+    if (m.type === 'BLOCK_STRUCTURE') {
+      out.push({
+        ...m,
+        severity: 'error',
+        instruction:
+          m.ruleCode === 'ORPHAN_PAYLOAD'
+            ? 'Attach this payload line to a timestamp block or remove it.'
+            : 'Add the missing payload line below this timestamp.',
+      })
+      continue
+    }
+
     if (m.type === 'CPS') {
       if (m.cps > m.maxCps) {
         out.push({

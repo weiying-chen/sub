@@ -1,4 +1,5 @@
 import { baselineRule } from "./baselineRule"
+import { blockStructureRule } from "./blockStructureRule"
 import { capitalizationRule } from "./capitalizationRule"
 import { cpsBalanceRule } from "./cpsBalanceRule"
 import { cpsRule } from "./cpsRule"
@@ -46,6 +47,9 @@ function createSubsCommonRules(
 
   if (isEnabled(enabled, "MAX_CHARS")) {
     rules.push(maxCharsRule(54))
+  }
+  if (isEnabled(enabled, "BLOCK_STRUCTURE")) {
+    rules.push(blockStructureRule({ ignoreEmptyLines: options.ignoreEmptyLines }))
   }
   if (isEnabled(enabled, "LEADING_WHITESPACE")) {
     rules.push(leadingWhitespaceRule())

@@ -138,6 +138,16 @@ export type PunctuationRuleCode =
   | 'MISSING_CLOSING_QUOTE'
   | 'MISSING_OPENING_QUOTE'
 
+export type BlockStructureMetric = {
+  type: 'BLOCK_STRUCTURE'
+  lineIndex: number
+  ruleCode: BlockStructureRuleCode
+  text: string
+  severity?: 'error' | 'warn'
+}
+
+export type BlockStructureRuleCode = 'ORPHAN_PAYLOAD' | 'MISSING_PAYLOAD'
+
 export type BaselineMetric = {
   type: 'BASELINE'
   lineIndex: number
@@ -202,6 +212,7 @@ export type Metric =
   | CapitalizationMetric
   | DashStyleMetric
   | PunctuationMetric
+  | BlockStructureMetric
   | MergeCandidateMetric
   | SpanGapMetric
   | MissingTranslationMetric

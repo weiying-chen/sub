@@ -118,6 +118,7 @@ describe("numberStyleRule (segments)", () => {
     const segments = [
       { lineIndex: 0, text: "They donated a few hundred dollars." },
       { lineIndex: 1, text: "Several hundred people attended." },
+      { lineIndex: 2, text: "Almost a hundred felt something on her left side---" },
     ].map((segment) => ({
       ...segment,
       targetLines: [{ lineIndex: segment.lineIndex, text: segment.text }],

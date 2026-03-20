@@ -195,7 +195,9 @@ function isPrecededByDigitToken(text: string, index: number) {
 
 function isApproximateQuantityPhrase(text: string, index: number) {
   const prefix = text.slice(0, index).toLowerCase()
-  return /(?:\ba\s+few|\bfew|\bseveral)\s+$/.test(prefix)
+  return /(?:\balmost\s+a|\babout\s+a|\broughly\s+a|\bnearly\s+a|\ba\s+few|\bfew|\bseveral|\ba)\s+$/.test(
+    prefix
+  )
 }
 
 function isApproximateOrRange(text: string, index: number, length: number) {

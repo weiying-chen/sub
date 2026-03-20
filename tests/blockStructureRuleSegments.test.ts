@@ -60,4 +60,47 @@ describe("blockStructureRule (segments)", () => {
       },
     ])
   })
+
+  it("does not flag trailing source or metadata lines outside timestamp blocks", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\t第一句",
+      "Hello there.",
+      "https://example.com/source",
+      "DSM-5 reference line",
+    ].join("\n")
+
+    const findings = getFindings(
+      analyzeTextByType(
+        text,
+        "subs",
+        createSubsSegmentRules({
+          enabledFindingTypes: ["BLOCK_STRUCTURE"],
+        })
+      )
+    )
+
+    expect(findings).toHaveLength(0)
+  })
+
+  it("does not flag source links between timestamp blocks", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\t第一句",
+      "Hello there.",
+      "https://example.com/source",
+      "00:00:02:00\t00:00:03:00\t第二句",
+      "Goodbye there.",
+    ].join("\n")
+
+    const findings = getFindings(
+      analyzeTextByType(
+        text,
+        "subs",
+        createSubsSegmentRules({
+          enabledFindingTypes: ["BLOCK_STRUCTURE"],
+        })
+      )
+    )
+
+    expect(findings).toHaveLength(0)
+  })
 })

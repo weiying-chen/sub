@@ -27,18 +27,35 @@ function findPreviousNonEmptyIndex(lines: string[], index: number): number | nul
   return null
 }
 
-function findPreviousTimestampIndex(lines: string[], index: number): number | null {
-  for (let i = index - 1; i >= 0; i -= 1) {
-    if (TSV_RE.test(lines[i] ?? '')) return i
-  }
-  return null
-}
-
 function findNextTimestampIndex(lines: string[], index: number): number | null {
   for (let i = index + 1; i < lines.length; i += 1) {
     if (TSV_RE.test(lines[i] ?? '')) return i
   }
   return null
+}
+
+function findPayloadIndex(
+  lines: string[],
+  tsIndex: number,
+  ignoreEmptyLines: boolean
+): number | null {
+  let payloadIndex = tsIndex + 1
+  if (ignoreEmptyLines) {
+    while (payloadIndex < lines.length && (lines[payloadIndex] ?? '').trim() === '') {
+      payloadIndex += 1
+    }
+  }
+
+  const payloadLine = lines[payloadIndex] ?? ''
+  if (
+    payloadIndex >= lines.length ||
+    payloadLine.trim() === '' ||
+    TSV_RE.test(payloadLine)
+  ) {
+    return null
+  }
+
+  return payloadIndex
 }
 
 export function blockStructureRule(
@@ -57,48 +74,52 @@ export function blockStructureRule(
       const trimmed = line.trim()
       if (trimmed === '') continue
 
-      if (TSV_RE.test(line)) {
-        let nextIndex = i + 1
-        if (ignoreEmptyLines) {
-          while (nextIndex < lines.length && (lines[nextIndex] ?? '').trim() === '') {
-            nextIndex += 1
+      if (!TSV_RE.test(line)) continue
+
+      const nextTsIndex = findNextTimestampIndex(lines, i)
+      const payloadIndex = findPayloadIndex(lines, i, ignoreEmptyLines)
+
+      if (payloadIndex == null) {
+        metrics.push({
+          type: 'BLOCK_STRUCTURE',
+          lineIndex: i,
+          ruleCode: 'MISSING_PAYLOAD',
+          text: line,
+        })
+        continue
+      }
+
+      if (nextTsIndex == null) continue
+      const nextPayloadIndex = findPayloadIndex(lines, nextTsIndex, ignoreEmptyLines)
+      const nextPayloadText =
+        nextPayloadIndex != null ? (lines[nextPayloadIndex] ?? '').trim() : ''
+
+      let scanIndex = payloadIndex + 1
+      while (scanIndex < lines.length && scanIndex !== nextTsIndex) {
+        const scanLine = lines[scanIndex] ?? ''
+        const scanTrimmed = scanLine.trim()
+        if (scanTrimmed === '') {
+          scanIndex += 1
+          continue
+        }
+        if (!TSV_RE.test(scanLine) && isEnglishLikeLine(scanLine)) {
+          const prevNonEmptyIndex = findPreviousNonEmptyIndex(lines, scanIndex)
+          if (
+            prevNonEmptyIndex != null &&
+            !TSV_RE.test(lines[prevNonEmptyIndex] ?? '') &&
+            nextPayloadText !== '' &&
+            scanTrimmed === nextPayloadText
+          ) {
+            metrics.push({
+              type: 'BLOCK_STRUCTURE',
+              lineIndex: scanIndex,
+              ruleCode: 'ORPHAN_PAYLOAD',
+              text: scanTrimmed,
+            })
           }
         }
-
-        const nextLine = lines[nextIndex] ?? ''
-        if (
-          nextIndex >= lines.length ||
-          nextLine.trim() === '' ||
-          TSV_RE.test(nextLine)
-        ) {
-          metrics.push({
-            type: 'BLOCK_STRUCTURE',
-            lineIndex: i,
-            ruleCode: 'MISSING_PAYLOAD',
-            text: line,
-          })
-        }
-        continue
+        scanIndex += 1
       }
-
-      if (!isEnglishLikeLine(line)) continue
-
-      const prevNonEmptyIndex = findPreviousNonEmptyIndex(lines, i)
-      if (prevNonEmptyIndex != null && TSV_RE.test(lines[prevNonEmptyIndex] ?? '')) {
-        continue
-      }
-
-      const hasTimestampContext =
-        findPreviousTimestampIndex(lines, i) != null ||
-        findNextTimestampIndex(lines, i) != null
-      if (!hasTimestampContext) continue
-
-      metrics.push({
-        type: 'BLOCK_STRUCTURE',
-        lineIndex: i,
-        ruleCode: 'ORPHAN_PAYLOAD',
-        text: trimmed,
-      })
     }
 
     return metrics

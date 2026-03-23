@@ -1599,6 +1599,24 @@ describe("fillSelectedTimestampLines", () => {
   expect(payloads.some((line) => line.trim() === '"')).toBe(false)
   })
 
+  it("does not leave a dangling quote in remaining for quoted sentence tails", () => {
+  const lines = [
+    "00:07:14:27\t00:07:18:22\t在一旁的媽媽也說",
+    "00:07:18:22\t00:07:20:15\t她從小就獨立",
+    "00:07:20:15\t00:07:22:29\t知道自己想要的是什麼",
+    "00:07:22:29\t00:07:26:04\t我只要在旁邊看看就可以了",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+  const paragraph =
+    'Her mother said, "She\'s always been independent. She knows what she wants, so I just stay by her side."'
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    inline: true,
+  })
+
+  expect(result.remaining).toBe("")
+  })
+
   it("does not return quote-only head chunks from splitter", () => {
   const split = __testTakeLine('"', 54, null, false)
   expect(split.line).toBe("")

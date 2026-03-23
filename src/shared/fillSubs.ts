@@ -1605,6 +1605,13 @@ type QuoteMeta = {
   nextQuoteOpen: boolean
 }
 
+function normalizeRemainingTail(remaining: string): string {
+  const trimmed = remaining.trim()
+  if (!trimmed) return ''
+  if (/^"+$/.test(trimmed)) return ''
+  return remaining
+}
+
 function getQuoteMeta(rawLine: string, quoteOpen: boolean): QuoteMeta {
   const quoteInfo = analyzeDoubleQuoteSpan(rawLine, quoteOpen)
   return {
@@ -1780,7 +1787,12 @@ function runInlineFill(
     }
   }
 
-  return { lines: outLines, remaining, usedSlots, overflow }
+  return {
+    lines: outLines,
+    remaining: normalizeRemainingTail(remaining),
+    usedSlots,
+    overflow,
+  }
 }
 
 function countFillableSlots(
@@ -1934,5 +1946,9 @@ export function fillSelectedTimestampLines(
     if (fillLine) prependLines.push(fillLine)
   }
 
-  return { lines: [...prependLines, ...lines], remaining, chosenCps: undefined }
+  return {
+    lines: [...prependLines, ...lines],
+    remaining: normalizeRemainingTail(remaining),
+    chosenCps: undefined,
+  }
 }

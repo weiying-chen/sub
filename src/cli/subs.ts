@@ -185,8 +185,8 @@ function formatFinding(f: Finding): string {
     if (typeof anyF.expected === 'string' && anyF.reason !== 'missing') {
       baselineParts.push(`expected: ${anyF.expected}`)
     }
-    if (typeof anyF.actual === 'string') {
-      baselineParts.push(`actual: ${anyF.actual}`)
+    if (typeof anyF.found === 'string') {
+      baselineParts.push(`found: ${anyF.found}`)
     }
 
     const head = `${severityColor}${severity}${RESET}  ${type}${

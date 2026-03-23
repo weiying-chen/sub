@@ -56,7 +56,7 @@ describe("baselineRule", () => {
       reason: "inlineText",
       timestamp: "00:00:01:00 -> 00:00:02:00",
       expected: "SRC1",
-      actual: "SRC1 EDIT",
+      found: "SRC1 EDIT",
     })
   })
 

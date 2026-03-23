@@ -24,7 +24,20 @@ describe("baselineRule (segments)", () => {
       reason: "inlineText",
       timestamp: "00:00:01:00 -> 00:00:02:00",
       expected: "SRC1",
-      actual: "SRC1 EDIT",
+      found: "SRC1 EDIT",
     })
+  })
+
+  it("uses found instead of actual for inline text mismatch", () => {
+    const baseline = "00:00:01:00\t00:00:02:00\tSRC1"
+    const current = "00:00:01:00\t00:00:02:00\tSRC1 EDIT"
+
+    const findings = getBaselineFindings(baseline, current)
+    expect(findings).toHaveLength(1)
+    expect(findings[0]).toMatchObject({
+      expected: "SRC1",
+      found: "SRC1 EDIT",
+    })
+    expect((findings[0] as unknown as { actual?: string }).actual).toBeUndefined()
   })
 })

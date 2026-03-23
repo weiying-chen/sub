@@ -183,7 +183,7 @@ export function baselineRule(baselineText: string): BaselineRule {
           message: 'Extra timestamp line vs baseline',
           reason: 'extra',
           timestamp: `${entry.start} -> ${entry.end}`,
-          actual: `${entry.start} -> ${entry.end}`,
+          found: `${entry.start} -> ${entry.end}`,
         })
       }
 
@@ -196,7 +196,7 @@ export function baselineRule(baselineText: string): BaselineRule {
             reason: 'inlineText',
             timestamp: `${expected.start} -> ${expected.end}`,
             expected: expected.inlineText,
-            actual: actual.inlineText || '(empty)',
+            found: actual.inlineText || '(empty)',
           })
         }
       }
@@ -241,7 +241,7 @@ export function baselineRule(baselineText: string): BaselineRule {
         message: 'Extra timestamp line vs baseline',
         reason: 'extra',
         timestamp: `${entry.start} -> ${entry.end}`,
-        actual: `${entry.start} -> ${entry.end}`,
+        found: `${entry.start} -> ${entry.end}`,
       })
     }
 
@@ -254,7 +254,7 @@ export function baselineRule(baselineText: string): BaselineRule {
           reason: 'inlineText',
           timestamp: `${expected.start} -> ${expected.end}`,
           expected: expected.inlineText,
-          actual: actual.inlineText || '(empty)',
+          found: actual.inlineText || '(empty)',
         })
       }
     }

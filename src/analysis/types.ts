@@ -155,7 +155,7 @@ export type BaselineMetric = {
   reason?: 'missing' | 'extra' | 'inlineText'
   timestamp?: string
   expected?: string
-  actual?: string
+  found?: string
   baselineLineIndex?: number
   severity?: 'error' | 'warn'
 }

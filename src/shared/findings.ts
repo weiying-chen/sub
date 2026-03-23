@@ -147,7 +147,7 @@ export function getFindings(
 
     if (m.type === 'DASH_STYLE') {
       const expected =
-        m.expected === 'em_dash' ? 'an em dash (—)' : 'triple hyphens (---)'
+        m.expected === 'EM_DASH' ? 'an em dash (—)' : 'triple hyphens (---)'
       out.push({
         ...m,
         severity: 'error',

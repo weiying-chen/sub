@@ -1,7 +1,7 @@
 import type { SegmentCtx, SegmentRule } from "./segments"
 import type { DashStyleMetric } from "./types"
 
-type DashStyle = "em_dash" | "triple_hyphen"
+type DashStyle = "EM_DASH" | "TRIPLE_HYPHEN"
 type DashContext = "subs" | "vo" | "super"
 
 const EM_DASH = "\u2014"
@@ -12,13 +12,13 @@ function expectedDashStyle(ctx: SegmentCtx): {
   blockType: DashContext
 } | null {
   if (ctx.segment.blockType === "vo") {
-    return { expected: "em_dash", blockType: "vo" }
+    return { expected: "EM_DASH", blockType: "vo" }
   }
   if (ctx.segment.blockType === "super") {
-    return { expected: "triple_hyphen", blockType: "super" }
+    return { expected: "TRIPLE_HYPHEN", blockType: "super" }
   }
   if (ctx.segment.blockType == null) {
-    return { expected: "triple_hyphen", blockType: "subs" }
+    return { expected: "TRIPLE_HYPHEN", blockType: "subs" }
   }
   return null
 }
@@ -27,11 +27,11 @@ function findUnexpectedDash(
   text: string,
   expected: DashStyle
 ): { found: DashStyle; index: number; token: string } | null {
-  const unexpectedToken = expected === "em_dash" ? TRIPLE_HYPHEN : EM_DASH
+  const unexpectedToken = expected === "EM_DASH" ? TRIPLE_HYPHEN : EM_DASH
   const index = text.indexOf(unexpectedToken)
   if (index < 0) return null
   return {
-    found: expected === "em_dash" ? "triple_hyphen" : "em_dash",
+    found: expected === "EM_DASH" ? "TRIPLE_HYPHEN" : "EM_DASH",
     index,
     token: unexpectedToken,
   }

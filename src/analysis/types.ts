@@ -110,8 +110,8 @@ export type DashStyleMetric = {
   index: number
   token: string
   text: string
-  expected: 'em_dash' | 'triple_hyphen'
-  found: 'em_dash' | 'triple_hyphen'
+  expected: 'EM_DASH' | 'TRIPLE_HYPHEN'
+  found: 'EM_DASH' | 'TRIPLE_HYPHEN'
   blockType: 'subs' | 'vo' | 'super'
   severity?: 'error' | 'warn'
 }

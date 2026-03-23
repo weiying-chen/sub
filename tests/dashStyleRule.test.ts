@@ -4,6 +4,20 @@ import { analyzeTextByType } from "../src/analysis/analyzeTextByType"
 import { dashStyleRule } from "../src/analysis/dashStyleRule"
 
 describe("dashStyleRule", () => {
+  it("emits uppercase dash style codes", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "This should stay---together, not drift—apart.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [dashStyleRule()])
+    expect(metrics).toHaveLength(1)
+    expect(metrics[0]).toMatchObject({
+      expected: "TRIPLE_HYPHEN",
+      found: "EM_DASH",
+    })
+  })
+
   it("flags em dashes in subs text", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
@@ -15,8 +29,8 @@ describe("dashStyleRule", () => {
     expect(metrics[0]).toMatchObject({
       type: "DASH_STYLE",
       lineIndex: 1,
-      expected: "triple_hyphen",
-      found: "em_dash",
+      expected: "TRIPLE_HYPHEN",
+      found: "EM_DASH",
       blockType: "subs",
     })
   })
@@ -42,8 +56,8 @@ describe("dashStyleRule", () => {
     expect(metrics[0]).toMatchObject({
       type: "DASH_STYLE",
       lineIndex: 1,
-      expected: "em_dash",
-      found: "triple_hyphen",
+      expected: "EM_DASH",
+      found: "TRIPLE_HYPHEN",
       blockType: "vo",
     })
   })
@@ -61,8 +75,8 @@ describe("dashStyleRule", () => {
     expect(metrics[0]).toMatchObject({
       type: "DASH_STYLE",
       lineIndex: 3,
-      expected: "triple_hyphen",
-      found: "em_dash",
+      expected: "TRIPLE_HYPHEN",
+      found: "EM_DASH",
       blockType: "super",
     })
   })

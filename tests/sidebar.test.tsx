@@ -458,6 +458,17 @@ describe("Sidebar", () => {
     })
   })
 
+  it("does not show the baseline toggle in the rules modal", () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+
+    expect(
+      ui.queryByRole("checkbox", { name: /Text does not match baseline/i })
+    ).not.toBeInTheDocument()
+  })
+
   it("filters findings when a rule is unchecked in the modal", async () => {
     const { container } = render(<App />)
     const ui = within(container)

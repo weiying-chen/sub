@@ -96,12 +96,6 @@ const RULE_OPTIONS: RuleOption[] = [
     severity: "error",
   },
   {
-    type: "BASELINE",
-    label: "Text does not match baseline",
-    explanation: "Compares text against the baseline reference when provided.",
-    severity: "error",
-  },
-  {
     type: "CPS_BALANCE",
     label: "Reading speed changes too much",
     explanation: "Warns when adjacent subtitle speeds vary too sharply.",

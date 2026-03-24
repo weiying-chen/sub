@@ -24,6 +24,6 @@ tmp/
 *.sln
 *.sw?
 
-# Local sample artifacts
-sample.docx
-sample.txt
+# Root-level document/text artifacts
+/*.docx
+/*.txt

@@ -15,4 +15,9 @@ describe("fill-subs CLI args", () => {
     const args = parseFillSubsArgs(["-t", "Short line."])
     expect(args.paragraphArg).toBe("Short line.")
   })
+
+  it("parses alt break flag", () => {
+    const args = parseFillSubsArgs(["--alt-break"])
+    expect(args.altBreak).toBe(true)
+  })
 })

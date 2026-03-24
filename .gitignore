@@ -23,3 +23,7 @@ tmp/
 *.njsproj
 *.sln
 *.sw?
+
+# Local sample artifacts
+sample.docx
+sample.txt

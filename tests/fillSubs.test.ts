@@ -118,6 +118,52 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("does not move leading of onto the previous filled line by default", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "The power of now",
+    { maxChars: 12, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "The power",
+    "of now",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
+  it("moves leading of onto the previous filled line when altBreak is enabled", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "The power of now",
+    { maxChars: 12, inline: false, altBreak: true }
+  )
+
+  expect(result.lines).toEqual([
+    "The power of",
+    "now",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
   it("adjusts target CPS to fill all slots when possible", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

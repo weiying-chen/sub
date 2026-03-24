@@ -9,6 +9,7 @@ import {
 export type FillSubsOptions = {
   maxChars?: number
   inline?: boolean
+  altBreak?: boolean
   noSplitAbbreviations?: string[]
 }
 
@@ -1354,6 +1355,62 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
   )
 }
 
+function moveLeadingOfToPreviousLine(
+  previousLine: string,
+  currentLine: string
+): { previousLine: string; currentLine: string } | null {
+  const trimmedCurrent = currentLine.trimStart()
+  const match = trimmedCurrent.match(/^(of)\b\s+(.+)$/i)
+  if (!match) return null
+
+  const word = match[1] ?? 'of'
+  const rest = (match[2] ?? '').trim()
+  if (!rest) return null
+
+  return {
+    previousLine: `${previousLine.trimEnd()} ${word}`,
+    currentLine: rest,
+  }
+}
+
+function normalizeLeadingOfLines(lines: string[]): string[] {
+  if (lines.length < 2) return lines
+
+  const normalized = [...lines]
+  for (let i = 1; i < normalized.length; i += 1) {
+    const previousLine = normalized[i - 1]
+    const currentLine = normalized[i]
+    if (!previousLine || !currentLine) continue
+
+    const adjusted = moveLeadingOfToPreviousLine(previousLine, currentLine)
+    if (!adjusted) continue
+
+    normalized[i - 1] = adjusted.previousLine
+    normalized[i] = adjusted.currentLine
+  }
+
+  return normalized
+}
+
+function normalizeLeadingOfPayloads(
+  payloads: Map<number, string>,
+  orderedIndices: number[]
+): void {
+  for (let i = 1; i < orderedIndices.length; i += 1) {
+    const previousIndex = orderedIndices[i - 1]
+    const currentIndex = orderedIndices[i]
+    const previousLine = payloads.get(previousIndex)
+    const currentLine = payloads.get(currentIndex)
+    if (!previousLine || !currentLine) continue
+
+    const adjusted = moveLeadingOfToPreviousLine(previousLine, currentLine)
+    if (!adjusted) continue
+
+    payloads.set(previousIndex, adjusted.previousLine)
+    payloads.set(currentIndex, adjusted.currentLine)
+  }
+}
+
 export function __testTakeLine(
   text: string,
   limit: number,
@@ -1663,7 +1720,8 @@ function runInlineFill(
   targetCps: number,
   dryRun: boolean,
   noSplitAbbrevMatcher: RegExp | null,
-  noSplitUsAbbreviation: boolean
+  noSplitUsAbbreviation: boolean,
+  options: FillSubsOptions = {}
 ): FillRunResult {
   let remaining = normalizeParagraph(paragraph)
   if (!remaining) {
@@ -1768,6 +1826,11 @@ function runInlineFill(
       if (payloads.has(i)) continue
       payloads.set(i, lastPayload)
     }
+  }
+
+  if (!dryRun && options.altBreak) {
+    const orderedIndices = [...payloads.keys()].sort((a, b) => a - b)
+    normalizeLeadingOfPayloads(payloads, orderedIndices)
   }
 
   if (!dryRun) {
@@ -1906,7 +1969,8 @@ export function fillSelectedTimestampLines(
       targetCps,
       false,
       noSplitAbbrevMatcher,
-      noSplitUsAbbreviation
+      noSplitUsAbbreviation,
+      options
     )
     return { lines: run.lines, remaining: run.remaining, chosenCps: targetCps }
   }
@@ -1934,5 +1998,9 @@ export function fillSelectedTimestampLines(
     if (fillLine) prependLines.push(fillLine)
   }
 
-  return { lines: [...prependLines, ...lines], remaining, chosenCps: undefined }
+  return {
+    lines: [...(options.altBreak ? normalizeLeadingOfLines(prependLines) : prependLines), ...lines],
+    remaining,
+    chosenCps: undefined,
+  }
 }

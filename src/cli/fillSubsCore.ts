@@ -2,6 +2,7 @@ export type FillSubsCliArgs = {
   inputFile: string
   outputFile: string
   inline: boolean
+  altBreak: boolean
   paragraphArg: string
 }
 
@@ -10,6 +11,7 @@ export function parseFillSubsArgs(argv: string[]): FillSubsCliArgs {
     inputFile: '',
     outputFile: '',
     inline: true,
+    altBreak: false,
     paragraphArg: '',
   }
 
@@ -27,6 +29,10 @@ export function parseFillSubsArgs(argv: string[]): FillSubsCliArgs {
     }
     if (a === '--no-inline') {
       args.inline = false
+      continue
+    }
+    if (a === '--alt-break') {
+      args.altBreak = true
       continue
     }
     if (a === '-t' || a === '--text') {

@@ -140,6 +140,26 @@ describe("punctuationRule", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("does not flag missing punctuation before capital for hyphenated romanized Chinese names", () => {
+    const text = [
+      "00:08:09:12\t00:08:12:22\t第二次見面華萱告訴我",
+      "The second time we met,",
+      "00:08:12:22\t00:08:15:05\t其實我是不怕死的",
+      "Hua-xuan said she wasn't afraid of dying---",
+      "00:08:15:05\t00:08:17:16\t比較擔心的是我的家人",
+      "Hua-xuan said she wasn't afraid of dying---",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) => f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL"
+      )
+    ).toBe(false)
+  })
+
   it("checks across empty lines between cues", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

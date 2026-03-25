@@ -11,6 +11,8 @@ import type { SegmentCtx, SegmentRule } from './segments'
 
 const OPEN_QUOTE_RE = /^\s*(["'])/
 const I_PRONOUN_RE = /^\s*I(\b|')/
+const HYPHENATED_ROMANIZED_NAME_RE =
+  /^\s*(?:["'\(\[\{]\s*)?[A-Z][a-z]+(?:-[a-z]+)+(?:\b|(?=\s))/
 const ACRONYM_RE =
   /^\s*(["'\(\[\{])?\s*(?:[A-Z]{2,}(?:'s\b|s\b|\b)|(?:[A-Z]\.){2,}[A-Z]?(?:'s\b|s\b)?)/ 
 const ACRONYM_END_RE =
@@ -82,6 +84,10 @@ function startsWithOpenQuote(s: string): string | null {
 
 function startsWithIPronoun(s: string): boolean {
   return I_PRONOUN_RE.test(s)
+}
+
+function startsWithHyphenatedRomanizedName(s: string): boolean {
+  return HYPHENATED_ROMANIZED_NAME_RE.test(s)
 }
 
 function startsWithAcronym(s: string): boolean {
@@ -302,6 +308,7 @@ function collectMetrics(
       !endsCapitalizationBoundary(prevTrim) &&
       !nextQuoteStart &&
       !startsWithIPronoun(next.text) &&
+      !startsWithHyphenatedRomanizedName(next.text) &&
       !startsWithAcronym(next.text) &&
       !startsWithProperNoun(next.text, abbreviationMatchers) &&
       !startsWithProperNoun(next.text, properNounMatchers) &&

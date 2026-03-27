@@ -651,6 +651,18 @@ describe("fillSelectedTimestampLines", () => {
   )
   })
 
+  it("keeps dash splits before leading that's clauses", () => {
+  const split = __testTakeLine(
+    "to be close and really get to know each other---that's already something rare in love.",
+    54,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("to be close and really get to know each other---")
+  expect(split.rest).toBe("that's already something rare in love.")
+  })
+
   it("avoids starting a line with 'that' after noun phrases", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
@@ -1279,7 +1291,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(payloads.some((line) => line.startsWith("That kind of pain"))).toBe(true)
   })
 
-  it("keeps em dash phrases glued without inserting spaces", () => {
+  it("keeps em dash boundary before leading that clauses", () => {
   const lines = [
     "00:00:00:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:04:00\tMarker",
@@ -1294,7 +1306,8 @@ describe("fillSelectedTimestampLines", () => {
   })
   const payloads = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(payloads.some((line) => line.includes("now---that"))).toBe(true)
+  expect(payloads.some((line) => line.endsWith("now---"))).toBe(true)
+  expect(payloads.some((line) => line.startsWith("that was"))).toBe(true)
   expect(payloads.some((line) => line.includes("now--- that"))).toBe(false)
   })
 

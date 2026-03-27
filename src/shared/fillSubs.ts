@@ -962,65 +962,65 @@ function findBestCut(
   window: string,
   nextText: string,
   noSplitAbbrevMatcher: RegExp | null
-): number {
+): { cut: number; reason: string } {
   // 1) Strong punctuation boundaries.
   const sentenceCut = findSentenceBoundaryCut(window, nextText, noSplitAbbrevMatcher)
-  if (sentenceCut >= 0) return sentenceCut
+  if (sentenceCut >= 0) return { cut: sentenceCut, reason: 'sentence' }
 
   const strongCut = findRightmostStrongPunct(window, noSplitAbbrevMatcher)
-  if (strongCut >= 0) return strongCut
+  if (strongCut >= 0) return { cut: strongCut, reason: 'strong' }
 
   const semicolonCut = findRightmostPunct(window, SEMICOLON_PUNCT)
-  if (semicolonCut >= 0) return semicolonCut
+  if (semicolonCut >= 0) return { cut: semicolonCut, reason: 'semicolon' }
 
   // 2) Mid-priority syntactic/list boundaries.
   const commaCut = findRightmostNonListComma(window, nextText)
-  if (commaCut >= 0) return commaCut
+  if (commaCut >= 0) return { cut: commaCut, reason: 'comma' }
 
   const onHowCut = findRightmostOnHowBreak(window)
-  if (onHowCut >= 0) return onHowCut
+  if (onHowCut >= 0) return { cut: onHowCut, reason: 'onHow' }
 
   const conjCut = findRightmostConjunctionStart(window, nextText)
-  if (conjCut >= 0) return conjCut
+  if (conjCut >= 0) return { cut: conjCut, reason: 'conjunction' }
 
   const whoCut = findRightmostWhoStart(window)
-  if (whoCut >= 0) return whoCut
+  if (whoCut >= 0) return { cut: whoCut, reason: 'who' }
 
   const commaThatCut = findRightmostCommaThatStart(window)
-  if (commaThatCut >= 0) return commaThatCut
+  if (commaThatCut >= 0) return { cut: commaThatCut, reason: 'commaThat' }
 
   const thatClauseCut = findRightmostThatClauseStart(window, nextText)
-  if (thatClauseCut >= 0) return thatClauseCut
+  if (thatClauseCut >= 0) return { cut: thatClauseCut, reason: 'thatClause' }
 
   const thatCut = findRightmostThatStart(window)
-  if (thatCut >= 0) return thatCut
+  if (thatCut >= 0) return { cut: thatCut, reason: 'that' }
 
   const infinitiveLeadCut = findRightmostInfinitiveLead(window, nextText)
-  if (infinitiveLeadCut >= 0) return infinitiveLeadCut
+  if (infinitiveLeadCut >= 0) return { cut: infinitiveLeadCut, reason: 'infinitive' }
 
   const clauseLeadCut = findRightmostClauseStarterLead(window, nextText)
-  if (clauseLeadCut >= 0) return clauseLeadCut
+  if (clauseLeadCut >= 0) return { cut: clauseLeadCut, reason: 'clauseStarter' }
 
   const copularCut = findRightmostCopularBreak(window, nextText)
-  if (copularCut >= 0) return copularCut
+  if (copularCut >= 0) return { cut: copularCut, reason: 'copularBreak' }
 
   const copularLeadCut = findRightmostCopularLead(window, nextText)
-  if (copularLeadCut >= 0) return copularLeadCut
+  if (copularLeadCut >= 0) return { cut: copularLeadCut, reason: 'copularLead' }
 
   const toVerbCut = findRightmostToVerbObjectBreak(window, nextText)
-  if (toVerbCut >= 0) return toVerbCut
+  if (toVerbCut >= 0) return { cut: toVerbCut, reason: 'toVerb' }
 
   const listTailCut = findRightmostListTailLead(window, nextText)
-  if (listTailCut >= 0) return listTailCut
+  if (listTailCut >= 0) return { cut: listTailCut, reason: 'listTail' }
 
   // 3) Last-resort lexical/space fallback boundaries.
   const withCut = findRightmostWithStart(window, nextText)
-  if (withCut >= 0) return withCut
+  if (withCut >= 0) return { cut: withCut, reason: 'with' }
 
   const spaceCut = findRightmostSpace(window, nextText)
-  if (spaceCut >= 0) return spaceCut
+  if (spaceCut >= 0) return { cut: spaceCut, reason: 'space' }
 
-  return window.length
+  return { cut: window.length, reason: 'fallback' }
 }
 
 function takeLine(
@@ -1091,7 +1091,8 @@ function takeLine(
           left,
           right,
           noSplitAbbrevMatcher,
-          noSplitUsAbbreviation
+          noSplitUsAbbreviation,
+          { preserveLeadingThat: true }
         )
         return normalizeSplit(adjusted.line, adjusted.rest)
       }
@@ -1165,10 +1166,13 @@ function takeLine(
   }
 
   const window = s.slice(0, limit)
-  const cut = adjustCutForTrailingQuote(
-    window,
-    findBestCut(window, s.slice(limit), noSplitAbbrevMatcher)
-  )
+  const splitDecision = findBestCut(window, s.slice(limit), noSplitAbbrevMatcher)
+  const cut = adjustCutForTrailingQuote(window, splitDecision.cut)
+  const preserveLeadingThat =
+    splitDecision.reason === 'sentence' ||
+    splitDecision.reason === 'strong' ||
+    splitDecision.reason === 'semicolon' ||
+    splitDecision.reason === 'comma'
 
   const line = window.slice(0, cut).trimEnd()
   const rest = (window.slice(cut) + s.slice(limit)).trimStart()
@@ -1188,7 +1192,8 @@ function takeLine(
     line,
     rest,
     noSplitAbbrevMatcher,
-    noSplitUsAbbreviation
+    noSplitUsAbbreviation,
+    { preserveLeadingThat }
   )
   return normalizeSplit(adjusted.line, adjusted.rest)
 }
@@ -1529,7 +1534,8 @@ function adjustSplitForNoSplitAbbrev(
 
 function mergeNoSplitPhrases(
   line: string,
-  rest: string
+  rest: string,
+  options: { preserveLeadingThat?: boolean } = {}
 ): { line: string; rest: string } {
   if (!line || !rest) return { line, rest }
 
@@ -1566,7 +1572,7 @@ function mergeNoSplitPhrases(
   const thatMatch = trimmedRest.match(/^that(?:'s)?\b/i)
   if (
     thatMatch &&
-    !/,\s*$/.test(trimmedLine) &&
+    !options.preserveLeadingThat &&
     !endsWithSentence &&
     !endsWithClauseStarter(trimmedLine) &&
     !canSplitBeforeThat(trimmedLine) &&
@@ -1642,9 +1648,10 @@ function adjustSplitForNoSplitAbbrevAndQuotes(
   line: string,
   rest: string,
   noSplitAbbrevMatcher: RegExp | null,
-  noSplitUsAbbreviation: boolean
+  noSplitUsAbbreviation: boolean,
+  options: { preserveLeadingThat?: boolean } = {}
 ): { line: string; rest: string } {
-  const phraseAdjusted = mergeNoSplitPhrases(line, rest)
+  const phraseAdjusted = mergeNoSplitPhrases(line, rest, options)
   const abbrevAdjusted = adjustSplitForNoSplitAbbrev(
     phraseAdjusted.line,
     phraseAdjusted.rest,

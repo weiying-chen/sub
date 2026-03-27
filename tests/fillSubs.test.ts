@@ -637,6 +637,20 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("that being together meant everything.")
   })
 
+  it("keeps comma splits before leading that's clauses", () => {
+  const split = __testTakeLine(
+    "For people who really love each other, that's real growth and a really important way to support each other.",
+    54,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("For people who really love each other,")
+  expect(split.rest).toBe(
+    "that's real growth and a really important way to support each other."
+  )
+  })
+
   it("avoids starting a line with 'that' after noun phrases", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

@@ -1566,6 +1566,7 @@ function mergeNoSplitPhrases(
   const thatMatch = trimmedRest.match(/^that(?:'s)?\b/i)
   if (
     thatMatch &&
+    !/,\s*$/.test(trimmedLine) &&
     !endsWithSentence &&
     !endsWithClauseStarter(trimmedLine) &&
     !canSplitBeforeThat(trimmedLine) &&

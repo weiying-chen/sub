@@ -5,6 +5,7 @@ import { dashStyleRule } from './dashStyleRule'
 import { maxCharsRule } from './maxCharsRule'
 import { missingTranslationRule } from './missingTranslationRule'
 import { newsMarkerRule } from './newsMarkerRule'
+import { newsPunctuationRule } from './newsPunctuationRule'
 import { numberStyleRule } from './numberStyleRule'
 import { superPeopleRule } from './superPeopleRule'
 import type { Metric, Finding } from './types'
@@ -58,6 +59,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     }
     if (!enabled || enabled.has('NUMBER_STYLE')) rules.push(numberStyleRule())
     if (!enabled || enabled.has('DASH_STYLE')) rules.push(dashStyleRule())
+    if (!enabled || enabled.has('PUNCTUATION')) rules.push(newsPunctuationRule())
     if (!enabled || enabled.has('CAPITALIZATION')) {
       rules.push(
         capitalizationRule({

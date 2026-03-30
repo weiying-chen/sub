@@ -28,6 +28,7 @@ export type Segment = {
   lineIndexEnd?: number
   text: string
   blockType?: 'vo' | 'super' | 'super_people'
+  skipTranslation?: boolean
   marker?: NewsMarker
   superPerson?: SuperPersonEntry
   sourceText?: string
@@ -114,6 +115,7 @@ export function parseNews(text: string): Segment[] {
   let sourceBuffer: CandidateLine[] = []
   let targetBuffer: CandidateLine[] = []
   let currentBlock: Segment['blockType'] | null = null
+  let currentSkipTranslation = false
   let currentMarker: NewsMarker | undefined
   let pendingVoMarker: NewsMarker | undefined
   let inComment = false
@@ -142,10 +144,12 @@ export function parseNews(text: string): Segment[] {
       sourceLines: sourceBuffer,
       targetLines: targetBuffer,
       blockType: currentBlock,
+      skipTranslation: currentSkipTranslation,
     })
     sourceBuffer = []
     targetBuffer = []
     currentBlock = null
+    currentSkipTranslation = false
     currentMarker = undefined
   }
 
@@ -236,6 +240,23 @@ export function parseNews(text: string): Segment[] {
     }
 
     if (trimmed === '') {
+      const hasSourceWithoutTarget =
+        currentBlock != null && sourceBuffer.length > 0 && targetBuffer.length === 0
+      if (hasSourceWithoutTarget) {
+        const next = nextNonEmptyLine(lines, i + 1)
+        if (next) {
+          const nextIsTargetText =
+            isEnglishLikeLine(next.raw) && !isNewsStructureLine(next.trimmed)
+          const nextIsSourceParagraph =
+            currentBlock === 'vo' && isNewsSourceLine(next.raw)
+          const nextIsSuperSkipMarker =
+            currentBlock === 'super' && next.trimmed === '~'
+          if (nextIsTargetText || nextIsSourceParagraph || nextIsSuperSkipMarker) {
+            continue
+          }
+        }
+      }
+
       flush()
       superActive = false
       continue
@@ -286,6 +307,18 @@ export function parseNews(text: string): Segment[] {
       }
       currentBlock = blockType
       sourceBuffer.push({ lineIndex: i, text: raw.trim() })
+      continue
+    }
+
+    if (
+      trimmed === '~' &&
+      currentBlock === 'super' &&
+      sourceBuffer.length > 0 &&
+      targetBuffer.length === 0
+    ) {
+      currentSkipTranslation = true
+      flush()
+      superActive = false
       continue
     }
 
@@ -398,4 +431,18 @@ function isEnglishLikeLine(text: string): boolean {
 
   const letters = text.match(/[A-Za-z]/g)
   return (letters?.length ?? 0) >= 3
+}
+
+function nextNonEmptyLine(
+  lines: string[],
+  startIndex: number
+): { raw: string; trimmed: string } | null {
+  for (let i = startIndex; i < lines.length; i += 1) {
+    const raw = lines[i] ?? ''
+    const trimmed = raw.trim()
+    if (trimmed === '') continue
+    return { raw, trimmed }
+  }
+
+  return null
 }

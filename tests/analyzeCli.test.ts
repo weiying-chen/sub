@@ -57,6 +57,79 @@ describe("analyze CLI output", () => {
     ])
   })
 
+  it("does not flag missing translation when VO translation comes after blank spacer lines", async () => {
+    const text = [
+      "2_0059",
+      "賴斯教授，在1996年對C型肝炎病毒的關鍵性發現，推動了藥物研發，讓C型肝炎從不治之症，轉變為可治療的疾病，全球有超過數百萬患者，都因此受惠。",
+      "",
+      "Back in 1996, Charles Rice made a key breakthrough in hepatitis C research.",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "news",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(
+      output.some((metric) => metric.type === "MISSING_TRANSLATION")
+    ).toBe(false)
+  })
+
+  it("does not flag missing translation when multiple VO source paragraphs map to one translation", async () => {
+    const text = [
+      "2_0059",
+      "賴斯教授，在1996年對C型肝炎病毒的關鍵性發現，推動了藥物研發，讓C型肝炎從不治之症，轉變為可治療的疾病，全球有超過數百萬患者，都因此受惠。",
+      "",
+      "雖然不是第一次造訪台灣，但是對於台灣的肝炎防治成果，與未來的相關研究，他也給予肯定。",
+      "",
+      "Back in 1996, Charles Rice made a key breakthrough in hepatitis C research that helped drive new treatments, turning it from an incurable disease into one that can be treated and benefiting millions worldwide. Even though this isn't his first time in Taiwan, he also praised its progress in hepatitis prevention and future research.",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "news",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(
+      output.some((metric) => metric.type === "MISSING_TRANSLATION")
+    ).toBe(false)
+  })
+
+  it("skips SUPER missing-translation when a tilde placeholder is present", async () => {
+    const text = [
+      "1_0001",
+      "這是一段旁白",
+      "",
+      "/*SUPER:",
+      "人物名稱//",
+      "這是一段字卡",
+      "*/",
+      "~",
+      "",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "news",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(output).toMatchObject([
+      {
+        type: "MISSING_TRANSLATION",
+        lineIndex: 1,
+        blockType: "vo",
+        text: "這是一段旁白",
+      },
+    ])
+    expect(
+      output.some(
+        (metric) =>
+          metric.type === "MISSING_TRANSLATION" &&
+          metric.blockType === "super"
+      )
+    ).toBe(false)
+  })
+
   it("returns news marker findings for bad format, order, and backward time", async () => {
     const text = [
       "1_0010",

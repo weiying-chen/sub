@@ -112,6 +112,76 @@ describe("parseNews", () => {
     ])
   })
 
+  it("keeps VO source and translation in one segment when separated by blank lines", () => {
+    const text = [
+      "2_0059",
+      "賴斯教授，在1996年對C型肝炎病毒的關鍵性發現，推動了藥物研發，讓C型肝炎從不治之症，轉變為可治療的疾病，全球有超過數百萬患者，都因此受惠。",
+      "",
+      "Back in 1996, Charles Rice made a key breakthrough in hepatitis C research.",
+    ].join("\n")
+
+    const segments = parseNews(text)
+
+    expect(segments).toMatchObject([
+      {
+        lineIndex: 3,
+        lineIndexEnd: 3,
+        blockType: "vo",
+        sourceText:
+          "賴斯教授，在1996年對C型肝炎病毒的關鍵性發現，推動了藥物研發，讓C型肝炎從不治之症，轉變為可治療的疾病，全球有超過數百萬患者，都因此受惠。",
+        text: "Back in 1996, Charles Rice made a key breakthrough in hepatitis C research.",
+      },
+    ])
+  })
+
+  it("keeps consecutive VO source paragraphs and one following translation in one segment", () => {
+    const text = [
+      "2_0059",
+      "賴斯教授，在1996年對C型肝炎病毒的關鍵性發現，推動了藥物研發，讓C型肝炎從不治之症，轉變為可治療的疾病，全球有超過數百萬患者，都因此受惠。",
+      "",
+      "雖然不是第一次造訪台灣，但是對於台灣的肝炎防治成果，與未來的相關研究，他也給予肯定。",
+      "",
+      "Back in 1996, Charles Rice made a key breakthrough in hepatitis C research that helped drive new treatments, turning it from an incurable disease into one that can be treated and benefiting millions worldwide. Even though this isn't his first time in Taiwan, he also praised its progress in hepatitis prevention and future research.",
+    ].join("\n")
+
+    const segments = parseNews(text)
+
+    expect(segments).toMatchObject([
+      {
+        lineIndex: 5,
+        lineIndexEnd: 5,
+        blockType: "vo",
+        sourceText:
+          "賴斯教授，在1996年對C型肝炎病毒的關鍵性發現，推動了藥物研發，讓C型肝炎從不治之症，轉變為可治療的疾病，全球有超過數百萬患者，都因此受惠。 雖然不是第一次造訪台灣，但是對於台灣的肝炎防治成果，與未來的相關研究，他也給予肯定。",
+        text: "Back in 1996, Charles Rice made a key breakthrough in hepatitis C research that helped drive new treatments, turning it from an incurable disease into one that can be treated and benefiting millions worldwide. Even though this isn't his first time in Taiwan, he also praised its progress in hepatitis prevention and future research.",
+      },
+    ])
+  })
+
+  it("marks SUPER blocks with tilde placeholders as translation-skip segments", () => {
+    const text = [
+      "/*SUPER:",
+      "人物名稱//",
+      "這是一段字卡",
+      "*/",
+      "~",
+      "",
+    ].join("\n")
+
+    const segments = parseNews(text)
+
+    expect(segments).toMatchObject([
+      {
+        lineIndex: 1,
+        lineIndexEnd: 2,
+        blockType: "super",
+        skipTranslation: true,
+        targetLines: [],
+        sourceText: "人物名稱// 這是一段字卡",
+      },
+    ])
+  })
+
   it("preserves marker metadata on following news blocks", () => {
     const text = [
       "1_0001",

@@ -8,7 +8,7 @@ type MergeCandidateRuleOptions = ParseBlockOptions & {
 }
 
 const DEFAULT_MAX_GAP_FRAMES = 30
-const DEFAULT_MAX_EDIT_DISTANCE = 2
+const DEFAULT_MAX_EDIT_DISTANCE = 6
 
 function hasTiming(
   segment: Segment

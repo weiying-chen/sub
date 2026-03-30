@@ -36,6 +36,23 @@ describe("mergeCandidateRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
+  it("flags when one cue only adds a short trailing word", () => {
+    const text = [
+      "00:07:09:14\t00:07:11:23\t手麻 不舒服",
+      "This is a long paragrph This is a long paragrph delay",
+      "00:07:11:23\t00:07:14:19\t再加上 脖子痠痛",
+      "This is a long paragrph This is a long paragrph",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [mergeCandidateRule()])
+    expect(metrics).toHaveLength(1)
+
+    const finding = metrics[0]
+    expect(finding?.type).toBe("MERGE_CANDIDATE")
+    if (!finding || finding.type !== "MERGE_CANDIDATE") return
+    expect(finding.editDistance).toBe(6)
+  })
+
   it("does not flag when the timing gap is too large", () => {
     const text = [
       "00:00:08:00\t00:00:09:00\tMarker",

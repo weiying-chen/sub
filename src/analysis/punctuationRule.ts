@@ -98,6 +98,12 @@ function endsTerminal(s: string): boolean {
   return TERMINAL_RE.test(s.trimEnd())
 }
 
+function isStandaloneDoubleQuotedCue(s: string): boolean {
+  const trimmed = s.trim()
+  if (!trimmed.startsWith('"') || !trimmed.endsWith('"')) return false
+  return trimmed.indexOf('"', 1) >= 0
+}
+
 function hasUnclosedStartingQuote(s: string): boolean {
   const open = startsWithOpenQuote(s)
   if (open !== "'") return false
@@ -278,6 +284,11 @@ function collectMetrics(
     const nextIsQuoteContinuation =
       nextQuoteStart === '"' &&
       (quoteStateByCue[j + 1]?.leadingQuoteIsContinuation ?? false)
+    const allowCapitalCheckWithQuotedNext =
+      nextQuoteStart === '"' &&
+      !nextIsQuoteContinuation &&
+      isStandaloneDoubleQuotedCue(prev.text) &&
+      isStandaloneDoubleQuotedCue(next.text)
 
     if (prevTrim.endsWith('.') && case1 === 'lower' && !endsWithAcronym(prevTrim)) {
       metrics.push({
@@ -294,7 +305,7 @@ function collectMetrics(
 
     if (
       !endsCapitalizationBoundary(prevTrim) &&
-      !nextQuoteStart &&
+      (!nextQuoteStart || allowCapitalCheckWithQuotedNext) &&
       !startsWithIPronoun(next.text) &&
       !startsWithHyphenatedRomanizedName(next.text) &&
       !startsWithAcronym(next.text) &&

@@ -294,6 +294,30 @@ describe("punctuationRule (segments)", () => {
     ).toBe(false)
   })
 
+  it("flags missing punctuation before capital for consecutive standalone quoted cues", () => {
+    const text = [
+      "00:16:43:09\t00:16:44:09\tMarker",
+      "\"One time,\"",
+      "00:16:44:09\t00:16:45:15\tMarker",
+      "\"A friend called to ask if I wanted tea.\"",
+    ].join("\n")
+
+    const segments = parseSubs(text)
+    const metrics = analyzeSegments(segments, [punctuationRule()], {
+      lines: text.split("\n"),
+      sourceText: text,
+    })
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL" &&
+          f.text === "\"One time,\""
+      )
+    ).toBe(true)
+  })
+
   it("does not require ':' for non-comma lead-ins before quoted cues across timestamps", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

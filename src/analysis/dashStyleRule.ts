@@ -1,13 +1,10 @@
 import type { SegmentCtx, SegmentRule } from "./segments"
 import type { DashStyleMetric } from "./types"
+import { EM_DASH, EN_DASH, TRIPLE_HYPHEN } from "../shared/dashes"
 
 type DashStyle = "em_dash" | "en_dash" | "triple_hyphen"
 type ExpectedDashStyle = "em_dash" | "triple_hyphen"
 type DashContext = "subs" | "vo" | "super"
-
-const EM_DASH = "\u2014"
-const EN_DASH = "\u2013"
-const TRIPLE_HYPHEN = "---"
 
 function expectedDashStyle(ctx: SegmentCtx): {
   expected: ExpectedDashStyle

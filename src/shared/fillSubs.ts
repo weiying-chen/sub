@@ -5,6 +5,7 @@ import {
   hasLeadingDoubleQuote,
   hasTrailingDoubleQuote,
 } from './doubleQuoteSpan'
+import { DASH_VARIANTS_RE, EM_DASH } from './dashes'
 
 export type FillSubsOptions = {
   maxChars?: number
@@ -70,7 +71,7 @@ const SENTENCE_VERB_RE =
   /\b(am|is|are|was|were|be|being|been|have|has|had|do|does|did|can|will|would|should|must)\b/i
 const THAT_CLAUSE_EXPLICIT_SUBJECT_RE =
   /^(?:it|he|she|they|we|i|this|there|my|your|his|her|our|their|the|a|an|someone|somebody|anyone|anybody|everyone|everybody|noone|nobody|no|something|anything|everything|nothing)\b/i
-const STRONG_PUNCT = new Set(['.', '?', '!', ':', '\u2014'])
+const STRONG_PUNCT = new Set(['.', '?', '!', ':', EM_DASH])
 const SEMICOLON_PUNCT = new Set([';'])
 const COMMA_PUNCT = new Set([','])
 const DIALOGUE_TAG_VERBS = ['said', 'asked', 'replied', 'told']
@@ -164,7 +165,7 @@ function startsWithAcronymPhrase(text: string): boolean {
 
 export function normalizeParagraph(text: string): string {
   return text
-    .replace(/\u2014/g, '---')
+    .replace(DASH_VARIANTS_RE, '---')
     .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
     .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
     .replace(/\r?\n+/g, ' ')

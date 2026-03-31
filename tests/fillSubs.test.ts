@@ -1783,6 +1783,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("of ")).toBe(true)
   })
 
+  it("keeps 'how to' together when splitting", () => {
+  const split = __testTakeLine(
+    "One time, I was teaching a group of managers how to handle emotions at work.",
+    54,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" how")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("how to ")).toBe(true)
+  })
+
   it("keeps 'to the' together when trailing-article normalization runs", () => {
   const split = __testTakeLine(
     "The update happened to the release schedule during testing.",

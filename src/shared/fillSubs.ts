@@ -1270,6 +1270,21 @@ function normalizeTrailingSubordinatorHead(
   return { line: left, rest: `${word} ${rest}` }
 }
 
+function normalizeTrailingHowToHead(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmed = line.trimEnd()
+  const match = trimmed.match(/^(.*)\s+(how)$/i)
+  if (!match) return { line, rest }
+
+  const left = (match[1] ?? '').trimEnd()
+  if (!left) return { line, rest }
+  if (!/^to\b/i.test(rest.trimStart())) return { line, rest }
+
+  return { line: left, rest: `how ${rest.trimStart()}` }
+}
+
 function normalizeTrailingPrepositionHead(
   line: string,
   rest: string
@@ -1342,9 +1357,13 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     articleNormalized.line,
     articleNormalized.rest
   )
-  const prepositionNormalized = normalizeTrailingPrepositionHead(
+  const howToNormalized = normalizeTrailingHowToHead(
     subordinatorNormalized.line,
     subordinatorNormalized.rest
+  )
+  const prepositionNormalized = normalizeTrailingPrepositionHead(
+    howToNormalized.line,
+    howToNormalized.rest
   )
   const hyphenNormalized = normalizeTrailingHyphenCompound(
     prepositionNormalized.line,

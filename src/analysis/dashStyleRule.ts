@@ -1,14 +1,16 @@
 import type { SegmentCtx, SegmentRule } from "./segments"
 import type { DashStyleMetric } from "./types"
 
-type DashStyle = "em_dash" | "triple_hyphen"
+type DashStyle = "em_dash" | "en_dash" | "triple_hyphen"
+type ExpectedDashStyle = "em_dash" | "triple_hyphen"
 type DashContext = "subs" | "vo" | "super"
 
 const EM_DASH = "\u2014"
+const EN_DASH = "\u2013"
 const TRIPLE_HYPHEN = "---"
 
 function expectedDashStyle(ctx: SegmentCtx): {
-  expected: DashStyle
+  expected: ExpectedDashStyle
   blockType: DashContext
 } | null {
   if (ctx.segment.blockType === "vo") {
@@ -25,16 +27,29 @@ function expectedDashStyle(ctx: SegmentCtx): {
 
 function findUnexpectedDash(
   text: string,
-  expected: DashStyle
+  expected: ExpectedDashStyle
 ): { found: DashStyle; index: number; token: string } | null {
-  const unexpectedToken = expected === "em_dash" ? TRIPLE_HYPHEN : EM_DASH
-  const index = text.indexOf(unexpectedToken)
-  if (index < 0) return null
-  return {
-    found: expected === "em_dash" ? "triple_hyphen" : "em_dash",
-    index,
-    token: unexpectedToken,
+  const candidates: Array<{ style: DashStyle; token: string }> =
+    expected === "em_dash"
+      ? [
+          { style: "triple_hyphen", token: TRIPLE_HYPHEN },
+          { style: "en_dash", token: EN_DASH },
+        ]
+      : [
+          { style: "em_dash", token: EM_DASH },
+          { style: "en_dash", token: EN_DASH },
+        ]
+
+  let best: { found: DashStyle; index: number; token: string } | null = null
+  for (const candidate of candidates) {
+    const index = text.indexOf(candidate.token)
+    if (index < 0) continue
+    if (!best || index < best.index) {
+      best = { found: candidate.style, index, token: candidate.token }
+    }
   }
+
+  return best
 }
 
 export function dashStyleRule(): SegmentRule {

@@ -21,6 +21,23 @@ describe("dashStyleRule", () => {
     })
   })
 
+  it("flags en dashes in subs text", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "This should stay---together, not drift–apart.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [dashStyleRule()])
+    expect(metrics).toHaveLength(1)
+    expect(metrics[0]).toMatchObject({
+      type: "DASH_STYLE",
+      lineIndex: 1,
+      expected: "triple_hyphen",
+      found: "en_dash",
+      blockType: "subs",
+    })
+  })
+
   it("does not flag triple hyphens in subs text", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

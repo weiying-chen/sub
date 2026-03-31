@@ -1794,6 +1794,28 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("how to ")).toBe(true)
   })
 
+  it("keeps 'each other' together when splitting", () => {
+  const split = __testTakeLine(
+    "That kind of flexibility helps us take care of each other and feel more in control.",
+    54,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" each")).toBe(false)
+  expect(/\beach other\b/i.test(split.rest)).toBe(true)
+  })
+
+  it("keeps 'one another' together when splitting", () => {
+  const split = __testTakeLine(
+    "That kind of flexibility helps partners support one another during conflict.",
+    52,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" one")).toBe(false)
+  expect(/\bone another\b/i.test(split.rest)).toBe(true)
+  })
+
   it("keeps 'to the' together when trailing-article normalization runs", () => {
   const split = __testTakeLine(
     "The update happened to the release schedule during testing.",

@@ -1286,6 +1286,30 @@ function normalizeTrailingHowToHead(
   return { line: left, rest: `how ${rest.trimStart()}` }
 }
 
+function normalizeTrailingProtectedPhraseHead(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmed = line.trimEnd()
+  const trimmedRest = rest.trimStart()
+
+  const eachOther = trimmed.match(/^(.*)\s+(each)$/i)
+  if (eachOther && /^other\b/i.test(trimmedRest)) {
+    const left = (eachOther[1] ?? "").trimEnd()
+    const token = eachOther[2] ?? "each"
+    if (left) return { line: left, rest: `${token} ${trimmedRest}` }
+  }
+
+  const oneAnother = trimmed.match(/^(.*)\s+(one)$/i)
+  if (oneAnother && /^another\b/i.test(trimmedRest)) {
+    const left = (oneAnother[1] ?? "").trimEnd()
+    const token = oneAnother[2] ?? "one"
+    if (left) return { line: left, rest: `${token} ${trimmedRest}` }
+  }
+
+  return { line, rest }
+}
+
 function normalizeTrailingPrepositionHead(
   line: string,
   rest: string
@@ -1362,9 +1386,13 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     subordinatorNormalized.line,
     subordinatorNormalized.rest
   )
-  const prepositionNormalized = normalizeTrailingPrepositionHead(
+  const protectedPhraseNormalized = normalizeTrailingProtectedPhraseHead(
     howToNormalized.line,
     howToNormalized.rest
+  )
+  const prepositionNormalized = normalizeTrailingPrepositionHead(
+    protectedPhraseNormalized.line,
+    protectedPhraseNormalized.rest
   )
   const hyphenNormalized = normalizeTrailingHyphenCompound(
     prepositionNormalized.line,

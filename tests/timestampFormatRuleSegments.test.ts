@@ -45,9 +45,9 @@ describe("timestampFormatRule (segments)", () => {
     ).toBe(false)
   })
 
-  it("flags timestamp rows with invalid frame values", () => {
+  it("flags timestamp rows with missing leading zero", () => {
     const text = [
-      "00:11:35:30\t00:11:37:04\t我如果犯錯",
+      "0:11:35:28\t00:11:37:04\t我如果犯錯",
       "\"If I mess up, I'm not good enough.\"",
     ].join("\n")
 
@@ -56,12 +56,7 @@ describe("timestampFormatRule (segments)", () => {
     )
 
     expect(
-      findings.some(
-        (finding) =>
-          String(finding.type) === "TIMESTAMP_FORMAT" &&
-          String((finding as { ruleCode?: string }).ruleCode) ===
-            "INVALID_TIMECODE"
-      )
+      findings.some((finding) => String(finding.type) === "TIMESTAMP_FORMAT")
     ).toBe(true)
   })
 })

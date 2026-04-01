@@ -49,9 +49,7 @@ export function getFindings(
         ...m,
         severity: 'error',
         instruction:
-          m.ruleCode === 'INVALID_TIMECODE'
-            ? 'Use valid HH:MM:SS:FF values and keep end time after start time.'
-            : 'Use a timestamp row in this format: HH:MM:SS:FF<TAB>HH:MM:SS:FF<TAB>text (optional "XXX " prefix).',
+          'Use a timestamp row in this format: HH:MM:SS:FF<TAB>HH:MM:SS:FF<TAB>text (optional "XXX " prefix).',
       })
       continue
     }

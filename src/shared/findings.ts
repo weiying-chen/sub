@@ -44,6 +44,18 @@ export function getFindings(
       continue
     }
 
+    if (m.type === 'TIMESTAMP_FORMAT') {
+      out.push({
+        ...m,
+        severity: 'error',
+        instruction:
+          m.ruleCode === 'INVALID_TIMECODE'
+            ? 'Use valid HH:MM:SS:FF values and keep end time after start time.'
+            : 'Use a timestamp row in this format: HH:MM:SS:FF<TAB>HH:MM:SS:FF<TAB>text (optional "XXX " prefix).',
+      })
+      continue
+    }
+
     if (m.type === 'CPS') {
       if (m.cps > m.maxCps) {
         out.push({

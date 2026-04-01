@@ -27,3 +27,6 @@ tmp/
 # Root-level document/text artifacts
 /*.docx
 /*.txt
+
+# Local Codex config
+.codex/

@@ -148,6 +148,16 @@ export type BlockStructureMetric = {
 
 export type BlockStructureRuleCode = 'ORPHAN_PAYLOAD' | 'MISSING_PAYLOAD'
 
+export type TimestampFormatMetric = {
+  type: 'TIMESTAMP_FORMAT'
+  lineIndex: number
+  ruleCode: TimestampFormatRuleCode
+  text: string
+  severity?: 'error' | 'warn'
+}
+
+export type TimestampFormatRuleCode = 'INVALID_FORMAT' | 'INVALID_TIMECODE'
+
 export type BaselineMetric = {
   type: 'BASELINE'
   lineIndex: number
@@ -212,6 +222,7 @@ export type Metric =
   | CapitalizationMetric
   | DashStyleMetric
   | PunctuationMetric
+  | TimestampFormatMetric
   | BlockStructureMetric
   | MergeCandidateMetric
   | SpanGapMetric

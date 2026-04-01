@@ -13,6 +13,7 @@ import { numberStyleRule } from "./numberStyleRule"
 import { percentStyleRule } from "./percentStyleRule"
 import { punctuationRule } from "./punctuationRule"
 import { spanGapRule } from "./spanGapRule"
+import { timestampFormatRule } from "./timestampFormatRule"
 import type { SegmentRule } from "./segments"
 import type { Metric } from "./types"
 
@@ -50,6 +51,9 @@ function createSubsCommonRules(
   }
   if (isEnabled(enabled, "BLOCK_STRUCTURE")) {
     rules.push(blockStructureRule({ ignoreEmptyLines: options.ignoreEmptyLines }))
+  }
+  if (isEnabled(enabled, "TIMESTAMP_FORMAT")) {
+    rules.push(timestampFormatRule())
   }
   if (isEnabled(enabled, "LEADING_WHITESPACE")) {
     rules.push(leadingWhitespaceRule())

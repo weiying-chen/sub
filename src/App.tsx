@@ -60,6 +60,13 @@ const RULE_OPTIONS: RuleOption[] = [
     severity: "error",
   },
   {
+    type: "TIMESTAMP_FORMAT",
+    label: "Timestamp format is incorrect",
+    explanation:
+      "Flags timestamp rows that do not match the allowed format (with optional XXX prefix).",
+    severity: "error",
+  },
+  {
     type: "NUMBER_STYLE",
     label: "Number format is incorrect",
     explanation: "Checks number formatting and spelling style conventions.",

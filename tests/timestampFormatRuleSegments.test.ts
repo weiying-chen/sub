@@ -7,14 +7,14 @@ import { getFindings } from "../src/shared/findings"
 describe("timestampFormatRule (segments)", () => {
   it("flags malformed timestamp rows with unexpected leading characters", () => {
     const text = [
-      "00:11:35:28\t00:11:37:04\t我如果犯錯",
-      "\"If I mess up, I'm not good enough.\"",
-      "00:11:37:04\t00:11:38:09\t我如果不夠乖",
-      "\"If I mess up, I'm not good enough.\"",
-      "\"00:11:38:09\t00:11:40:10\t我如果不夠完美",
-      "\"If I'm not perfect, people will reject me.\"",
-      "00:11:40:10\t00:11:43:21\t別人是會拒絕我的",
-      "\"If I'm not perfect, people will reject me.\"",
+      "00:00:01:00\t00:00:02:10\t來源文字一",
+      "\"Hello world.\"",
+      "00:00:02:10\t00:00:03:20\t來源文字二",
+      "\"Hello world.\"",
+      "\"00:00:03:20\t00:00:04:15\t來源文字三",
+      "\"Second line.\"",
+      "00:00:04:15\t00:00:05:25\t來源文字四",
+      "\"Second line.\"",
     ].join("\n")
 
     const findings = getFindings(
@@ -25,15 +25,16 @@ describe("timestampFormatRule (segments)", () => {
       findings.some(
         (finding) =>
           String(finding.type) === "TIMESTAMP_FORMAT" &&
-          finding.lineIndex === 4
+          finding.lineIndex === 4 &&
+          finding.text.includes("\"00:00:03:20")
       )
     ).toBe(true)
   })
 
   it("allows valid timestamp rows with XXX prefix", () => {
     const text = [
-      "XXX 00:11:35:28\t00:11:37:04\t我如果犯錯",
-      "\"If I mess up, I'm not good enough.\"",
+      "XXX 00:00:01:00\t00:00:02:00\tSource text",
+      "\"Hello world.\"",
     ].join("\n")
 
     const findings = getFindings(
@@ -47,8 +48,8 @@ describe("timestampFormatRule (segments)", () => {
 
   it("flags timestamp rows with missing leading zero", () => {
     const text = [
-      "0:11:35:28\t00:11:37:04\t我如果犯錯",
-      "\"If I mess up, I'm not good enough.\"",
+      "0:00:01:00\t00:00:02:00\tSource text",
+      "\"Hello world.\"",
     ].join("\n")
 
     const findings = getFindings(

@@ -26,7 +26,7 @@
   /* Semantic */
   --danger: #ef4444;
   --warning: #f59e0b;
-  --ts-link: #64748b;
+  --ts-link: #a7bacf;
 
   /* Finding activation motion */
   --finding-active-duration: 180ms;
@@ -48,7 +48,7 @@
 
   --danger: #ef4444;
   --warning: #f59e0b;
-  --ts-link: #64748b;
+  --ts-link: #31465e;
 }
 
 /* ---- Global layout reset ---- */

@@ -187,6 +187,11 @@ describe("Sidebar", () => {
     expect(indexCss).toMatch(/\.finding-row-button\.is-active\s*\{[\s\S]*background:\s*var\(--finding-active-bg\);/)
   })
 
+  it("keeps default timestamp gutter links slightly above finding-active contrast", () => {
+    expect(indexCss).toMatch(/:root\s*\{[\s\S]*--ts-link:\s*#a7bacf;/)
+    expect(indexCss).toMatch(/\[data-theme="dark"\]\s*\{[\s\S]*--ts-link:\s*#31465e;/)
+  })
+
   it("keeps the floating theme toggle pinned to the bottom-right", () => {
     expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*position:\s*fixed;/)
     expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*right:\s*28px;/)

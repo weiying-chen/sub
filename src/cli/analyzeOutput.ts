@@ -1,5 +1,6 @@
 import { buildAnalysisOutput } from '../analysis/buildAnalysisOutput'
 import type { Metric, Finding } from '../analysis/types'
+import { resolveSubsFindingRuleFilters } from '../analysis/subsFindingDefaults'
 import {
   loadAbbreviations,
   loadCapitalizationTerms,
@@ -20,9 +21,11 @@ export async function buildAnalyzeOutput(
   options: AnalyzeOptions
 ): Promise<Metric[] | Finding[]> {
   const enabledFindingTypes =
-    (options.ruleFilters?.length ?? 0) > 0
-      ? (options.ruleFilters as Metric['type'][])
-      : undefined
+    options.type === 'subs'
+      ? resolveSubsFindingRuleFilters(options.ruleFilters as Metric['type'][] | undefined)
+      : (options.ruleFilters?.length ?? 0) > 0
+        ? (options.ruleFilters as Metric['type'][])
+        : undefined
   const capitalizationTerms = await loadCapitalizationTerms()
   const properNouns = options.type === 'subs' ? await loadProperNouns() : undefined
   const abbreviations = options.type === 'subs' ? await loadAbbreviations() : undefined

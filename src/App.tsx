@@ -6,6 +6,7 @@ import { insertTab } from "@codemirror/commands"
 
 import { buildAnalysisOutput } from "./analysis/buildAnalysisOutput"
 import type { Metric, Finding } from "./analysis/types"
+import { DEFAULT_SUBS_FINDING_RULE_TYPES } from "./analysis/subsFindingDefaults"
 
 import { getFindings } from "./shared/findings"
 import { sortFindingsWithIndex } from "./shared/findingsSort"
@@ -101,12 +102,6 @@ const RULE_OPTIONS: RuleOption[] = [
     severity: "error",
   },
   {
-    type: "CPS_BALANCE",
-    label: "Reading speed changes too much",
-    explanation: "Warns when adjacent subtitle speeds vary too sharply.",
-    severity: "warn",
-  },
-  {
     type: "SPAN_GAP",
     label: "Line spans across a timing gap",
     explanation: "Warns when the same line disappears and then reappears after a real timing gap.",
@@ -126,7 +121,10 @@ const RULE_OPTIONS: RuleOption[] = [
   },
 ]
 
-const DEFAULT_ENABLED_RULE_TYPES = RULE_OPTIONS.map((rule) => rule.type)
+const DISPLAYED_RULE_TYPES = new Set<Finding["type"]>(RULE_OPTIONS.map((rule) => rule.type))
+const DEFAULT_ENABLED_RULE_TYPES = DEFAULT_SUBS_FINDING_RULE_TYPES.filter(
+  (type): type is Finding["type"] => DISPLAYED_RULE_TYPES.has(type as Finding["type"])
+)
 const WARNING_RULE_TYPES = RULE_OPTIONS.filter((rule) => rule.severity === "warn").map(
   (rule) => rule.type
 )
@@ -171,9 +169,7 @@ function getFindingId(finding: Finding, index: number): string {
 
 function findingTsLineIndex(finding: Finding): number {
   if (
-    (finding.type === "MAX_CPS" ||
-      finding.type === "MIN_CPS" ||
-      finding.type === "CPS_BALANCE") &&
+    (finding.type === "MAX_CPS" || finding.type === "MIN_CPS") &&
     typeof finding.tsLineIndex === "number"
   ) {
     return finding.tsLineIndex
@@ -211,7 +207,7 @@ function getFindingRanges(view: EditorView, findings: Finding[]): FindingRange[]
       continue
     }
 
-    if (f.type === "MAX_CPS" || f.type === "MIN_CPS" || f.type === "CPS_BALANCE") {
+    if (f.type === "MAX_CPS" || f.type === "MIN_CPS") {
       const first = parseBlockAt(src, findingTsLineIndex(f))
       if (first) {
         const payloadIndices = mergedRunPayloadIndices(src, first)
@@ -329,8 +325,7 @@ function getFindingAnchor(view: EditorView, finding: Finding): number {
 
   if (
     finding.type === "MAX_CPS" ||
-    finding.type === "MIN_CPS" ||
-    finding.type === "CPS_BALANCE"
+    finding.type === "MIN_CPS"
   ) {
     return line.from
   }

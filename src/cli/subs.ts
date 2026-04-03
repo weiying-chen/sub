@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 
 import { analyzeTextByType } from '../analysis/analyzeTextByType'
 import { createSubsSegmentRules } from '../analysis/subsSegmentRules'
+import { resolveSubsFindingRuleFilters } from '../analysis/subsFindingDefaults'
 import { getFindings } from '../shared/findings'
 import { sortFindingsWithIndex } from '../shared/findingsSort'
 import type { Finding, Metric } from '../analysis/types'
@@ -242,7 +243,7 @@ async function printReport(
   const capitalizationTerms = await loadCapitalizationTerms()
 
   const rules = createSubsSegmentRules({
-    enabledFindingTypes: options.ruleFilters,
+    enabledFindingTypes: resolveSubsFindingRuleFilters(options.ruleFilters),
     capitalizationTerms: capitalizationTerms ?? undefined,
     properNouns: properNouns ?? undefined,
     baselineText: baselineText ?? undefined,

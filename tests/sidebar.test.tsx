@@ -513,6 +513,9 @@ describe("Sidebar", () => {
     expect(
       ui.queryByRole("checkbox", { name: /Text does not match baseline/i })
     ).not.toBeInTheDocument()
+    expect(
+      ui.queryByRole("checkbox", { name: /Reading speed changes too much/i })
+    ).not.toBeInTheDocument()
   })
 
   it("filters findings when a rule is unchecked in the modal", async () => {

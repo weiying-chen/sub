@@ -1,7 +1,6 @@
 import { baselineRule } from "./baselineRule"
 import { blockStructureRule } from "./blockStructureRule"
 import { capitalizationRule } from "./capitalizationRule"
-import { cpsBalanceRule } from "./cpsBalanceRule"
 import { cpsRule } from "./cpsRule"
 import { dashStyleRule } from "./dashStyleRule"
 import { leadingWhitespaceRule } from "./leadingWhitespaceRule"
@@ -57,9 +56,6 @@ function createSubsCommonRules(
   }
   if (isEnabled(enabled, "LEADING_WHITESPACE")) {
     rules.push(leadingWhitespaceRule())
-  }
-  if (isEnabled(enabled, "CPS_BALANCE")) {
-    rules.push(cpsBalanceRule({ ignoreEmptyLines: options.ignoreEmptyLines }))
   }
   if (isEnabled(enabled, "SPAN_GAP")) {
     rules.push(spanGapRule())

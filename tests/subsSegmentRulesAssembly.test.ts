@@ -95,6 +95,22 @@ describe("createSubsSegmentRules", () => {
     expect(maxOnlyFindings.some((finding) => finding.type === "CPS_BALANCE")).toBe(false)
   })
 
+  it("does not include cps-balance findings in default subs assembly", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "A",
+      "",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "This payload is definitely too long for one second.",
+    ].join("\n")
+
+    const findings = getFindings(
+      analyzeTextByType(text, "subs", createSubsSegmentRules())
+    )
+
+    expect(findings.some((finding) => finding.type === "CPS_BALANCE")).toBe(false)
+  })
+
   it("uses raw CPS metrics assembly for metrics mode", () => {
     const text = [
       "00:00:01:00\t00:00:03:00\tMarker",

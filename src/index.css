@@ -226,6 +226,14 @@ body {
   min-width: 0;
 }
 
+.app-editor-inner .cm-gutters {
+  padding: 12px 0 12px 12px;
+}
+
+.app-editor-inner .cm-content {
+  padding: 12px 0;
+}
+
 .findings-sidebar {
   position: sticky;
   top: 0;

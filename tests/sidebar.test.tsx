@@ -175,10 +175,9 @@ describe("Sidebar", () => {
     expect(indexCss).not.toMatch(/\.app-editor-scroll\s*\{[\s\S]*scrollbar-gutter:/)
   })
 
-  it("keeps the toolbar panel as a compact bottom-right dock", () => {
-    expect(indexCss).toMatch(/\.app-toolbar-panel\s*\{[\s\S]*left:\s*auto;/)
-    expect(indexCss).toMatch(/\.app-toolbar-panel\s*\{[\s\S]*right:\s*28px;/)
-    expect(indexCss).toMatch(/\.app-toolbar-panel\s*\{[\s\S]*width:\s*min\(420px,\s*calc\(100vw - 356px\)\);/)
+  it("applies gutter and content padding to keep CodeMirror alignment", () => {
+    expect(indexCss).toMatch(/\.app-editor-inner\s+\.cm-gutters\s*\{[\s\S]*padding:\s*12px 0 12px 12px;/)
+    expect(indexCss).toMatch(/\.app-editor-inner\s+\.cm-content\s*\{[\s\S]*padding:\s*12px 0;/)
   })
 
   it("jumps editor selection when clicking a finding", () => {

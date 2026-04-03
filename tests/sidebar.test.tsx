@@ -180,6 +180,13 @@ describe("Sidebar", () => {
     expect(indexCss).toMatch(/\.app-editor-inner\s+\.cm-content\s*\{[\s\S]*padding:\s*12px 0;/)
   })
 
+  it("uses one finding active background token across sidebar and editor", () => {
+    expect(indexCss).toMatch(/:root\s*\{[\s\S]*--finding-active-bg:\s*#edf2f7;/)
+    expect(indexCss).toMatch(/\[data-theme="dark"\]\s*\{[\s\S]*--finding-active-bg:\s*#1f2937;/)
+    expect(indexCss).toMatch(/\.cm-finding-active\s*\{[\s\S]*background:\s*var\(--finding-active-bg\);/)
+    expect(indexCss).toMatch(/\.finding-row-button\.is-active\s*\{[\s\S]*background:\s*var\(--finding-active-bg\);/)
+  })
+
   it("keeps the floating theme toggle pinned to the bottom-right", () => {
     expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*position:\s*fixed;/)
     expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*right:\s*28px;/)

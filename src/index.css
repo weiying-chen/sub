@@ -21,6 +21,7 @@
   --cm-gutter-bg: #eef2f7;   /* visible but quiet */
   --cm-gutter-text: #64748b;
   --cm-selection: #e2e8f0;
+  --finding-active-bg: #edf2f7;
 
   /* Semantic */
   --danger: #ef4444;
@@ -43,6 +44,7 @@
   --cm-gutter-bg: #070f1d;   /* slightly darker than panel */
   --cm-gutter-text: #9ca3af;
   --cm-selection: #334155;
+  --finding-active-bg: #1f2937;
 
   --danger: #ef4444;
   --warning: #f59e0b;
@@ -124,7 +126,7 @@ body {
 }
 
 .cm-finding-active {
-  background: var(--panel-hover);
+  background: var(--finding-active-bg);
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
   padding-top: 0.14em;
@@ -140,7 +142,7 @@ body {
     background: transparent;
   }
   to {
-    background: var(--panel-hover);
+    background: var(--finding-active-bg);
   }
 }
 
@@ -292,7 +294,7 @@ body {
 }
 
 .finding-row-button.is-active {
-  background: var(--panel-hover);
+  background: var(--finding-active-bg);
 }
 
 .finding-row-head {

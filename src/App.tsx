@@ -19,9 +19,7 @@ import {
 } from "./cm/findingSelection"
 import { timestampLinkGutter } from "./cm/timestampLinkGutter"
 import { cmTheme } from "./cm/theme"
-import { getSelectedInlineText } from "./cm/selection"
 import { selectLineOnTripleClick } from "./cm/selectLineOnTripleClick"
-import { fillSelectedTimestampSubs } from "./cm/fillSubs"
 import { mergedRunPayloadIndices, parseBlockAt, type LineSource } from "./shared/tsvRuns"
 
 import { sampleSubtitles } from "./fixtures/subtitles"
@@ -468,7 +466,6 @@ export default function App({
 
   const [value, setValue] = useState(sampleSubtitles)
   const [view, setView] = useState<EditorView | null>(null)
-  const [extracted, setExtracted] = useState("")
   const [activeFindingId, setActiveFindingId] = useState<string | null>(null)
   const [enabledRuleTypes, setEnabledRuleTypes] = useState<Set<Finding["type"]>>(
     () => loadEnabledRuleTypes()
@@ -651,29 +648,6 @@ export default function App({
     ]
   }, [findings, activeFindingId, colorizeGutterIndicators])
 
-  const handleExtract = useCallback(() => {
-    if (!view) return
-    setExtracted(getSelectedInlineText(view))
-  }, [view])
-
-  const handleFillSubs = useCallback(() => {
-    if (!view) return
-    const { remaining } = fillSelectedTimestampSubs(view, extracted)
-    setExtracted(remaining)
-  }, [view, extracted])
-
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(extracted)
-    } catch {
-      // ignore
-    }
-  }, [extracted])
-
-  const handleToggleTheme = useCallback(() => {
-    setTheme((t) => (t === "dark" ? "light" : "dark"))
-  }, [])
-
   const handleFindingClick = useCallback(
     (finding: Finding, findingId: string) => {
       if (!view) return
@@ -692,6 +666,10 @@ export default function App({
     },
     [view]
   )
+
+  const handleToggleTheme = useCallback(() => {
+    setTheme((t) => (t === "dark" ? "light" : "dark"))
+  }, [])
 
   return (
     <div
@@ -858,30 +836,18 @@ export default function App({
         </div>
       ) : null}
 
-      <div className="app-toolbar-panel">
-        <div className="app-toolbar-actions">
-          <button onClick={handleExtract} disabled={!view}>
-            Extract selection
-          </button>
-          <button onClick={handleFillSubs} disabled={!view || !extracted.trim()}>
-            Fill subs
-          </button>
-          <button onClick={handleCopy} disabled={!extracted}>
-            Copy
-          </button>
-
-          <button onClick={handleToggleTheme} className="theme-toggle-button">
-            Theme: {theme}
-          </button>
-        </div>
-
-        <textarea
-          value={extracted}
-          onChange={(e) => setExtracted(e.target.value)}
-          placeholder="Selected inline subtitle text will appear here..."
-          className="app-extracted-textarea"
+      <button
+        type="button"
+        aria-label="Toggle theme"
+        className="sidebar-gear-button floating-theme-toggle"
+        onClick={handleToggleTheme}
+      >
+        <i
+          className={theme === "dark" ? "las la-sun" : "las la-moon"}
+          aria-hidden="true"
         />
-      </div>
+      </button>
+
     </div>
   )
 }

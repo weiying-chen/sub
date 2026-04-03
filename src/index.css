@@ -507,43 +507,16 @@ body {
   word-break: break-word;
 }
 
-.app-toolbar-panel {
-  position: absolute;
-  left: auto;
+.floating-theme-toggle {
+  position: fixed;
   right: 28px;
   bottom: 12px;
-  width: min(420px, calc(100vw - 356px));
-  max-width: calc(100vw - 24px);
-  z-index: 3;
-  border: 1px solid var(--border);
-  background: var(--panel);
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.app-toolbar-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.theme-toggle-button {
-  margin-left: auto;
-}
-
-.app-extracted-textarea {
-  width: 100%;
-  height: 120px;
-  resize: none;
-  background: var(--bg);
-  color: var(--text);
-  border: 1px solid var(--border);
+  z-index: 20;
+  font-size: 24px;
 }
 
 @media (max-width: 900px) {
-  .app-toolbar-panel {
-    left: 12px;
-    width: auto;
+  .floating-theme-toggle {
+    right: 12px;
   }
 }

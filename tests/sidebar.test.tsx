@@ -180,6 +180,39 @@ describe("Sidebar", () => {
     expect(indexCss).toMatch(/\.app-editor-inner\s+\.cm-content\s*\{[\s\S]*padding:\s*12px 0;/)
   })
 
+  it("keeps the floating theme toggle pinned to the bottom-right", () => {
+    expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*position:\s*fixed;/)
+    expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*right:\s*28px;/)
+    expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*bottom:\s*12px;/)
+  })
+
+  it("hides the fill-subs panel controls", () => {
+    render(<App />)
+
+    expect(screen.queryByRole("button", { name: "Extract selection" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Fill subs" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Copy" })).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText("Selected inline subtitle text will appear here...")
+    ).not.toBeInTheDocument()
+  })
+
+  it("shows a floating theme toggle with sun/moon icons", () => {
+    const { container } = render(<App />)
+
+    const toggleButton = screen.getByRole("button", { name: "Toggle theme" })
+    expect(toggleButton).toBeInTheDocument()
+    expect(container.querySelector(".app-toolbar-panel")).toBeNull()
+    expect(toggleButton).toHaveClass("sidebar-gear-button")
+    expect(toggleButton.textContent).toBe("")
+    expect(toggleButton.querySelector(".la-sun")).not.toBeNull()
+    expect(toggleButton.querySelector(".la-moon")).toBeNull()
+
+    fireEvent.click(toggleButton)
+    expect(toggleButton.querySelector(".la-moon")).not.toBeNull()
+    expect(toggleButton.querySelector(".la-sun")).toBeNull()
+  })
+
   it("jumps editor selection when clicking a finding", () => {
     render(<App />)
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement

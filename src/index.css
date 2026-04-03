@@ -21,6 +21,7 @@
   --cm-gutter-bg: #eef2f7;   /* visible but quiet */
   --cm-gutter-text: #64748b;
   --cm-selection: #e2e8f0;
+  --cm-top-inset: 12px;
   --finding-active-bg: #edf2f7;
 
   /* Semantic */
@@ -158,6 +159,7 @@ body {
   justify-content: center;
   line-height: 1;
   padding: 0;
+  transform: translateY(calc(-1 * var(--cm-top-inset)));
 }
 
 .cm-ts-link {
@@ -229,11 +231,11 @@ body {
 }
 
 .app-editor-inner .cm-gutters {
-  padding: 12px 0 12px 12px;
+  padding: var(--cm-top-inset) 0 12px 12px;
 }
 
 .app-editor-inner .cm-content {
-  padding: 12px 0;
+  padding: var(--cm-top-inset) 0;
 }
 
 .findings-sidebar {

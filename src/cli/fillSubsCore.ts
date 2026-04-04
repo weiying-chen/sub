@@ -27,10 +27,6 @@ export function parseFillSubsArgs(argv: string[]): FillSubsCliArgs {
       i++
       continue
     }
-    if (a === '--no-inline') {
-      args.inline = false
-      continue
-    }
     if (a === '--alt-break') {
       args.altBreak = true
       continue

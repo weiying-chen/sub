@@ -20,4 +20,9 @@ describe("fill-subs CLI args", () => {
     const args = parseFillSubsArgs(["--alt-break"])
     expect(args.altBreak).toBe(true)
   })
+
+  it("ignores deprecated no-inline flag", () => {
+    const args = parseFillSubsArgs(["--no-inline"])
+    expect(args.inline).toBe(true)
+  })
 })

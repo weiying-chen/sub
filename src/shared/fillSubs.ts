@@ -1426,25 +1426,6 @@ function moveLeadingOfToPreviousLine(
   }
 }
 
-function normalizeLeadingOfLines(lines: string[]): string[] {
-  if (lines.length < 2) return lines
-
-  const normalized = [...lines]
-  for (let i = 1; i < normalized.length; i += 1) {
-    const previousLine = normalized[i - 1]
-    const currentLine = normalized[i]
-    if (!previousLine || !currentLine) continue
-
-    const adjusted = moveLeadingOfToPreviousLine(previousLine, currentLine)
-    if (!adjusted) continue
-
-    normalized[i - 1] = adjusted.previousLine
-    normalized[i] = adjusted.currentLine
-  }
-
-  return normalized
-}
-
 function normalizeLeadingOfTranslations(
   translations: Map<number, string>,
   orderedIndices: number[]
@@ -2002,61 +1983,29 @@ export function fillSelectedTimestampLines(
   // - Carry quotes by fully wrapping each repeated line inside quoted spans.
   const maxChars = Math.max(1, options.maxChars ?? DEFAULT_MAX_CHARS)
   const limit = Math.max(1, maxChars)
-  const inline = options.inline ?? true
   const noSplitAbbreviations =
     options.noSplitAbbreviations ?? DEFAULT_NO_SPLIT_ABBREVIATIONS
   const noSplitAbbrevMatcher = buildNoSplitAbbrevRe(noSplitAbbreviations)
   const noSplitUsAbbreviation = hasNoSplitUsAbbreviation(noSplitAbbreviations)
 
-  if (inline) {
-    const targetCps = chooseTargetCps(
-      lines,
-      selectedLineIndices,
-      paragraph,
-      limit,
-      noSplitAbbrevMatcher,
-      noSplitUsAbbreviation
-    )
-    const run = runInlineFill(
-      lines,
-      selectedLineIndices,
-      paragraph,
-      limit,
-      targetCps,
-      false,
-      noSplitAbbrevMatcher,
-      noSplitUsAbbreviation,
-      options
-    )
-    return { lines: run.lines, remaining: run.remaining, chosenCps: targetCps }
-  }
-
-  let remaining = normalizeParagraph(paragraph)
-  if (!remaining) {
-    return { lines: [...lines], remaining: '', chosenCps: undefined }
-  }
-
-  const prependLines: string[] = []
-
-  for (let i = 0; i < lines.length; i++) {
-    if (!isFillableTimestamp(lines, selectedLineIndices, i)) continue
-
-    if (!remaining) continue
-
-    const { line: fillLine, rest } = takeLine(
-      remaining,
-      limit,
-      noSplitAbbrevMatcher,
-      noSplitUsAbbreviation
-    )
-    remaining = rest
-
-    if (fillLine) prependLines.push(fillLine)
-  }
-
-  return {
-    lines: [...(options.altBreak ? normalizeLeadingOfLines(prependLines) : prependLines), ...lines],
-    remaining,
-    chosenCps: undefined,
-  }
+  const targetCps = chooseTargetCps(
+    lines,
+    selectedLineIndices,
+    paragraph,
+    limit,
+    noSplitAbbrevMatcher,
+    noSplitUsAbbreviation
+  )
+  const run = runInlineFill(
+    lines,
+    selectedLineIndices,
+    paragraph,
+    limit,
+    targetCps,
+    false,
+    noSplitAbbrevMatcher,
+    noSplitUsAbbreviation,
+    options
+  )
+  return { lines: run.lines, remaining: run.remaining, chosenCps: targetCps }
 }

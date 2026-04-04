@@ -50,7 +50,7 @@ function getClipboardText(): string {
   return ''
 }
 
-const { inputFile, outputFile, inline, altBreak, paragraphArg } = parseFillSubsArgs(
+const { inputFile, outputFile, altBreak, paragraphArg } = parseFillSubsArgs(
   process.argv.slice(2)
 )
 
@@ -92,7 +92,7 @@ const result = fillSelectedTimestampLines(
   paragraph,
   {
     maxChars: LIMIT,
-    inline,
+    inline: true,
     altBreak,
     noSplitAbbreviations: noSplitAbbreviations ?? undefined,
   }

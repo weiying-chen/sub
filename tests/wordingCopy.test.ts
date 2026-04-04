@@ -9,7 +9,7 @@ import { getFindings } from "../src/shared/findings"
 import {
   TIMESTAMP_FORMAT_FINDING_INSTRUCTION,
   TIMESTAMP_FORMAT_MODAL_EXPLANATION,
-} from "../src/shared/timestampFormatWording"
+} from "../src/shared/constants"
 
 describe("wording copy", () => {
   it("uses updated finding instructions for max cps and missing translation", () => {
@@ -72,6 +72,6 @@ describe("wording copy", () => {
     const appTsx = readFileSync(join(process.cwd(), "src/App.tsx"), "utf8")
 
     expect(appTsx).toContain("TIMESTAMP_FORMAT_MODAL_EXPLANATION")
-    expect(appTsx).toContain("./shared/timestampFormatWording")
+    expect(appTsx).toContain("./shared/constants")
   })
 })

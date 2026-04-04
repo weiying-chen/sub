@@ -37,7 +37,7 @@ export function getFindings(
       out.push({
         ...m,
         severity: 'error',
-        instruction: 'Add the missing translation below this timestamp.',
+        instruction: 'Add the missing translation below these timestamps.',
       })
       continue
     }

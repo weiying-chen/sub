@@ -42,9 +42,9 @@ describe("wording copy", () => {
 
     expect(findings[0]?.instruction).toBe("Reduce reading speed to 25 CPS or less.")
     expect(findings[1]?.instruction).toBe(
-      "Add the missing translation below this timestamp."
+      "Add the missing translation below these timestamps."
     )
-    expect(findings[2]?.instruction).toBe(TIMESTAMP_FORMAT_FINDING_INSTRUCTION)
+    expect(findings[2]?.instruction).toBe("Use a row with timestamps in this format: HH:MM:SS:FF<TAB>HH:MM:SS:FF<TAB>source text. You can optionally add XXX before the first timestamp.")
   })
 
   it("uses updated span-gap wording", () => {

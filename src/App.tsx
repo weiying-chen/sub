@@ -56,7 +56,7 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "BLOCK_STRUCTURE",
     label: "Subtitle block structure is broken",
-    explanation: "Flags timestamp rows that are missing a translation.",
+    explanation: "Flags rows with timestamps that are missing a translation.",
     severity: "error",
   },
   {

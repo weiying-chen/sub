@@ -36,10 +36,7 @@ export function getFindings(
       out.push({
         ...m,
         severity: 'error',
-        instruction:
-          m.ruleCode === 'MISSING_PAYLOAD'
-            ? 'Add the missing English line below this timestamp.'
-            : 'Attach this payload line to a timestamp block or remove it.',
+        instruction: 'Add the missing English line below this timestamp.',
       })
       continue
     }
@@ -66,7 +63,7 @@ export function getFindings(
           durationFrames: m.durationFrames,
           charCount: m.charCount,
           severity: 'error',
-          instruction: `Reduce reading speed to ${m.maxCps} CPS or lower.`,
+          instruction: `Reduce reading speed to ${m.maxCps} CPS or less.`,
         })
         continue
       }
@@ -91,7 +88,7 @@ export function getFindings(
       out.push({
         ...m,
         severity: 'error',
-        instruction: `Reduce reading speed to ${m.maxCps} CPS or lower.`,
+        instruction: `Reduce reading speed to ${m.maxCps} CPS or less.`,
       })
       continue
     }

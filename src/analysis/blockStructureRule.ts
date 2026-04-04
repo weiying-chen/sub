@@ -7,26 +7,6 @@ type BlockStructureRuleOptions = {
   ignoreEmptyLines?: boolean
 }
 
-function isEnglishLikeLine(text: string): boolean {
-  const trimmed = text.trim()
-  if (trimmed === '') return false
-  if (trimmed.startsWith('(') || trimmed.startsWith('[')) return false
-  if (trimmed.startsWith('/*')) return false
-
-  const cjkRe = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/
-  if (cjkRe.test(text)) return false
-
-  const letters = text.match(/[A-Za-z]/g)
-  return (letters?.length ?? 0) >= 3
-}
-
-function findPreviousNonEmptyIndex(lines: string[], index: number): number | null {
-  for (let i = index - 1; i >= 0; i -= 1) {
-    if (lines[i]?.trim() !== '') return i
-  }
-  return null
-}
-
 function findSectionEnd(lines: string[], startIndex: number): number {
   let endIndex = startIndex
   while (endIndex < lines.length && (lines[endIndex] ?? '').trim() !== '') {
@@ -127,45 +107,6 @@ export function blockStructureRule(
       }
 
       sectionStart = sectionEnd + 1
-    }
-
-    const timestampIndices = collectTimestampIndices(lines, 0, lines.length)
-    for (let j = 0; j < timestampIndices.length - 1; j += 1) {
-      const tsIndex = timestampIndices[j]
-      const nextTsIndex = timestampIndices[j + 1]
-      const payloadIndex = findPayloadIndex(lines, tsIndex, ignoreEmptyLines)
-      if (payloadIndex == null) continue
-
-      const nextPayloadIndex = findPayloadIndex(lines, nextTsIndex, ignoreEmptyLines)
-      const nextPayloadText =
-        nextPayloadIndex != null ? (lines[nextPayloadIndex] ?? '').trim() : ''
-
-      let scanIndex = payloadIndex + 1
-      while (scanIndex < nextTsIndex) {
-        const scanLine = lines[scanIndex] ?? ''
-        const scanTrimmed = scanLine.trim()
-        if (scanTrimmed === '') {
-          scanIndex += 1
-          continue
-        }
-        if (!TSV_RE.test(scanLine) && isEnglishLikeLine(scanLine)) {
-          const prevNonEmptyIndex = findPreviousNonEmptyIndex(lines, scanIndex)
-          if (
-            prevNonEmptyIndex != null &&
-            !TSV_RE.test(lines[prevNonEmptyIndex] ?? '') &&
-            nextPayloadText !== '' &&
-            scanTrimmed === nextPayloadText
-          ) {
-            metrics.push({
-              type: 'BLOCK_STRUCTURE',
-              lineIndex: scanIndex,
-              ruleCode: 'ORPHAN_PAYLOAD',
-              text: scanTrimmed,
-            })
-          }
-        }
-        scanIndex += 1
-      }
     }
 
     return metrics

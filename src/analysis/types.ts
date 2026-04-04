@@ -146,7 +146,7 @@ export type BlockStructureMetric = {
   severity?: 'error' | 'warn'
 }
 
-export type BlockStructureRuleCode = 'ORPHAN_PAYLOAD' | 'MISSING_PAYLOAD'
+export type BlockStructureRuleCode = 'MISSING_PAYLOAD'
 
 export type TimestampFormatMetric = {
   type: 'TIMESTAMP_FORMAT'

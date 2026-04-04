@@ -38,7 +38,7 @@ export function spanGapRule(): SegmentRule {
       nextText: next.text,
       gapFrames,
       instruction:
-        "This line disappears and reappears after a timing gap; split or rewrite it instead of spanning across the gap.",
+        "This line disappears and reappears after a timing gap. Split or rewrite it instead of spanning across it.",
     }
 
     return [metric]

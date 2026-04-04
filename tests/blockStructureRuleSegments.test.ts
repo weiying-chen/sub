@@ -44,7 +44,7 @@ describe("blockStructureRule (segments)", () => {
     ])
   })
 
-  it("flags orphan payload lines between subtitle cues", () => {
+  it("does not flag orphan payload duplication between subtitle cues", () => {
     const text = [
       "00:10:00:20\t00:10:02:13\t把他們整個改過來",
       "with hearing aids or cochlear implants.",
@@ -64,14 +64,7 @@ describe("blockStructureRule (segments)", () => {
       )
     )
 
-    expect(findings).toMatchObject([
-      {
-        type: "BLOCK_STRUCTURE",
-        lineIndex: 3,
-        ruleCode: "ORPHAN_PAYLOAD",
-        text: "Kids were checked again at age three or four",
-      },
-    ])
+    expect(findings).toHaveLength(0)
   })
 
   it("does not flag trailing source or metadata lines outside timestamp blocks", () => {

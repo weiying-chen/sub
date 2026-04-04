@@ -18,7 +18,7 @@ export function getFindings(
         out.push({
           ...m,
           severity: 'error',
-          instruction: `Shorten this line to ${m.maxAllowed} characters or fewer.`,
+          instruction: `Shorten this translation to ${m.maxAllowed} characters or fewer.`,
         })
       }
       continue
@@ -28,7 +28,7 @@ export function getFindings(
       out.push({
         ...m,
         severity: 'error',
-        instruction: 'Remove leading spaces at the start of this line.',
+        instruction: 'Remove leading spaces at the start of this translation.',
       })
       continue
     }

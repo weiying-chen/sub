@@ -424,7 +424,7 @@ describe("Sidebar", () => {
     expect(activeInstruction).toHaveClass("is-open")
     expect(activeInstruction).toHaveAttribute("aria-hidden", "false")
     expect(activeRow.textContent?.toLowerCase()).toContain(
-      "remove leading spaces at the start of this line"
+      "remove leading spaces at the start of this translation"
     )
 
     const numberRow = screen

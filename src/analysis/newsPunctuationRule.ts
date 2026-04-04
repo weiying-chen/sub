@@ -26,7 +26,7 @@ export function newsPunctuationRule(): SegmentRule {
           type: 'PUNCTUATION',
           lineIndex: prev.lineIndex,
           ruleCode: 'COMMA_BEFORE_QUOTE',
-          instruction: "End this line with ':' before the next quoted line.",
+          instruction: "End this translation with ':' before the next quoted translation.",
           text: prev.lineText,
           nextText: next.lineText,
         })

@@ -44,13 +44,13 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "MAX_CPS",
     label: "Reading speed is too high",
-    explanation: "Flags subtitle lines that exceed the maximum CPS limit.",
+    explanation: "Flags translations that exceed the maximum CPS limit.",
     severity: "error",
   },
   {
     type: "MAX_CHARS",
     label: "Translation has too many characters",
-    explanation: "Flags lines that exceed the maximum character count.",
+    explanation: "Flags translations that exceed the maximum character count.",
     severity: "error",
   },
   {
@@ -92,19 +92,19 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "LEADING_WHITESPACE",
     label: "Translation starts with extra spaces",
-    explanation: "Flags subtitle lines with unintended leading spaces.",
+    explanation: "Flags translations with unintended leading spaces.",
     severity: "error",
   },
   {
     type: "PUNCTUATION",
     label: "Punctuation is incorrect",
-    explanation: "Checks punctuation, quote pairing, and line-to-line punctuation flow.",
+    explanation: "Checks punctuation, quote pairing, and punctuation flow between translations.",
     severity: "error",
   },
   {
     type: "SPAN_GAP",
-    label: "Line spans across a timing gap",
-    explanation: "Warns when the same line disappears and then reappears after a real timing gap.",
+    label: "Translation spans across a timing gap",
+    explanation: "Warns when the same translation disappears and then reappears after a real timing gap.",
     severity: "warn",
   },
   {
@@ -115,8 +115,8 @@ const RULE_OPTIONS: RuleOption[] = [
   },
   {
     type: "MERGE_CANDIDATE",
-    label: "Lines could be merged",
-    explanation: "Warns when nearby cues look mergeable into one subtitle.",
+    label: "Translations could be merged",
+    explanation: "Warns when nearby translations look mergeable into one subtitle.",
     severity: "warn",
   },
 ]

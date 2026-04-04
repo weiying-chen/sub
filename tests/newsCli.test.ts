@@ -15,7 +15,7 @@ describe("news CLI reporter", () => {
       maxAllowed: 54,
       actual: 80,
       severity: "error",
-      instruction: "Shorten this line to 54 characters or fewer.",
+      instruction: "Shorten this translation to 54 characters or fewer.",
     })
 
     const warnOutput = formatFinding({

@@ -64,7 +64,7 @@ describe("wording copy", () => {
     expect(metrics[0]).toMatchObject({
       type: "SPAN_GAP",
       instruction:
-        "This line disappears and reappears after a timing gap. Split or rewrite it instead of spanning across it.",
+        "This translation disappears and reappears after a timing gap. Split or rewrite it instead of spanning across it.",
     })
   })
 
@@ -73,5 +73,6 @@ describe("wording copy", () => {
 
     expect(appTsx).toContain("TIMESTAMP_FORMAT_MODAL_EXPLANATION")
     expect(appTsx).toContain("./shared/wording")
+    expect(appTsx).toContain("punctuation flow between translations")
   })
 })

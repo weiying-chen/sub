@@ -290,7 +290,7 @@ describe("Sidebar", () => {
     })
 
     const editorWrap = container.querySelector(".app-editor-scroll") as HTMLDivElement | null
-    fireEvent.click(screen.getAllByText("Line has too many characters").at(-1)!)
+    fireEvent.click(screen.getAllByText("Translation has too many characters").at(-1)!)
 
     const view = cmSpies.lastView
     const anchor = cmSpies.dispatch.mock.calls.at(-1)?.[0]?.selection?.anchor
@@ -309,7 +309,7 @@ describe("Sidebar", () => {
       configurable: true,
     })
 
-    fireEvent.click(screen.getAllByText("Line has too many characters").at(-1)!)
+    fireEvent.click(screen.getAllByText("Translation has too many characters").at(-1)!)
 
     const block = view.lineBlockAt(anchor)
     const expected = Math.min(
@@ -338,7 +338,7 @@ describe("Sidebar", () => {
     })
 
     const editorWrap = container.querySelector(".app-editor-scroll") as HTMLDivElement | null
-    fireEvent.click(screen.getAllByText("Line has too many characters")[0])
+    fireEvent.click(screen.getAllByText("Translation has too many characters")[0])
 
     const view = cmSpies.lastView
     const anchor = cmSpies.dispatch.mock.calls.at(-1)?.[0]?.selection?.anchor
@@ -357,7 +357,7 @@ describe("Sidebar", () => {
       configurable: true,
     })
 
-    fireEvent.click(screen.getAllByText("Line has too many characters")[0])
+    fireEvent.click(screen.getAllByText("Translation has too many characters")[0])
 
     const block = view.lineBlockAt(anchor)
     const expected = Math.min(
@@ -411,11 +411,11 @@ describe("Sidebar", () => {
     })
 
     expect(screen.getAllByText("Number format is incorrect").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("Line starts with extra spaces").length).toBeGreaterThan(0)
-    fireEvent.click(screen.getAllByText("Line starts with extra spaces")[0])
+    expect(screen.getAllByText("Translation starts with extra spaces").length).toBeGreaterThan(0)
+    fireEvent.click(screen.getAllByText("Translation starts with extra spaces")[0])
 
     const activeRow = screen
-      .getAllByText("Line starts with extra spaces")[0]
+      .getAllByText("Translation starts with extra spaces")[0]
       ?.closest(".finding-row-button")
     expect(activeRow).not.toBeNull()
     if (!activeRow) return
@@ -455,7 +455,7 @@ describe("Sidebar", () => {
       container.querySelectorAll<HTMLButtonElement>(".finding-row-button")
     )
     const firstFindingText = findingButtons[0]?.textContent ?? ""
-    expect(["Reading speed is too high", "Line has too many characters"].some((label) => firstFindingText.includes(label))).toBe(true)
+    expect(["Reading speed is too high", "Translation has too many characters"].some((label) => firstFindingText.includes(label))).toBe(true)
   })
 
   it("shows actual CPS and character count in finding explanations", () => {
@@ -489,9 +489,9 @@ describe("Sidebar", () => {
       ?.closest(".finding-row-button")
     expect(minCpsRow?.textContent).toContain("Current: 1.5 CPS.")
 
-    fireEvent.click(screen.getAllByText("Line has too many characters")[0])
+    fireEvent.click(screen.getAllByText("Translation has too many characters")[0])
     const maxCharsRow = screen
-      .getAllByText("Line has too many characters")[0]
+      .getAllByText("Translation has too many characters")[0]
       ?.closest(".finding-row-button")
     expect(maxCharsRow?.textContent).toContain("Current: 55 characters.")
   })

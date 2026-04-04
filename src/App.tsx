@@ -49,7 +49,7 @@ const RULE_OPTIONS: RuleOption[] = [
   },
   {
     type: "MAX_CHARS",
-    label: "Line has too many characters",
+    label: "Translation has too many characters",
     explanation: "Flags lines that exceed the maximum character count.",
     severity: "error",
   },
@@ -91,7 +91,7 @@ const RULE_OPTIONS: RuleOption[] = [
   },
   {
     type: "LEADING_WHITESPACE",
-    label: "Line starts with extra spaces",
+    label: "Translation starts with extra spaces",
     explanation: "Flags subtitle lines with unintended leading spaces.",
     severity: "error",
   },

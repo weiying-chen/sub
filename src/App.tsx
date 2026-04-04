@@ -24,7 +24,7 @@ import { selectLineOnTripleClick } from "./cm/selectLineOnTripleClick"
 import { mergedRunTranslationIndices, parseBlockAt, type LineSource } from "./shared/tsvRuns"
 
 import { sampleSubtitles } from "./fixtures/subtitles"
-import { TIMESTAMP_FORMAT_MODAL_EXPLANATION } from "./shared/constants"
+import { TIMESTAMP_FORMAT_MODAL_EXPLANATION } from "./shared/wording"
 import capitalizationTermsText from "../capitalization-terms.txt?raw"
 import punctuationAbbreviationsText from "../punctuation-abbreviations.txt?raw"
 import properNounsText from "../punctuation-proper-nouns.txt?raw"

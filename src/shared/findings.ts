@@ -1,5 +1,5 @@
 import type { Metric, Finding } from '../analysis/types'
-import { TIMESTAMP_FORMAT_FINDING_INSTRUCTION } from './constants'
+import { TIMESTAMP_FORMAT_FINDING_INSTRUCTION } from './wording'
 
 type FindingsOptions = {
   includeWarnings?: boolean

@@ -200,6 +200,11 @@ describe("Sidebar", () => {
     expect(indexCss).toMatch(/\[data-theme="dark"\]\s*\{[\s\S]*--ts-link:\s*#31465e;/)
   })
 
+  it("keeps cursor selection colors tuned per theme", () => {
+    expect(indexCss).toMatch(/:root\s*\{[\s\S]*--cm-selection:\s*#dbe3ec;/)
+    expect(indexCss).toMatch(/\[data-theme="dark"\]\s*\{[\s\S]*--cm-selection:\s*#334155;/)
+  })
+
   it("keeps the floating theme toggle pinned to the bottom-right", () => {
     expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*position:\s*fixed;/)
     expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*right:\s*28px;/)

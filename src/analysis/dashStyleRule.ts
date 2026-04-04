@@ -54,7 +54,7 @@ export function dashStyleRule(): SegmentRule {
     const policy = expectedDashStyle(ctx)
     if (!policy) return []
 
-    const text = ctx.segment.text
+    const text = ctx.segment.translation
     if (!text) return []
 
     const mismatch = findUnexpectedDash(text, policy.expected)

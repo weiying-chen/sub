@@ -48,7 +48,7 @@ function getTextAndAnchor(
   options: ParseBlockOptions = {}
 ): { text: string; anchorIndex: number } | null {
   if ('segment' in ctx) {
-    const text = ctx.segment.text
+    const text = ctx.segment.translation
     if (text.trim() === '') return null
     return { text, anchorIndex: ctx.segment.lineIndex }
   }
@@ -76,7 +76,7 @@ export function percentStyleRule(
       const candidates = ctx.segment.targetLines
       if (candidates.length === 0) return []
       return candidates.flatMap((candidate) =>
-        collectMetrics(candidate.text, candidate.lineIndex, candidate.text)
+        collectMetrics(candidate.lineText, candidate.lineIndex, candidate.lineText)
       )
     }
 

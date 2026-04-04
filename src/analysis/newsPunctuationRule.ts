@@ -14,21 +14,21 @@ export function newsPunctuationRule(): SegmentRule {
     for (let i = 0; i < lines.length - 1; i += 1) {
       const prev = lines[i]
       const next = lines[i + 1]
-      const prevTrim = prev.text.trimEnd()
+      const prevTrim = prev.lineText.trimEnd()
 
       if (
         prevTrim.endsWith(',') &&
         !prevTrim.endsWith(':') &&
         !endsSentenceBoundary(prevTrim) &&
-        startsWithOpenQuote(next.text) !== null
+        startsWithOpenQuote(next.lineText) !== null
       ) {
         metrics.push({
           type: 'PUNCTUATION',
           lineIndex: prev.lineIndex,
           ruleCode: 'COMMA_BEFORE_QUOTE',
           instruction: "End this line with ':' before the next quoted line.",
-          text: prev.text,
-          nextText: next.text,
+          text: prev.lineText,
+          nextText: next.lineText,
         })
       }
     }

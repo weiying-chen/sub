@@ -21,13 +21,13 @@ function getTextAndAnchor(
     ) {
       const candidates = seg.targetLines?.length
         ? seg.targetLines
-        : [{ lineIndex: seg.lineIndex, text: seg.text }]
-      const first = candidates.find((candidate) => candidate.text.trim() !== '')
+        : [{ lineIndex: seg.lineIndex, lineText: seg.translation }]
+      const first = candidates.find((candidate) => candidate.lineText.trim() !== '')
       if (!first) return null
-      return { text: first.text, anchorIndex: first.lineIndex }
+      return { text: first.lineText, anchorIndex: first.lineIndex }
     }
 
-    const text = ctx.segment.text
+    const text = ctx.segment.translation
     if (text.trim() === '') return null
     return { text, anchorIndex: ctx.segment.lineIndex }
   }
@@ -64,16 +64,16 @@ export const maxCharsRule = (
     ) {
       const candidates = ctx.segment.targetLines?.length
         ? ctx.segment.targetLines
-        : [{ lineIndex: extracted.anchorIndex, text: extracted.text }]
+        : [{ lineIndex: extracted.anchorIndex, lineText: extracted.text }]
       return candidates
-        .filter((candidate) => candidate.text.trim() !== '')
+        .filter((candidate) => candidate.lineText.trim() !== '')
         .map(
           (candidate): MaxCharsMetric => ({
             type: 'MAX_CHARS',
             lineIndex: candidate.lineIndex,
-            text: candidate.text,
+            text: candidate.lineText,
             maxAllowed: maxChars,
-            actual: candidate.text.length,
+            actual: candidate.lineText.length,
           })
         )
     }

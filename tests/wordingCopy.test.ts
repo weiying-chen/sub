@@ -40,8 +40,8 @@ describe("wording copy", () => {
   it("uses updated span-gap wording", () => {
     const rule = spanGapRule()
     const segments = [
-      { lineIndex: 1, text: "Same line", startFrames: 0, endFrames: 10 },
-      { lineIndex: 3, text: "Same line", startFrames: 14, endFrames: 24 },
+      { lineIndex: 1, translation: "Same line", startFrames: 0, endFrames: 10 },
+      { lineIndex: 3, translation: "Same line", startFrames: 14, endFrames: 24 },
     ]
 
     const metrics = rule({

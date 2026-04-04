@@ -85,8 +85,8 @@ export function mergeCandidateRule(
     const gapFrames = next.startFrames - cur.endFrames
     if (gapFrames < 0 || gapFrames > maxGapFrames) return []
 
-    const left = normalizeTextForCompare(cur.text)
-    const right = normalizeTextForCompare(next.text)
+    const left = normalizeTextForCompare(cur.translation)
+    const right = normalizeTextForCompare(next.translation)
     if (!left || !right || left === right) return []
 
     const editDistance = boundedLevenshtein(left, right, maxEditDistance)
@@ -96,8 +96,8 @@ export function mergeCandidateRule(
       type: "MERGE_CANDIDATE",
       lineIndex: cur.lineIndex,
       nextLineIndex: next.lineIndex,
-      text: cur.text,
-      nextText: next.text,
+      text: cur.translation,
+      nextText: next.translation,
       gapFrames,
       editDistance,
       instruction:

@@ -18,7 +18,7 @@ describe("inspect output", () => {
     expect(output[0]).toMatchObject({
       lineIndex: 1,
       lineIndexEnd: 1,
-      text: "Hello world.",
+      translation: "Hello world.",
       tsIndex: 0,
       translationIndex: 1,
     })
@@ -41,16 +41,16 @@ describe("inspect output", () => {
     expect(output).toHaveLength(2)
     expect(output[0]).toMatchObject({
       blockType: "vo",
-      text: "Voice-over line one. Voice-over line two.",
+      translation: "Voice-over line one. Voice-over line two.",
       targetLines: [
-        { lineIndex: 0, text: "Voice-over line one." },
-        { lineIndex: 1, text: "Voice-over line two." },
+        { lineIndex: 0, lineText: "Voice-over line one." },
+        { lineIndex: 1, lineText: "Voice-over line two." },
       ],
     })
     expect(output[1]).toMatchObject({
       blockType: "super",
-      text: "Super line.",
-      targetLines: [{ lineIndex: 6, text: "Super line." }],
+      translation: "Super line.",
+      targetLines: [{ lineIndex: 6, lineText: "Super line." }],
     })
   })
 
@@ -69,6 +69,6 @@ describe("inspect output", () => {
     })
 
     expect(output).toHaveLength(1)
-    expect(output[0]?.text).toBe("Second line.")
+    expect(output[0]?.translation).toBe("Second line.")
   })
 })

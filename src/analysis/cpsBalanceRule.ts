@@ -54,7 +54,7 @@ function isSegmentContinuation(
   const prev = segments[index - 1]
   if (!hasTiming(cur) || !hasTiming(prev)) return false
   if (hasSegmentGap(lines, prev, cur, ignoreEmptyLines)) return false
-  return cur.text === prev.text
+  return cur.translation === prev.translation
 }
 
 function mergeForwardSegments(
@@ -71,7 +71,7 @@ function mergeForwardSegments(
 
   while (endIndex + 1 < segments.length) {
     const next = segments[endIndex + 1]
-    if (!hasTiming(next) || next.text !== first.text) break
+    if (!hasTiming(next) || next.translation !== first.translation) break
     if (hasSegmentGap(lines, segments[endIndex], next, ignoreEmptyLines)) break
     endFrames = next.endFrames
     endIndex += 1
@@ -82,7 +82,7 @@ function mergeForwardSegments(
     endIndex,
     startFrames: first.startFrames,
     endFrames,
-    text: first.text,
+    translation: first.translation,
     tsIndex: first.tsIndex,
     lineIndex: first.lineIndex,
   }
@@ -131,10 +131,10 @@ export function cpsBalanceRule(
       const durationB = runB.endFrames - runB.startFrames
 
       const cpsA =
-        durationA === 0 ? Infinity : (runA.text.length * FPS) / durationA
+        durationA === 0 ? Infinity : (runA.translation.length * FPS) / durationA
 
       const cpsB =
-        durationB === 0 ? Infinity : (runB.text.length * FPS) / durationB
+        durationB === 0 ? Infinity : (runB.translation.length * FPS) / durationB
 
       const deltaCps = Math.abs(cpsA - cpsB)
 
@@ -154,7 +154,7 @@ export function cpsBalanceRule(
         cps: faster.cps,
         neighborCps: faster.neighborCps,
         deltaCps,
-        text: faster.run.text,
+        text: faster.run.translation,
       }
 
       return [metric]

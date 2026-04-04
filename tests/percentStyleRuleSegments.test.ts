@@ -6,12 +6,12 @@ import { percentStyleRule } from "../src/analysis/percentStyleRule"
 describe("percentStyleRule (segments)", () => {
   it("flags digit percent across segments", () => {
     const segments = [
-      { lineIndex: 1, text: "It rose 5 percent this year." },
-      { lineIndex: 3, text: "It rose 5% last year." },
+      { lineIndex: 1, translation: "It rose 5 percent this year." },
+      { lineIndex: 3, translation: "It rose 5% last year." },
     ].map((segment) => ({
       ...segment,
       targetLines: [
-        { lineIndex: segment.lineIndex, text: segment.text },
+        { lineIndex: segment.lineIndex, lineText: segment.translation },
       ],
     }))
 

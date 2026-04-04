@@ -20,7 +20,7 @@ export function analyzeTextByType(
       ? parseNews(normalizedText)
       : parseSubs(normalizedText, options.parseOptions)
   const segments =
-    parsed.length > 0 ? parsed : [{ lineIndex: 0, text: '' }]
+    parsed.length > 0 ? parsed : [{ lineIndex: 0, translation: '' }]
   return analyzeSegments(segments, rules, {
     lines,
     sourceText: normalizedText,

@@ -18,9 +18,9 @@ describe("parseSubs", () => {
 
     const segments = parseSubs(text)
 
-    expect(segments.find((s) => s.lineIndex === 1)?.text).toBe("Hello world.")
-    expect(segments.find((s) => s.lineIndex === 4)?.text).toBe("Second line.")
-    expect(segments.find((s) => s.lineIndex === 8)?.text).toBe("Third line.")
+    expect(segments.find((s) => s.lineIndex === 1)?.translation).toBe("Hello world.")
+    expect(segments.find((s) => s.lineIndex === 4)?.translation).toBe("Second line.")
+    expect(segments.find((s) => s.lineIndex === 8)?.translation).toBe("Third line.")
   })
 
   it("recognizes timestamp lines with leading markers", () => {
@@ -33,7 +33,7 @@ describe("parseSubs", () => {
 
     expect(segments).toHaveLength(1)
     expect(segments[0]?.lineIndex).toBe(1)
-    expect(segments[0]?.text).toBe("Hello world.")
+    expect(segments[0]?.translation).toBe("Hello world.")
   })
 })
 
@@ -59,20 +59,20 @@ describe("parseNews", () => {
       {
         lineIndex: 2,
         lineIndexEnd: 2,
-        text: "First sentence.",
+        translation: "First sentence.",
         blockType: "vo",
         marker: { raw: "1_0001", index: 1, time: 1, valid: true, lineIndex: 0 },
       },
       {
         lineIndex: 7,
         lineIndexEnd: 8,
-        text: "Super line one. Super line two.",
+        translation: "Super line one. Super line two.",
         blockType: "super",
       },
       {
         lineIndex: 10,
         lineIndexEnd: 10,
-        text: "Trailing VO line.",
+        translation: "Trailing VO line.",
         blockType: "vo",
       },
     ])
@@ -96,7 +96,7 @@ describe("parseNews", () => {
       {
         lineIndex: 1,
         lineIndexEnd: 1,
-        text: "",
+        translation: "",
         blockType: "vo",
         targetLines: [],
         sourceText: "這是一段旁白",
@@ -104,7 +104,7 @@ describe("parseNews", () => {
       {
         lineIndex: 4,
         lineIndexEnd: 5,
-        text: "",
+        translation: "",
         blockType: "super",
         targetLines: [],
         sourceText: "人物名稱// 這是一段字卡",
@@ -129,7 +129,7 @@ describe("parseNews", () => {
         blockType: "vo",
         sourceText:
           "賴斯教授，在1996年對C型肝炎病毒的關鍵性發現，推動了藥物研發，讓C型肝炎從不治之症，轉變為可治療的疾病，全球有超過數百萬患者，都因此受惠。",
-        text: "Back in 1996, Charles Rice made a key breakthrough in hepatitis C research.",
+        translation: "Back in 1996, Charles Rice made a key breakthrough in hepatitis C research.",
       },
     ])
   })
@@ -153,7 +153,7 @@ describe("parseNews", () => {
         blockType: "vo",
         sourceText:
           "賴斯教授，在1996年對C型肝炎病毒的關鍵性發現，推動了藥物研發，讓C型肝炎從不治之症，轉變為可治療的疾病，全球有超過數百萬患者，都因此受惠。 雖然不是第一次造訪台灣，但是對於台灣的肝炎防治成果，與未來的相關研究，他也給予肯定。",
-        text: "Back in 1996, Charles Rice made a key breakthrough in hepatitis C research that helped drive new treatments, turning it from an incurable disease into one that can be treated and benefiting millions worldwide. Even though this isn't his first time in Taiwan, he also praised its progress in hepatitis prevention and future research.",
+        translation: "Back in 1996, Charles Rice made a key breakthrough in hepatitis C research that helped drive new treatments, turning it from an incurable disease into one that can be treated and benefiting millions worldwide. Even though this isn't his first time in Taiwan, he also praised its progress in hepatitis prevention and future research.",
       },
     ])
   })
@@ -279,7 +279,7 @@ describe("parseNews", () => {
         lineIndex: 12,
         blockType: "vo",
         sourceText: "中文內文。",
-        text: "English line.",
+        translation: "English line.",
       },
     ])
   })

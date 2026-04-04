@@ -4,7 +4,7 @@ import { type ParseBlockOptions, parseBlockAt } from '../shared/tsvRuns'
 
 export type CandidateLine = {
   lineIndex: number
-  text: string
+  lineText: string
 }
 
 export type NewsMarker = {
@@ -26,7 +26,7 @@ export type SuperPersonEntry = {
 export type Segment = {
   lineIndex: number
   lineIndexEnd?: number
-  text: string
+  translation: string
   blockType?: 'vo' | 'super' | 'super_people'
   skipTranslation?: boolean
   marker?: NewsMarker
@@ -91,12 +91,12 @@ export function parseSubs(
     const block = parseBlockAt(src, i, options)
     if (!block) continue
     const targetLines = isEnglishLikeLine(block.translation)
-      ? [{ lineIndex: block.translationIndex, text: block.translation }]
+      ? [{ lineIndex: block.translationIndex, lineText: block.translation }]
       : []
     segments.push({
       lineIndex: block.translationIndex,
       lineIndexEnd: block.translationIndex,
-      text: block.translation,
+      translation: block.translation,
       tsIndex: block.tsIndex,
       translationIndex: block.translationIndex,
       startFrames: block.startFrames,
@@ -139,8 +139,8 @@ export function parseNews(text: string): Segment[] {
       lineIndex,
       lineIndexEnd,
       marker: currentMarker,
-      text: targetBuffer.map((line) => line.text.trim()).join(' '),
-      sourceText: sourceBuffer.map((line) => line.text.trim()).join(' '),
+      translation: targetBuffer.map((line) => line.lineText.trim()).join(' '),
+      sourceText: sourceBuffer.map((line) => line.lineText.trim()).join(' '),
       sourceLines: sourceBuffer,
       targetLines: targetBuffer,
       blockType: currentBlock,
@@ -163,7 +163,7 @@ export function parseNews(text: string): Segment[] {
     segments.push({
       lineIndex: first.lineIndex,
       lineIndexEnd: last.lineIndex,
-      text: superPeopleBuffer.map((line) => line.text.trim()).join(' '),
+      translation: superPeopleBuffer.map((line) => line.lineText.trim()).join(' '),
       blockType: 'super_people',
       targetLines: [...superPeopleBuffer],
       superPerson: entry,
@@ -203,7 +203,7 @@ export function parseNews(text: string): Segment[] {
         continue
       }
 
-      superPeopleBuffer.push({ lineIndex: i, text: raw })
+      superPeopleBuffer.push({ lineIndex: i, lineText: raw })
       continue
     }
 
@@ -229,7 +229,7 @@ export function parseNews(text: string): Segment[] {
     if (inComment) {
       if (inSuperComment && isNewsSourceLine(raw)) {
         currentBlock = 'super'
-        sourceBuffer.push({ lineIndex: i, text: raw.trim() })
+        sourceBuffer.push({ lineIndex: i, lineText: raw.trim() })
       }
       if (isCommentEnd) {
         inComment = false
@@ -289,7 +289,7 @@ export function parseNews(text: string): Segment[] {
         }
       }
       currentBlock = blockType
-      targetBuffer.push({ lineIndex: i, text: raw })
+      targetBuffer.push({ lineIndex: i, lineText: raw })
       continue
     }
 
@@ -306,7 +306,7 @@ export function parseNews(text: string): Segment[] {
         }
       }
       currentBlock = blockType
-      sourceBuffer.push({ lineIndex: i, text: raw.trim() })
+      sourceBuffer.push({ lineIndex: i, lineText: raw.trim() })
       continue
     }
 
@@ -336,7 +336,7 @@ export function parseNews(text: string): Segment[] {
 }
 
 function parseSuperPersonEntry(lines: CandidateLine[]): SuperPersonEntry {
-  const [zhLine, ...englishLines] = lines.map((line) => line.text.trim())
+  const [zhLine, ...englishLines] = lines.map((line) => line.lineText.trim())
   const [zhTitle = '', zhName = ''] = zhLine.split('|').map((part) => part.trim())
   let enName = ''
   let enTitle = ''

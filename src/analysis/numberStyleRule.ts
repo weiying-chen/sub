@@ -303,7 +303,7 @@ function getTextAndAnchor(
   options: ParseBlockOptions = {}
 ): { text: string; anchorIndex: number } | null {
   if ('segment' in ctx) {
-    const text = ctx.segment.text
+    const text = ctx.segment.translation
     if (text.trim() === '') return null
     return { text, anchorIndex: ctx.segment.lineIndex }
   }
@@ -412,11 +412,11 @@ export function numberStyleRule(
       const candidates = ctx.segment.targetLines
       if (candidates.length === 0) return []
       return candidates.flatMap((candidate) => {
-        const quoteInfo = quoteTracker.inspect(candidate.text)
+        const quoteInfo = quoteTracker.inspect(candidate.lineText)
         return collectMetrics(
-          candidate.text,
+          candidate.lineText,
           candidate.lineIndex,
-          candidate.text,
+          candidate.lineText,
           !quoteInfo.leadingQuoteIsContinuation
         )
       })

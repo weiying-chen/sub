@@ -52,7 +52,7 @@ function isSegmentContinuation(
   const prev = segments[index - 1]
   if (!hasTiming(cur) || !hasTiming(prev)) return false
   if (hasSegmentGap(lines, prev, cur, ignoreEmptyLines)) return false
-  return cur.text === prev.text
+  return cur.translation === prev.translation
 }
 
 function mergeForwardSegments(
@@ -69,7 +69,7 @@ function mergeForwardSegments(
 
   while (endIndex + 1 < segments.length) {
     const next = segments[endIndex + 1]
-    if (!hasTiming(next) || next.text !== first.text) break
+    if (!hasTiming(next) || next.translation !== first.translation) break
     if (hasSegmentGap(lines, segments[endIndex], next, ignoreEmptyLines)) break
     endFrames = next.endFrames
     endIndex += 1
@@ -80,7 +80,7 @@ function mergeForwardSegments(
     endIndex,
     startFrames: first.startFrames,
     endFrames,
-    text: first.text,
+    translation: first.translation,
     tsIndex: first.tsIndex,
     lineIndex: first.lineIndex,
   }
@@ -116,7 +116,7 @@ export function cpsRule(
       if (!run) return []
 
       const durationFrames = run.endFrames - run.startFrames
-      const charCount = run.text.length
+      const charCount = run.translation.length
       const cps =
         durationFrames === 0 ? Infinity : (charCount * FPS) / durationFrames
 
@@ -124,7 +124,7 @@ export function cpsRule(
         type: 'CPS',
         lineIndex: run.lineIndex,
         tsLineIndex: run.tsIndex,
-        text: run.text,
+        text: run.translation,
         cps,
         maxCps,
         minCps,

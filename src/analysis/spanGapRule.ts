@@ -26,16 +26,16 @@ export function spanGapRule(): SegmentRule {
     const gapFrames = next.startFrames - cur.endFrames
     if (gapFrames < MIN_SPAN_GAP_FRAMES) return []
 
-    const left = normalizeTextForCompare(cur.text)
-    const right = normalizeTextForCompare(next.text)
+    const left = normalizeTextForCompare(cur.translation)
+    const right = normalizeTextForCompare(next.translation)
     if (!left || left !== right) return []
 
     const metric: SpanGapMetric = {
       type: "SPAN_GAP",
       lineIndex: cur.lineIndex,
       nextLineIndex: next.lineIndex,
-      text: cur.text,
-      nextText: next.text,
+      text: cur.translation,
+      nextText: next.translation,
       gapFrames,
       instruction:
         "This line disappears and reappears after a timing gap. Split or rewrite it instead of spanning across it.",

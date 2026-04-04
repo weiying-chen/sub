@@ -211,6 +211,10 @@ describe("Sidebar", () => {
     expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*bottom:\s*12px;/)
   })
 
+  it("uses roomier rules modal padding", () => {
+    expect(indexCss).toMatch(/\.rules-modal\s*\{[\s\S]*padding:\s*20px;/)
+  })
+
   it("hides the fill-subs panel controls", () => {
     render(<App />)
 

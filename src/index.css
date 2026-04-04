@@ -372,7 +372,7 @@ body {
   border-radius: 8px;
   background: var(--bg);
   color: var(--text);
-  padding: 14px;
+  padding: 20px;
   opacity: 0;
   transform: scale(0.98);
   transition:

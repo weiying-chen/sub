@@ -12,7 +12,7 @@ function getBaselineFindings(baselineText: string, currentText: string) {
 }
 
 describe("baselineRule (segments)", () => {
-  it("flags inline source text edits on timestamp lines", () => {
+  it("flags source text edits on timestamp lines", () => {
     const baseline = "00:00:01:00\t00:00:02:00\tSRC1"
     const current = "00:00:01:00\t00:00:02:00\tSRC1 EDIT"
 
@@ -21,7 +21,7 @@ describe("baselineRule (segments)", () => {
     expect(findings[0]).toMatchObject({
       type: "BASELINE",
       message: "Inline source text mismatch vs baseline",
-      reason: "inlineText",
+      reason: "sourceText",
       timestamp: "00:00:01:00 -> 00:00:02:00",
       expected: "SRC1",
       actual: "SRC1 EDIT",

@@ -35,28 +35,28 @@ export function parseTimecodeToFrames(tc: string): number | null {
 }
 
 /**
- * Extract inline subtitle text from a timestamp line.
+ * Extract source text from a timestamp line.
  * Example:
  * 00:00:01:12\t00:00:03:04\tHello world
  * → "Hello world"
  *
  * Returns null if the line is not a valid timestamp line
- * or has no inline text.
+ * or has no source text.
  */
 const TSV_INLINE_TEXT_RE =
   /^(?:.*?)(?:\d{2}:\d{2}:\d{2}:\d{2})\t+(?:\d{2}:\d{2}:\d{2}:\d{2})\t+(?<text>.+)$/
 
-export function extractInlineSubtitleText(line: string): string | null {
+export function extractSourceText(line: string): string | null {
   const m = line.match(TSV_INLINE_TEXT_RE)
   if (!m?.groups?.text) return null
   return m.groups.text.trim()
 }
 
 /**
- * Extract inline subtitle text from a line range
+ * Extract source text from a line range
  * and join into a single sentence (for ChatGPT, etc.)
  */
-export function extractInlineTextFromRange(
+export function extractSourceTextFromRange(
   lines: string[],
   fromLine: number,
   toLine: number
@@ -64,7 +64,7 @@ export function extractInlineTextFromRange(
   const parts: string[] = []
 
   for (let i = fromLine; i <= toLine; i++) {
-    const text = extractInlineSubtitleText(lines[i])
+    const text = extractSourceText(lines[i])
     if (text) parts.push(text)
   }
 

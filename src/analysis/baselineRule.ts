@@ -1,6 +1,6 @@
 import type { Rule, BaselineMetric, RuleCtx } from './types'
 
-import { TSV_RE, extractInlineSubtitleText } from '../shared/subtitles'
+import { TSV_RE, extractSourceText } from '../shared/subtitles'
 import { normalizeLineEndings } from '../shared/normalizeLineEndings'
 import type { SegmentCtx, SegmentRule } from './segments'
 
@@ -8,7 +8,7 @@ type TsEntry = {
   lineIndex: number
   start: string
   end: string
-  inlineText: string
+  sourceText: string
 }
 
 function parseTimestampLines(lines: string[]): TsEntry[] {
@@ -20,9 +20,9 @@ function parseTimestampLines(lines: string[]): TsEntry[] {
 
     const start = m.groups.start
     const end = m.groups.end
-    const inlineText = extractInlineSubtitleText(line) ?? ''
+    const sourceText = extractSourceText(line) ?? ''
 
-    out.push({ lineIndex, start, end, inlineText })
+    out.push({ lineIndex, start, end, sourceText })
   })
 
   return out
@@ -188,15 +188,15 @@ export function baselineRule(baselineText: string): BaselineRule {
       }
 
       for (const { expected, actual } of matches) {
-        if (expected.inlineText && expected.inlineText !== actual.inlineText) {
+        if (expected.sourceText && expected.sourceText !== actual.sourceText) {
           metrics.push({
             type: 'BASELINE',
             lineIndex: actual.lineIndex,
             message: 'Inline source text mismatch vs baseline',
-            reason: 'inlineText',
+            reason: 'sourceText',
             timestamp: `${expected.start} -> ${expected.end}`,
-            expected: expected.inlineText,
-            actual: actual.inlineText || '(empty)',
+            expected: expected.sourceText,
+            actual: actual.sourceText || '(empty)',
           })
         }
       }
@@ -246,15 +246,15 @@ export function baselineRule(baselineText: string): BaselineRule {
     }
 
     for (const { expected, actual } of matches) {
-      if (expected.inlineText && expected.inlineText !== actual.inlineText) {
+      if (expected.sourceText && expected.sourceText !== actual.sourceText) {
         metrics.push({
           type: 'BASELINE',
           lineIndex: actual.lineIndex,
           message: 'Inline source text mismatch vs baseline',
-          reason: 'inlineText',
+          reason: 'sourceText',
           timestamp: `${expected.start} -> ${expected.end}`,
-          expected: expected.inlineText,
-          actual: actual.inlineText || '(empty)',
+          expected: expected.sourceText,
+          actual: actual.sourceText || '(empty)',
         })
       }
     }

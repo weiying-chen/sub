@@ -1,5 +1,5 @@
 import type { EditorView } from '@codemirror/view'
-import { extractInlineSubtitleText } from '../shared/subtitles'
+import { extractSourceText } from '../shared/subtitles'
 
 export function getSelectedInlineText(view: EditorView): string {
   const { doc, selection } = view.state
@@ -10,7 +10,7 @@ export function getSelectedInlineText(view: EditorView): string {
     const toLine = doc.lineAt(range.to).number - 1
 
     for (let i = fromLine; i <= toLine; i++) {
-      const text = extractInlineSubtitleText(doc.line(i + 1).text)
+      const text = extractSourceText(doc.line(i + 1).text)
       if (text) parts.push(text)
     }
   }

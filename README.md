@@ -28,7 +28,7 @@ printf '00:00:01:00\t00:00:02:00\tMarker\n00:00:02:00\t00:00:03:00\tMarker\n' \
   | npx tsx src/cli/fillSubs.ts --no-inline -t "He said that it was over."
 ```
 
-Baseline comparison (timestamps + inline source text):
+Baseline comparison (timestamps + source text):
 
 ```sh
 node src/cli/watch.ts path/to/file.txt --type subs --baseline path/to/original.txt

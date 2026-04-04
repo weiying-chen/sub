@@ -189,6 +189,12 @@ describe("Sidebar", () => {
     expect(indexCss).toMatch(/\.finding-row-button\.is-active\s*\{[\s\S]*background:\s*var\(--finding-active-bg\);/)
   })
 
+  it("uses one finding active token for both hover and selected states", () => {
+    expect(indexCss).not.toMatch(/--finding-hover-bg:/)
+    expect(indexCss).toMatch(/\.finding-row-button:hover\s*\{[\s\S]*background:\s*var\(--finding-active-bg\);/)
+    expect(indexCss).toMatch(/\.finding-row-button\.is-active\s*\{[\s\S]*background:\s*var\(--finding-active-bg\);/)
+  })
+
   it("keeps default timestamp gutter links slightly above finding-active contrast", () => {
     expect(indexCss).toMatch(/:root\s*\{[\s\S]*--ts-link:\s*#a7bacf;/)
     expect(indexCss).toMatch(/\[data-theme="dark"\]\s*\{[\s\S]*--ts-link:\s*#31465e;/)

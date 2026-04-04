@@ -292,7 +292,7 @@ body {
 }
 
 .finding-row-button:hover {
-  background: var(--panel-hover);
+  background: var(--finding-active-bg);
 }
 
 .finding-row-button.is-active {

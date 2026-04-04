@@ -74,5 +74,6 @@ describe("wording copy", () => {
     expect(appTsx).toContain("TIMESTAMP_FORMAT_MODAL_EXPLANATION")
     expect(appTsx).toContain("./shared/wording")
     expect(appTsx).toContain("punctuation flow between translations")
+    expect(appTsx).toContain("Warns when nearby translations can be merged.")
   })
 })

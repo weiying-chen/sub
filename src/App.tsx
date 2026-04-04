@@ -116,7 +116,7 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "MERGE_CANDIDATE",
     label: "Translations could be merged",
-    explanation: "Warns when nearby translations look mergeable into one subtitle.",
+    explanation: "Warns when nearby translations can be merged.",
     severity: "warn",
   },
 ]

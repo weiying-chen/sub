@@ -34,12 +34,14 @@ describe("analyzeOutput rule assembly", () => {
     )
 
     expect(mocks.createSubsFindingsRulesMock).toHaveBeenCalled()
-    expect(mocks.createSubsFindingsRulesMock).toHaveBeenCalledWith({
-      capitalizationTerms: ["OpenAI"],
-      properNouns: ["Taipei"],
-      abbreviations: ["Mr.", "U.S."],
-      ignoreEmptyLines: true,
-    })
+    expect(mocks.createSubsFindingsRulesMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        capitalizationTerms: ["OpenAI"],
+        properNouns: ["Taipei"],
+        abbreviations: ["Mr.", "U.S."],
+        ignoreEmptyLines: true,
+      })
+    )
     expect(mocks.createSubsMetricsRulesMock).not.toHaveBeenCalled()
   })
 

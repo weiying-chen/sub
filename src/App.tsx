@@ -524,21 +524,6 @@ export default function App({
     }, RULES_MODAL_ANIMATION_MS)
   }, [])
 
-  const setAllRulesEnabled = useCallback(() => {
-    suppressFindingMotionForRuleChange()
-    setEnabledRuleTypes(new Set(DEFAULT_ENABLED_RULE_TYPES))
-  }, [suppressFindingMotionForRuleChange])
-
-  const setNoRulesEnabled = useCallback(() => {
-    suppressFindingMotionForRuleChange()
-    setEnabledRuleTypes(new Set())
-  }, [suppressFindingMotionForRuleChange])
-
-  const setDefaultRulesEnabled = useCallback(() => {
-    suppressFindingMotionForRuleChange()
-    setEnabledRuleTypes(new Set(DEFAULT_ENABLED_RULE_TYPES))
-  }, [suppressFindingMotionForRuleChange])
-
   const toggleRule = useCallback((type: Finding["type"]) => {
     suppressFindingMotionForRuleChange()
     setEnabledRuleTypes((prev) => {
@@ -770,17 +755,6 @@ export default function App({
                 onClick={closeRulesModal}
               >
                 <i className="las la-times" aria-hidden="true" />
-              </button>
-            </div>
-            <div className="rules-modal-actions">
-              <button type="button" onClick={setAllRulesEnabled}>
-                All
-              </button>
-              <button type="button" onClick={setNoRulesEnabled}>
-                None
-              </button>
-              <button type="button" onClick={setDefaultRulesEnabled}>
-                Defaults
               </button>
             </div>
             <div className="rules-modal-groups">

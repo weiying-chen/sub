@@ -490,9 +490,9 @@ describe("Sidebar", () => {
     fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
 
     expect(ui.getByRole("dialog", { name: "Rules" })).toBeInTheDocument()
-    expect(ui.getByRole("button", { name: "All" })).toBeInTheDocument()
-    expect(ui.getByRole("button", { name: "None" })).toBeInTheDocument()
-    expect(ui.getByRole("button", { name: "Defaults" })).toBeInTheDocument()
+    expect(ui.queryByRole("button", { name: "All" })).not.toBeInTheDocument()
+    expect(ui.queryByRole("button", { name: "None" })).not.toBeInTheDocument()
+    expect(ui.queryByRole("button", { name: "Defaults" })).not.toBeInTheDocument()
     expect(
       ui.getByRole("checkbox", { name: /Reading speed is too high/i })
     ).toBeInTheDocument()

@@ -36,7 +36,7 @@ export function getFindings(
       out.push({
         ...m,
         severity: 'error',
-        instruction: 'Add the missing English line below this timestamp.',
+        instruction: 'Add the missing translation below this timestamp.',
       })
       continue
     }
@@ -46,7 +46,7 @@ export function getFindings(
         ...m,
         severity: 'error',
         instruction:
-          'Use a timestamp row in this format: HH:MM:SS:FF<TAB>HH:MM:SS:FF<TAB>text (optional "XXX " prefix).',
+          'Use a timestamp row in this format: HH:MM:SS:FF<TAB>HH:MM:SS:FF<TAB>source text (optional "XXX " prefix).',
       })
       continue
     }

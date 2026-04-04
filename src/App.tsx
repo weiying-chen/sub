@@ -55,14 +55,14 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "BLOCK_STRUCTURE",
     label: "Subtitle block structure is broken",
-    explanation: "Flags timestamp rows that are missing a translation line.",
+    explanation: "Flags timestamp rows that are missing a translation.",
     severity: "error",
   },
   {
     type: "TIMESTAMP_FORMAT",
     label: "Timestamp format is incorrect",
     explanation:
-      "Flags timestamp rows that do not match the allowed format (with optional XXX prefix).",
+      "Flags timestamp rows that do not match the allowed format (with optional XXX prefix before source text).",
     severity: "error",
   },
   {

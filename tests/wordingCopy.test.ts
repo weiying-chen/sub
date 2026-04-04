@@ -33,7 +33,7 @@ describe("wording copy", () => {
 
     expect(findings[0]?.instruction).toBe("Reduce reading speed to 25 CPS or less.")
     expect(findings[1]?.instruction).toBe(
-      "Add the missing English line below this timestamp."
+      "Add the missing translation below this timestamp."
     )
   })
 
@@ -61,8 +61,7 @@ describe("wording copy", () => {
   it("uses updated modal description for block structure", () => {
     const appTsx = readFileSync(join(process.cwd(), "src/App.tsx"), "utf8")
 
-    expect(appTsx).toContain(
-      'explanation: "Flags timestamp rows that are missing a translation line."'
-    )
+    expect(appTsx).toContain("missing a translation")
+    expect(appTsx).toContain("with optional XXX prefix before source text")
   })
 })

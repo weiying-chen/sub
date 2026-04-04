@@ -39,7 +39,7 @@ export function formatFinding(f: Finding): string {
   const severityColor = severity === 'WARN' ? YELLOW : RED
 
   const parts: string[] = []
-  const previewKeys = ['text', 'translationText', 'line', 'message']
+  const previewKeys = ['text', 'translation', 'line', 'message']
   const tokenKeys = ['token']
   let lineText: string | null = null
   let tokenText: string | null = null

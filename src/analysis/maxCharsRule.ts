@@ -40,7 +40,7 @@ function getTextAndAnchor(
   const block = parseBlockAt(src, ctx.lineIndex, options)
   if (!block) return null
 
-  const text = block.translationText
+  const text = block.translation
   if (text.trim() === '') return null
 
   // Anchor the finding to the translation line when it exists.

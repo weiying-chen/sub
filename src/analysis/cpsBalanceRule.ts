@@ -199,12 +199,12 @@ export function cpsBalanceRule(
     const cpsA =
       durationA === 0
         ? Infinity
-        : (runA.translationText.length * FPS) / durationA
+        : (runA.translation.length * FPS) / durationA
 
     const cpsB =
       durationB === 0
         ? Infinity
-        : (runB.translationText.length * FPS) / durationB
+        : (runB.translation.length * FPS) / durationB
 
     const deltaCps = Math.abs(cpsA - cpsB)
 
@@ -225,7 +225,7 @@ export function cpsBalanceRule(
       cps: faster.cps,
       neighborCps: faster.neighborCps,
       deltaCps,
-      text: faster.run.translationText,
+      text: faster.run.translation,
     }
 
     return [metric]

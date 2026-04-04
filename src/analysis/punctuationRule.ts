@@ -165,7 +165,7 @@ function collectCues(
     cues.push({
       start: m.groups.start,
       end: m.groups.end,
-      text: block.translationText.trim(),
+      text: block.translation.trim(),
       lineIndex: block.translationIndex,
       tsIndex: block.tsIndex,
       translationIndex: block.translationIndex,

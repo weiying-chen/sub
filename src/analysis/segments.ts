@@ -90,13 +90,13 @@ export function parseSubs(
   for (let i = 0; i < lines.length; i += 1) {
     const block = parseBlockAt(src, i, options)
     if (!block) continue
-    const targetLines = isEnglishLikeLine(block.translationText)
-      ? [{ lineIndex: block.translationIndex, text: block.translationText }]
+    const targetLines = isEnglishLikeLine(block.translation)
+      ? [{ lineIndex: block.translationIndex, text: block.translation }]
       : []
     segments.push({
       lineIndex: block.translationIndex,
       lineIndexEnd: block.translationIndex,
-      text: block.translationText,
+      text: block.translation,
       tsIndex: block.tsIndex,
       translationIndex: block.translationIndex,
       startFrames: block.startFrames,

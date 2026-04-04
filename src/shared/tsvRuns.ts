@@ -17,7 +17,7 @@ export type ParseBlockOptions = {
 export type ParsedBlock = {
   tsIndex: number
   translationIndex: number
-  translationText: string
+  translation: string
   startFrames: number
   endFrames: number
 }
@@ -27,7 +27,7 @@ export type MergedRun = {
   endTsIndex: number
   startFrames: number
   endFrames: number
-  translationText: string
+  translation: string
   translationIndexStart: number
   translationIndexEnd: number
 }
@@ -49,18 +49,18 @@ function findTranslationBelow(
   src: LineSource,
   tsIndex: number,
   options: ParseBlockOptions = {}
-): { translationIndex: number | null; translationText: string } {
+): { translationIndex: number | null; translation: string } {
   const ignoreEmptyLines = options.ignoreEmptyLines ?? false
   for (let i = tsIndex + 1; i < src.lineCount; i++) {
     const t = src.getLine(i)
     if (TSV_RE.test(t)) break
     if (t.trim() === '') {
       if (ignoreEmptyLines) continue
-      return { translationIndex: null, translationText: '' }
+      return { translationIndex: null, translation: '' }
     }
-    return { translationIndex: i, translationText: t }
+    return { translationIndex: i, translation: t }
   }
-  return { translationIndex: null, translationText: '' }
+  return { translationIndex: null, translation: '' }
 }
 
 export function hasEmptyLineBetween(
@@ -92,7 +92,7 @@ export function parseBlockAt(
     return null
   }
 
-  const { translationIndex, translationText } = findTranslationBelow(
+  const { translationIndex, translation } = findTranslationBelow(
     src,
     tsIndex,
     options
@@ -102,7 +102,7 @@ export function parseBlockAt(
   return {
     tsIndex,
     translationIndex,
-    translationText,
+    translation,
     startFrames,
     endFrames,
   }
@@ -132,7 +132,7 @@ export function isContinuationOfPrevious(
       return false
     }
 
-    const isContinuation = prev.translationText === block.translationText
+    const isContinuation = prev.translation === block.translation
     return isContinuation
   }
   return false
@@ -141,7 +141,7 @@ export function isContinuationOfPrevious(
 /**
  * Merge forward from a starting block to form a run with identical translation.
  *
- * New behavior: merges adjacent timestamp blocks as long as translationText matches,
+ * New behavior: merges adjacent timestamp blocks as long as translation matches,
  * regardless of gaps in timing.
  */
 export function mergeForward(
@@ -166,7 +166,7 @@ export function mergeForward(
     }
 
     const next = parseBlockAt(src, nextTs, options)
-    if (next && next.translationText === first.translationText) {
+    if (next && next.translation === first.translation) {
       mergedEndFrames = next.endFrames
       scanTs = next.tsIndex
       endTsIndex = next.tsIndex
@@ -182,7 +182,7 @@ export function mergeForward(
     endTsIndex,
     startFrames: first.startFrames,
     endFrames: mergedEndFrames,
-    translationText: first.translationText,
+    translation: first.translation,
     translationIndexStart: first.translationIndex,
     translationIndexEnd,
   }
@@ -207,7 +207,7 @@ export function mergedRunTranslationIndices(
     }
 
     const next = parseBlockAt(src, nextTs, options)
-    if (!next || next.translationText !== first.translationText) break
+    if (!next || next.translation !== first.translation) break
 
     translationIndices.push(next.translationIndex)
     scanTs = next.tsIndex

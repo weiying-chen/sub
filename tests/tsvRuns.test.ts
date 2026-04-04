@@ -29,7 +29,7 @@ describe("tsvRuns empty-line handling", () => {
 
     const block = parseBlockAt(makeSrc(lines), 0, { ignoreEmptyLines: true })
 
-    expect(block?.translationText).toBe("Hello after gap.")
+    expect(block?.translation).toBe("Hello after gap.")
     expect(block?.translationIndex).toBe(2)
   })
 
@@ -53,7 +53,7 @@ describe("tsvRuns empty-line handling", () => {
     const run = mergeForward(src, first)
 
     expect(run.endTsIndex).toBe(first.tsIndex)
-    expect(run.translationText).toBe("Hi")
+    expect(run.translation).toBe("Hi")
   })
 
   it("merges across empty lines when opted in", () => {
@@ -76,7 +76,7 @@ describe("tsvRuns empty-line handling", () => {
     const run = mergeForward(src, first, { ignoreEmptyLines: true })
 
     expect(run.endTsIndex).toBe(3)
-    expect(run.translationText).toBe("Hi")
+    expect(run.translation).toBe("Hi")
   })
 
   it("returns translation indices only for merged runs", () => {

@@ -151,7 +151,7 @@ export function cpsRule(
     const run = mergeForward(src, cur, options)
 
     const durationFrames = run.endFrames - run.startFrames
-    const charCount = run.translationText.length
+    const charCount = run.translation.length
     const cps =
       durationFrames === 0 ? Infinity : (charCount * FPS) / durationFrames
 
@@ -159,7 +159,7 @@ export function cpsRule(
       type: 'CPS',
       lineIndex: run.translationIndexStart,
       tsLineIndex: run.startTsIndex,
-      text: run.translationText,
+      text: run.translation,
       cps,
       maxCps,
       minCps,

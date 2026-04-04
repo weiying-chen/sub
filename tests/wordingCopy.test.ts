@@ -3,9 +3,13 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
-import { getFindings } from "../src/shared/findings"
 import { spanGapRule } from "../src/analysis/spanGapRule"
 import type { Metric } from "../src/analysis/types"
+import { getFindings } from "../src/shared/findings"
+import {
+  TIMESTAMP_FORMAT_FINDING_INSTRUCTION,
+  TIMESTAMP_FORMAT_MODAL_EXPLANATION,
+} from "../src/shared/timestampFormatWording"
 
 describe("wording copy", () => {
   it("uses updated finding instructions for max cps and missing translation", () => {
@@ -25,7 +29,12 @@ describe("wording copy", () => {
         type: "BLOCK_STRUCTURE",
         lineIndex: 3,
         ruleCode: "MISSING_TRANSLATION",
-        text: "00:00:01:00	00:00:02:00	Marker",
+        text: "00:00:01:00\t00:00:02:00\tMarker",
+      },
+      {
+        type: "TIMESTAMP_FORMAT",
+        lineIndex: 5,
+        text: "bad timestamp",
       },
     ]
 
@@ -35,6 +44,7 @@ describe("wording copy", () => {
     expect(findings[1]?.instruction).toBe(
       "Add the missing translation below this timestamp."
     )
+    expect(findings[2]?.instruction).toBe(TIMESTAMP_FORMAT_FINDING_INSTRUCTION)
   })
 
   it("uses updated span-gap wording", () => {
@@ -58,10 +68,10 @@ describe("wording copy", () => {
     })
   })
 
-  it("uses updated modal description for block structure", () => {
+  it("uses shared timestamp format wording for modal copy", () => {
     const appTsx = readFileSync(join(process.cwd(), "src/App.tsx"), "utf8")
 
-    expect(appTsx).toContain("missing a translation")
-    expect(appTsx).toContain("with optional XXX prefix before source text")
+    expect(appTsx).toContain("TIMESTAMP_FORMAT_MODAL_EXPLANATION")
+    expect(appTsx).toContain("./shared/timestampFormatWording")
   })
 })

@@ -24,6 +24,7 @@ import { selectLineOnTripleClick } from "./cm/selectLineOnTripleClick"
 import { mergedRunTranslationIndices, parseBlockAt, type LineSource } from "./shared/tsvRuns"
 
 import { sampleSubtitles } from "./fixtures/subtitles"
+import { TIMESTAMP_FORMAT_MODAL_EXPLANATION } from "./shared/timestampFormatWording"
 import capitalizationTermsText from "../capitalization-terms.txt?raw"
 import punctuationAbbreviationsText from "../punctuation-abbreviations.txt?raw"
 import properNounsText from "../punctuation-proper-nouns.txt?raw"
@@ -61,8 +62,7 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "TIMESTAMP_FORMAT",
     label: "Timestamp format is incorrect",
-    explanation:
-      "Flags timestamp rows that do not match the allowed format (with optional XXX prefix before source text).",
+    explanation: TIMESTAMP_FORMAT_MODAL_EXPLANATION,
     severity: "error",
   },
   {

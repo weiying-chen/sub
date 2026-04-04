@@ -1,4 +1,5 @@
 import type { Metric, Finding } from '../analysis/types'
+import { TIMESTAMP_FORMAT_FINDING_INSTRUCTION } from './timestampFormatWording'
 
 type FindingsOptions = {
   includeWarnings?: boolean
@@ -46,7 +47,7 @@ export function getFindings(
         ...m,
         severity: 'error',
         instruction:
-          'Use a timestamp row in this format: HH:MM:SS:FF<TAB>HH:MM:SS:FF<TAB>source text (optional "XXX " prefix).',
+          TIMESTAMP_FORMAT_FINDING_INSTRUCTION,
       })
       continue
     }

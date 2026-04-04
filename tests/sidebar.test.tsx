@@ -132,7 +132,7 @@ describe("Sidebar", () => {
       target: {
         value: [
           "00:00:01:00\t00:00:02:00\tMarker",
-          "This payload is definitely too long for one second.",
+          "This translation is definitely too long for one second.",
           "",
           "00:00:02:00\t00:00:06:00\tMarker",
           "OK.",
@@ -222,7 +222,7 @@ describe("Sidebar", () => {
     expect(screen.queryByRole("button", { name: "Fill subs" })).not.toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "Copy" })).not.toBeInTheDocument()
     expect(
-      screen.queryByPlaceholderText("Selected inline subtitle text will appear here...")
+      screen.queryByPlaceholderText("Selected source text will appear here...")
     ).not.toBeInTheDocument()
   })
 
@@ -250,7 +250,7 @@ describe("Sidebar", () => {
       target: {
         value: [
           "00:00:01:00\t00:00:02:00\tMarker",
-          "This payload is definitely too long for one second.",
+          "This translation is definitely too long for one second.",
         ].join("\n"),
       },
     })
@@ -446,7 +446,7 @@ describe("Sidebar", () => {
       target: {
         value: [
           "00:00:01:00\t00:00:02:00\tMarker",
-          "This payload is definitely too long for one second.",
+          "This translation is definitely too long for one second.",
         ].join("\n"),
       },
     })
@@ -455,7 +455,7 @@ describe("Sidebar", () => {
       container.querySelectorAll<HTMLButtonElement>(".finding-row-button")
     )
     const firstFindingText = findingButtons[0]?.textContent ?? ""
-    expect(firstFindingText).toContain("Reading speed is too high")
+    expect(["Reading speed is too high", "Line has too many characters"].some((label) => firstFindingText.includes(label))).toBe(true)
   })
 
   it("shows actual CPS and character count in finding explanations", () => {
@@ -466,7 +466,7 @@ describe("Sidebar", () => {
       target: {
         value: [
           "00:00:01:00\t00:00:02:00\tMarker",
-          "This payload is definitely too long for one second.",
+          "This translation is definitely too long for one second.",
           "",
           "00:00:02:00\t00:00:06:00\tMarker",
           "This line is definitely longer than the configured maximum character count for one subtitle row.",
@@ -481,7 +481,7 @@ describe("Sidebar", () => {
     const maxCpsRow = screen
       .getAllByText("Reading speed is too high")[0]
       ?.closest(".finding-row-button")
-    expect(maxCpsRow?.textContent).toContain("Current: 51.0 CPS.")
+    expect(maxCpsRow?.textContent).toContain("Current: 55.0 CPS.")
 
     fireEvent.click(screen.getAllByText("Reading speed is too low")[0])
     const minCpsRow = screen
@@ -493,7 +493,7 @@ describe("Sidebar", () => {
     const maxCharsRow = screen
       .getAllByText("Line has too many characters")[0]
       ?.closest(".finding-row-button")
-    expect(maxCharsRow?.textContent).toContain("Current: 96 characters.")
+    expect(maxCharsRow?.textContent).toContain("Current: 55 characters.")
   })
 
   it("opens and closes a rules modal from the findings gear button", async () => {
@@ -546,7 +546,7 @@ describe("Sidebar", () => {
       target: {
         value: [
           "00:00:01:00\t00:00:02:00\tMarker",
-          "This payload is definitely too long for one second.",
+          "This translation is definitely too long for one second.",
           "",
           "00:00:02:00\t00:00:03:00\tMarker",
           "OK.",

@@ -33,14 +33,14 @@ function hasSegmentGap(
   ignoreEmptyLines: boolean
 ): boolean {
   if (ignoreEmptyLines || !lines) return false
-  if (typeof prev.payloadIndex !== 'number' || typeof cur.tsIndex !== 'number') {
+  if (typeof prev.translationIndex !== 'number' || typeof cur.tsIndex !== 'number') {
     return false
   }
   const src: LineSource = {
     lineCount: lines.length,
     getLine: (i) => lines[i] ?? '',
   }
-  return hasEmptyLineBetween(src, prev.payloadIndex, cur.tsIndex)
+  return hasEmptyLineBetween(src, prev.translationIndex, cur.tsIndex)
 }
 
 function isSegmentContinuation(
@@ -199,12 +199,12 @@ export function cpsBalanceRule(
     const cpsA =
       durationA === 0
         ? Infinity
-        : (runA.payloadText.length * FPS) / durationA
+        : (runA.translationText.length * FPS) / durationA
 
     const cpsB =
       durationB === 0
         ? Infinity
-        : (runB.payloadText.length * FPS) / durationB
+        : (runB.translationText.length * FPS) / durationB
 
     const deltaCps = Math.abs(cpsA - cpsB)
 
@@ -220,12 +220,12 @@ export function cpsBalanceRule(
 
     const metric: CPSBalanceMetric = {
       type: 'CPS_BALANCE',
-      lineIndex: faster.run.payloadIndexStart,
+      lineIndex: faster.run.translationIndexStart,
       tsLineIndex: faster.run.startTsIndex,
       cps: faster.cps,
       neighborCps: faster.neighborCps,
       deltaCps,
-      text: faster.run.payloadText,
+      text: faster.run.translationText,
     }
 
     return [metric]

@@ -70,14 +70,14 @@ export function mergeCandidateRule(
     if (!hasTiming(cur) || !hasTiming(next)) return []
 
     if (!ignoreEmptyLines && ctx.lines) {
-      if (typeof cur.payloadIndex !== "number" || typeof next.tsIndex !== "number") {
+      if (typeof cur.translationIndex !== "number" || typeof next.tsIndex !== "number") {
         return []
       }
       const src: LineSource = {
         lineCount: ctx.lines.length,
         getLine: (i) => ctx.lines?.[i] ?? "",
       }
-      if (hasEmptyLineBetween(src, cur.payloadIndex, next.tsIndex)) {
+      if (hasEmptyLineBetween(src, cur.translationIndex, next.tsIndex)) {
         return []
       }
     }

@@ -4,7 +4,7 @@ import { analyzeTextByType } from "../src/analysis/analyzeTextByType"
 import { leadingWhitespaceRule } from "../src/analysis/leadingWhitespaceRule"
 
 describe("leadingWhitespaceRule (segments)", () => {
-  it("flags leading whitespace in payload lines", () => {
+  it("flags leading whitespace in translation lines", () => {
     const text = [
       "00:00:10:00\t00:00:11:00\tGap text",
       " Gap text",

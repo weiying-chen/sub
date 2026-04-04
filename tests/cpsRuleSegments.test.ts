@@ -5,7 +5,7 @@ import { getFindings } from "../src/shared/findings"
 import { cpsRule } from "../src/analysis/cpsRule"
 
 describe("cpsRule (segments)", () => {
-  it("merges identical consecutive payloads and anchors to payload lines", () => {
+  it("merges identical consecutive translations and anchors to translation lines", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "Hi",
@@ -46,7 +46,7 @@ describe("cpsRule (segments)", () => {
     expect(findings[0].minCps).toBe(10)
   })
 
-  it("treats empty lines as breaks between identical payloads by default", () => {
+  it("treats empty lines as breaks between identical translations by default", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "Hi",
@@ -63,7 +63,7 @@ describe("cpsRule (segments)", () => {
     expect(byLine.has(4)).toBe(true)
   })
 
-  it("can ignore empty lines between identical payloads when opted in", () => {
+  it("can ignore empty lines between identical translations when opted in", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "Hi",

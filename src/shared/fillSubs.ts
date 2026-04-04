@@ -1445,22 +1445,22 @@ function normalizeLeadingOfLines(lines: string[]): string[] {
   return normalized
 }
 
-function normalizeLeadingOfPayloads(
-  payloads: Map<number, string>,
+function normalizeLeadingOfTranslations(
+  translations: Map<number, string>,
   orderedIndices: number[]
 ): void {
   for (let i = 1; i < orderedIndices.length; i += 1) {
     const previousIndex = orderedIndices[i - 1]
     const currentIndex = orderedIndices[i]
-    const previousLine = payloads.get(previousIndex)
-    const currentLine = payloads.get(currentIndex)
+    const previousLine = translations.get(previousIndex)
+    const currentLine = translations.get(currentIndex)
     if (!previousLine || !currentLine) continue
 
     const adjusted = moveLeadingOfToPreviousLine(previousLine, currentLine)
     if (!adjusted) continue
 
-    payloads.set(previousIndex, adjusted.previousLine)
-    payloads.set(currentIndex, adjusted.currentLine)
+    translations.set(previousIndex, adjusted.previousLine)
+    translations.set(currentIndex, adjusted.currentLine)
   }
 }
 
@@ -1785,7 +1785,7 @@ function runInlineFill(
   }
 
   const outLines: string[] = []
-  const payloads = new Map<number, string>()
+  const translations = new Map<number, string>()
   let spanText: string | null = null
   let spanMeta: QuoteMeta | null = null
   let spanTotal = 0
@@ -1795,7 +1795,7 @@ function runInlineFill(
   let overflow = false
   let quoteOpen = false
   let lastFilledIndex: number | null = null
-  let lastPayload: string | null = null
+  let lastTranslation: string | null = null
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
@@ -1819,8 +1819,8 @@ function runInlineFill(
         isLastInSpan
       )
       quoteOpen = carried.quoteOpen
-      payloads.set(i, carried.text)
-      lastPayload = carried.text
+      translations.set(i, carried.text)
+      lastTranslation = carried.text
       lastFilledIndex = i
       spanRemaining -= 1
       usedSlots += 1
@@ -1871,22 +1871,22 @@ function runInlineFill(
       spanTotal === 1
     )
     quoteOpen = carried.quoteOpen
-    payloads.set(i, carried.text)
-    lastPayload = carried.text
+    translations.set(i, carried.text)
+    lastTranslation = carried.text
     lastFilledIndex = i
   }
 
-  if (!dryRun && !remaining && lastPayload && lastFilledIndex != null) {
+  if (!dryRun && !remaining && lastTranslation && lastFilledIndex != null) {
     for (let i = lastFilledIndex + 1; i < lines.length; i += 1) {
       if (!isFillableTimestamp(lines, selectedLineIndices, i)) continue
-      if (payloads.has(i)) continue
-      payloads.set(i, lastPayload)
+      if (translations.has(i)) continue
+      translations.set(i, lastTranslation)
     }
   }
 
   if (!dryRun && options.altBreak) {
-    const orderedIndices = [...payloads.keys()].sort((a, b) => a - b)
-    normalizeLeadingOfPayloads(payloads, orderedIndices)
+    const orderedIndices = [...translations.keys()].sort((a, b) => a - b)
+    normalizeLeadingOfTranslations(translations, orderedIndices)
   }
 
   if (!dryRun) {
@@ -1894,8 +1894,8 @@ function runInlineFill(
       const line = lines[i]
       outLines.push(line)
       if (!isFillableTimestamp(lines, selectedLineIndices, i)) continue
-      const payload = payloads.get(i)
-      if (payload) outLines.push(payload)
+      const translation = translations.get(i)
+      if (translation) outLines.push(translation)
     }
   }
 

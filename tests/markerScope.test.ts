@@ -15,7 +15,7 @@ describe("findMarkerScope", () => {
       "",
       "@@",
       "00:00:03:00\t00:00:04:00\tSRC2",
-      "payload",
+      "translation",
       "",
       "tail",
     ]
@@ -28,7 +28,7 @@ describe("findMarkerScope", () => {
       "intro",
       "@@",
       "00:00:01:00\t00:00:02:00\tSRC1",
-      "payload",
+      "translation",
     ]
 
     expect(findMarkerScope(lines)).toEqual({ start: 2, end: 3 })

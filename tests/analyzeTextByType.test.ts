@@ -4,7 +4,7 @@ import { numberStyleRule } from "../src/analysis/numberStyleRule"
 import { analyzeTextByType } from "../src/analysis/analyzeTextByType"
 
 describe("analyzeTextByType", () => {
-  it("uses subs parsing (payload line anchors)", () => {
+  it("uses subs parsing (translation line anchors)", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "We saw 5 birds.",

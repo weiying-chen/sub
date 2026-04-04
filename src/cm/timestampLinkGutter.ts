@@ -123,12 +123,12 @@ export function timestampLinkGutter(
             : 'ok'
         : 'ok'
 
-      // Draw from first timestamp line down to the last payload line of the run
-      for (let i = run.startTsIndex; i <= run.payloadIndexEnd; i++) {
+      // Draw from first timestamp line down to the last translation line of the run
+      for (let i = run.startTsIndex; i <= run.translationIndexEnd; i++) {
         const part: LinkPart =
           i === run.startTsIndex
             ? 'start'
-            : i === run.payloadIndexEnd
+            : i === run.translationIndexEnd
               ? 'end'
               : 'mid'
 

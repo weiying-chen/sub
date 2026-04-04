@@ -2,7 +2,7 @@ import { Decoration, EditorView } from '@codemirror/view'
 import { RangeSetBuilder } from '@codemirror/state'
 import { defineDecorationsPlugin } from './defineDecorationsPlugin'
 import type { Finding } from '../analysis/types'
-import { parseBlockAt, mergedRunPayloadIndices, type LineSource } from '../shared/tsvRuns'
+import { parseBlockAt, mergedRunTranslationIndices, type LineSource } from '../shared/tsvRuns'
 
 type FindingEntry = { finding: Finding; index: number }
 type Severity = 'error' | 'warn'
@@ -174,7 +174,7 @@ export function findingsDecorations(findings: Finding[], activeFindingId: string
       underline(line.from, line.to, className, severity, isActive)
     }
 
-    const underlineCpsRunPayload = (
+    const underlineCpsRunTranslation = (
       tsIndex: number,
       className: string,
       severity: Severity,
@@ -183,8 +183,8 @@ export function findingsDecorations(findings: Finding[], activeFindingId: string
       if (tsIndex < 0 || tsIndex >= doc.lines) return false
       const first = parseBlockAt(src, tsIndex)
       if (!first) return false
-      const payloadIndices = mergedRunPayloadIndices(src, first)
-      for (const i of payloadIndices) {
+      const translationIndices = mergedRunTranslationIndices(src, first)
+      for (const i of translationIndices) {
         underlineWholeLine(i, className, severity, isActive)
       }
       return true
@@ -205,7 +205,7 @@ export function findingsDecorations(findings: Finding[], activeFindingId: string
       }
 
       if (f.type === 'MAX_CPS' || f.type === 'MIN_CPS' || f.type === 'CPS_BALANCE') {
-        const didUnderlineRun = underlineCpsRunPayload(
+        const didUnderlineRun = underlineCpsRunTranslation(
           findingTsLineIndex(f),
           className,
           severity,

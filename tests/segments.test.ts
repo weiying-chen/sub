@@ -3,7 +3,7 @@ import { describe, it, expect } from "vitest"
 import { parseNews, parseSubs } from "../src/analysis/segments"
 
 describe("parseSubs", () => {
-  it("returns payload segments anchored to payload lines", () => {
+  it("returns translation segments anchored to translation lines", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "Hello world.",

@@ -27,28 +27,28 @@ function collectTimestampIndices(
   return indices
 }
 
-function findPayloadIndex(
+function findTranslationIndex(
   lines: string[],
   tsIndex: number,
   ignoreEmptyLines: boolean
 ): number | null {
-  let payloadIndex = tsIndex + 1
+  let translationIndex = tsIndex + 1
   if (ignoreEmptyLines) {
-    while (payloadIndex < lines.length && (lines[payloadIndex] ?? '').trim() === '') {
-      payloadIndex += 1
+    while (translationIndex < lines.length && (lines[translationIndex] ?? '').trim() === '') {
+      translationIndex += 1
     }
   }
 
-  const payloadLine = lines[payloadIndex] ?? ''
+  const translationLine = lines[translationIndex] ?? ''
   if (
-    payloadIndex >= lines.length ||
-    payloadLine.trim() === '' ||
-    TSV_RE.test(payloadLine)
+    translationIndex >= lines.length ||
+    translationLine.trim() === '' ||
+    TSV_RE.test(translationLine)
   ) {
     return null
   }
 
-  return payloadIndex
+  return translationIndex
 }
 
 function isWithinSection(
@@ -83,24 +83,24 @@ export function blockStructureRule(
         continue
       }
 
-      const payloadByTimestamp = new Map<number, number | null>()
-      let sectionHasAnyPayload = false
+      const translationByTimestamp = new Map<number, number | null>()
+      let sectionHasAnyTranslation = false
       for (const tsIndex of timestampIndices) {
-        const payloadIndex = findPayloadIndex(lines, tsIndex, ignoreEmptyLines)
-        const sectionPayloadIndex = isWithinSection(payloadIndex, sectionStart, sectionEnd)
-          ? payloadIndex
+        const translationIndex = findTranslationIndex(lines, tsIndex, ignoreEmptyLines)
+        const sectionTranslationIndex = isWithinSection(translationIndex, sectionStart, sectionEnd)
+          ? translationIndex
           : null
-        payloadByTimestamp.set(tsIndex, sectionPayloadIndex)
-        if (sectionPayloadIndex != null) sectionHasAnyPayload = true
+        translationByTimestamp.set(tsIndex, sectionTranslationIndex)
+        if (sectionTranslationIndex != null) sectionHasAnyTranslation = true
       }
 
-      if (sectionHasAnyPayload) {
+      if (sectionHasAnyTranslation) {
         for (const tsIndex of timestampIndices) {
-          if (payloadByTimestamp.get(tsIndex) != null) continue
+          if (translationByTimestamp.get(tsIndex) != null) continue
           metrics.push({
             type: 'BLOCK_STRUCTURE',
             lineIndex: tsIndex,
-            ruleCode: 'MISSING_PAYLOAD',
+            ruleCode: 'MISSING_TRANSLATION',
             text: (lines[tsIndex] ?? '').trim(),
           })
         }

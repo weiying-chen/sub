@@ -20,7 +20,7 @@ describe("inspect output", () => {
       lineIndexEnd: 1,
       text: "Hello world.",
       tsIndex: 0,
-      payloadIndex: 1,
+      translationIndex: 1,
     })
   })
 

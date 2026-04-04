@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 
-import { parseBlockAt, mergeForward, mergedRunPayloadIndices } from "../src/shared/tsvRuns"
+import { parseBlockAt, mergeForward, mergedRunTranslationIndices } from "../src/shared/tsvRuns"
 
 const makeSrc = (lines: string[]) => ({
   lineCount: lines.length,
@@ -8,7 +8,7 @@ const makeSrc = (lines: string[]) => ({
 })
 
 describe("tsvRuns empty-line handling", () => {
-  it("treats empty lines as payload breaks by default", () => {
+  it("treats empty lines as translation breaks by default", () => {
     const lines = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "",
@@ -29,8 +29,8 @@ describe("tsvRuns empty-line handling", () => {
 
     const block = parseBlockAt(makeSrc(lines), 0, { ignoreEmptyLines: true })
 
-    expect(block?.payloadText).toBe("Hello after gap.")
-    expect(block?.payloadIndex).toBe(2)
+    expect(block?.translationText).toBe("Hello after gap.")
+    expect(block?.translationIndex).toBe(2)
   })
 
   it("breaks merged runs across empty lines by default", () => {
@@ -53,7 +53,7 @@ describe("tsvRuns empty-line handling", () => {
     const run = mergeForward(src, first)
 
     expect(run.endTsIndex).toBe(first.tsIndex)
-    expect(run.payloadText).toBe("Hi")
+    expect(run.translationText).toBe("Hi")
   })
 
   it("merges across empty lines when opted in", () => {
@@ -76,10 +76,10 @@ describe("tsvRuns empty-line handling", () => {
     const run = mergeForward(src, first, { ignoreEmptyLines: true })
 
     expect(run.endTsIndex).toBe(3)
-    expect(run.payloadText).toBe("Hi")
+    expect(run.translationText).toBe("Hi")
   })
 
-  it("returns payload indices only for merged runs", () => {
+  it("returns translation indices only for merged runs", () => {
     const lines = [
       "00:00:08:00\t00:00:09:00\tMarker",
       "Gap text.",
@@ -95,7 +95,7 @@ describe("tsvRuns empty-line handling", () => {
     expect(first).not.toBeNull()
     if (!first) return
 
-    const payloadIndices = mergedRunPayloadIndices(src, first)
-    expect(payloadIndices).toEqual([1, 3])
+    const translationIndices = mergedRunTranslationIndices(src, first)
+    expect(translationIndices).toEqual([1, 3])
   })
 })

@@ -4,7 +4,7 @@ import { analyzeTextByType } from "../src/analysis/analyzeTextByType"
 import { maxCharsRule } from "../src/analysis/maxCharsRule"
 
 describe("maxCharsRule (segments)", () => {
-  it("anchors to payload line indices when parsing subs", () => {
+  it("anchors to translation line indices when parsing subs", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "Short",

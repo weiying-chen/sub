@@ -31,14 +31,14 @@ function hasSegmentGap(
   ignoreEmptyLines: boolean
 ): boolean {
   if (ignoreEmptyLines || !lines) return false
-  if (typeof prev.payloadIndex !== 'number' || typeof cur.tsIndex !== 'number') {
+  if (typeof prev.translationIndex !== 'number' || typeof cur.tsIndex !== 'number') {
     return false
   }
   const src: LineSource = {
     lineCount: lines.length,
     getLine: (i) => lines[i] ?? '',
   }
-  return hasEmptyLineBetween(src, prev.payloadIndex, cur.tsIndex)
+  return hasEmptyLineBetween(src, prev.translationIndex, cur.tsIndex)
 }
 
 function isSegmentContinuation(
@@ -143,23 +143,23 @@ export function cpsRule(
     const cur = parseBlockAt(src, ctx.lineIndex, options)
     if (!cur) return []
 
-    // Skip if this timestamp block is a continuation of a previous identical payload.
+    // Skip if this timestamp block is a continuation of a previous identical translation.
     // (Only the first block in the merged run should emit a metric.)
     if (isContinuationOfPrevious(src, cur, options)) return []
 
-    // Merge forward: exact same payload (timing gaps allowed).
+    // Merge forward: exact same translation (timing gaps allowed).
     const run = mergeForward(src, cur, options)
 
     const durationFrames = run.endFrames - run.startFrames
-    const charCount = run.payloadText.length
+    const charCount = run.translationText.length
     const cps =
       durationFrames === 0 ? Infinity : (charCount * FPS) / durationFrames
 
     const metric: CPSMetric = {
       type: 'CPS',
-      lineIndex: run.payloadIndexStart,
+      lineIndex: run.translationIndexStart,
       tsLineIndex: run.startTsIndex,
-      text: run.payloadText,
+      text: run.translationText,
       cps,
       maxCps,
       minCps,

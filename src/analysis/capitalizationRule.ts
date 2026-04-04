@@ -50,10 +50,10 @@ function getTextAndAnchor(
   const block = parseBlockAt(src, ctx.lineIndex, options)
   if (!block) return null
 
-  const text = block.payloadText
+  const text = block.translationText
   if (text.trim() === '') return null
 
-  const anchorIndex = block.payloadIndex ?? block.tsIndex
+  const anchorIndex = block.translationIndex ?? block.tsIndex
   return { text, anchorIndex }
 }
 

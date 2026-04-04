@@ -8,7 +8,7 @@ import { spanGapRule } from "../src/analysis/spanGapRule"
 import type { Metric } from "../src/analysis/types"
 
 describe("wording copy", () => {
-  it("uses updated finding instructions for max cps and missing payload", () => {
+  it("uses updated finding instructions for max cps and missing translation", () => {
     const metrics: Metric[] = [
       {
         type: "MAX_CPS",
@@ -24,7 +24,7 @@ describe("wording copy", () => {
       {
         type: "BLOCK_STRUCTURE",
         lineIndex: 3,
-        ruleCode: "MISSING_PAYLOAD",
+        ruleCode: "MISSING_TRANSLATION",
         text: "00:00:01:00	00:00:02:00	Marker",
       },
     ]

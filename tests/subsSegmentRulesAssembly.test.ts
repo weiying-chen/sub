@@ -78,7 +78,7 @@ describe("createSubsSegmentRules", () => {
       "Hi",
       "",
       "00:00:03:00\t00:00:04:00\tMarker",
-      "This payload is definitely too long for one second.",
+      "This translation is definitely too long for one second.",
     ].join("\n")
 
     const maxOnlyFindings = getFindings(
@@ -101,7 +101,7 @@ describe("createSubsSegmentRules", () => {
       "A",
       "",
       "00:00:02:00\t00:00:03:00\tMarker",
-      "This payload is definitely too long for one second.",
+      "This translation is definitely too long for one second.",
     ].join("\n")
 
     const findings = getFindings(
@@ -132,7 +132,7 @@ describe("createSubsSegmentRules", () => {
   it("does not include violation-style rules in subs metrics assembly", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
-      "This payload is definitely too long for one second.",
+      "This translation is definitely too long for one second.",
     ].join("\n")
 
     const metrics = analyzeTextByType(text, "subs", createSubsMetricsRules())

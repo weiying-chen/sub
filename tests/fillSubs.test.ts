@@ -287,18 +287,18 @@ describe("fillSelectedTimestampLines", () => {
     { maxChars: 12, inline: true }
   )
 
-  const payloads = result.lines.filter(
+  const translations = result.lines.filter(
     (line) => line.trim() !== "" && !/^\d{2}:\d{2}:\d{2}:\d{2}\t/.test(line)
   )
   let maxRun = 0
   let run = 0
   let last = ""
-  for (const payload of payloads) {
-    if (payload === last) {
+  for (const translation of translations) {
+    if (translation === last) {
       run += 1
     } else {
       run = 1
-      last = payload
+      last = translation
     }
     if (run > maxRun) maxRun = run
   }
@@ -328,15 +328,15 @@ describe("fillSelectedTimestampLines", () => {
     { maxChars: 54, inline: true }
   )
 
-  const payloads = result.lines.filter(
+  const translations = result.lines.filter(
     (line) => line.trim() !== "" && !/^\d{2}:\d{2}:\d{2}:\d{2}\t/.test(line)
   )
 
   expect(result.remaining).toBe("")
-  expect(payloads.at(-1)).toContain("little better?")
-  expect(payloads.at(-1)?.startsWith('"')).toBe(true)
-  expect(payloads.filter((line) => line === `"I don't know what's best,"`).length).toBeLessThan(
-    payloads.length / 2
+  expect(translations.at(-1)).toContain("little better?")
+  expect(translations.at(-1)?.startsWith('"')).toBe(true)
+  expect(translations.filter((line) => line === `"I don't know what's best,"`).length).toBeLessThan(
+    translations.length / 2
   )
   })
 
@@ -536,11 +536,11 @@ describe("fillSelectedTimestampLines", () => {
     }
   )
 
-  const payloads = result.lines.filter(
+  const translations = result.lines.filter(
     (line) => line.trim() !== "" && !line.includes("\t")
   )
-  expect(payloads.some((line) => line.trimStart().startsWith(","))).toBe(false)
-  expect(payloads.some((line) => line.endsWith("U.S.,"))).toBe(true)
+  expect(translations.some((line) => line.trimStart().startsWith(","))).toBe(false)
+  expect(translations.some((line) => line.endsWith("U.S.,"))).toBe(true)
   })
 
   it("does not leave pronoun contractions stranded at line end", () => {
@@ -966,11 +966,11 @@ describe("fillSelectedTimestampLines", () => {
     { maxChars, inline: true }
   )
 
-  const payloads = result.lines.filter(
+  const translations = result.lines.filter(
     (line) => line.trim() !== "" && !line.includes("\t")
   )
-  for (const payload of payloads) {
-    expect(payload.length).toBeLessThanOrEqual(maxChars)
+  for (const translation of translations) {
+    expect(translation.length).toBeLessThanOrEqual(maxChars)
   }
   })
 
@@ -1214,10 +1214,10 @@ describe("fillSelectedTimestampLines", () => {
   const result = fillSelectedTimestampLines(lines, selected, paragraph, {
     inline: true,
   })
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(payloads).toContain('A voice inside said, "Just push it."')
-  expect(payloads).not.toContain('"A voice inside said, "Just push it."')
+  expect(translations).toContain('A voice inside said, "Just push it."')
+  expect(translations).not.toContain('"A voice inside said, "Just push it."')
   })
 
   it("adds quotes when splitting inside a quoted span in non-inline mode", () => {
@@ -1233,10 +1233,10 @@ describe("fillSelectedTimestampLines", () => {
     maxChars: 24,
     inline: false,
   })
-  const payloads = result.lines.slice(0, 2)
+  const translations = result.lines.slice(0, 2)
 
-  expect(payloads[0]?.endsWith('"')).toBe(true)
-  expect(payloads[1]?.startsWith('"')).toBe(true)
+  expect(translations[0]?.endsWith('"')).toBe(true)
+  expect(translations[1]?.startsWith('"')).toBe(true)
   })
 
   it("keeps quoted sentences intact when under max length", () => {
@@ -1259,12 +1259,12 @@ describe("fillSelectedTimestampLines", () => {
     inline: true,
     maxChars: 54,
   })
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
   expect(
-    payloads.some((line) => line.includes(`"Is this the right time?"`))
+    translations.some((line) => line.includes(`"Is this the right time?"`))
   ).toBe(true)
-  expect(payloads.some((line) => line.trim() === '"')).toBe(false)
+  expect(translations.some((line) => line.trim() === '"')).toBe(false)
   })
 
   it("always splits after periods when possible", () => {
@@ -1284,11 +1284,11 @@ describe("fillSelectedTimestampLines", () => {
     inline: false,
     maxChars: 140,
   })
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(payloads.some((line) => line.includes("why. That"))).toBe(false)
-  expect(payloads.some((line) => line.endsWith("ask why."))).toBe(true)
-  expect(payloads.some((line) => line.startsWith("That kind of pain"))).toBe(true)
+  expect(translations.some((line) => line.includes("why. That"))).toBe(false)
+  expect(translations.some((line) => line.endsWith("ask why."))).toBe(true)
+  expect(translations.some((line) => line.startsWith("That kind of pain"))).toBe(true)
   })
 
   it("keeps em dash boundary before leading that clauses", () => {
@@ -1304,11 +1304,11 @@ describe("fillSelectedTimestampLines", () => {
     inline: false,
     maxChars: 36,
   })
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(payloads.some((line) => line.endsWith("now---"))).toBe(true)
-  expect(payloads.some((line) => line.startsWith("that was"))).toBe(true)
-  expect(payloads.some((line) => line.includes("now--- that"))).toBe(false)
+  expect(translations.some((line) => line.endsWith("now---"))).toBe(true)
+  expect(translations.some((line) => line.startsWith("that was"))).toBe(true)
+  expect(translations.some((line) => line.includes("now--- that"))).toBe(false)
   })
 
   it("keeps hyphenated compounds glued without inserting spaces", () => {
@@ -1326,11 +1326,11 @@ describe("fillSelectedTimestampLines", () => {
     inline: false,
     maxChars: 42,
   })
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(payloads.some((line) => line.includes("grief-and-loss"))).toBe(true)
-  expect(payloads.some((line) => /grief-\s*$/.test(line))).toBe(false)
-  expect(payloads.some((line) => /^and-loss\b/.test(line))).toBe(false)
+  expect(translations.some((line) => line.includes("grief-and-loss"))).toBe(true)
+  expect(translations.some((line) => /grief-\s*$/.test(line))).toBe(false)
+  expect(translations.some((line) => /^and-loss\b/.test(line))).toBe(false)
   })
 
   it("keeps 'to' with the following verb", () => {
@@ -1346,10 +1346,10 @@ describe("fillSelectedTimestampLines", () => {
     inline: false,
     maxChars: 15,
   })
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(payloads.some((line) => line.includes("to keep"))).toBe(true)
-  expect(payloads.some((line) => line.endsWith("to"))).toBe(false)
+  expect(translations.some((line) => line.includes("to keep"))).toBe(true)
+  expect(translations.some((line) => line.endsWith("to"))).toBe(false)
   })
 
   it("does not split copular clauses when they fit", () => {
@@ -1364,12 +1364,12 @@ describe("fillSelectedTimestampLines", () => {
     inline: true,
     maxChars: 54,
   })
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(payloads.some((line) => line.includes("what I was trying to do."))).toBe(
+  expect(translations.some((line) => line.includes("what I was trying to do."))).toBe(
     true
   )
-  expect(payloads.some((line) => line.endsWith("what I"))).toBe(false)
+  expect(translations.some((line) => line.endsWith("what I"))).toBe(false)
   })
 
   it("keeps dialogue tags with preceding question when it fits", () => {
@@ -1385,10 +1385,10 @@ describe("fillSelectedTimestampLines", () => {
     inline: false,
     maxChars: 60,
   })
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(payloads).toContain('"How can that be possible?" they said.')
-  expect(payloads.some((line) => line.startsWith("Afterwards,"))).toBe(true)
+  expect(translations).toContain('"How can that be possible?" they said.')
+  expect(translations.some((line) => line.startsWith("Afterwards,"))).toBe(true)
   })
 
   it("does not add extra quotes to repeated inline lines", () => {
@@ -1403,9 +1403,9 @@ describe("fillSelectedTimestampLines", () => {
   const result = fillSelectedTimestampLines(lines, selected, paragraph, {
     inline: true,
   })
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(payloads.some((line) => line.endsWith('said."'))).toBe(false)
+  expect(translations.some((line) => line.endsWith('said."'))).toBe(false)
   })
 
   it("keeps honorific abbreviations with the following word", () => {
@@ -1421,10 +1421,10 @@ describe("fillSelectedTimestampLines", () => {
     "Ms. Lin said hello.",
     { maxChars: 4, inline: true, noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS }
   )
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(payloads).not.toContain("Ms.")
-  expect(payloads.some((line) => line.includes("Ms. Lin"))).toBe(true)
+  expect(translations).not.toContain("Ms.")
+  expect(translations.some((line) => line.includes("Ms. Lin"))).toBe(true)
   })
 
   it("uses default no-split abbreviations when none are provided", () => {
@@ -1440,10 +1440,10 @@ describe("fillSelectedTimestampLines", () => {
     "Ms. Lin said hello.",
     { maxChars: 4, inline: true }
   )
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(payloads).not.toContain("Ms.")
-  expect(payloads.some((line) => line.includes("Ms. Lin"))).toBe(true)
+  expect(translations).not.toContain("Ms.")
+  expect(translations.some((line) => line.includes("Ms. Lin"))).toBe(true)
   })
 
   it("keeps UI and CLI fill outputs in parity for default abbreviations", () => {
@@ -1482,10 +1482,10 @@ describe("fillSelectedTimestampLines", () => {
     "hugely respected in the U.S.",
     { maxChars: 26, inline: true, noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS }
   )
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(payloads).not.toContain("U.")
-  expect(payloads.some((line) => line.includes("U.S."))).toBe(true)
+  expect(translations).not.toContain("U.")
+  expect(translations.some((line) => line.includes("U.S."))).toBe(true)
   })
 
   it("keeps U.S. Supreme Court together as a phrase", () => {
@@ -1531,11 +1531,11 @@ describe("fillSelectedTimestampLines", () => {
     "Twenty or thirty years ago, people thought about 40 or 50 kids out of 10,000 had autism, around 0.4 or 0.5 percent. Now it's estimated at about one in 33 children, roughly 3 percent.",
     { inline: true, noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS }
   )
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(payloads).not.toContain("autism, around 0.")
-  expect(payloads).not.toContain("4 or 0.")
-  expect(payloads.some((line) => line.includes("0.4 or 0.5 percent."))).toBe(true)
+  expect(translations).not.toContain("autism, around 0.")
+  expect(translations).not.toContain("4 or 0.")
+  expect(translations.some((line) => line.includes("0.4 or 0.5 percent."))).toBe(true)
   })
 
   it("keeps p.m. together when split after p.", () => {
@@ -1552,10 +1552,10 @@ describe("fillSelectedTimestampLines", () => {
     "We met at 3 p.m. today.",
     { maxChars: 12, inline: true, noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS }
   )
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(payloads).not.toContain("p.")
-  expect(payloads.some((line) => line.includes("p.m."))).toBe(true)
+  expect(translations).not.toContain("p.")
+  expect(translations.some((line) => line.includes("p.m."))).toBe(true)
   })
 
   it("keeps time with meridiem together", () => {
@@ -1572,10 +1572,10 @@ describe("fillSelectedTimestampLines", () => {
     "We met at 3 p.m. today.",
     { maxChars: 12, inline: true, noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS }
   )
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(payloads.some((line) => line.includes("3 p.m."))).toBe(true)
-  expect(payloads).not.toContain("3")
+  expect(translations.some((line) => line.includes("3 p.m."))).toBe(true)
+  expect(translations).not.toContain("3")
   })
 
   it("avoids splitting numeric comma groups", () => {
@@ -1591,10 +1591,10 @@ describe("fillSelectedTimestampLines", () => {
     "NT$10,000 today.",
     { maxChars: 9, inline: true }
   )
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(payloads.some((line) => line.includes("10,000"))).toBe(true)
-  expect(payloads).not.toContain("10,")
+  expect(translations.some((line) => line.includes("10,000"))).toBe(true)
+  expect(translations).not.toContain("10,")
   })
 
   it("preserves quote continuity when a split lands inside quotes", () => {
@@ -1612,11 +1612,11 @@ describe("fillSelectedTimestampLines", () => {
     inline: true,
   })
 
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
-  expect(payloads).toHaveLength(2)
-  expect(payloads[0]?.startsWith('"')).toBe(true)
-  expect(payloads[0]?.endsWith('"')).toBe(true)
-  expect(payloads[1]?.startsWith('"')).toBe(true)
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+  expect(translations).toHaveLength(2)
+  expect(translations[0]?.startsWith('"')).toBe(true)
+  expect(translations[0]?.endsWith('"')).toBe(true)
+  expect(translations[1]?.startsWith('"')).toBe(true)
   })
 
   it("avoids dangling quotes when splitting a quoted paragraph", () => {
@@ -1635,16 +1635,16 @@ describe("fillSelectedTimestampLines", () => {
     inline: true,
   })
 
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
-  expect(payloads.length).toBeGreaterThan(1)
-  expect(payloads.some((line) => line.includes('"'))).toBe(true)
-  payloads.forEach((line) => {
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+  expect(translations.length).toBeGreaterThan(1)
+  expect(translations.some((line) => line.includes('"'))).toBe(true)
+  translations.forEach((line) => {
     const quoteCount = (line.match(/"/g) ?? []).length
     expect(quoteCount % 2).toBe(0)
   })
   })
 
-  it("does not emit standalone quote-only payload lines", () => {
+  it("does not emit standalone quote-only translation lines", () => {
   const lines = [
     "00:00:08:17\t00:00:10:23\tSource 1",
     "00:00:10:23\t00:00:13:00\tSource 2",
@@ -1667,9 +1667,9 @@ describe("fillSelectedTimestampLines", () => {
     inline: true,
     noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS,
   })
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(payloads.some((line) => line.trim() === '"')).toBe(false)
+  expect(translations.some((line) => line.trim() === '"')).toBe(false)
   })
 
   it("does not return quote-only head chunks from splitter", () => {
@@ -1902,8 +1902,8 @@ describe("fillSelectedTimestampLines", () => {
     { inline: true }
   )
 
-  const payloads = result.lines.filter((line) => !line.includes("\t"))
-  expect(payloads).not.toContain("and feet are always cold,")
-  expect(payloads.some((line) => line.includes("my hands and feet"))).toBe(true)
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+  expect(translations).not.toContain("and feet are always cold,")
+  expect(translations.some((line) => line.includes("my hands and feet"))).toBe(true)
   })
 })

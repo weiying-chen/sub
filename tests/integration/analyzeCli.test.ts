@@ -6,7 +6,7 @@ import type { Metric } from "../../src/analysis/types"
 import { buildAnalyzeOutput } from "../../src/cli/analyzeOutput"
 
 describe("analyze CLI integration fixtures", () => {
-  it("treats empty lines as breaks between identical payloads", async () => {
+  it("treats empty lines as breaks between identical translations", async () => {
     const fixturePath = path.join(
       __dirname,
       "fixtures",

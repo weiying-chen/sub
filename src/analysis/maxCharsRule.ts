@@ -40,12 +40,12 @@ function getTextAndAnchor(
   const block = parseBlockAt(src, ctx.lineIndex, options)
   if (!block) return null
 
-  const text = block.payloadText
+  const text = block.translationText
   if (text.trim() === '') return null
 
-  // Anchor the finding to the payload line when it exists.
-  // If the payload only exists inline on the timestamp line, fall back to tsIndex.
-  const anchorIndex = block.payloadIndex ?? block.tsIndex
+  // Anchor the finding to the translation line when it exists.
+  // If the translation only exists source text on the timestamp line, fall back to tsIndex.
+  const anchorIndex = block.translationIndex ?? block.tsIndex
   return { text, anchorIndex }
 }
 

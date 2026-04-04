@@ -5,7 +5,7 @@ import { createSubsSegmentRules } from "../src/analysis/subsSegmentRules"
 import { getFindings } from "../src/shared/findings"
 
 describe("blockStructureRule (segments)", () => {
-  it("flags missing payloads only inside subtitle sections that already contain translations", () => {
+  it("flags missing translations only inside subtitle sections that already contain translations", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\t第一句",
       "Hello there.",
@@ -32,19 +32,19 @@ describe("blockStructureRule (segments)", () => {
       {
         type: "BLOCK_STRUCTURE",
         lineIndex: 2,
-        ruleCode: "MISSING_PAYLOAD",
+        ruleCode: "MISSING_TRANSLATION",
         text: "00:00:02:00\t00:00:03:00\t第二句",
       },
       {
         type: "BLOCK_STRUCTURE",
         lineIndex: 8,
-        ruleCode: "MISSING_PAYLOAD",
+        ruleCode: "MISSING_TRANSLATION",
         text: "00:00:12:00\t00:00:13:00\t第五句",
       },
     ])
   })
 
-  it("does not flag orphan payload duplication between subtitle cues", () => {
+  it("does not flag orphan translation duplication between subtitle cues", () => {
     const text = [
       "00:10:00:20\t00:10:02:13\t把他們整個改過來",
       "with hearing aids or cochlear implants.",

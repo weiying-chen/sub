@@ -16,8 +16,8 @@ export type ParseBlockOptions = {
 
 export type ParsedBlock = {
   tsIndex: number
-  payloadIndex: number
-  payloadText: string
+  translationIndex: number
+  translationText: string
   startFrames: number
   endFrames: number
 }
@@ -27,9 +27,9 @@ export type MergedRun = {
   endTsIndex: number
   startFrames: number
   endFrames: number
-  payloadText: string
-  payloadIndexStart: number
-  payloadIndexEnd: number
+  translationText: string
+  translationIndexStart: number
+  translationIndexEnd: number
 }
 
 function findNextTimestampIndex(src: LineSource, fromTsIndex: number): number | null {
@@ -45,22 +45,22 @@ function findNextTimestampIndex(src: LineSource, fromTsIndex: number): number | 
  * Find the next non-empty, non-timestamp line below a timestamp.
  * Mirrors existing behavior exactly.
  */
-function findPayloadBelow(
+function findTranslationBelow(
   src: LineSource,
   tsIndex: number,
   options: ParseBlockOptions = {}
-): { payloadIndex: number | null; payloadText: string } {
+): { translationIndex: number | null; translationText: string } {
   const ignoreEmptyLines = options.ignoreEmptyLines ?? false
   for (let i = tsIndex + 1; i < src.lineCount; i++) {
     const t = src.getLine(i)
     if (TSV_RE.test(t)) break
     if (t.trim() === '') {
       if (ignoreEmptyLines) continue
-      return { payloadIndex: null, payloadText: '' }
+      return { translationIndex: null, translationText: '' }
     }
-    return { payloadIndex: i, payloadText: t }
+    return { translationIndex: i, translationText: t }
   }
-  return { payloadIndex: null, payloadText: '' }
+  return { translationIndex: null, translationText: '' }
 }
 
 export function hasEmptyLineBetween(
@@ -92,17 +92,17 @@ export function parseBlockAt(
     return null
   }
 
-  const { payloadIndex, payloadText } = findPayloadBelow(
+  const { translationIndex, translationText } = findTranslationBelow(
     src,
     tsIndex,
     options
   )
-  if (payloadIndex == null) return null
+  if (translationIndex == null) return null
 
   return {
     tsIndex,
-    payloadIndex,
-    payloadText,
+    translationIndex,
+    translationText,
     startFrames,
     endFrames,
   }
@@ -112,7 +112,7 @@ export function parseBlockAt(
  * Check whether this block is a continuation of a previous identical block.
  * Used to suppress duplicate metrics.
  *
- * New behavior: if the previous parsed block has the same payload, suppress this one
+ * New behavior: if the previous parsed block has the same translation, suppress this one
  * regardless of whether the timing is contiguous.
  */
 export function isContinuationOfPrevious(
@@ -127,21 +127,21 @@ export function isContinuationOfPrevious(
 
     if (
       !ignoreEmptyLines &&
-      hasEmptyLineBetween(src, prev.payloadIndex, block.tsIndex)
+      hasEmptyLineBetween(src, prev.translationIndex, block.tsIndex)
     ) {
       return false
     }
 
-    const isContinuation = prev.payloadText === block.payloadText
+    const isContinuation = prev.translationText === block.translationText
     return isContinuation
   }
   return false
 }
 
 /**
- * Merge forward from a starting block to form a run with identical payload.
+ * Merge forward from a starting block to form a run with identical translation.
  *
- * New behavior: merges adjacent timestamp blocks as long as payloadText matches,
+ * New behavior: merges adjacent timestamp blocks as long as translationText matches,
  * regardless of gaps in timing.
  */
 export function mergeForward(
@@ -153,7 +153,7 @@ export function mergeForward(
   let mergedEndFrames = first.endFrames
   let scanTs = first.tsIndex
 
-  let payloadIndexEnd = first.payloadIndex
+  let translationIndexEnd = first.translationIndex
   let endTsIndex = first.tsIndex
 
   while (true) {
@@ -161,16 +161,16 @@ export function mergeForward(
 
     if (nextTs == null) break
 
-    if (!ignoreEmptyLines && hasEmptyLineBetween(src, payloadIndexEnd, nextTs)) {
+    if (!ignoreEmptyLines && hasEmptyLineBetween(src, translationIndexEnd, nextTs)) {
       break
     }
 
     const next = parseBlockAt(src, nextTs, options)
-    if (next && next.payloadText === first.payloadText) {
+    if (next && next.translationText === first.translationText) {
       mergedEndFrames = next.endFrames
       scanTs = next.tsIndex
       endTsIndex = next.tsIndex
-      payloadIndexEnd = next.payloadIndex
+      translationIndexEnd = next.translationIndex
       continue
     }
 
@@ -182,37 +182,37 @@ export function mergeForward(
     endTsIndex,
     startFrames: first.startFrames,
     endFrames: mergedEndFrames,
-    payloadText: first.payloadText,
-    payloadIndexStart: first.payloadIndex,
-    payloadIndexEnd,
+    translationText: first.translationText,
+    translationIndexStart: first.translationIndex,
+    translationIndexEnd,
   }
 }
 
-export function mergedRunPayloadIndices(
+export function mergedRunTranslationIndices(
   src: LineSource,
   first: ParsedBlock,
   options: ParseBlockOptions = {}
 ): number[] {
   const ignoreEmptyLines = options.ignoreEmptyLines ?? false
-  const payloadIndices = [first.payloadIndex]
+  const translationIndices = [first.translationIndex]
   let scanTs = first.tsIndex
-  let lastPayloadIndex = first.payloadIndex
+  let lastTranslationIndex = first.translationIndex
 
   while (true) {
     const nextTs = findNextTimestampIndex(src, scanTs)
     if (nextTs == null) break
 
-    if (!ignoreEmptyLines && hasEmptyLineBetween(src, lastPayloadIndex, nextTs)) {
+    if (!ignoreEmptyLines && hasEmptyLineBetween(src, lastTranslationIndex, nextTs)) {
       break
     }
 
     const next = parseBlockAt(src, nextTs, options)
-    if (!next || next.payloadText !== first.payloadText) break
+    if (!next || next.translationText !== first.translationText) break
 
-    payloadIndices.push(next.payloadIndex)
+    translationIndices.push(next.translationIndex)
     scanTs = next.tsIndex
-    lastPayloadIndex = next.payloadIndex
+    lastTranslationIndex = next.translationIndex
   }
 
-  return payloadIndices
+  return translationIndices
 }

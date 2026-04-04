@@ -21,7 +21,7 @@ import {
 import { timestampLinkGutter } from "./cm/timestampLinkGutter"
 import { cmTheme } from "./cm/theme"
 import { selectLineOnTripleClick } from "./cm/selectLineOnTripleClick"
-import { mergedRunPayloadIndices, parseBlockAt, type LineSource } from "./shared/tsvRuns"
+import { mergedRunTranslationIndices, parseBlockAt, type LineSource } from "./shared/tsvRuns"
 
 import { sampleSubtitles } from "./fixtures/subtitles"
 import capitalizationTermsText from "../capitalization-terms.txt?raw"
@@ -210,8 +210,8 @@ function getFindingRanges(view: EditorView, findings: Finding[]): FindingRange[]
     if (f.type === "MAX_CPS" || f.type === "MIN_CPS") {
       const first = parseBlockAt(src, findingTsLineIndex(f))
       if (first) {
-        const payloadIndices = mergedRunPayloadIndices(src, first)
-        for (const i of payloadIndices) {
+        const translationIndices = mergedRunTranslationIndices(src, first)
+        for (const i of translationIndices) {
           addWholeLine(id, i)
         }
       } else {

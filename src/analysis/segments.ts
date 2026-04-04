@@ -33,7 +33,7 @@ export type Segment = {
   superPerson?: SuperPersonEntry
   sourceText?: string
   tsIndex?: number
-  payloadIndex?: number
+  translationIndex?: number
   startFrames?: number
   endFrames?: number
   sourceLines?: CandidateLine[]
@@ -90,15 +90,15 @@ export function parseSubs(
   for (let i = 0; i < lines.length; i += 1) {
     const block = parseBlockAt(src, i, options)
     if (!block) continue
-    const targetLines = isEnglishLikeLine(block.payloadText)
-      ? [{ lineIndex: block.payloadIndex, text: block.payloadText }]
+    const targetLines = isEnglishLikeLine(block.translationText)
+      ? [{ lineIndex: block.translationIndex, text: block.translationText }]
       : []
     segments.push({
-      lineIndex: block.payloadIndex,
-      lineIndexEnd: block.payloadIndex,
-      text: block.payloadText,
+      lineIndex: block.translationIndex,
+      lineIndexEnd: block.translationIndex,
+      text: block.translationText,
       tsIndex: block.tsIndex,
-      payloadIndex: block.payloadIndex,
+      translationIndex: block.translationIndex,
       startFrames: block.startFrames,
       endFrames: block.endFrames,
       targetLines,

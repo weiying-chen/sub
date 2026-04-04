@@ -32,7 +32,7 @@ export type LeadingWhitespaceMetric = {
 }
 
 type CpsBaseMetric = {
-  lineIndex: number // payload line index
+  lineIndex: number // translation line index
   tsLineIndex?: number // timestamp line index
   text: string
   cps: number
@@ -60,7 +60,7 @@ export type MinCpsMetric = CpsBaseMetric & {
 
 export type CPSBalanceMetric = {
   type: 'CPS_BALANCE'
-  lineIndex: number // payload line index (faster run)
+  lineIndex: number // translation line index (faster run)
   tsLineIndex?: number // timestamp line index (faster run)
   cps: number
   neighborCps: number
@@ -146,7 +146,7 @@ export type BlockStructureMetric = {
   severity?: 'error' | 'warn'
 }
 
-export type BlockStructureRuleCode = 'MISSING_PAYLOAD'
+export type BlockStructureRuleCode = 'MISSING_TRANSLATION'
 
 export type TimestampFormatMetric = {
   type: 'TIMESTAMP_FORMAT'
@@ -159,7 +159,7 @@ export type BaselineMetric = {
   type: 'BASELINE'
   lineIndex: number
   message: string
-  reason?: 'missing' | 'extra' | 'inlineText'
+  reason?: 'missing' | 'extra' | 'sourceText'
   timestamp?: string
   expected?: string
   actual?: string

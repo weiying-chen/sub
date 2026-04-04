@@ -29,7 +29,7 @@ type Cue = {
   text: string
   lineIndex: number
   tsIndex: number
-  payloadIndex: number
+  translationIndex: number
 }
 
 type PunctuationRuleOptions = {
@@ -165,10 +165,10 @@ function collectCues(
     cues.push({
       start: m.groups.start,
       end: m.groups.end,
-      text: block.payloadText.trim(),
-      lineIndex: block.payloadIndex,
+      text: block.translationText.trim(),
+      lineIndex: block.translationIndex,
       tsIndex: block.tsIndex,
-      payloadIndex: block.payloadIndex,
+      translationIndex: block.translationIndex,
     })
   }
 
@@ -270,7 +270,7 @@ function collectMetrics(
     const prev = cues[j]
     const next = cues[j + 1]
     if (next.text === prev.text) continue
-    if (hasInterveningNonEmptyLine(src, prev.payloadIndex, next.tsIndex)) {
+    if (hasInterveningNonEmptyLine(src, prev.translationIndex, next.tsIndex)) {
       continue
     }
 

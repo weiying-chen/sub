@@ -22,7 +22,7 @@
   --cm-gutter-text: #64748b;
   --cm-selection: #e2e8f0;
   --cm-top-inset: 12px;
-  --finding-active-bg: #edf2f7;
+  --finding-active-bg: #ebf0f5;
 
   /* Semantic */
   --danger: #ef4444;
@@ -45,7 +45,7 @@
   --cm-gutter-bg: #070f1d;   /* slightly darker than panel */
   --cm-gutter-text: #9ca3af;
   --cm-selection: #334155;
-  --finding-active-bg: #1f2937;
+  --finding-active-bg: #202a38;
 
   --danger: #ef4444;
   --warning: #f59e0b;

@@ -183,8 +183,8 @@ describe("Sidebar", () => {
   })
 
   it("uses one finding active background token across sidebar and editor", () => {
-    expect(indexCss).toMatch(/:root\s*\{[\s\S]*--finding-active-bg:\s*#edf2f7;/)
-    expect(indexCss).toMatch(/\[data-theme="dark"\]\s*\{[\s\S]*--finding-active-bg:\s*#1f2937;/)
+    expect(indexCss).toMatch(/:root\s*\{[\s\S]*--finding-active-bg:\s*#ebf0f5;/)
+    expect(indexCss).toMatch(/\[data-theme="dark"\]\s*\{[\s\S]*--finding-active-bg:\s*#202a38;/)
     expect(indexCss).toMatch(/\.cm-finding-active\s*\{[\s\S]*background:\s*var\(--finding-active-bg\);/)
     expect(indexCss).toMatch(/\.finding-row-button\.is-active\s*\{[\s\S]*background:\s*var\(--finding-active-bg\);/)
   })

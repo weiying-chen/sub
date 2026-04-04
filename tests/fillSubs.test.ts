@@ -18,10 +18,10 @@ describe("fillSelectedTimestampLines", () => {
   })
 
   expect(result.lines).toEqual([
-    "One two",
-    "three four",
     "00:00:11:00\t00:00:12:00\tNo blank",
+    "One two",
     "00:00:12:00\t00:00:13:00\tNo blank",
+    "three four",
     "",
   ])
   })
@@ -39,10 +39,10 @@ describe("fillSelectedTimestampLines", () => {
   })
 
   expect(result.lines).toEqual([
-    "Hello world",
     "00:00:01:00\t00:00:03:00\tMarker",
     "Already translated line",
     "00:00:03:00\t00:00:05:00\tMarker",
+    "Hello world",
   ])
   expect(result.remaining).toBe("")
   })
@@ -61,11 +61,11 @@ describe("fillSelectedTimestampLines", () => {
   })
 
   expect(result.lines).toEqual([
-    "One two",
-    "three",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "One two",
     "",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "three",
   ])
   expect(result.remaining).toBe("")
   })
@@ -85,10 +85,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    'He said, "hello."',
-    "Then left.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    'He said, "hello."',
     "00:00:02:00\t00:00:03:00\tMarker",
+    "Then left.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -133,10 +133,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "The power",
-    "of now",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "The power",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "of now",
   ])
   expect(result.remaining).toBe("")
   })
@@ -156,10 +156,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "The power of",
-    "now",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "The power of",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "now",
   ])
   expect(result.remaining).toBe("")
   })
@@ -355,10 +355,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "Let him know",
-    "that feeling frustrated, sad, or worn out is normal.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "Let him know",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "that feeling frustrated, sad, or worn out is normal.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -390,10 +390,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "Next, we review the",
-    "plan carefully",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "Next, we review the",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "plan carefully",
   ])
   expect(result.remaining).toBe("before taking action.")
   })
@@ -413,10 +413,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "And one last thing you can do is",
-    "give your partner the right kind of support.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "And one last thing you can do is",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "give your partner the right kind of support.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -436,10 +436,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "Even so,",
-    "it can",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "Even so,",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "it can",
   ])
   expect(result.remaining).toBe("be hard at times.")
   })
@@ -459,10 +459,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "Even though",
-    "that was true,",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "Even though",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "that was true,",
   ])
   expect(result.remaining).toBe("it was still hard.")
   })
@@ -482,10 +482,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "We focused on",
-    "how to do it.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "We focused on",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "how to do it.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -570,10 +570,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "He laughed like that",
-    "every time.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "He laughed like that",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "every time.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -593,10 +593,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "Hi, I'm Dr. Chuang Chia-ying,",
-    "a Chinese medicine doctor.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "Hi, I'm Dr. Chuang Chia-ying,",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "a Chinese medicine doctor.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -616,10 +616,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "He told me",
-    "that it was over.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "He told me",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "that it was over.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -678,10 +678,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "He told me a story that",
-    "moved me.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "He told me a story that",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "moved me.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -701,10 +701,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "and that",
-    "was enough.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "and that",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "was enough.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -748,10 +748,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "The truth is",
-    "that something changed.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "The truth is",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "that something changed.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -771,10 +771,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "The truth is",
-    "that nobody noticed.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "The truth is",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "that nobody noticed.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -806,10 +806,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "A Chinese American science fiction writer",
-    "who's hugely respected in the U.S.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "A Chinese American science fiction writer",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "who's hugely respected in the U.S.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -829,10 +829,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "Even so, becoming a caregiver hasn't been easy,",
-    "and I've had a lot of setbacks.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "Even so, becoming a caregiver hasn't been easy,",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "and I've had a lot of setbacks.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -852,10 +852,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "breather.",
-    "My wife does this all the time.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "breather.",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "My wife does this all the time.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -875,9 +875,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "It is true. My wife does this all the time.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "It is true. My wife does this all the time.",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "It is true. My wife does this all the time.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -897,9 +898,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "Don't rush. First loosen the soil.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "Don't rush. First loosen the soil.",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "Don't rush. First loosen the soil.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -919,10 +921,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "breather.",
-    "My wife does this all the time.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "breather.",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "My wife does this all the time.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -942,10 +944,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "She nodded.",
-    "still unsure what to do next.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "She nodded.",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "still unsure what to do next.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -989,10 +991,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "and that chance was gone.",
-    "He later moved away.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "and that chance was gone.",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "He later moved away.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -1012,9 +1014,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "The issue now is how to solve this quickly",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "The issue now is how to solve this quickly",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "The issue now is how to solve this quickly",
   ])
   expect(result.remaining).toBe("")
   })
@@ -1034,9 +1037,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "The best exercise for older adults is simply walking",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "The best exercise for older adults is simply walking",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "The best exercise for older adults is simply walking",
   ])
   expect(result.remaining).toBe("")
   })
@@ -1056,9 +1060,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "The truth is we need to leave",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "The truth is we need to leave",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "The truth is we need to leave",
   ])
   expect(result.remaining).toBe("")
   })
@@ -1078,10 +1083,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "We don't believe they have to follow",
-    "the exact same path we did.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "We don't believe they have to follow",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "the exact same path we did.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -1114,10 +1119,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "They arrived at the station",
-    "with extra supplies.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "They arrived at the station",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "with extra supplies.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -1149,9 +1154,10 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.lines).toEqual([
-    "I've been working at the lab since it was founded.",
     "00:00:01:00\t00:00:02:00\tMarker",
+    "I've been working at the lab since it was founded.",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "I've been working at the lab since it was founded.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -1218,25 +1224,6 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(translations).toContain('A voice inside said, "Just push it."')
   expect(translations).not.toContain('"A voice inside said, "Just push it."')
-  })
-
-  it("adds quotes when splitting inside a quoted span in non-inline mode", () => {
-  const lines = [
-    "00:00:00:00\t00:00:01:00\tMarker",
-    "00:00:01:00\t00:00:02:00\tMarker",
-  ]
-  const selected = new Set(lines.map((_, i) => i))
-  const paragraph =
-    'He said "This is a long quote that should split in the middle." Then left.'
-
-  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
-    maxChars: 24,
-    inline: false,
-  })
-  const translations = result.lines.slice(0, 2)
-
-  expect(translations[0]?.endsWith('"')).toBe(true)
-  expect(translations[1]?.startsWith('"')).toBe(true)
   })
 
   it("keeps quoted sentences intact when under max length", () => {

@@ -28,10 +28,12 @@ import { TIMESTAMP_FORMAT_MODAL_EXPLANATION } from "./shared/wording"
 import capitalizationTermsText from "../capitalization-terms.txt?raw"
 import punctuationAbbreviationsText from "../punctuation-abbreviations.txt?raw"
 import properNounsText from "../punctuation-proper-nouns.txt?raw"
+import { DEFAULT_MAX_CHARS } from "./shared/maxChars"
 
 const RULES_MODAL_ANIMATION_MS = 170
 const RULE_FILTERS_STORAGE_KEY = "subs.ruleFilters"
 const FINDINGS_MOTION_SUPPRESS_MS = 220
+const CHECKER_MAX_CHARS = DEFAULT_MAX_CHARS
 
 type RuleOption = {
   type: Finding["type"]
@@ -548,6 +550,7 @@ export default function App({
       type: "subs",
       ruleSet: "findings",
       output: "metrics",
+      maxChars: CHECKER_MAX_CHARS,
       enabledRuleTypes: analysisEnabledRuleTypes,
       capitalizationTerms,
       properNouns,
@@ -566,6 +569,7 @@ export default function App({
       type: "subs",
       ruleSet: "metrics",
       output: "metrics",
+      maxChars: CHECKER_MAX_CHARS,
       enabledRuleTypes: analysisEnabledRuleTypes,
       capitalizationTerms,
       properNouns,

@@ -1,4 +1,5 @@
 import { FPS, MAX_CPS, TSV_RE, parseTimecodeToFrames } from './subtitles'
+import { DEFAULT_MAX_CHARS } from './maxChars'
 import {
   analyzeDoubleQuoteSpan,
   countDoubleQuotes,
@@ -20,7 +21,6 @@ export type FillSubsResult = {
   chosenCps?: number
 }
 
-const DEFAULT_MAX_CHARS = 54
 const DEFAULT_NO_SPLIT_ABBREVIATIONS = ['Mr.', 'Mrs.', 'Ms.', 'Dr.', 'U.S.']
 const MIN_TARGET_CPS = 10
 const MAX_SPAN_PER_LINE = 3

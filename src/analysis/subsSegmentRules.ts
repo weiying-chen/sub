@@ -13,6 +13,7 @@ import { percentStyleRule } from "./percentStyleRule"
 import { punctuationRule } from "./punctuationRule"
 import { spanGapRule } from "./spanGapRule"
 import { timestampFormatRule } from "./timestampFormatRule"
+import { DEFAULT_MAX_CHARS } from "../shared/maxChars"
 import type { SegmentRule } from "./segments"
 import type { Metric } from "./types"
 
@@ -21,6 +22,7 @@ export type CreateSubsSegmentRulesOptions = {
   properNouns?: string[]
   abbreviations?: string[]
   baselineText?: string
+  maxChars?: number
   ignoreEmptyLines?: boolean
   enabledFindingTypes?: Iterable<Metric["type"]>
 }
@@ -44,9 +46,10 @@ function createSubsCommonRules(
     ? new Set<Metric["type"]>(options.enabledFindingTypes)
     : null
   const rules: SegmentRule[] = []
+  const maxChars = Math.max(1, options.maxChars ?? DEFAULT_MAX_CHARS)
 
   if (isEnabled(enabled, "MAX_CHARS")) {
-    rules.push(maxCharsRule(54))
+    rules.push(maxCharsRule(maxChars))
   }
   if (isEnabled(enabled, "BLOCK_STRUCTURE")) {
     rules.push(blockStructureRule({ ignoreEmptyLines: options.ignoreEmptyLines }))

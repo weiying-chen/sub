@@ -11,6 +11,7 @@ import { superPeopleRule } from './superPeopleRule'
 import type { Metric, Finding } from './types'
 import { getFindings } from '../shared/findings'
 import { filterSegments } from './segmentRuleFilters'
+import { DEFAULT_MAX_CHARS } from '../shared/maxChars'
 
 export type AnalysisRuleSet = 'findings' | 'metrics'
 export type AnalysisOutputMode = 'metrics' | 'findings'
@@ -25,6 +26,7 @@ export type BuildAnalysisOutputOptions = {
   properNouns?: string[]
   abbreviations?: string[]
   baselineText?: string
+  maxChars?: number
   ignoreEmptyLines?: boolean
   includeWarnings?: boolean
 }
@@ -38,6 +40,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     properNouns,
     abbreviations,
     baselineText,
+    maxChars,
     ignoreEmptyLines,
   } =
     options
@@ -45,8 +48,9 @@ function buildRules(options: BuildAnalysisOutputOptions) {
   if (type === 'news') {
     const enabled = enabledRuleTypes ? new Set<Metric['type']>(enabledRuleTypes) : null
     const rules = []
+    const maxCharsLimit = Math.max(1, maxChars ?? DEFAULT_MAX_CHARS)
     if (!enabled || enabled.has('MAX_CHARS')) {
-      rules.push(filterSegments((segment) => segment.blockType === 'super', maxCharsRule(54)))
+      rules.push(filterSegments((segment) => segment.blockType === 'super', maxCharsRule(maxCharsLimit)))
     }
     if (!enabled || enabled.has('MISSING_TRANSLATION')) {
       rules.push(missingTranslationRule())
@@ -76,6 +80,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     properNouns,
     abbreviations,
     baselineText,
+    maxChars,
     ignoreEmptyLines,
     enabledFindingTypes: enabledRuleTypes,
   })

@@ -10,6 +10,7 @@ import { mergeCandidateRule } from './mergeCandidateRule'
 import { maxCpsRule } from './maxCpsRule'
 import { minCpsRule } from './minCpsRule'
 import { spanGapRule } from './spanGapRule'
+import { DEFAULT_MAX_CHARS } from '../shared/maxChars'
 
 type DefaultRulesOptions = {
   capitalizationTerms?: string[]
@@ -18,7 +19,7 @@ type DefaultRulesOptions = {
 
 export function defaultRules(options: DefaultRulesOptions = {}): Rule[] {
   return [
-    maxCharsRule(54),
+    maxCharsRule(DEFAULT_MAX_CHARS),
     leadingWhitespaceRule(),
     maxCpsRule(undefined, undefined, {
       ignoreEmptyLines: options.ignoreEmptyLines,
@@ -35,7 +36,7 @@ export function defaultSegmentRules(
   options: DefaultRulesOptions = {}
 ): SegmentRule[] {
   return [
-    maxCharsRule(54),
+    maxCharsRule(DEFAULT_MAX_CHARS),
     leadingWhitespaceRule(),
     maxCpsRule(undefined, undefined, {
       ignoreEmptyLines: options.ignoreEmptyLines,

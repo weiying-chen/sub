@@ -19,4 +19,9 @@ describe("fill-subs executable entry", () => {
     expect(source).toContain("OVERFLOW_TO_CLIPBOARD")
     expect(source).toContain("setClipboardText(remaining)")
   })
+
+  it("routes overflow display to /dev/tty when available", () => {
+    const source = readFileSync(CLI_FILE_URL, "utf8")
+    expect(source).toContain("/dev/tty")
+  })
 })

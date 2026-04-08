@@ -1,4 +1,5 @@
 #!/home/weiying/node/sub/node_modules/.bin/tsx
+import { appendFileSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
 import { spawnSync } from 'node:child_process'
 import { fillSelectedTimestampLines } from '../shared/fillSubs'
@@ -12,7 +13,8 @@ const LIMIT = Math.max(1, MAX_LEN)
 const PARAGRAPH_FILE = process.env.PARAGRAPH_FILE ?? ''
 
 // Default: allow partial fill (editor-friendly). Overflow is silently ignored.
-// Opt in to printing leftover text with SHOW_OVERFLOW=1 (note: Helix pipe will paste stderr too).
+// Opt in to printing leftover text with SHOW_OVERFLOW=1.
+// When possible, overflow is written to /dev/tty to avoid polluting piped output.
 const SHOW_OVERFLOW = process.env.SHOW_OVERFLOW === '1'
 // Opt in to storing leftover text in clipboard for immediate paste.
 const OVERFLOW_TO_CLIPBOARD = process.env.OVERFLOW_TO_CLIPBOARD === '1'
@@ -87,6 +89,19 @@ function setClipboardText(text: string): boolean {
   return r.status === 0
 }
 
+function writeOverflowText(text: string): void {
+  const message = `\nLeftover text (didn't fit in selected timestamps):\n${text}\n`
+
+  try {
+    appendFileSync('/dev/tty', message, { encoding: 'utf8' })
+    return
+  } catch {
+    // No controlling TTY available (e.g., CI or non-interactive shell).
+  }
+
+  process.stderr.write(message)
+}
+
 const { inputFile, outputFile, altBreak, paragraphArg } = parseFillSubsArgs(
   process.argv.slice(2)
 )
@@ -155,6 +170,5 @@ if (remaining && OVERFLOW_TO_CLIPBOARD) {
 }
 
 if (remaining && SHOW_OVERFLOW) {
-  process.stderr.write('\nLeftover text (didn\'t fit in selected timestamps):\n')
-  process.stderr.write(remaining + '\n')
+  writeOverflowText(remaining)
 }

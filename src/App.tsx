@@ -45,7 +45,7 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "MAX_CPS",
     label: "Reading speed is too high",
-    explanation: "Flags translations that exceed the maximum CPS limit.",
+    explanation: "Flags translations that exceed the maximum CPS limit. You can edit it in the input below.",
     severity: "error",
   },
   {
@@ -111,7 +111,7 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "MIN_CPS",
     label: "Reading speed is too low",
-    explanation: "Warns when reading speed falls below the minimum CPS limit.",
+    explanation: "Warns when reading speed falls below the minimum CPS limit. You can edit it in the input below.",
     severity: "warn",
   },
   {

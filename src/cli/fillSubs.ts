@@ -14,6 +14,8 @@ const PARAGRAPH_FILE = process.env.PARAGRAPH_FILE ?? ''
 // Default: allow partial fill (editor-friendly). Overflow is silently ignored.
 // Opt in to printing leftover text with SHOW_OVERFLOW=1 (note: Helix pipe will paste stderr too).
 const SHOW_OVERFLOW = process.env.SHOW_OVERFLOW === '1'
+// Opt in to storing leftover text in clipboard for immediate paste.
+const OVERFLOW_TO_CLIPBOARD = process.env.OVERFLOW_TO_CLIPBOARD === '1'
 
 function readStdin(): Promise<string> {
   return new Promise((resolve) => {
@@ -50,12 +52,53 @@ function getClipboardText(): string {
   return ''
 }
 
+function setClipboardText(text: string): boolean {
+  // Prefer Wayland
+  let r = spawnSync('wl-copy', ['--trim-newline'], {
+    input: text,
+    encoding: 'utf8',
+  })
+  if (r.status === 0) return true
+
+  // X11 fallback
+  r = spawnSync('xclip', ['-selection', 'clipboard'], {
+    input: text,
+    encoding: 'utf8',
+  })
+  if (r.status === 0) return true
+
+  r = spawnSync('xsel', ['--clipboard', '--input'], {
+    input: text,
+    encoding: 'utf8',
+  })
+  if (r.status === 0) return true
+
+  // Windows fallback (PowerShell)
+  r = spawnSync('pwsh', ['-NoProfile', '-Command', 'Set-Clipboard'], {
+    input: text,
+    encoding: 'utf8',
+  })
+  if (r.status === 0) return true
+
+  r = spawnSync('powershell', ['-NoProfile', '-Command', 'Set-Clipboard'], {
+    input: text,
+    encoding: 'utf8',
+  })
+  return r.status === 0
+}
+
 const { inputFile, outputFile, altBreak, paragraphArg } = parseFillSubsArgs(
   process.argv.slice(2)
 )
 
 const inputTsv = inputFile ? await readFile(inputFile, 'utf8') : await readStdin()
+const hadTrailingNewline = /\r?\n$/.test(inputTsv)
 const lines = inputTsv.split(/\r?\n/)
+if (hadTrailingNewline) {
+  // `split` keeps a trailing empty item for newline-terminated input.
+  // Remove it so output newline count matches the original selection.
+  lines.pop()
+}
 
 let paragraph = paragraphArg
 if (!paragraph.trim()) {
@@ -98,7 +141,7 @@ const result = fillSelectedTimestampLines(
   }
 )
 
-const output = result.lines.join('\n') + '\n'
+const output = result.lines.join('\n') + (hadTrailingNewline ? '\n' : '')
 
 if (outputFile) {
   await writeFile(outputFile, output)
@@ -106,7 +149,12 @@ if (outputFile) {
   process.stdout.write(output)
 }
 
-if (result.remaining.trim() && SHOW_OVERFLOW) {
+const remaining = result.remaining.trim()
+if (remaining && OVERFLOW_TO_CLIPBOARD) {
+  setClipboardText(remaining)
+}
+
+if (remaining && SHOW_OVERFLOW) {
   process.stderr.write('\nLeftover text (didn\'t fit in selected timestamps):\n')
-  process.stderr.write(result.remaining.trim() + '\n')
+  process.stderr.write(remaining + '\n')
 }

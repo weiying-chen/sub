@@ -1,4 +1,4 @@
-#!/home/weiying/node/sub/node_modules/.bin/tsx
+#!/home/wei-ying-chen/node/sub/node_modules/.bin/tsx
 import { appendFileSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
 import { spawnSync } from 'node:child_process'

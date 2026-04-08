@@ -1029,12 +1029,16 @@ function takeLine(
   limit: number,
   noSplitAbbrevMatcher: RegExp | null,
   noSplitUsAbbreviation: boolean,
-  options: { allowHeuristicSplitsWhenFits?: boolean } = {}
+  options: {
+    allowHeuristicSplitsWhenFits?: boolean
+    keepWholeWhenFits?: boolean
+  } = {}
 ): { line: string; rest: string } {
   const s = text.trimStart()
   if (!s) return { line: '', rest: '' }
   const allowHeuristicSplitsWhenFits =
     options.allowHeuristicSplitsWhenFits ?? false
+  const keepWholeWhenFits = options.keepWholeWhenFits ?? false
 
   // Long quoted segments should keep making progress instead of stalling on
   // the leading quote marker.
@@ -1066,6 +1070,10 @@ function takeLine(
   }
 
   if (s.length <= limit) {
+    if (keepWholeWhenFits) {
+      return normalizeSplit(s.trimEnd(), '')
+    }
+
     const sentenceCut = findSentenceBoundaryCut(s, '', noSplitAbbrevMatcher)
     if (sentenceCut > 0 && sentenceCut < s.length) {
       const left = s.slice(0, sentenceCut).trimEnd()
@@ -1814,7 +1822,8 @@ function runInlineFill(
       remaining,
       limit,
       noSplitAbbrevMatcher,
-      noSplitUsAbbreviation
+      noSplitUsAbbreviation,
+      { keepWholeWhenFits: options.inline === true }
     )
     remaining = rest
 

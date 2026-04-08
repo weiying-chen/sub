@@ -906,6 +906,25 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("keeps a period-separated short paragraph whole in inline fill when it fits", () => {
+  const lines = [
+    "00:01:03:11\t00:01:04:15\t好 來 夾起來",
+    "00:01:04:15\t00:01:06:29\t一二三",
+    "00:01:06:29\t00:01:08:03\t好 再放",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+  const paragraph = "Squeeze. One, two, three. And release."
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    maxChars: 54,
+    inline: true,
+  })
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(translations).toEqual([paragraph, paragraph, paragraph])
+  expect(result.remaining).toBe("")
+  })
+
   it("forces split on fragment + new sentence even under maxChars", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

@@ -501,6 +501,17 @@ describe("Sidebar", () => {
     expect(maxCharsRow?.textContent).toContain("Current: 55 characters.")
   })
 
+  it("uses explicit percent rule help text without parentheses", () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+
+    expect(
+      ui.getByText("Checks percent formatting style: use % instead of the word \"percent\".")
+    ).toBeInTheDocument()
+  })
+
   it("opens and closes a rules modal from the findings gear button", async () => {
     const { container } = render(<App />)
     const ui = within(container)

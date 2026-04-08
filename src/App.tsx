@@ -81,7 +81,7 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "PERCENT_STYLE",
     label: "Percent format is incorrect",
-    explanation: "Checks percent formatting style (for example, percent vs %).",
+    explanation: "Checks percent formatting style: use % instead of the word \"percent\".",
     severity: "error",
   },
   {

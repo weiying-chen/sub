@@ -1,6 +1,6 @@
 import type { Rule, MinCpsMetric, RuleCtx } from "./types"
 
-import { MAX_CPS, MIN_CPS } from "../shared/subtitles"
+import { DEFAULT_MAX_CPS, DEFAULT_MIN_CPS } from "../shared/cps"
 import type { ParseBlockOptions } from "../shared/tsvRuns"
 import type { SegmentCtx, SegmentRule } from "./segments"
 import { cpsRule } from "./cpsRule"
@@ -8,8 +8,8 @@ import { cpsRule } from "./cpsRule"
 type MinCpsRule = Rule & SegmentRule
 
 export function minCpsRule(
-  maxCps: number = MAX_CPS,
-  minCps: number = MIN_CPS,
+  maxCps: number = DEFAULT_MAX_CPS,
+  minCps: number = DEFAULT_MIN_CPS,
   options: ParseBlockOptions = {}
 ): MinCpsRule {
   const collect = cpsRule(maxCps, minCps, options)

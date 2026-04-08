@@ -1,8 +1,9 @@
 // Shared subtitle parsing utilities (analysis + CM UI)
+import { DEFAULT_MAX_CPS, DEFAULT_MIN_CPS } from './cps'
 
 export const FPS = 30
-export const MAX_CPS = 17
-export const MIN_CPS = 7
+export const MAX_CPS = DEFAULT_MAX_CPS
+export const MIN_CPS = DEFAULT_MIN_CPS
 
 // hh:mm:ss:ff
 export const TIME_RE =

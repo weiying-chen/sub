@@ -27,6 +27,8 @@ export type BuildAnalysisOutputOptions = {
   abbreviations?: string[]
   baselineText?: string
   maxChars?: number
+  maxCps?: number
+  minCps?: number
   ignoreEmptyLines?: boolean
   includeWarnings?: boolean
 }
@@ -41,6 +43,8 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     abbreviations,
     baselineText,
     maxChars,
+    maxCps,
+    minCps,
     ignoreEmptyLines,
   } =
     options
@@ -81,6 +85,8 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     abbreviations,
     baselineText,
     maxChars,
+    maxCps,
+    minCps,
     ignoreEmptyLines,
     enabledFindingTypes: enabledRuleTypes,
   })

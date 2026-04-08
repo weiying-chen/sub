@@ -29,11 +29,14 @@ import capitalizationTermsText from "../capitalization-terms.txt?raw"
 import punctuationAbbreviationsText from "../punctuation-abbreviations.txt?raw"
 import properNounsText from "../punctuation-proper-nouns.txt?raw"
 import { DEFAULT_MAX_CHARS } from "./shared/maxChars"
+import { DEFAULT_MAX_CPS, DEFAULT_MIN_CPS } from "./shared/cps"
 
 const RULES_MODAL_ANIMATION_MS = 170
 const RULE_FILTERS_STORAGE_KEY = "subs.ruleFilters"
 const FINDINGS_MOTION_SUPPRESS_MS = 220
 const CHECKER_MAX_CHARS = DEFAULT_MAX_CHARS
+const CHECKER_MAX_CPS = DEFAULT_MAX_CPS
+const CHECKER_MIN_CPS = DEFAULT_MIN_CPS
 
 type RuleOption = {
   type: Finding["type"]
@@ -551,6 +554,8 @@ export default function App({
       ruleSet: "findings",
       output: "metrics",
       maxChars: CHECKER_MAX_CHARS,
+      maxCps: CHECKER_MAX_CPS,
+      minCps: CHECKER_MIN_CPS,
       enabledRuleTypes: analysisEnabledRuleTypes,
       capitalizationTerms,
       properNouns,
@@ -570,6 +575,8 @@ export default function App({
       ruleSet: "metrics",
       output: "metrics",
       maxChars: CHECKER_MAX_CHARS,
+      maxCps: CHECKER_MAX_CPS,
+      minCps: CHECKER_MIN_CPS,
       enabledRuleTypes: analysisEnabledRuleTypes,
       capitalizationTerms,
       properNouns,

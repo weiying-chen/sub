@@ -1,6 +1,7 @@
 import type { Rule, CPSMetric, RuleCtx } from './types'
 
-import { FPS, MAX_CPS, MIN_CPS } from '../shared/subtitles'
+import { FPS } from '../shared/subtitles'
+import { DEFAULT_MAX_CPS, DEFAULT_MIN_CPS } from '../shared/cps'
 import {
   type LineSource,
   type ParseBlockOptions,
@@ -87,8 +88,8 @@ function mergeForwardSegments(
 }
 
 export function cpsRule(
-  maxCps: number = MAX_CPS,
-  minCps: number = MIN_CPS,
+  maxCps: number = DEFAULT_MAX_CPS,
+  minCps: number = DEFAULT_MIN_CPS,
   options: CpsRuleOptions = {}
 ): CpsRule {
   const ignoreEmptyLines = options.ignoreEmptyLines ?? false

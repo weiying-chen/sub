@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import /home/wei-ying-chen/node/sub/node_modules/tsx/dist/loader.mjs
+#!/home/weiying/node/sub/node_modules/.bin/tsx
 import { readFile, writeFile } from 'node:fs/promises'
 import { spawnSync } from 'node:child_process'
 import { fillSelectedTimestampLines } from '../shared/fillSubs'

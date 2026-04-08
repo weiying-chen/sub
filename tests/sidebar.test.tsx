@@ -633,8 +633,12 @@ describe("Sidebar", () => {
     expect(countFindingRowsWithText("Reading speed is too low")).toBeGreaterThan(0)
 
     fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
-    fireEvent.change(ui.getByLabelText("Max CPS"), { target: { value: "60" } })
-    fireEvent.change(ui.getByLabelText("Min CPS"), { target: { value: "0.5" } })
+    const maxInput = ui.getByLabelText("Max CPS") as HTMLInputElement
+    const minInput = ui.getByLabelText("Min CPS") as HTMLInputElement
+    fireEvent.change(maxInput, { target: { value: "60" } })
+    fireEvent.blur(maxInput)
+    fireEvent.change(minInput, { target: { value: "0.5" } })
+    fireEvent.blur(minInput)
 
     await waitFor(() => {
       expect(countFindingRowsWithText("Reading speed is too high")).toBe(0)
@@ -653,4 +657,57 @@ describe("Sidebar", () => {
     expect(ui.getByLabelText("Max CPS")).toBeInTheDocument()
     expect(ui.getByLabelText("Min CPS")).toBeInTheDocument()
   })
+
+  it("loads saved cps threshold inputs from localStorage", () => {
+    window.localStorage.setItem("subs.maxCps", "21")
+    window.localStorage.setItem("subs.minCps", "4.5")
+
+    const { container } = render(<App />)
+    const ui = within(container)
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+
+    const maxCpsInput = ui.getByLabelText("Max CPS") as HTMLInputElement
+    const minCpsInput = ui.getByLabelText("Min CPS") as HTMLInputElement
+
+    expect(maxCpsInput.value).toBe("21")
+    expect(minCpsInput.value).toBe("4.5")
+  })
+
+  it("saves cps threshold inputs to localStorage on blur", () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+    const maxInput = ui.getByLabelText("Max CPS") as HTMLInputElement
+    const minInput = ui.getByLabelText("Min CPS") as HTMLInputElement
+    fireEvent.change(maxInput, { target: { value: "20" } })
+    fireEvent.change(minInput, { target: { value: "5" } })
+
+    // Draft edits should not commit until blur.
+    expect(window.localStorage.getItem("subs.maxCps")).toBe("17")
+    expect(window.localStorage.getItem("subs.minCps")).toBe("7")
+
+    fireEvent.blur(maxInput)
+    fireEvent.blur(minInput)
+
+    expect(window.localStorage.getItem("subs.maxCps")).toBe("20")
+    expect(window.localStorage.getItem("subs.minCps")).toBe("5")
+  })
+
+
+  it("allows temporary empty cps input and commits on blur", () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+
+    const maxInput = ui.getByLabelText("Max CPS") as HTMLInputElement
+    fireEvent.change(maxInput, { target: { value: "" } })
+    expect(maxInput.value).toBe("")
+
+    fireEvent.blur(maxInput)
+    expect(maxInput.value).toBe("17")
+  })
+
 })

@@ -32,6 +32,8 @@ import properNounsText from "../punctuation-proper-nouns.txt?raw"
 
 const RULES_MODAL_ANIMATION_MS = 170
 const RULE_FILTERS_STORAGE_KEY = "subs.ruleFilters"
+const MAX_CPS_STORAGE_KEY = "subs.maxCps"
+const MIN_CPS_STORAGE_KEY = "subs.minCps"
 const FINDINGS_MOTION_SUPPRESS_MS = 220
 
 type RuleOption = {
@@ -155,6 +157,20 @@ function loadEnabledRuleTypes(): Set<Finding["type"]> {
     )
     if (selected.length === 0) return fallback
     return new Set(selected)
+  } catch {
+    return fallback
+  }
+}
+
+function loadStoredCpsThreshold(storageKey: string, fallback: number): number {
+  if (typeof window === "undefined") return fallback
+
+  try {
+    const raw = window.localStorage.getItem(storageKey)
+    if (raw == null) return fallback
+    const parsed = Number(raw)
+    if (!Number.isFinite(parsed) || parsed <= 0) return fallback
+    return parsed
   } catch {
     return fallback
   }
@@ -468,8 +484,10 @@ export default function App({
   }, [theme])
 
   const [value, setValue] = useState(sampleSubtitles)
-  const [maxCps, setMaxCps] = useState(MAX_CPS)
-  const [minCps, setMinCps] = useState(MIN_CPS)
+  const [maxCps, setMaxCps] = useState(() => loadStoredCpsThreshold(MAX_CPS_STORAGE_KEY, MAX_CPS))
+  const [minCps, setMinCps] = useState(() => loadStoredCpsThreshold(MIN_CPS_STORAGE_KEY, MIN_CPS))
+  const [maxCpsDraft, setMaxCpsDraft] = useState(() => String(loadStoredCpsThreshold(MAX_CPS_STORAGE_KEY, MAX_CPS)))
+  const [minCpsDraft, setMinCpsDraft] = useState(() => String(loadStoredCpsThreshold(MIN_CPS_STORAGE_KEY, MIN_CPS)))
   const [view, setView] = useState<EditorView | null>(null)
   const [activeFindingId, setActiveFindingId] = useState<string | null>(null)
   const [enabledRuleTypes, setEnabledRuleTypes] = useState<Set<Finding["type"]>>(
@@ -512,6 +530,20 @@ export default function App({
     )
   }, [enabledRuleTypes])
 
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(MAX_CPS_STORAGE_KEY, String(maxCps))
+    window.localStorage.setItem(MIN_CPS_STORAGE_KEY, String(minCps))
+  }, [maxCps, minCps])
+
+  useEffect(() => {
+    setMaxCpsDraft(String(maxCps))
+  }, [maxCps])
+
+  useEffect(() => {
+    setMinCpsDraft(String(minCps))
+  }, [minCps])
+
   const openRulesModal = useCallback(() => {
     if (rulesModalCloseTimerRef.current !== null) {
       clearTimeout(rulesModalCloseTimerRef.current)
@@ -545,20 +577,38 @@ export default function App({
   }, [suppressFindingMotionForRuleChange])
 
   const handleMaxCpsChange = useCallback((raw: string) => {
-    const parsed = Number(raw)
-    if (!Number.isFinite(parsed) || parsed <= 0) return
-    suppressFindingMotionForRuleChange()
-    setMaxCps(parsed)
-    setMinCps((prev) => (prev > parsed ? parsed : prev))
-  }, [suppressFindingMotionForRuleChange])
+    setMaxCpsDraft(raw)
+  }, [])
 
   const handleMinCpsChange = useCallback((raw: string) => {
-    const parsed = Number(raw)
-    if (!Number.isFinite(parsed) || parsed <= 0) return
+    setMinCpsDraft(raw)
+  }, [])
+
+  const commitMaxCpsDraft = useCallback(() => {
+    const parsed = Number(maxCpsDraft)
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      setMaxCpsDraft(String(maxCps))
+      return
+    }
+
+    const nextMin = minCps > parsed ? parsed : minCps
+    suppressFindingMotionForRuleChange()
+    setMaxCps(parsed)
+    setMinCps(nextMin)
+  }, [maxCpsDraft, maxCps, minCps, suppressFindingMotionForRuleChange])
+
+  const commitMinCpsDraft = useCallback(() => {
+    const parsed = Number(minCpsDraft)
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      setMinCpsDraft(String(minCps))
+      return
+    }
+
+    const nextMax = maxCps < parsed ? parsed : maxCps
     suppressFindingMotionForRuleChange()
     setMinCps(parsed)
-    setMaxCps((prev) => (prev < parsed ? parsed : prev))
-  }, [suppressFindingMotionForRuleChange])
+    setMaxCps(nextMax)
+  }, [minCpsDraft, minCps, maxCps, suppressFindingMotionForRuleChange])
 
   const analysisEnabledRuleTypes = useMemo(() => {
     return includeWarnings
@@ -814,11 +864,15 @@ export default function App({
                             type="number"
                             min={0.1}
                             step={0.1}
-                            value={maxCps}
+                            value={maxCpsDraft}
                             aria-label="Max CPS"
                             placeholder="Max CPS"
                             disabled={!enabledRuleTypes.has("MAX_CPS")}
                             onChange={(e) => handleMaxCpsChange(e.target.value)}
+                            onBlur={commitMaxCpsDraft}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") e.currentTarget.blur()
+                            }}
                             className="rules-modal-threshold-input"
                           />
                       </div>
@@ -852,11 +906,15 @@ export default function App({
                             type="number"
                             min={0.1}
                             step={0.1}
-                            value={minCps}
+                            value={minCpsDraft}
                             aria-label="Min CPS"
                             placeholder="Min CPS"
                             disabled={!enabledRuleTypes.has("MIN_CPS")}
                             onChange={(e) => handleMinCpsChange(e.target.value)}
+                            onBlur={commitMinCpsDraft}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") e.currentTarget.blur()
+                            }}
                             className="rules-modal-threshold-input"
                           />
                       </div>

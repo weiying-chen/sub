@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback, useRef, type ChangeEvent } from "react"
+import { useEffect, useMemo, useState, useCallback, useRef } from "react"
 import CodeMirror from "@uiw/react-codemirror"
 import { EditorView, keymap } from "@codemirror/view"
 import { Prec } from "@codemirror/state"
@@ -25,16 +25,14 @@ import { mergedRunTranslationIndices, parseBlockAt, type LineSource } from "./sh
 
 import { sampleSubtitles } from "./fixtures/subtitles"
 import { TIMESTAMP_FORMAT_MODAL_EXPLANATION } from "./shared/wording"
+import { MAX_CPS, MIN_CPS } from "./shared/subtitles"
 import capitalizationTermsText from "../capitalization-terms.txt?raw"
 import punctuationAbbreviationsText from "../punctuation-abbreviations.txt?raw"
 import properNounsText from "../punctuation-proper-nouns.txt?raw"
-import { DEFAULT_MAX_CHARS } from "./shared/maxChars"
-import { DEFAULT_MAX_CPS, DEFAULT_MIN_CPS } from "./shared/cps"
 
 const RULES_MODAL_ANIMATION_MS = 170
 const RULE_FILTERS_STORAGE_KEY = "subs.ruleFilters"
 const FINDINGS_MOTION_SUPPRESS_MS = 220
-const CHECKER_MAX_CHARS = DEFAULT_MAX_CHARS
 
 type RuleOption = {
   type: Finding["type"]
@@ -470,6 +468,8 @@ export default function App({
   }, [theme])
 
   const [value, setValue] = useState(sampleSubtitles)
+  const [maxCps, setMaxCps] = useState(MAX_CPS)
+  const [minCps, setMinCps] = useState(MIN_CPS)
   const [view, setView] = useState<EditorView | null>(null)
   const [activeFindingId, setActiveFindingId] = useState<string | null>(null)
   const [enabledRuleTypes, setEnabledRuleTypes] = useState<Set<Finding["type"]>>(
@@ -478,8 +478,6 @@ export default function App({
   const [isRulesModalOpen, setIsRulesModalOpen] = useState(false)
   const [isRulesModalMounted, setIsRulesModalMounted] = useState(false)
   const [suppressFindingMotion, setSuppressFindingMotion] = useState(false)
-  const [checkerMaxCps, setCheckerMaxCps] = useState(DEFAULT_MAX_CPS)
-  const [checkerMinCps, setCheckerMinCps] = useState(DEFAULT_MIN_CPS)
   const pendingClickFindingIdRef = useRef<string | null>(null)
   const rulesModalCloseTimerRef = useRef<number | null>(null)
   const findingMotionTimerRef = useRef<number | null>(null)
@@ -546,18 +544,20 @@ export default function App({
     })
   }, [suppressFindingMotionForRuleChange])
 
-  const onMaxCpsChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    const value = event.currentTarget.valueAsNumber
-    if (!Number.isFinite(value) || value <= 0) return
+  const handleMaxCpsChange = useCallback((raw: string) => {
+    const parsed = Number(raw)
+    if (!Number.isFinite(parsed) || parsed <= 0) return
     suppressFindingMotionForRuleChange()
-    setCheckerMaxCps(value)
+    setMaxCps(parsed)
+    setMinCps((prev) => (prev > parsed ? parsed : prev))
   }, [suppressFindingMotionForRuleChange])
 
-  const onMinCpsChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    const value = event.currentTarget.valueAsNumber
-    if (!Number.isFinite(value) || value <= 0) return
+  const handleMinCpsChange = useCallback((raw: string) => {
+    const parsed = Number(raw)
+    if (!Number.isFinite(parsed) || parsed <= 0) return
     suppressFindingMotionForRuleChange()
-    setCheckerMinCps(value)
+    setMinCps(parsed)
+    setMaxCps((prev) => (prev < parsed ? parsed : prev))
   }, [suppressFindingMotionForRuleChange])
 
   const analysisEnabledRuleTypes = useMemo(() => {
@@ -574,15 +574,14 @@ export default function App({
       type: "subs",
       ruleSet: "findings",
       output: "metrics",
-      maxChars: CHECKER_MAX_CHARS,
-      maxCps: checkerMaxCps,
-      minCps: checkerMinCps,
       enabledRuleTypes: analysisEnabledRuleTypes,
+      maxCps,
+      minCps,
       capitalizationTerms,
       properNouns,
       abbreviations: punctuationAbbreviations,
     }) as Metric[]
-  }, [value, analysisEnabledRuleTypes, checkerMaxCps, checkerMinCps])
+  }, [value, analysisEnabledRuleTypes, maxCps, minCps])
 
   const findings = useMemo<Finding[]>(() => {
     return getFindings(rawRuleOutputs, { includeWarnings })
@@ -595,15 +594,14 @@ export default function App({
       type: "subs",
       ruleSet: "metrics",
       output: "metrics",
-      maxChars: CHECKER_MAX_CHARS,
-      maxCps: checkerMaxCps,
-      minCps: checkerMinCps,
       enabledRuleTypes: analysisEnabledRuleTypes,
+      maxCps,
+      minCps,
       capitalizationTerms,
       properNouns,
       abbreviations: punctuationAbbreviations,
     }) as Metric[]
-  }, [value, analysisEnabledRuleTypes, checkerMaxCps, checkerMinCps])
+  }, [value, analysisEnabledRuleTypes, maxCps, minCps])
 
   useEffect(() => {
     console.log("[analysis] cps metrics", cpsMetrics)
@@ -792,33 +790,6 @@ export default function App({
             <div className="rules-modal-groups">
               <div className="rules-modal-group">
                 <div className="rules-modal-group-title">
-                  <span>Thresholds</span>
-                </div>
-                <label className="rules-modal-number-field">
-                  <span className="rules-modal-number-label">Max CPS</span>
-                  <input
-                    type="number"
-                    min={0.1}
-                    step={0.1}
-                    aria-label="Max CPS"
-                    value={checkerMaxCps}
-                    onChange={onMaxCpsChange}
-                  />
-                </label>
-                <label className="rules-modal-number-field">
-                  <span className="rules-modal-number-label">Min CPS</span>
-                  <input
-                    type="number"
-                    min={0.1}
-                    step={0.1}
-                    aria-label="Min CPS"
-                    value={checkerMinCps}
-                    onChange={onMinCpsChange}
-                  />
-                </label>
-              </div>
-              <div className="rules-modal-group">
-                <div className="rules-modal-group-title">
                   <i
                     className="las la-times-circle"
                     aria-hidden="true"
@@ -827,15 +798,32 @@ export default function App({
                   <span>Errors</span>
                 </div>
                 {RULE_OPTIONS.filter((rule) => rule.severity === "error").map((rule) => (
-                  <label key={rule.type} className="rules-modal-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={enabledRuleTypes.has(rule.type)}
-                      onChange={() => toggleRule(rule.type)}
-                    />
-                    <span className="rules-modal-checkbox-label">{rule.label}</span>
-                    <span className="rules-modal-checkbox-help">{rule.explanation}</span>
-                  </label>
+                  <div key={rule.type} className="rules-modal-rule">
+                    <label className="rules-modal-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={enabledRuleTypes.has(rule.type)}
+                        onChange={() => toggleRule(rule.type)}
+                      />
+                      <span className="rules-modal-checkbox-label">{rule.label}</span>
+                      <span className="rules-modal-checkbox-help">{rule.explanation}</span>
+                    </label>
+                    {rule.type === "MAX_CPS" ? (
+                      <div className="rules-modal-threshold">
+                        <input
+                            type="number"
+                            min={0.1}
+                            step={0.1}
+                            value={maxCps}
+                            aria-label="Max CPS"
+                            placeholder="Max CPS"
+                            disabled={!enabledRuleTypes.has("MAX_CPS")}
+                            onChange={(e) => handleMaxCpsChange(e.target.value)}
+                            className="rules-modal-threshold-input"
+                          />
+                      </div>
+                    ) : null}
+                  </div>
                 ))}
               </div>
               <div className="rules-modal-group">
@@ -848,15 +836,32 @@ export default function App({
                   <span>Warnings</span>
                 </div>
                 {RULE_OPTIONS.filter((rule) => rule.severity === "warn").map((rule) => (
-                  <label key={rule.type} className="rules-modal-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={enabledRuleTypes.has(rule.type)}
-                      onChange={() => toggleRule(rule.type)}
-                    />
-                    <span className="rules-modal-checkbox-label">{rule.label}</span>
-                    <span className="rules-modal-checkbox-help">{rule.explanation}</span>
-                  </label>
+                  <div key={rule.type} className="rules-modal-rule">
+                    <label className="rules-modal-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={enabledRuleTypes.has(rule.type)}
+                        onChange={() => toggleRule(rule.type)}
+                      />
+                      <span className="rules-modal-checkbox-label">{rule.label}</span>
+                      <span className="rules-modal-checkbox-help">{rule.explanation}</span>
+                    </label>
+                    {rule.type === "MIN_CPS" ? (
+                      <div className="rules-modal-threshold">
+                        <input
+                            type="number"
+                            min={0.1}
+                            step={0.1}
+                            value={minCps}
+                            aria-label="Min CPS"
+                            placeholder="Min CPS"
+                            disabled={!enabledRuleTypes.has("MIN_CPS")}
+                            onChange={(e) => handleMinCpsChange(e.target.value)}
+                            className="rules-modal-threshold-input"
+                          />
+                      </div>
+                    ) : null}
+                  </div>
                 ))}
               </div>
             </div>

@@ -215,6 +215,11 @@ describe("Sidebar", () => {
     expect(indexCss).toMatch(/\.rules-modal\s*\{[\s\S]*padding:\s*20px;/)
   })
 
+  it("aligns cps inputs with no left inset and checkbox-sized text", () => {
+    expect(indexCss).toMatch(/\.rules-modal-threshold\s*\{[\s\S]*padding-left:\s*0;/)
+    expect(indexCss).toMatch(/\.rules-modal-threshold-input\s*\{[\s\S]*font-size:\s*13px;/)
+  })
+
   it("hides the fill-subs panel controls", () => {
     render(<App />)
 
@@ -564,7 +569,35 @@ describe("Sidebar", () => {
     })
   })
 
-  it("lets users change max and min CPS in the rules modal", async () => {
+  it("shows cps threshold inputs under cps rules and disables them with the rule toggle", () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+
+    const maxRule = ui.getByRole("checkbox", { name: /Reading speed is too high/i })
+    const minRule = ui.getByRole("checkbox", { name: /Reading speed is too low/i })
+
+    const maxRuleRow = maxRule.closest(".rules-modal-rule")
+    const minRuleRow = minRule.closest(".rules-modal-rule")
+    expect(maxRuleRow).not.toBeNull()
+    expect(minRuleRow).not.toBeNull()
+    if (!maxRuleRow || !minRuleRow) return
+
+    const maxCpsInput = within(maxRuleRow).getByLabelText("Max CPS")
+    const minCpsInput = within(minRuleRow).getByLabelText("Min CPS")
+
+    expect(maxCpsInput).toBeEnabled()
+    expect(minCpsInput).toBeEnabled()
+
+    fireEvent.click(maxRule)
+    fireEvent.click(minRule)
+
+    expect(maxCpsInput).toBeDisabled()
+    expect(minCpsInput).toBeDisabled()
+  })
+
+  it("updates cps findings when cps thresholds change in the rules modal", async () => {
     const { container } = render(<App />)
     const ui = within(container)
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
@@ -579,7 +612,7 @@ describe("Sidebar", () => {
           "00:00:01:00\t00:00:02:00\tMarker",
           "This translation is definitely too long for one second.",
           "",
-          "00:00:02:00\t00:00:03:00\tMarker",
+          "00:00:02:00\t00:00:06:00\tMarker",
           "OK.",
         ].join("\n"),
       },
@@ -589,16 +622,24 @@ describe("Sidebar", () => {
     expect(countFindingRowsWithText("Reading speed is too low")).toBeGreaterThan(0)
 
     fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
-    fireEvent.change(ui.getByRole("spinbutton", { name: /Max CPS/i }), {
-      target: { value: "60" },
-    })
-    fireEvent.change(ui.getByRole("spinbutton", { name: /Min CPS/i }), {
-      target: { value: "2" },
-    })
+    fireEvent.change(ui.getByLabelText("Max CPS"), { target: { value: "60" } })
+    fireEvent.change(ui.getByLabelText("Min CPS"), { target: { value: "0.5" } })
 
     await waitFor(() => {
       expect(countFindingRowsWithText("Reading speed is too high")).toBe(0)
       expect(countFindingRowsWithText("Reading speed is too low")).toBe(0)
     })
+  })
+
+  it("renders cps inputs without visible side labels", () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+
+    expect(ui.queryByText("Max CPS")).not.toBeInTheDocument()
+    expect(ui.queryByText("Min CPS")).not.toBeInTheDocument()
+    expect(ui.getByLabelText("Max CPS")).toBeInTheDocument()
+    expect(ui.getByLabelText("Min CPS")).toBeInTheDocument()
   })
 })

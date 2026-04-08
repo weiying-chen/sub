@@ -22,6 +22,8 @@ export type BuildAnalysisOutputOptions = {
   ruleSet: AnalysisRuleSet
   output: AnalysisOutputMode
   enabledRuleTypes?: Metric['type'][]
+  maxCps?: number
+  minCps?: number
   capitalizationTerms?: string[]
   properNouns?: string[]
   abbreviations?: string[]
@@ -38,6 +40,8 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     type,
     ruleSet,
     enabledRuleTypes,
+    maxCps,
+    minCps,
     capitalizationTerms,
     properNouns,
     abbreviations,
@@ -89,6 +93,8 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     minCps,
     ignoreEmptyLines,
     enabledFindingTypes: enabledRuleTypes,
+    maxCps,
+    minCps,
   })
 }
 

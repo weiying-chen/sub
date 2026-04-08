@@ -14,8 +14,6 @@ import { percentStyleRule } from "./percentStyleRule"
 import { punctuationRule } from "./punctuationRule"
 import { spanGapRule } from "./spanGapRule"
 import { timestampFormatRule } from "./timestampFormatRule"
-import { DEFAULT_MAX_CHARS } from "../shared/maxChars"
-import { DEFAULT_MAX_CPS, DEFAULT_MIN_CPS } from "../shared/cps"
 import type { SegmentRule } from "./segments"
 import type { Metric } from "./types"
 
@@ -24,10 +22,9 @@ export type CreateSubsSegmentRulesOptions = {
   properNouns?: string[]
   abbreviations?: string[]
   baselineText?: string
-  maxChars?: number
+  ignoreEmptyLines?: boolean
   maxCps?: number
   minCps?: number
-  ignoreEmptyLines?: boolean
   enabledFindingTypes?: Iterable<Metric["type"]>
 }
 
@@ -50,10 +47,9 @@ function createSubsCommonRules(
     ? new Set<Metric["type"]>(options.enabledFindingTypes)
     : null
   const rules: SegmentRule[] = []
-  const maxChars = Math.max(1, options.maxChars ?? DEFAULT_MAX_CHARS)
 
   if (isEnabled(enabled, "MAX_CHARS")) {
-    rules.push(maxCharsRule(maxChars))
+    rules.push(maxCharsRule(54))
   }
   if (isEnabled(enabled, "BLOCK_STRUCTURE")) {
     rules.push(blockStructureRule({ ignoreEmptyLines: options.ignoreEmptyLines }))
@@ -102,19 +98,17 @@ export function createSubsFindingsRules(
   options: CreateSubsSegmentRulesOptions = {}
 ): SegmentRule[] {
   const { enabled, rules } = createSubsCommonRules(options)
-  const maxCps = options.maxCps ?? DEFAULT_MAX_CPS
-  const minCps = options.minCps ?? DEFAULT_MIN_CPS
 
   if (isEnabled(enabled, "MAX_CPS")) {
     rules.push(
-      maxCpsRule(maxCps, minCps, {
+      maxCpsRule(options.maxCps, options.minCps, {
         ignoreEmptyLines: options.ignoreEmptyLines,
       })
     )
   }
   if (isEnabled(enabled, "MIN_CPS")) {
     rules.push(
-      minCpsRule(maxCps, minCps, {
+      minCpsRule(options.maxCps, options.minCps, {
         ignoreEmptyLines: options.ignoreEmptyLines,
       })
     )
@@ -132,8 +126,6 @@ export function createSubsMetricsRules(
   const enabled = options.enabledFindingTypes
     ? new Set<Metric["type"]>(options.enabledFindingTypes)
     : null
-  const maxCps = options.maxCps ?? DEFAULT_MAX_CPS
-  const minCps = options.minCps ?? DEFAULT_MIN_CPS
   const rules: SegmentRule[] = []
   if (
     isEnabled(enabled, "CPS") ||
@@ -141,7 +133,7 @@ export function createSubsMetricsRules(
     isEnabled(enabled, "MIN_CPS")
   ) {
     rules.push(
-      cpsRule(maxCps, minCps, {
+      cpsRule(options.maxCps, options.minCps, {
         ignoreEmptyLines: options.ignoreEmptyLines,
       })
     )

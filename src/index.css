@@ -416,6 +416,12 @@ body {
   gap: 6px;
 }
 
+.rules-modal-rule {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .rules-modal-group-title {
   display: flex;
   align-items: center;
@@ -465,26 +471,27 @@ body {
   color: var(--muted);
 }
 
-.rules-modal-number-field {
-  display: grid;
-  grid-template-columns: 72px 1fr;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
+.rules-modal-threshold {
+  padding-left: 0;
 }
 
-.rules-modal-number-label {
-  color: var(--text);
-}
-
-.rules-modal-number-field input {
+.rules-modal-threshold-input {
+  display: block;
   width: 100%;
+  box-sizing: border-box;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: var(--bg);
+  background: var(--panel);
   color: var(--text);
-  padding: 6px 8px;
+  font: inherit;
   font-size: 13px;
+  line-height: 1.2;
+  padding: 4px 6px;
+}
+
+.rules-modal-threshold-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .rules-modal-close-button {

@@ -51,7 +51,7 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "MAX_CHARS",
     label: "Translation has too many characters",
-    explanation: "Flags translations that exceed the maximum character count.",
+    explanation: "Flags translations with 55 or more characters.",
     severity: "error",
   },
   {

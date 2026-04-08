@@ -3,6 +3,30 @@ import { describe, it, expect } from "vitest"
 import { parseFillSubsArgs } from "../src/cli/fillSubsCore"
 
 describe("fill-subs CLI args", () => {
+  it("parses input and output flags", () => {
+    const args = parseFillSubsArgs([
+      "-i",
+      "input.tsv",
+      "--out",
+      "output.tsv",
+    ])
+
+    expect(args.inputFile).toBe("input.tsv")
+    expect(args.outputFile).toBe("output.tsv")
+  })
+
+  it("parses long input and output aliases", () => {
+    const args = parseFillSubsArgs([
+      "--in",
+      "source.tsv",
+      "-o",
+      "dest.tsv",
+    ])
+
+    expect(args.inputFile).toBe("source.tsv")
+    expect(args.outputFile).toBe("dest.tsv")
+  })
+
   it("parses paragraph argument", () => {
     const args = parseFillSubsArgs(["--text", "Hello world."])
     expect(args).toMatchObject({
@@ -36,6 +60,11 @@ describe("fill-subs CLI args", () => {
     expect(args.maxChars).toBe(42)
     expect(args.showOverflow).toBe(true)
     expect(args.overflowToClipboard).toBe(true)
+  })
+
+  it("parses max chars equals form", () => {
+    const args = parseFillSubsArgs(["--max-chars=48"])
+    expect(args.maxChars).toBe(48)
   })
 
   it("parses no-overflow flag variants", () => {

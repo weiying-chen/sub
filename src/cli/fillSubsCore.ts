@@ -1,7 +1,6 @@
 export type FillSubsCliArgs = {
   inputFile: string
   outputFile: string
-  inline: boolean
   altBreak: boolean
   paragraphArg: string
 }
@@ -10,7 +9,6 @@ export function parseFillSubsArgs(argv: string[]): FillSubsCliArgs {
   const args: FillSubsCliArgs = {
     inputFile: '',
     outputFile: '',
-    inline: true,
     altBreak: false,
     paragraphArg: '',
   }

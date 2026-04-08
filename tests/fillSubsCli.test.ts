@@ -7,7 +7,6 @@ describe("fill-subs CLI args", () => {
     const args = parseFillSubsArgs(["--text", "Hello world."])
     expect(args).toMatchObject({
       paragraphArg: "Hello world.",
-      inline: true,
     })
   })
 
@@ -21,8 +20,8 @@ describe("fill-subs CLI args", () => {
     expect(args.altBreak).toBe(true)
   })
 
-  it("ignores deprecated no-inline flag", () => {
+  it("does not expose deprecated inline args", () => {
     const args = parseFillSubsArgs(["--no-inline"])
-    expect(args.inline).toBe(true)
+    expect("inline" in args).toBe(false)
   })
 })

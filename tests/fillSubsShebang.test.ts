@@ -14,9 +14,9 @@ describe("fill-subs executable entry", () => {
     expect(isNodeLoader || isTsxBinary).toBe(true)
   })
 
-  it("supports overflow-to-clipboard env toggle", () => {
+  it("supports overflow-to-clipboard runtime option", () => {
     const source = readFileSync(CLI_FILE_URL, "utf8")
-    expect(source).toContain("OVERFLOW_TO_CLIPBOARD")
+    expect(source).toContain("overflowToClipboard")
     expect(source).toContain("setClipboardText(remaining)")
   })
 
@@ -29,5 +29,13 @@ describe("fill-subs executable entry", () => {
     const source = readFileSync(CLI_FILE_URL, "utf8")
     expect(source).toContain("CLIPBOARD_CMD_TIMEOUT_MS")
     expect(source).toContain("timeout: CLIPBOARD_CMD_TIMEOUT_MS")
+  })
+
+  it("does not use legacy env fallbacks for runtime options", () => {
+    const source = readFileSync(CLI_FILE_URL, "utf8")
+    expect(source).not.toContain("process.env.SHOW_OVERFLOW")
+    expect(source).not.toContain("process.env.OVERFLOW_TO_CLIPBOARD")
+    expect(source).not.toContain("process.env.MAX_LEN")
+    expect(source).not.toContain("process.env.MAX_CHARS")
   })
 })

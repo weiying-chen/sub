@@ -3,6 +3,9 @@ export type FillSubsCliArgs = {
   outputFile: string
   altBreak: boolean
   paragraphArg: string
+  maxChars?: number
+  showOverflow?: boolean
+  overflowToClipboard?: boolean
 }
 
 export function parseFillSubsArgs(argv: string[]): FillSubsCliArgs {
@@ -27,6 +30,37 @@ export function parseFillSubsArgs(argv: string[]): FillSubsCliArgs {
     }
     if (a === '--alt-break') {
       args.altBreak = true
+      continue
+    }
+    if (a === '--max-chars') {
+      const value = Number(argv[i + 1] ?? '')
+      if (Number.isFinite(value)) {
+        args.maxChars = value
+      }
+      i++
+      continue
+    }
+    if (a.startsWith('--max-chars=')) {
+      const value = Number(a.slice('--max-chars='.length))
+      if (Number.isFinite(value)) {
+        args.maxChars = value
+      }
+      continue
+    }
+    if (a === '--show-overflow') {
+      args.showOverflow = true
+      continue
+    }
+    if (a === '--no-show-overflow') {
+      args.showOverflow = false
+      continue
+    }
+    if (a === '--overflow-to-clipboard') {
+      args.overflowToClipboard = true
+      continue
+    }
+    if (a === '--no-overflow-to-clipboard') {
+      args.overflowToClipboard = false
       continue
     }
     if (a === '-t' || a === '--text') {

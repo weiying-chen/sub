@@ -6,8 +6,6 @@ import { fillSelectedTimestampLines } from '../shared/fillSubs'
 import { parseFillSubsArgs } from './fillSubsCore'
 import { loadAbbreviations } from './properNouns'
 
-const MAX_LEN = Number(process.env.MAX_LEN ?? process.env.MAX_CHARS ?? 54)
-const LIMIT = Math.max(1, MAX_LEN)
 const CLIPBOARD_CMD_TIMEOUT_MS = Math.max(
   1,
   Number(process.env.CLIPBOARD_CMD_TIMEOUT_MS ?? 150)
@@ -15,13 +13,6 @@ const CLIPBOARD_CMD_TIMEOUT_MS = Math.max(
 
 // Optional: bypass clipboard (useful for reproducible tests)
 const PARAGRAPH_FILE = process.env.PARAGRAPH_FILE ?? ''
-
-// Default: allow partial fill (editor-friendly). Overflow is silently ignored.
-// Opt in to printing leftover text with SHOW_OVERFLOW=1.
-// When possible, overflow is written to /dev/tty to avoid polluting piped output.
-const SHOW_OVERFLOW = process.env.SHOW_OVERFLOW === '1'
-// Opt in to storing leftover text in clipboard for immediate paste.
-const OVERFLOW_TO_CLIPBOARD = process.env.OVERFLOW_TO_CLIPBOARD === '1'
 
 function readStdin(): Promise<string> {
   return new Promise((resolve) => {
@@ -122,9 +113,20 @@ function writeOverflowText(text: string): void {
   process.stderr.write(message)
 }
 
-const { inputFile, outputFile, altBreak, paragraphArg } = parseFillSubsArgs(
+const {
+  inputFile,
+  outputFile,
+  altBreak,
+  paragraphArg,
+  maxChars,
+  showOverflow,
+  overflowToClipboard,
+} = parseFillSubsArgs(
   process.argv.slice(2)
 )
+const LIMIT = Math.max(1, maxChars ?? 54)
+const SHOW_OVERFLOW = showOverflow ?? false
+const OVERFLOW_TO_CLIPBOARD = overflowToClipboard ?? false
 
 const inputTsv = inputFile ? await readFile(inputFile, 'utf8') : await readStdin()
 const hadTrailingNewline = /\r?\n$/.test(inputTsv)

@@ -24,4 +24,27 @@ describe("fill-subs CLI args", () => {
     const args = parseFillSubsArgs(["--no-inline"])
     expect("inline" in args).toBe(false)
   })
+
+  it("parses max chars and overflow flags", () => {
+    const args = parseFillSubsArgs([
+      "--max-chars",
+      "42",
+      "--show-overflow",
+      "--overflow-to-clipboard",
+    ])
+
+    expect(args.maxChars).toBe(42)
+    expect(args.showOverflow).toBe(true)
+    expect(args.overflowToClipboard).toBe(true)
+  })
+
+  it("parses no-overflow flag variants", () => {
+    const args = parseFillSubsArgs([
+      "--no-show-overflow",
+      "--no-overflow-to-clipboard",
+    ])
+
+    expect(args.showOverflow).toBe(false)
+    expect(args.overflowToClipboard).toBe(false)
+  })
 })

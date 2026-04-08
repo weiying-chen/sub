@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback, useRef } from "react"
+import { useEffect, useMemo, useState, useCallback, useRef, type ChangeEvent } from "react"
 import CodeMirror from "@uiw/react-codemirror"
 import { EditorView, keymap } from "@codemirror/view"
 import { Prec } from "@codemirror/state"
@@ -35,8 +35,6 @@ const RULES_MODAL_ANIMATION_MS = 170
 const RULE_FILTERS_STORAGE_KEY = "subs.ruleFilters"
 const FINDINGS_MOTION_SUPPRESS_MS = 220
 const CHECKER_MAX_CHARS = DEFAULT_MAX_CHARS
-const CHECKER_MAX_CPS = DEFAULT_MAX_CPS
-const CHECKER_MIN_CPS = DEFAULT_MIN_CPS
 
 type RuleOption = {
   type: Finding["type"]
@@ -473,6 +471,8 @@ export default function App({
   const [isRulesModalOpen, setIsRulesModalOpen] = useState(false)
   const [isRulesModalMounted, setIsRulesModalMounted] = useState(false)
   const [suppressFindingMotion, setSuppressFindingMotion] = useState(false)
+  const [checkerMaxCps, setCheckerMaxCps] = useState(DEFAULT_MAX_CPS)
+  const [checkerMinCps, setCheckerMinCps] = useState(DEFAULT_MIN_CPS)
   const pendingClickFindingIdRef = useRef<string | null>(null)
   const rulesModalCloseTimerRef = useRef<number | null>(null)
   const findingMotionTimerRef = useRef<number | null>(null)
@@ -539,6 +539,20 @@ export default function App({
     })
   }, [suppressFindingMotionForRuleChange])
 
+  const onMaxCpsChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.currentTarget.valueAsNumber
+    if (!Number.isFinite(value) || value <= 0) return
+    suppressFindingMotionForRuleChange()
+    setCheckerMaxCps(value)
+  }, [suppressFindingMotionForRuleChange])
+
+  const onMinCpsChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.currentTarget.valueAsNumber
+    if (!Number.isFinite(value) || value <= 0) return
+    suppressFindingMotionForRuleChange()
+    setCheckerMinCps(value)
+  }, [suppressFindingMotionForRuleChange])
+
   const analysisEnabledRuleTypes = useMemo(() => {
     return includeWarnings
       ? Array.from(enabledRuleTypes)
@@ -554,14 +568,14 @@ export default function App({
       ruleSet: "findings",
       output: "metrics",
       maxChars: CHECKER_MAX_CHARS,
-      maxCps: CHECKER_MAX_CPS,
-      minCps: CHECKER_MIN_CPS,
+      maxCps: checkerMaxCps,
+      minCps: checkerMinCps,
       enabledRuleTypes: analysisEnabledRuleTypes,
       capitalizationTerms,
       properNouns,
       abbreviations: punctuationAbbreviations,
     }) as Metric[]
-  }, [value, analysisEnabledRuleTypes])
+  }, [value, analysisEnabledRuleTypes, checkerMaxCps, checkerMinCps])
 
   const findings = useMemo<Finding[]>(() => {
     return getFindings(rawRuleOutputs, { includeWarnings })
@@ -575,14 +589,14 @@ export default function App({
       ruleSet: "metrics",
       output: "metrics",
       maxChars: CHECKER_MAX_CHARS,
-      maxCps: CHECKER_MAX_CPS,
-      minCps: CHECKER_MIN_CPS,
+      maxCps: checkerMaxCps,
+      minCps: checkerMinCps,
       enabledRuleTypes: analysisEnabledRuleTypes,
       capitalizationTerms,
       properNouns,
       abbreviations: punctuationAbbreviations,
     }) as Metric[]
-  }, [value, analysisEnabledRuleTypes])
+  }, [value, analysisEnabledRuleTypes, checkerMaxCps, checkerMinCps])
 
   useEffect(() => {
     console.log("[analysis] cps metrics", cpsMetrics)
@@ -769,6 +783,33 @@ export default function App({
               </button>
             </div>
             <div className="rules-modal-groups">
+              <div className="rules-modal-group">
+                <div className="rules-modal-group-title">
+                  <span>Thresholds</span>
+                </div>
+                <label className="rules-modal-number-field">
+                  <span className="rules-modal-number-label">Max CPS</span>
+                  <input
+                    type="number"
+                    min={0.1}
+                    step={0.1}
+                    aria-label="Max CPS"
+                    value={checkerMaxCps}
+                    onChange={onMaxCpsChange}
+                  />
+                </label>
+                <label className="rules-modal-number-field">
+                  <span className="rules-modal-number-label">Min CPS</span>
+                  <input
+                    type="number"
+                    min={0.1}
+                    step={0.1}
+                    aria-label="Min CPS"
+                    value={checkerMinCps}
+                    onChange={onMinCpsChange}
+                  />
+                </label>
+              </div>
               <div className="rules-modal-group">
                 <div className="rules-modal-group-title">
                   <i

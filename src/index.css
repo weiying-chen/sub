@@ -465,6 +465,28 @@ body {
   color: var(--muted);
 }
 
+.rules-modal-number-field {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.rules-modal-number-label {
+  color: var(--text);
+}
+
+.rules-modal-number-field input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
 .rules-modal-close-button {
   border: none;
   background: transparent;

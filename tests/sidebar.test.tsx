@@ -563,4 +563,42 @@ describe("Sidebar", () => {
       expect(countFindingRowsWithText("Reading speed is too high")).toBe(0)
     })
   })
+
+  it("lets users change max and min CPS in the rules modal", async () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+    const countFindingRowsWithText = (text: string) =>
+      Array.from(container.querySelectorAll(".finding-row-button")).filter((el) =>
+        el.textContent?.includes(text)
+      ).length
+
+    fireEvent.change(editor, {
+      target: {
+        value: [
+          "00:00:01:00\t00:00:02:00\tMarker",
+          "This translation is definitely too long for one second.",
+          "",
+          "00:00:02:00\t00:00:03:00\tMarker",
+          "OK.",
+        ].join("\n"),
+      },
+    })
+
+    expect(countFindingRowsWithText("Reading speed is too high")).toBeGreaterThan(0)
+    expect(countFindingRowsWithText("Reading speed is too low")).toBeGreaterThan(0)
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+    fireEvent.change(ui.getByRole("spinbutton", { name: /Max CPS/i }), {
+      target: { value: "60" },
+    })
+    fireEvent.change(ui.getByRole("spinbutton", { name: /Min CPS/i }), {
+      target: { value: "2" },
+    })
+
+    await waitFor(() => {
+      expect(countFindingRowsWithText("Reading speed is too high")).toBe(0)
+      expect(countFindingRowsWithText("Reading speed is too low")).toBe(0)
+    })
+  })
 })

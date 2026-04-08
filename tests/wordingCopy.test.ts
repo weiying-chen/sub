@@ -41,9 +41,9 @@ describe("wording copy", () => {
 
     expect(findings[0]?.instruction).toBe("Reduce reading speed to 25 CPS or less.")
     expect(findings[1]?.instruction).toBe(
-      "Add the missing translation below these timestamps."
+      "Add the missing translation line below these timestamps."
     )
-    expect(findings[2]?.instruction).toBe("Use a row with timestamps in this format: HH:MM:SS:FF<TAB>HH:MM:SS:FF<TAB>source text. You can optionally add XXX before the first timestamp.")
+    expect(findings[2]?.instruction).toBe("Use a row with timestamps in this format: HH:MM:SS:FF<TAB>HH:MM:SS:FF<TAB>original text. You can optionally add XXX before the first timestamp.")
   })
 
   it("builds punctuation and timing-gap instructions in getFindings", () => {
@@ -132,7 +132,7 @@ describe("wording copy", () => {
 
     expect(appTsx).toContain("TIMESTAMP_FORMAT_MODAL_EXPLANATION")
     expect(appTsx).toContain("./shared/wording")
-    expect(appTsx).toContain("punctuation flow between translations")
-    expect(appTsx).toContain("Warns when nearby translations can be merged.")
+    expect(appTsx).toContain("punctuation flow between translation lines")
+    expect(appTsx).toContain("Warns when nearby translation lines can be merged.")
   })
 })

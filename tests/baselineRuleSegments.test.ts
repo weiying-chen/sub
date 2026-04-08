@@ -21,6 +21,7 @@ describe("baselineRule (segments)", () => {
     expect(findings[0]).toMatchObject({
       type: "BASELINE",
       ruleCode: "SOURCE_TEXT_MISMATCH",
+      message: "Original text mismatch between current file and baseline file.",
       reason: "sourceText",
       timestamp: "00:00:01:00 -> 00:00:02:00",
       expected: "SRC1",

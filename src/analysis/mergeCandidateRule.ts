@@ -100,6 +100,8 @@ export function mergeCandidateRule(
       nextText: next.translation,
       gapFrames,
       editDistance,
+      instruction:
+        "These adjacent translation lines are very similar and close in time; consider merging them into one timestamp span.",
     }
 
     return [metric]

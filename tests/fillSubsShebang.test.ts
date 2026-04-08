@@ -31,11 +31,8 @@ describe("fill-subs executable entry", () => {
     expect(source).toContain("timeout: CLIPBOARD_CMD_TIMEOUT_MS")
   })
 
-  it("does not use legacy env fallbacks for runtime options", () => {
+  it("does not use env-var fallbacks for runtime options", () => {
     const source = readFileSync(CLI_FILE_URL, "utf8")
-    expect(source).not.toContain("process.env.SHOW_OVERFLOW")
-    expect(source).not.toContain("process.env.OVERFLOW_TO_CLIPBOARD")
-    expect(source).not.toContain("process.env.MAX_LEN")
-    expect(source).not.toContain("process.env.MAX_CHARS")
+    expect(source).not.toContain("process.env")
   })
 })

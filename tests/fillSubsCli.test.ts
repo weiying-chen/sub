@@ -76,4 +76,14 @@ describe("fill-subs CLI args", () => {
     expect(args.showOverflow).toBe(false)
     expect(args.overflowToClipboard).toBe(false)
   })
+
+  it("parses paragraph-file flag variants", () => {
+    expect(parseFillSubsArgs(["--paragraph-file", "para.txt"]).paragraphFile).toBe("para.txt")
+    expect(parseFillSubsArgs(["--paragraph-file=para2.txt"]).paragraphFile).toBe("para2.txt")
+  })
+
+  it("parses clipboard-timeout-ms flag variants", () => {
+    expect(parseFillSubsArgs(["--clipboard-timeout-ms", "250"]).clipboardTimeoutMs).toBe(250)
+    expect(parseFillSubsArgs(["--clipboard-timeout-ms=400"]).clipboardTimeoutMs).toBe(400)
+  })
 })

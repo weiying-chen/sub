@@ -16,6 +16,7 @@ import { spanGapRule } from "./spanGapRule"
 import { timestampFormatRule } from "./timestampFormatRule"
 import type { SegmentRule } from "./segments"
 import type { Metric } from "./types"
+import { DEFAULT_MAX_CHARS } from "../shared/maxChars"
 
 export type CreateSubsSegmentRulesOptions = {
   capitalizationTerms?: string[]
@@ -25,6 +26,7 @@ export type CreateSubsSegmentRulesOptions = {
   ignoreEmptyLines?: boolean
   maxCps?: number
   minCps?: number
+  maxChars?: number
   enabledFindingTypes?: Iterable<Metric["type"]>
 }
 
@@ -49,7 +51,7 @@ function createSubsCommonRules(
   const rules: SegmentRule[] = []
 
   if (isEnabled(enabled, "MAX_CHARS")) {
-    rules.push(maxCharsRule(54))
+    rules.push(maxCharsRule(Math.max(1, options.maxChars ?? DEFAULT_MAX_CHARS)))
   }
   if (isEnabled(enabled, "BLOCK_STRUCTURE")) {
     rules.push(blockStructureRule({ ignoreEmptyLines: options.ignoreEmptyLines }))

@@ -8,6 +8,10 @@ import { loadAbbreviations } from './properNouns'
 
 const MAX_LEN = Number(process.env.MAX_LEN ?? process.env.MAX_CHARS ?? 54)
 const LIMIT = Math.max(1, MAX_LEN)
+const CLIPBOARD_CMD_TIMEOUT_MS = Math.max(
+  1,
+  Number(process.env.CLIPBOARD_CMD_TIMEOUT_MS ?? 150)
+)
 
 // Optional: bypass clipboard (useful for reproducible tests)
 const PARAGRAPH_FILE = process.env.PARAGRAPH_FILE ?? ''
@@ -30,24 +34,35 @@ function readStdin(): Promise<string> {
 
 function getClipboardText(): string {
   // Prefer Wayland
-  let r = spawnSync('wl-paste', ['-n'], { encoding: 'utf8' })
+  let r = spawnSync('wl-paste', ['-n'], {
+    encoding: 'utf8',
+    timeout: CLIPBOARD_CMD_TIMEOUT_MS,
+  })
   if (r.status === 0 && r.stdout.trim()) return r.stdout
 
   // X11 fallback
-  r = spawnSync('xclip', ['-o', '-selection', 'clipboard'], { encoding: 'utf8' })
+  r = spawnSync('xclip', ['-o', '-selection', 'clipboard'], {
+    encoding: 'utf8',
+    timeout: CLIPBOARD_CMD_TIMEOUT_MS,
+  })
   if (r.status === 0 && r.stdout.trim()) return r.stdout
 
-  r = spawnSync('xsel', ['--clipboard', '--output'], { encoding: 'utf8' })
+  r = spawnSync('xsel', ['--clipboard', '--output'], {
+    encoding: 'utf8',
+    timeout: CLIPBOARD_CMD_TIMEOUT_MS,
+  })
   if (r.status === 0 && r.stdout.trim()) return r.stdout
 
   // Windows fallback (PowerShell)
   r = spawnSync('pwsh', ['-NoProfile', '-Command', 'Get-Clipboard -Raw'], {
     encoding: 'utf8',
+    timeout: CLIPBOARD_CMD_TIMEOUT_MS,
   })
   if (r.status === 0 && r.stdout.trim()) return r.stdout
 
   r = spawnSync('powershell', ['-NoProfile', '-Command', 'Get-Clipboard -Raw'], {
     encoding: 'utf8',
+    timeout: CLIPBOARD_CMD_TIMEOUT_MS,
   })
   if (r.status === 0 && r.stdout.trim()) return r.stdout
 
@@ -59,6 +74,7 @@ function setClipboardText(text: string): boolean {
   let r = spawnSync('wl-copy', ['--trim-newline'], {
     input: text,
     encoding: 'utf8',
+    timeout: CLIPBOARD_CMD_TIMEOUT_MS,
   })
   if (r.status === 0) return true
 
@@ -66,12 +82,14 @@ function setClipboardText(text: string): boolean {
   r = spawnSync('xclip', ['-selection', 'clipboard'], {
     input: text,
     encoding: 'utf8',
+    timeout: CLIPBOARD_CMD_TIMEOUT_MS,
   })
   if (r.status === 0) return true
 
   r = spawnSync('xsel', ['--clipboard', '--input'], {
     input: text,
     encoding: 'utf8',
+    timeout: CLIPBOARD_CMD_TIMEOUT_MS,
   })
   if (r.status === 0) return true
 
@@ -79,12 +97,14 @@ function setClipboardText(text: string): boolean {
   r = spawnSync('pwsh', ['-NoProfile', '-Command', 'Set-Clipboard'], {
     input: text,
     encoding: 'utf8',
+    timeout: CLIPBOARD_CMD_TIMEOUT_MS,
   })
   if (r.status === 0) return true
 
   r = spawnSync('powershell', ['-NoProfile', '-Command', 'Set-Clipboard'], {
     input: text,
     encoding: 'utf8',
+    timeout: CLIPBOARD_CMD_TIMEOUT_MS,
   })
   return r.status === 0
 }

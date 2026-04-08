@@ -24,4 +24,10 @@ describe("fill-subs executable entry", () => {
     const source = readFileSync(CLI_FILE_URL, "utf8")
     expect(source).toContain("/dev/tty")
   })
+
+  it("uses timeouts for clipboard commands", () => {
+    const source = readFileSync(CLI_FILE_URL, "utf8")
+    expect(source).toContain("CLIPBOARD_CMD_TIMEOUT_MS")
+    expect(source).toContain("timeout: CLIPBOARD_CMD_TIMEOUT_MS")
+  })
 })

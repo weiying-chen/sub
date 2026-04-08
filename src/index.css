@@ -367,7 +367,7 @@ body {
 }
 
 .rules-modal {
-  width: min(480px, calc(100vw - 32px));
+  width: min(520px, calc(100vw - 32px));
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg);

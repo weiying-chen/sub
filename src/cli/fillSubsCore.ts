@@ -6,6 +6,8 @@ export type FillSubsCliArgs = {
   maxChars?: number
   showOverflow?: boolean
   overflowToClipboard?: boolean
+  paragraphFile?: string
+  clipboardTimeoutMs?: number
 }
 
 export function parseFillSubsArgs(argv: string[]): FillSubsCliArgs {
@@ -61,6 +63,30 @@ export function parseFillSubsArgs(argv: string[]): FillSubsCliArgs {
     }
     if (a === '--no-overflow-to-clipboard') {
       args.overflowToClipboard = false
+      continue
+    }
+    if (a === '--paragraph-file') {
+      args.paragraphFile = argv[i + 1] ?? ''
+      i++
+      continue
+    }
+    if (a.startsWith('--paragraph-file=')) {
+      args.paragraphFile = a.slice('--paragraph-file='.length)
+      continue
+    }
+    if (a === '--clipboard-timeout-ms') {
+      const value = Number(argv[i + 1] ?? '')
+      if (Number.isFinite(value) && value > 0) {
+        args.clipboardTimeoutMs = value
+      }
+      i++
+      continue
+    }
+    if (a.startsWith('--clipboard-timeout-ms=')) {
+      const value = Number(a.slice('--clipboard-timeout-ms='.length))
+      if (Number.isFinite(value) && value > 0) {
+        args.clipboardTimeoutMs = value
+      }
       continue
     }
     if (a === '-t' || a === '--text') {

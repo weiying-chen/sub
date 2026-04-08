@@ -6,13 +6,7 @@ import { fillSelectedTimestampLines } from '../shared/fillSubs'
 import { parseFillSubsArgs } from './fillSubsCore'
 import { loadAbbreviations } from './properNouns'
 
-const CLIPBOARD_CMD_TIMEOUT_MS = Math.max(
-  1,
-  Number(process.env.CLIPBOARD_CMD_TIMEOUT_MS ?? 150)
-)
-
-// Optional: bypass clipboard (useful for reproducible tests)
-const PARAGRAPH_FILE = process.env.PARAGRAPH_FILE ?? ''
+const DEFAULT_CLIPBOARD_CMD_TIMEOUT_MS = 150
 
 function readStdin(): Promise<string> {
   return new Promise((resolve) => {
@@ -121,10 +115,13 @@ const {
   maxChars,
   showOverflow,
   overflowToClipboard,
+  paragraphFile,
+  clipboardTimeoutMs,
 } = parseFillSubsArgs(
   process.argv.slice(2)
 )
 const LIMIT = Math.max(1, maxChars ?? 54)
+const CLIPBOARD_CMD_TIMEOUT_MS = Math.max(1, clipboardTimeoutMs ?? DEFAULT_CLIPBOARD_CMD_TIMEOUT_MS)
 const SHOW_OVERFLOW = showOverflow ?? false
 const OVERFLOW_TO_CLIPBOARD = overflowToClipboard ?? false
 
@@ -139,8 +136,8 @@ if (hadTrailingNewline) {
 
 let paragraph = paragraphArg
 if (!paragraph.trim()) {
-  if (PARAGRAPH_FILE) {
-    paragraph = await readFile(PARAGRAPH_FILE, 'utf8')
+  if (paragraphFile) {
+    paragraph = await readFile(paragraphFile, 'utf8')
   } else {
     paragraph = getClipboardText()
   }

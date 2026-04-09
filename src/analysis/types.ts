@@ -71,6 +71,7 @@ export type CPSBalanceMetric = {
 
 export type NumberStyleMetric = {
   type: 'NUMBER_STYLE'
+  ruleCode: NumberStyleRuleCode
   lineIndex: number
   index: number
   value: number
@@ -80,6 +81,11 @@ export type NumberStyleMetric = {
   text?: string
   severity?: 'error' | 'warn'
 }
+
+export type NumberStyleRuleCode =
+  | 'SMALL_NUMBER_AS_DIGITS'
+  | 'LARGE_NUMBER_AS_WORDS'
+  | 'DECADE_WORD_AS_TEXT'
 
 export type PercentStyleMetric = {
   type: 'PERCENT_STYLE'
@@ -120,7 +126,6 @@ export type PunctuationMetric = {
   type: 'PUNCTUATION'
   lineIndex: number
   ruleCode: PunctuationRuleCode
-  instruction: string
   text: string
   timestamp?: string
   prevText?: string
@@ -175,7 +180,6 @@ export type MergeCandidateMetric = {
   nextText: string
   gapFrames: number
   editDistance: number
-  instruction: string
   severity?: 'error' | 'warn'
 }
 
@@ -186,7 +190,6 @@ export type SpanGapMetric = {
   text: string
   nextText: string
   gapFrames: number
-  instruction: string
   severity?: 'error' | 'warn'
 }
 

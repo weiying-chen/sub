@@ -50,6 +50,17 @@ const SCALES: Record<string, number> = {
   trillion: 1000000000000,
 }
 
+const DECADE_WORDS: Record<string, number> = {
+  twenties: 20,
+  thirties: 30,
+  forties: 40,
+  fifties: 50,
+  sixties: 60,
+  seventies: 70,
+  eighties: 80,
+  nineties: 90,
+}
+
 const WORD_LIST = [
   ...Object.keys(SMALL),
   ...Object.keys(TENS),
@@ -57,6 +68,7 @@ const WORD_LIST = [
   'and',
 ].join('|')
 
+const DECADE_WORD_RE = new RegExp(`\\b(?:${Object.keys(DECADE_WORDS).join('|')})\\b`, 'gi')
 const WORD_NUMBER_RE = new RegExp(
   `\\b(?:${WORD_LIST})(?:[\\s-]+(?:${WORD_LIST}))*\\b`,
   'gi'
@@ -362,6 +374,7 @@ function collectMetrics(
     if (value <= 10 || sentenceStart) {
       metrics.push({
         type: 'NUMBER_STYLE',
+        ruleCode: 'SMALL_NUMBER_AS_DIGITS',
         lineIndex: anchorIndex,
         index: match.index,
         value,
@@ -391,6 +404,25 @@ function collectMetrics(
 
     metrics.push({
       type: 'NUMBER_STYLE',
+      ruleCode: 'LARGE_NUMBER_AS_WORDS',
+      lineIndex: anchorIndex,
+      index: match.index,
+      value,
+      found: 'words',
+      expected: 'digits',
+      token: match[0],
+      text: fullText,
+    })
+  }
+
+  while ((match = DECADE_WORD_RE.exec(text))) {
+    const decadeWord = match[0].toLowerCase()
+    const value = DECADE_WORDS[decadeWord]
+    if (value == null) continue
+
+    metrics.push({
+      type: 'NUMBER_STYLE',
+      ruleCode: 'DECADE_WORD_AS_TEXT',
       lineIndex: anchorIndex,
       index: match.index,
       value,

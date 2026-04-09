@@ -3,7 +3,6 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
-import { spanGapRule } from "../src/analysis/spanGapRule"
 import type { Metric } from "../src/analysis/types"
 import { getFindings } from "../src/shared/findings"
 import {
@@ -47,25 +46,44 @@ describe("wording copy", () => {
     expect(findings[2]?.instruction).toBe("Use a row with timestamps in this format: HH:MM:SS:FF<TAB>HH:MM:SS:FF<TAB>source text. You can optionally add XXX before the first timestamp.")
   })
 
-  it("uses updated span-gap wording", () => {
-    const rule = spanGapRule()
-    const segments = [
-      { lineIndex: 1, translation: "Same line", startFrames: 0, endFrames: 10 },
-      { lineIndex: 3, translation: "Same line", startFrames: 14, endFrames: 24 },
+  it("builds punctuation and timing-gap instructions in getFindings", () => {
+    const metrics: Metric[] = [
+      {
+        type: "PUNCTUATION",
+        lineIndex: 1,
+        ruleCode: "MISSING_END_PUNCTUATION",
+        text: "Missing punctuation",
+      },
+      {
+        type: "MERGE_CANDIDATE",
+        lineIndex: 3,
+        nextLineIndex: 5,
+        text: "Same line",
+        nextText: "Same line.",
+        gapFrames: 30,
+        editDistance: 1,
+      },
+      {
+        type: "SPAN_GAP",
+        lineIndex: 7,
+        nextLineIndex: 9,
+        text: "Repeated line",
+        nextText: "Repeated line",
+        gapFrames: 30,
+      },
     ]
 
-    const metrics = rule({
-      segment: segments[0],
-      segmentIndex: 0,
-      segments,
-    })
-
-    expect(metrics).toHaveLength(1)
-    expect(metrics[0]).toMatchObject({
-      type: "SPAN_GAP",
-      instruction:
-        "This translation disappears and reappears after a timing gap. Split or rewrite it instead of spanning across it.",
-    })
+    const findings = getFindings(metrics)
+    expect(findings).toHaveLength(3)
+    expect(findings[0]?.instruction).toBe(
+      "End this translation with terminal punctuation (., ?, !, :, …, —, or '...')."
+    )
+    expect(findings[1]?.instruction).toBe(
+      "These adjacent translations are very similar and close in time; consider merging them into one timestamp span."
+    )
+    expect(findings[2]?.instruction).toBe(
+      "This translation disappears and reappears after a timing gap. Split or rewrite it instead of spanning across it."
+    )
   })
 
   it("uses shared timestamp format wording for modal copy", () => {

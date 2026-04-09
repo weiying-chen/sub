@@ -205,8 +205,6 @@ function addRule4Metric(
     type: 'PUNCTUATION',
     lineIndex: cue.lineIndex,
     ruleCode: 'MISSING_END_PUNCTUATION',
-    instruction:
-      "End this translation with terminal punctuation (., ?, !, :, …, —, or '...').",
     text: cue.text,
     timestamp: cueTimestamp(cue),
   })
@@ -243,7 +241,6 @@ function collectMetrics(
       type: 'PUNCTUATION',
       lineIndex: cue.lineIndex,
       ruleCode: 'MISSING_CLOSING_QUOTE',
-      instruction: 'Add a closing " to match the opening quote.',
       text: cue.text,
       timestamp: cueTimestamp(cue),
     })
@@ -260,7 +257,6 @@ function collectMetrics(
       type: 'PUNCTUATION',
       lineIndex: cue.lineIndex,
       ruleCode: 'MISSING_OPENING_QUOTE',
-      instruction: 'Remove the extra closing " or add a matching opening ".',
       text: cue.text,
       timestamp: cueTimestamp(cue),
     })
@@ -295,7 +291,6 @@ function collectMetrics(
         type: 'PUNCTUATION',
         lineIndex: next.lineIndex,
         ruleCode: 'LOWERCASE_AFTER_PERIOD',
-        instruction: 'Capitalize the start of this translation.',
         text: next.text,
         timestamp: cueTimestamp(next),
         prevText: prev.text,
@@ -317,8 +312,6 @@ function collectMetrics(
         type: 'PUNCTUATION',
         lineIndex: prev.lineIndex,
         ruleCode: 'MISSING_PUNCTUATION_BEFORE_CAPITAL',
-        instruction:
-          'End this translation with sentence-ending punctuation, or lowercase the next translation.',
         text: prev.text,
         timestamp: cueTimestamp(prev),
         nextText: next.text,
@@ -338,7 +331,6 @@ function collectMetrics(
         type: 'PUNCTUATION',
         lineIndex: prev.lineIndex,
         ruleCode: 'COMMA_BEFORE_QUOTE',
-        instruction: "End this translation with ':' before the next quoted translation.",
         text: prev.text,
         timestamp: cueTimestamp(prev),
         nextText: next.text,

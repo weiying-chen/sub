@@ -31,12 +31,15 @@ describe("numberStyleRule (segments)", () => {
     const byToken = new Map(findings.map((f) => [f.token, f]))
     expect(byToken.get("5")?.expected).toBe("words")
     expect(byToken.get("5")?.found).toBe("digits")
+    expect(byToken.get("5")?.ruleCode).toBe("SMALL_NUMBER_AS_DIGITS")
     expect(byToken.get("5")?.text).toBe("This is 5 examples.")
     expect(byToken.get("eleven")?.expected).toBe("digits")
     expect(byToken.get("eleven")?.found).toBe("words")
+    expect(byToken.get("eleven")?.ruleCode).toBe("LARGE_NUMBER_AS_WORDS")
     expect(byToken.get("eleven")?.text).toBe("This is eleven examples.")
     expect(byToken.get("12")?.expected).toBe("words")
     expect(byToken.get("12")?.found).toBe("digits")
+    expect(byToken.get("12")?.ruleCode).toBe("SMALL_NUMBER_AS_DIGITS")
     expect(byToken.get("12")?.text).toBe("12 birds landed.")
   })
 
@@ -250,5 +253,26 @@ describe("numberStyleRule (segments)", () => {
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
 
     expect(findings).toHaveLength(0)
+  })
+
+  it("flags decade words like fifties for numeric decade style", () => {
+    const segments = [
+      { lineIndex: 0, translation: "Music from the fifties is timeless." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, lineText: segment.translation }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(1)
+    expect(findings[0]).toMatchObject({
+      token: "fifties",
+      value: 50,
+      found: "words",
+      expected: "digits",
+      ruleCode: "DECADE_WORD_AS_TEXT",
+    })
   })
 })

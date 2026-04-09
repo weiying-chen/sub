@@ -22,6 +22,7 @@ describe("sortFindingsForDecorations", () => {
       },
       {
         type: "NUMBER_STYLE",
+        ruleCode: "SMALL_NUMBER_AS_DIGITS",
         lineIndex: 0,
         index: 8,
         value: 5,
@@ -52,6 +53,7 @@ describe("sortFindingsForDecorations", () => {
       },
       {
         type: "NUMBER_STYLE",
+        ruleCode: "SMALL_NUMBER_AS_DIGITS",
         lineIndex: 1,
         index: 0,
         value: 5,

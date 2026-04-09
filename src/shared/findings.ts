@@ -114,12 +114,22 @@ export function getFindings(
     }
 
     if (m.type === 'MERGE_CANDIDATE') {
-      out.push({ ...m, severity: 'warn', instruction: m.instruction })
+      out.push({
+        ...m,
+        severity: 'warn',
+        instruction:
+          'These adjacent translations are very similar and close in time; consider merging them into one timestamp span.',
+      })
       continue
     }
 
     if (m.type === 'SPAN_GAP') {
-      out.push({ ...m, severity: 'warn', instruction: m.instruction })
+      out.push({
+        ...m,
+        severity: 'warn',
+        instruction:
+          'This translation disappears and reappears after a timing gap. Split or rewrite it instead of spanning across it.',
+      })
       continue
     }
 
@@ -127,8 +137,9 @@ export function getFindings(
       out.push({
         ...m,
         severity: 'error',
-        instruction:
-          m.expected === 'words'
+        instruction: m.ruleCode === 'DECADE_WORD_AS_TEXT'
+          ? `Use ${m.value}s instead of the word "${m.token}".`
+          : m.expected === 'words'
             ? 'Use words instead of digits for this number.'
             : 'Use digits instead of words for this number.',
       })
@@ -165,7 +176,19 @@ export function getFindings(
     }
 
     if (m.type === 'PUNCTUATION') {
-      out.push({ ...m, severity: 'error', instruction: m.instruction })
+      const instruction =
+        m.ruleCode === 'LOWERCASE_AFTER_PERIOD'
+          ? 'Capitalize the start of this translation.'
+          : m.ruleCode === 'MISSING_PUNCTUATION_BEFORE_CAPITAL'
+            ? 'End this translation with sentence-ending punctuation, or lowercase the next translation.'
+            : m.ruleCode === 'COMMA_BEFORE_QUOTE'
+              ? "End this translation with ':' before the next quoted translation."
+              : m.ruleCode === 'MISSING_END_PUNCTUATION'
+                ? "End this translation with terminal punctuation (., ?, !, :, …, —, or '...')."
+                : m.ruleCode === 'MISSING_CLOSING_QUOTE'
+                  ? 'Add a closing " to match the opening quote.'
+                  : 'Remove the extra closing " or add a matching opening ".'
+      out.push({ ...m, severity: 'error', instruction })
       continue
     }
 

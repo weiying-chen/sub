@@ -26,6 +26,7 @@ describe("sortFindingsWithIndex", () => {
       },
       {
         type: "NUMBER_STYLE",
+        ruleCode: "SMALL_NUMBER_AS_DIGITS",
         lineIndex: 1,
         index: 0,
         value: 5,

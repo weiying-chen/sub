@@ -92,6 +92,20 @@ describe("getFindings severity", () => {
     expect(dashFindings[0]?.severity).toBe("error")
   })
 
+  it("uses numeric decade wording for decade words", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "Music from the fifties still sounds fresh.",
+    ].join("\n")
+    const metrics = analyzeTextByType(text, "subs", [numberStyleRule()])
+    const findings = getFindings(metrics).filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(1)
+    expect(findings[0]?.instruction).toBe(
+      'Use 50s instead of the word "fifties".'
+    )
+  })
+
   it("marks punctuation findings as error", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

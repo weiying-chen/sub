@@ -156,12 +156,22 @@ describe("Sidebar", () => {
     expect(container.querySelectorAll(".finding-row-button.is-active").length).toBeGreaterThan(0)
   })
 
-  it("loads the provided cervical spine transcript as the default sample", () => {
-    render(<App />)
+  it("loads the demo sample with exactly two clear findings", () => {
+    const { container } = render(<App />)
 
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
-    expect(editor.value).toContain("00:07:09:14\t00:07:11:23\t手麻 不舒服")
-    expect(editor.value).toContain("ossification of the posterior longitudinal ligament.")
+    expect(editor.value).toContain("Tzu Chi")
+
+    const findingDetails = Array.from(
+      container.querySelectorAll(".finding-row-detail")
+    )
+      .map((el) => el.textContent?.trim() ?? "")
+      .filter((text) => text !== "")
+
+    expect(findingDetails).toEqual([
+      "Translation line has too many characters",
+      "Translation lines could be merged",
+    ])
   })
 
   it("enables line wrapping in the editor", () => {

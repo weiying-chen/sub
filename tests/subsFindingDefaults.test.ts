@@ -15,10 +15,14 @@ describe("subs finding defaults", () => {
     expect(resolveSubsFindingRuleFilters(["MAX_CPS"])).toEqual(["MAX_CPS"])
   })
 
-  it("includes BASELINE and excludes non-default rules in shared defaults", () => {
-    expect(DEFAULT_SUBS_FINDING_RULE_TYPES).toContain("BASELINE")
-    expect(DEFAULT_SUBS_FINDING_RULE_TYPES).not.toContain("CPS_BALANCE")
-    expect(DEFAULT_SUBS_FINDING_RULE_TYPES).not.toContain("CAPITALIZATION")
-    expect(DEFAULT_SUBS_FINDING_RULE_TYPES).not.toContain("LEADING_WHITESPACE")
+  it("uses the agreed demo default rule set", () => {
+    expect(DEFAULT_SUBS_FINDING_RULE_TYPES).toEqual([
+      "MAX_CHARS",
+      "MERGE_CANDIDATE",
+      "NUMBER_STYLE",
+      "PUNCTUATION",
+      "MAX_CPS",
+      "MIN_CPS",
+    ])
   })
 })

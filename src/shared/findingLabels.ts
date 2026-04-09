@@ -8,7 +8,7 @@ const FINDING_LABELS: Partial<Record<Finding["type"], string>> = {
   MERGE_CANDIDATE: "Translation lines could be merged",
   JOINABLE_BREAK: "Translation lines can be joined",
   MAX_CHARS: "Translation line has too many characters",
-  BLOCK_STRUCTURE: "Subtitle block structure is broken",
+  BLOCK_STRUCTURE: "Translation line is missing",
   TIMESTAMP_FORMAT: "Timestamp format is incorrect",
   NUMBER_STYLE: "Number format is incorrect",
   DASH_STYLE: "Dash style is incorrect",

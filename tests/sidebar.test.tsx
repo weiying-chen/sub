@@ -396,7 +396,7 @@ describe("Sidebar", () => {
     })
   })
 
-  it("shows segment-rule findings like number style and leading whitespace", () => {
+  it("shows segment-rule findings like number style", () => {
     render(<App />)
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
 
@@ -416,11 +416,10 @@ describe("Sidebar", () => {
     })
 
     expect(screen.getAllByText("Number format is incorrect").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("Translation line starts with extra spaces").length).toBeGreaterThan(0)
-    fireEvent.click(screen.getAllByText("Translation line starts with extra spaces")[0])
+    fireEvent.click(screen.getAllByText("Number format is incorrect")[0])
 
     const activeRow = screen
-      .getAllByText("Translation line starts with extra spaces")[0]
+      .getAllByText("Number format is incorrect")[0]
       ?.closest(".finding-row-button")
     expect(activeRow).not.toBeNull()
     if (!activeRow) return
@@ -429,11 +428,11 @@ describe("Sidebar", () => {
     expect(activeInstruction).toHaveClass("is-open")
     expect(activeInstruction).toHaveAttribute("aria-hidden", "false")
     expect(activeRow.textContent?.toLowerCase()).toContain(
-      "remove leading spaces at the start of this translation line"
+      "use words instead of digits for this number"
     )
 
     const numberRow = screen
-      .getAllByText("Number format is incorrect")[0]
+      .getAllByText("Punctuation is incorrect")[0]
       ?.closest(".finding-row-button")
     expect(numberRow).not.toBeNull()
     if (!numberRow) return
@@ -549,6 +548,9 @@ describe("Sidebar", () => {
     ).not.toBeInTheDocument()
     expect(
       ui.queryByRole("checkbox", { name: /Capitalization is incorrect/i })
+    ).not.toBeInTheDocument()
+    expect(
+      ui.queryByRole("checkbox", { name: /Translation line starts with extra spaces/i })
     ).not.toBeInTheDocument()
   })
 

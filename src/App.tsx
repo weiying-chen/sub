@@ -45,6 +45,18 @@ type RuleOption = {
 
 const RULE_OPTIONS: RuleOption[] = [
   {
+    type: "BLOCK_STRUCTURE",
+    label: "Translation line is missing",
+    explanation: "Flags rows with timestamps that are missing a translation line.",
+    severity: "error",
+  },
+  {
+    type: "TIMESTAMP_FORMAT",
+    label: "Timestamp format is incorrect",
+    explanation: TIMESTAMP_FORMAT_MODAL_EXPLANATION,
+    severity: "error",
+  },
+  {
     type: "MAX_CPS",
     label: "Reading speed is too high",
     explanation: "Flags translation lines whose reading speed exceeds the maximum CPS limit. You can edit it in the input below.",
@@ -57,15 +69,9 @@ const RULE_OPTIONS: RuleOption[] = [
     severity: "error",
   },
   {
-    type: "BLOCK_STRUCTURE",
-    label: "Subtitle block structure is broken",
-    explanation: "Flags rows with timestamps that are missing a translation line.",
-    severity: "error",
-  },
-  {
-    type: "TIMESTAMP_FORMAT",
-    label: "Timestamp format is incorrect",
-    explanation: TIMESTAMP_FORMAT_MODAL_EXPLANATION,
+    type: "PUNCTUATION",
+    label: "Punctuation is incorrect",
+    explanation: "Checks punctuation, quote pairing, and punctuation flow between translation lines.",
     severity: "error",
   },
   {
@@ -75,39 +81,27 @@ const RULE_OPTIONS: RuleOption[] = [
     severity: "error",
   },
   {
-    type: "DASH_STYLE",
-    label: "Dash style is incorrect",
-    explanation: "Checks whether the text uses the required dash form for subs, VO, and SUPER.",
-    severity: "error",
-  },
-  {
     type: "PERCENT_STYLE",
     label: "Percent format is incorrect",
     explanation: "Checks percent formatting style: use % instead of the word \"percent\".",
     severity: "error",
   },
   {
-    type: "LEADING_WHITESPACE",
-    label: "Translation line starts with extra spaces",
-    explanation: "Flags translation lines with unintended leading spaces.",
+    type: "DASH_STYLE",
+    label: "Dash style is incorrect",
+    explanation: "Checks whether the text uses the required dash form for subs, VO, and SUPER.",
     severity: "error",
-  },
-  {
-    type: "PUNCTUATION",
-    label: "Punctuation is incorrect",
-    explanation: "Checks punctuation, quote pairing, and punctuation flow between translation lines.",
-    severity: "error",
-  },
-  {
-    type: "SPAN_GAP",
-    label: "Translation line spans across a timing gap",
-    explanation: "Warns when the same translation line disappears and then reappears after a real timing gap.",
-    severity: "warn",
   },
   {
     type: "MIN_CPS",
     label: "Reading speed is too low",
     explanation: "Warns when a translation line's reading speed falls below the minimum CPS limit. You can edit it in the input below.",
+    severity: "warn",
+  },
+  {
+    type: "SPAN_GAP",
+    label: "Translation line spans across a timing gap",
+    explanation: "Warns when the same translation line disappears and then reappears after a real timing gap.",
     severity: "warn",
   },
   {

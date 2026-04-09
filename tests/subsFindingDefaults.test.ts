@@ -19,5 +19,6 @@ describe("subs finding defaults", () => {
     expect(DEFAULT_SUBS_FINDING_RULE_TYPES).toContain("BASELINE")
     expect(DEFAULT_SUBS_FINDING_RULE_TYPES).not.toContain("CPS_BALANCE")
     expect(DEFAULT_SUBS_FINDING_RULE_TYPES).not.toContain("CAPITALIZATION")
+    expect(DEFAULT_SUBS_FINDING_RULE_TYPES).not.toContain("LEADING_WHITESPACE")
   })
 })

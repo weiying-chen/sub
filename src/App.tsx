@@ -87,12 +87,6 @@ const RULE_OPTIONS: RuleOption[] = [
     severity: "error",
   },
   {
-    type: "CAPITALIZATION",
-    label: "Capitalization is incorrect",
-    explanation: "Checks capitalization against configured terms and patterns.",
-    severity: "error",
-  },
-  {
     type: "LEADING_WHITESPACE",
     label: "Translation line starts with extra spaces",
     explanation: "Flags translation lines with unintended leading spaces.",

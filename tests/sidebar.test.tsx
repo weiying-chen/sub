@@ -535,7 +535,7 @@ describe("Sidebar", () => {
     })
   })
 
-  it("does not show the baseline toggle in the rules modal", () => {
+  it("does not show hidden rule toggles in the rules modal", () => {
     const { container } = render(<App />)
     const ui = within(container)
 
@@ -546,6 +546,9 @@ describe("Sidebar", () => {
     ).not.toBeInTheDocument()
     expect(
       ui.queryByRole("checkbox", { name: /Reading speed changes too much/i })
+    ).not.toBeInTheDocument()
+    expect(
+      ui.queryByRole("checkbox", { name: /Capitalization is incorrect/i })
     ).not.toBeInTheDocument()
   })
 

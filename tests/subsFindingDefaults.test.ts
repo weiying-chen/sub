@@ -15,8 +15,9 @@ describe("subs finding defaults", () => {
     expect(resolveSubsFindingRuleFilters(["MAX_CPS"])).toEqual(["MAX_CPS"])
   })
 
-  it("includes BASELINE and excludes CPS_BALANCE in shared defaults", () => {
+  it("includes BASELINE and excludes non-default rules in shared defaults", () => {
     expect(DEFAULT_SUBS_FINDING_RULE_TYPES).toContain("BASELINE")
     expect(DEFAULT_SUBS_FINDING_RULE_TYPES).not.toContain("CPS_BALANCE")
+    expect(DEFAULT_SUBS_FINDING_RULE_TYPES).not.toContain("CAPITALIZATION")
   })
 })

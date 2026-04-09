@@ -126,6 +126,7 @@ export type PunctuationMetric = {
   type: 'PUNCTUATION'
   lineIndex: number
   ruleCode: PunctuationRuleCode
+  instruction?: string
   text: string
   timestamp?: string
   prevText?: string
@@ -164,6 +165,7 @@ export type BaselineMetric = {
   type: 'BASELINE'
   ruleCode: BaselineRuleCode
   lineIndex: number
+  message?: string
   reason?: 'missing' | 'extra' | 'sourceText'
   timestamp?: string
   expected?: string
@@ -181,6 +183,7 @@ export type MergeCandidateMetric = {
   type: 'MERGE_CANDIDATE'
   lineIndex: number
   nextLineIndex: number
+  instruction?: string
   text: string
   nextText: string
   gapFrames: number
@@ -204,6 +207,7 @@ export type SpanGapMetric = {
   type: 'SPAN_GAP'
   lineIndex: number
   nextLineIndex: number
+  instruction?: string
   text: string
   nextText: string
   gapFrames: number

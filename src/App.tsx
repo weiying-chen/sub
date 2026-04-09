@@ -122,6 +122,13 @@ const RULE_OPTIONS: RuleOption[] = [
     explanation: "Warns when nearby translations can be merged.",
     severity: "warn",
   },
+  {
+    type: "JOINABLE_BREAK",
+    label: "Translation lines can be joined",
+    explanation:
+      "Warns when adjacent translation lines can be joined and still stay within the max character limit.",
+    severity: "warn",
+  },
 ]
 
 const DISPLAYED_RULE_TYPES = new Set<Finding["type"]>(RULE_OPTIONS.map((rule) => rule.type))
@@ -245,7 +252,7 @@ function getFindingRanges(view: EditorView, findings: Finding[]): FindingRange[]
       continue
     }
 
-    if (f.type === "MERGE_CANDIDATE") {
+    if (f.type === "MERGE_CANDIDATE" || f.type === "JOINABLE_BREAK") {
       addWholeLine(id, f.lineIndex)
       addWholeLine(id, f.nextLineIndex)
       continue

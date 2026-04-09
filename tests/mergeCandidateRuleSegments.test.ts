@@ -64,4 +64,5 @@ describe("mergeCandidateRule (segments)", () => {
     const metrics = analyzeTextByType(text, "subs", [mergeCandidateRule()])
     expect(metrics).toHaveLength(0)
   })
+
 })

@@ -238,7 +238,7 @@ export function findingsDecorations(findings: Finding[], activeFindingId: string
         continue
       }
 
-      if (f.type === 'MERGE_CANDIDATE') {
+      if (f.type === 'MERGE_CANDIDATE' || f.type === 'JOINABLE_BREAK') {
         underlineWholeLine(f.lineIndex, className, severity, isActive)
         underlineWholeLine(f.nextLineIndex, className, severity, isActive)
         continue

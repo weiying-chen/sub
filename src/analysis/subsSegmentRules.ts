@@ -4,6 +4,7 @@ import { capitalizationRule } from "./capitalizationRule"
 import { cpsRule } from "./cpsRule"
 import { dashStyleRule } from "./dashStyleRule"
 import { leadingWhitespaceRule } from "./leadingWhitespaceRule"
+import { joinableBreakRule } from "./joinableBreakRule"
 import { maxCharsRule } from "./maxCharsRule"
 import { maxCpsRule } from "./maxCpsRule"
 import { mergeCandidateRule } from "./mergeCandidateRule"
@@ -68,6 +69,9 @@ function createSubsCommonRules(
   }
   if (isEnabled(enabled, "MERGE_CANDIDATE")) {
     rules.push(mergeCandidateRule({ ignoreEmptyLines: options.ignoreEmptyLines }))
+  }
+  if (isEnabled(enabled, "JOINABLE_BREAK")) {
+    rules.push(joinableBreakRule({ ignoreEmptyLines: options.ignoreEmptyLines }))
   }
   if (isEnabled(enabled, "CAPITALIZATION")) {
     rules.push(capitalizationRule({ terms: options.capitalizationTerms }))

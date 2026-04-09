@@ -188,6 +188,18 @@ export type MergeCandidateMetric = {
   severity?: 'error' | 'warn'
 }
 
+export type JoinableBreakMetric = {
+  type: 'JOINABLE_BREAK'
+  lineIndex: number
+  nextLineIndex: number
+  text: string
+  nextText: string
+  gapFrames: number
+  joinedLength: number
+  maxJoinedChars: number
+  severity?: 'error' | 'warn'
+}
+
 export type SpanGapMetric = {
   type: 'SPAN_GAP'
   lineIndex: number
@@ -230,6 +242,7 @@ export type Metric =
   | TimestampFormatMetric
   | BlockStructureMetric
   | MergeCandidateMetric
+  | JoinableBreakMetric
   | SpanGapMetric
   | MissingTranslationMetric
   | SuperPeopleMetric

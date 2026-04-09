@@ -8,6 +8,7 @@ import { cpsBalanceRule } from "../src/analysis/cpsBalanceRule"
 import { cpsRule } from "../src/analysis/cpsRule"
 import { leadingWhitespaceRule } from "../src/analysis/leadingWhitespaceRule"
 import { dashStyleRule } from "../src/analysis/dashStyleRule"
+import { joinableBreakRule } from "../src/analysis/joinableBreakRule"
 import { maxCharsRule } from "../src/analysis/maxCharsRule"
 import { mergeCandidateRule } from "../src/analysis/mergeCandidateRule"
 import { numberStyleRule } from "../src/analysis/numberStyleRule"
@@ -182,6 +183,21 @@ describe("getFindings severity", () => {
       (m) => m.type === "SPAN_GAP"
     )
     expect(spanGapFindings[0]?.severity).toBe("warn")
+
+    const joinableBreakMetrics = analyzeTextByType(
+      [
+        "00:03:19:29\t00:03:20:26\t我的孩子說",
+        "My kid said:",
+        "00:03:20:26\t00:03:22:12\t妳就讓我喝一口",
+        "\"Just let me have a sip.\"",
+      ].join("\n"),
+      "subs",
+      [joinableBreakRule()]
+    )
+    const joinableBreakFindings = getFindings(joinableBreakMetrics).filter(
+      (m) => m.type === "JOINABLE_BREAK"
+    )
+    expect(joinableBreakFindings[0]?.severity).toBe("warn")
   })
 
   it("can exclude warnings via includeWarnings=false", () => {

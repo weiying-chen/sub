@@ -64,6 +64,16 @@ describe("wording copy", () => {
         editDistance: 1,
       },
       {
+        type: "JOINABLE_BREAK",
+        lineIndex: 6,
+        nextLineIndex: 8,
+        text: "My kid said:",
+        nextText: "\"Just let me have a sip.\"",
+        gapFrames: 12,
+        joinedLength: 35,
+        maxJoinedChars: 54,
+      },
+      {
         type: "SPAN_GAP",
         lineIndex: 7,
         nextLineIndex: 9,
@@ -74,7 +84,7 @@ describe("wording copy", () => {
     ]
 
     const findings = getFindings(metrics)
-    expect(findings).toHaveLength(3)
+    expect(findings).toHaveLength(4)
     expect(findings[0]?.instruction).toBe(
       "End this translation with terminal punctuation (., ?, !, :, …, —, or '...')."
     )
@@ -82,6 +92,9 @@ describe("wording copy", () => {
       "These adjacent translations are very similar and close in time; consider merging them into one timestamp span."
     )
     expect(findings[2]?.instruction).toBe(
+      "These adjacent translation lines can be joined and still fit the max character limit."
+    )
+    expect(findings[3]?.instruction).toBe(
       "This translation disappears and reappears after a timing gap. Split or rewrite it instead of spanning across it."
     )
   })

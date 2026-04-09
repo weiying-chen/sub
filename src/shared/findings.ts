@@ -123,6 +123,16 @@ export function getFindings(
       continue
     }
 
+    if (m.type === 'JOINABLE_BREAK') {
+      out.push({
+        ...m,
+        severity: 'warn',
+        instruction:
+          'These adjacent translation lines can be joined and still fit the max character limit.',
+      })
+      continue
+    }
+
     if (m.type === 'SPAN_GAP') {
       out.push({
         ...m,

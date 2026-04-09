@@ -6,6 +6,7 @@ const FINDING_LABELS: Partial<Record<Finding["type"], string>> = {
   CPS_BALANCE: "Reading speed changes too much",
   SPAN_GAP: "Translation spans across a timing gap",
   MERGE_CANDIDATE: "Translations could be merged",
+  JOINABLE_BREAK: "Translation lines can be joined",
   MAX_CHARS: "Translation has too many characters",
   BLOCK_STRUCTURE: "Subtitle block structure is broken",
   TIMESTAMP_FORMAT: "Timestamp format is incorrect",

@@ -118,7 +118,7 @@ export function getFindings(
         ...m,
         severity: 'warn',
         instruction:
-          'These adjacent translations are very similar and close in time; consider merging them into one timestamp span.',
+          'These lines may be the same translation with a minor typo. Consider merging them.',
       })
       continue
     }

@@ -89,7 +89,7 @@ describe("wording copy", () => {
       "End this translation with terminal punctuation (., ?, !, :, …, —, or '...')."
     )
     expect(findings[1]?.instruction).toBe(
-      "These adjacent translations are very similar and close in time; consider merging them into one timestamp span."
+      "These lines may be the same translation with a minor typo. Consider merging them."
     )
     expect(findings[2]?.instruction).toBe(
       "These adjacent translation lines can be joined and still fit the max character limit."

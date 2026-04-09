@@ -107,14 +107,14 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "MERGE_CANDIDATE",
     label: "Translation lines could be merged",
-    explanation: "Warns when nearby translation lines can be merged.",
+    explanation: "Warns when neighboring translation lines are very similar and may be duplicates with minor typos.",
     severity: "warn",
   },
   {
     type: "JOINABLE_BREAK",
     label: "Translation lines can be joined",
     explanation:
-      "Warns when adjacent translation lines can be joined and still stay within the max character limit.",
+      "Warns when neighboring translation lines can be joined and still stay within the max character limit.",
     severity: "warn",
   },
 ]

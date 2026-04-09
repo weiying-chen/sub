@@ -101,7 +101,7 @@ export function mergeCandidateRule(
       gapFrames,
       editDistance,
       instruction:
-        "These adjacent translation lines are very similar and close in time; consider merging them into one timestamp span.",
+        "These lines may be the same translation with a minor typo. Consider merging them.",
     }
 
     return [metric]

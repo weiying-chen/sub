@@ -92,4 +92,16 @@ describe("numberStyleRule", () => {
 
     expect(findings).toHaveLength(0)
   })
+
+  it("ignores measurement ranges with decimal endpoints", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "and measures over 0.5 to about 1 centimeter,",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
 })

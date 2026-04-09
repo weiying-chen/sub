@@ -158,6 +158,19 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores measurement ranges with decimal endpoints", () => {
+    const segments = [
+      { lineIndex: 0, translation: "and measures over 0.5 to about 1 centimeter," },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, lineText: segment.translation }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    expect(findings).toHaveLength(0)
+  })
+
   it("ignores digit ranges in statistical age phrases", () => {
     const segments = [
       { lineIndex: 0, translation: "They are quite common among kids aged 3 to 17." },

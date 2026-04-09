@@ -154,7 +154,9 @@ function isAmPmToken(text: string, index: number, length: number) {
 
 function isMeasurementUnitToken(text: string, index: number, length: number) {
   const tail = text.slice(index + length)
-  return /^\s*kg\b/i.test(tail)
+  return /^\s*(?:kg|g|mg|lb|lbs|oz|mm|cm|m(?!illion\b)|km|meter(?:s)?|metre(?:s)?|centimeter(?:s)?|centimetre(?:s)?|millimeter(?:s)?|millimetre(?:s)?|kilometer(?:s)?|kilometre(?:s)?|inch(?:es)?|ft|foot|feet|yard(?:s)?|mile(?:s)?)\b/i.test(
+    tail
+  )
 }
 
 function isCurrencyToken(text: string, index: number) {

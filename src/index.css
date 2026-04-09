@@ -231,7 +231,7 @@ body {
 }
 
 .app-editor-inner .cm-gutters {
-  padding: var(--cm-top-inset) 0 12px 12px;
+  padding: var(--cm-top-inset) 0 0 12px;
 }
 
 .app-editor-inner .cm-content {

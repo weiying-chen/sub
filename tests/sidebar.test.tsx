@@ -187,7 +187,7 @@ describe("Sidebar", () => {
 
   it("uses a shared top inset for content padding and timestamp gutter offset", () => {
     expect(indexCss).toMatch(/:root\s*\{[\s\S]*--cm-top-inset:\s*12px;/)
-    expect(indexCss).toMatch(/\.app-editor-inner\s+\.cm-gutters\s*\{[\s\S]*padding:\s*var\(--cm-top-inset\) 0 12px 12px;/)
+    expect(indexCss).toMatch(/\.app-editor-inner\s+\.cm-gutters\s*\{[\s\S]*padding:\s*var\(--cm-top-inset\) 0 0 12px;/)
     expect(indexCss).toMatch(/\.app-editor-inner\s+\.cm-content\s*\{[\s\S]*padding:\s*var\(--cm-top-inset\) 0;/)
     expect(indexCss).toMatch(/\.cm-ts-link-gutter\s+\.cm-gutterElement\s*\{[\s\S]*transform:\s*translateY\(calc\(-1 \* var\(--cm-top-inset\)\)\);/)
   })

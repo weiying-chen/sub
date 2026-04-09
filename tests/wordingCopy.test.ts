@@ -86,6 +86,34 @@ describe("wording copy", () => {
     )
   })
 
+  it("builds baseline instructions from ruleCode in getFindings", () => {
+    const metrics: Metric[] = [
+      {
+        type: "BASELINE",
+        ruleCode: "MISSING_TIMESTAMP_LINE",
+        lineIndex: 0,
+        reason: "missing",
+        timestamp: "00:00:02:00 -> 00:00:03:00",
+        expected: "00:00:02:00 -> 00:00:03:00",
+        baselineLineIndex: 1,
+      },
+      {
+        type: "BASELINE",
+        ruleCode: "SOURCE_TEXT_MISMATCH",
+        lineIndex: 2,
+        reason: "sourceText",
+        timestamp: "00:00:01:00 -> 00:00:02:00",
+        expected: "SRC1",
+        actual: "SRC1 EDIT",
+      },
+    ]
+
+    const findings = getFindings(metrics)
+    expect(findings).toHaveLength(2)
+    expect(findings[0]?.instruction).toBe("Missing timestamp line vs baseline")
+    expect(findings[1]?.instruction).toBe("Inline source text mismatch vs baseline")
+  })
+
   it("uses shared timestamp format wording for modal copy", () => {
     const appTsx = readFileSync(join(process.cwd(), "src/App.tsx"), "utf8")
 

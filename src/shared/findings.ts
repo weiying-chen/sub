@@ -193,10 +193,16 @@ export function getFindings(
     }
 
     if (m.type === 'BASELINE') {
+      const instruction =
+        m.ruleCode === 'MISSING_TIMESTAMP_LINE'
+          ? 'Missing timestamp line vs baseline'
+          : m.ruleCode === 'EXTRA_TIMESTAMP_LINE'
+            ? 'Extra timestamp line vs baseline'
+            : 'Inline source text mismatch vs baseline'
       out.push({
         ...m,
         severity: 'error',
-        instruction: m.message,
+        instruction,
       })
       continue
     }

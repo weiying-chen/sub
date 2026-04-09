@@ -162,8 +162,8 @@ export type TimestampFormatMetric = {
 
 export type BaselineMetric = {
   type: 'BASELINE'
+  ruleCode: BaselineRuleCode
   lineIndex: number
-  message: string
   reason?: 'missing' | 'extra' | 'sourceText'
   timestamp?: string
   expected?: string
@@ -171,6 +171,11 @@ export type BaselineMetric = {
   baselineLineIndex?: number
   severity?: 'error' | 'warn'
 }
+
+export type BaselineRuleCode =
+  | 'MISSING_TIMESTAMP_LINE'
+  | 'EXTRA_TIMESTAMP_LINE'
+  | 'SOURCE_TEXT_MISMATCH'
 
 export type MergeCandidateMetric = {
   type: 'MERGE_CANDIDATE'

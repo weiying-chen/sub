@@ -167,8 +167,8 @@ export function baselineRule(baselineText: string): BaselineRule {
         )
         metrics.push({
           type: 'BASELINE',
+          ruleCode: 'MISSING_TIMESTAMP_LINE',
           lineIndex,
-          message: 'Missing timestamp line vs baseline',
           reason: 'missing',
           timestamp: `${entry.start} -> ${entry.end}`,
           expected: `${entry.start} -> ${entry.end}`,
@@ -179,8 +179,8 @@ export function baselineRule(baselineText: string): BaselineRule {
       for (const entry of extra) {
         metrics.push({
           type: 'BASELINE',
+          ruleCode: 'EXTRA_TIMESTAMP_LINE',
           lineIndex: entry.lineIndex,
-          message: 'Extra timestamp line vs baseline',
           reason: 'extra',
           timestamp: `${entry.start} -> ${entry.end}`,
           actual: `${entry.start} -> ${entry.end}`,
@@ -191,8 +191,8 @@ export function baselineRule(baselineText: string): BaselineRule {
         if (expected.sourceText && expected.sourceText !== actual.sourceText) {
           metrics.push({
             type: 'BASELINE',
+            ruleCode: 'SOURCE_TEXT_MISMATCH',
             lineIndex: actual.lineIndex,
-            message: 'Inline source text mismatch vs baseline',
             reason: 'sourceText',
             timestamp: `${expected.start} -> ${expected.end}`,
             expected: expected.sourceText,
@@ -225,8 +225,8 @@ export function baselineRule(baselineText: string): BaselineRule {
       )
       metrics.push({
         type: 'BASELINE',
+        ruleCode: 'MISSING_TIMESTAMP_LINE',
         lineIndex,
-        message: 'Missing timestamp line vs baseline',
         reason: 'missing',
         timestamp: `${entry.start} -> ${entry.end}`,
         expected: `${entry.start} -> ${entry.end}`,
@@ -237,8 +237,8 @@ export function baselineRule(baselineText: string): BaselineRule {
     for (const entry of extra) {
       metrics.push({
         type: 'BASELINE',
+        ruleCode: 'EXTRA_TIMESTAMP_LINE',
         lineIndex: entry.lineIndex,
-        message: 'Extra timestamp line vs baseline',
         reason: 'extra',
         timestamp: `${entry.start} -> ${entry.end}`,
         actual: `${entry.start} -> ${entry.end}`,
@@ -249,8 +249,8 @@ export function baselineRule(baselineText: string): BaselineRule {
       if (expected.sourceText && expected.sourceText !== actual.sourceText) {
         metrics.push({
           type: 'BASELINE',
+          ruleCode: 'SOURCE_TEXT_MISMATCH',
           lineIndex: actual.lineIndex,
-          message: 'Inline source text mismatch vs baseline',
           reason: 'sourceText',
           timestamp: `${expected.start} -> ${expected.end}`,
           expected: expected.sourceText,

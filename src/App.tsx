@@ -32,6 +32,7 @@ import properNounsText from "../punctuation-proper-nouns.txt?raw"
 
 const RULES_MODAL_ANIMATION_MS = 170
 const RULE_FILTERS_STORAGE_KEY = "subs.ruleFilters"
+const EDITOR_TEXT_STORAGE_KEY = "subs.editorText"
 const MAX_CPS_STORAGE_KEY = "subs.maxCps"
 const MIN_CPS_STORAGE_KEY = "subs.minCps"
 const FINDINGS_MOTION_SUPPRESS_MS = 220
@@ -161,6 +162,18 @@ function loadStoredCpsThreshold(storageKey: string, fallback: number): number {
     return parsed
   } catch {
     return fallback
+  }
+}
+
+function loadStoredEditorText(): string {
+  if (typeof window === "undefined") return sampleSubtitles
+
+  try {
+    const raw = window.localStorage.getItem(EDITOR_TEXT_STORAGE_KEY)
+    if (raw == null) return sampleSubtitles
+    return raw
+  } catch {
+    return sampleSubtitles
   }
 }
 
@@ -471,7 +484,7 @@ export default function App({
     document.documentElement.dataset.theme = theme
   }, [theme])
 
-  const [value, setValue] = useState(sampleSubtitles)
+  const [value, setValue] = useState(() => loadStoredEditorText())
   const [maxCps, setMaxCps] = useState(() => loadStoredCpsThreshold(MAX_CPS_STORAGE_KEY, MAX_CPS))
   const [minCps, setMinCps] = useState(() => loadStoredCpsThreshold(MIN_CPS_STORAGE_KEY, MIN_CPS))
   const [maxCpsDraft, setMaxCpsDraft] = useState(() => String(loadStoredCpsThreshold(MAX_CPS_STORAGE_KEY, MAX_CPS)))
@@ -523,6 +536,11 @@ export default function App({
     window.localStorage.setItem(MAX_CPS_STORAGE_KEY, String(maxCps))
     window.localStorage.setItem(MIN_CPS_STORAGE_KEY, String(minCps))
   }, [maxCps, minCps])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(EDITOR_TEXT_STORAGE_KEY, value)
+  }, [value])
 
   useEffect(() => {
     setMaxCpsDraft(String(maxCps))

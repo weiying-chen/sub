@@ -705,6 +705,19 @@ describe("Sidebar", () => {
     expect(minCpsInput.value).toBe("4.5")
   })
 
+  it("loads saved subtitle text from localStorage", () => {
+    const saved = [
+      "00:00:10:00\t00:00:12:00\tMarker",
+      "Saved subtitle line.",
+    ].join("\n")
+    window.localStorage.setItem("subs.editorText", saved)
+
+    render(<App />)
+
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+    expect(editor.value).toBe(saved)
+  })
+
   it("saves cps threshold inputs to localStorage on blur", () => {
     const { container } = render(<App />)
     const ui = within(container)
@@ -724,6 +737,21 @@ describe("Sidebar", () => {
 
     expect(window.localStorage.getItem("subs.maxCps")).toBe("20")
     expect(window.localStorage.getItem("subs.minCps")).toBe("5")
+  })
+
+  it("saves subtitle text to localStorage when editor content changes", async () => {
+    render(<App />)
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+    const changed = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "Changed subtitle line.",
+    ].join("\n")
+
+    fireEvent.change(editor, { target: { value: changed } })
+
+    await waitFor(() => {
+      expect(window.localStorage.getItem("subs.editorText")).toBe(changed)
+    })
   })
 
 

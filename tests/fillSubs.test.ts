@@ -1947,6 +1947,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("can worsen overnight.")
   })
 
+  it("keeps numeric ranges together around 'or'", () => {
+  const split = __testTakeLine(
+    "It'd been four or five hours since he found his daughter scratching up his truck door.",
+    54,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" four")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("or ")).toBe(false)
+  expect(split.line.toLowerCase().includes("four or five")).toBe(true)
+  })
+
   it("keeps short paired noun phrases together before a verb phrase", () => {
   const split = __testTakeLine(
     "my hands and feet are always cold, so every night before bed he warms them up.",

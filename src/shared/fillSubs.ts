@@ -413,6 +413,31 @@ function getPhraseWords(text: string): string[] {
     .filter(Boolean)
 }
 
+function isNumericRangeToken(word: string): boolean {
+  return /^(?:\d+(?:\.\d+)?|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion)$/i.test(
+    word
+  )
+}
+
+function isLikelyNumericRangeSplit(
+  left: string,
+  right: string,
+  conjunction: string
+): boolean {
+  if (!/^(and|or)$/i.test(conjunction)) return false
+
+  const leftWords = getPhraseWords(left)
+  const leftTail = leftWords[leftWords.length - 1] ?? ''
+  if (!isNumericRangeToken(leftTail)) return false
+
+  const rightTail = right.replace(new RegExp(`^${conjunction}\\b\\s*`, 'i'), '')
+  const rightWords = getPhraseWords(rightTail)
+  const rightHead = rightWords[0] ?? ''
+  if (!isNumericRangeToken(rightHead)) return false
+
+  return true
+}
+
 function findCoordinationStopIndex(text: string): number {
   const trimmed = text.trimStart()
   if (!trimmed) return -1
@@ -455,6 +480,7 @@ function isLikelyCoordinatedPhraseSplit(
   conjunction: string
 ): boolean {
   if (!/^(and|or|nor)$/i.test(conjunction)) return false
+  if (isLikelyNumericRangeSplit(left, right, conjunction)) return true
 
   const stopIndex = findCoordinationStopIndex(right)
   if (stopIndex < 0) return false

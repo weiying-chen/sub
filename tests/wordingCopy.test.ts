@@ -133,6 +133,8 @@ describe("wording copy", () => {
     expect(appTsx).toContain("TIMESTAMP_FORMAT_MODAL_EXPLANATION")
     expect(appTsx).toContain("./shared/wording")
     expect(appTsx).toContain("punctuation flow between translation lines")
-    expect(appTsx).toContain("Warns when nearby translation lines can be merged.")
+    expect(appTsx).toContain(
+      "Warns when neighboring translation lines are very similar and may be duplicates with minor typos."
+    )
   })
 })

@@ -329,6 +329,7 @@ describe("analyze CLI output", () => {
       type: "subs",
       mode: "findings",
       baselineText: baseline,
+      ruleFilters: ["BASELINE"],
     })) as Metric[]
 
     expect(output.some((metric) => metric.type === "BASELINE")).toBe(true)

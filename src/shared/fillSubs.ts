@@ -1266,6 +1266,25 @@ function normalizeTrailingArticleHead(
   return { line: left, rest: `${article} ${rest}` }
 }
 
+function normalizeTrailingPossessiveHead(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmed = line.trimEnd()
+  const match = trimmed.match(/^(.*)\s+(my|your|his|her|our|their|its)$/i)
+  if (!match) return { line, rest }
+
+  const left = (match[1] ?? '').trimEnd()
+  const determiner = (match[2] ?? '').trim().toLowerCase()
+  if (!left) return { line, rest }
+
+  if (!rest) return { line: left, rest: determiner }
+  if (rest.trimStart().toLowerCase().startsWith(`${determiner} `)) {
+    return { line: left, rest }
+  }
+  return { line: left, rest: `${determiner} ${rest}` }
+}
+
 function normalizeTrailingSubordinatorHead(
   line: string,
   rest: string
@@ -1392,9 +1411,13 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     conjunctionNormalized.line,
     conjunctionNormalized.rest
   )
-  const subordinatorNormalized = normalizeTrailingSubordinatorHead(
+  const possessiveNormalized = normalizeTrailingPossessiveHead(
     articleNormalized.line,
     articleNormalized.rest
+  )
+  const subordinatorNormalized = normalizeTrailingSubordinatorHead(
+    possessiveNormalized.line,
+    possessiveNormalized.rest
   )
   const howToNormalized = normalizeTrailingHowToHead(
     subordinatorNormalized.line,

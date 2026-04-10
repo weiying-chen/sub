@@ -1914,6 +1914,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("was far more effective than anything he could say.")
   })
 
+  it("keeps possessive determiners with following noun phrases", () => {
+  const split = __testTakeLine(
+    "But how we learn to handle emotions comes from our family and develops over time.",
+    54,
+    null,
+    false
+  )
+  expect(split.line.endsWith(" our")).toBe(false)
+  expect(split.line).toBe("But how we learn to handle emotions comes from")
+  expect(split.rest).toBe("our family and develops over time.")
+  })
+
   it("keeps body-part pairs together in inline fill", () => {
   const lines = [
     "00:03:15:18\t00:03:17:24\t常常跟人家炫耀說",

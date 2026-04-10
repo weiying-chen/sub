@@ -1756,6 +1756,20 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("after ")).toBe(true)
   })
 
+  it("avoids orphaning a single-word 'after' line before conjunction tails", () => {
+  const first = __testTakeLine(
+    "She got up soon after and screamed at me again at the top of her lungs.",
+    54,
+    null,
+    false
+  )
+
+  const second = __testTakeLine(first.rest, 54, null, false)
+
+  expect(second.line.toLowerCase()).not.toBe("after")
+  expect(second.line.toLowerCase().startsWith("after and")).toBe(true)
+  })
+
   it("moves trailing 'while' to the next split chunk", () => {
   const split = __testTakeLine(
     "please keep the notes open while we compare both versions.",

@@ -477,6 +477,7 @@ function findRightmostConjunctionStart(window: string, nextText: string): number
     const right = (window.slice(start) + nextText).trimStart()
     if (!left || !right) continue
     const leftWords = left.split(/\s+/).filter(Boolean)
+    if (leftWords.length === 1) continue
     if (leftWords.length === 1 && CONJ_RE.test(leftWords[0])) continue
     if (isLikelyCoordinatedPhraseSplit(left, right, m[0])) continue
     best = start

@@ -1,7 +1,7 @@
 import type { Rule, CPSMetric, RuleCtx } from './types'
 
 import { FPS } from '../shared/subtitles'
-import { DEFAULT_MAX_CPS, DEFAULT_MIN_CPS } from '../shared/cps'
+import { DEFAULT_MAX_CPS, DEFAULT_MIN_CPS, roundCpsToOneDecimal } from '../shared/cps'
 import {
   type LineSource,
   type ParseBlockOptions,
@@ -118,8 +118,9 @@ export function cpsRule(
 
       const durationFrames = run.endFrames - run.startFrames
       const charCount = run.translation.length
-      const cps =
+      const rawCps =
         durationFrames === 0 ? Infinity : (charCount * FPS) / durationFrames
+      const cps = roundCpsToOneDecimal(rawCps)
 
       const metric: CPSMetric = {
         type: 'CPS',
@@ -153,8 +154,9 @@ export function cpsRule(
 
     const durationFrames = run.endFrames - run.startFrames
     const charCount = run.translation.length
-    const cps =
+    const rawCps =
       durationFrames === 0 ? Infinity : (charCount * FPS) / durationFrames
+    const cps = roundCpsToOneDecimal(rawCps)
 
     const metric: CPSMetric = {
       type: 'CPS',

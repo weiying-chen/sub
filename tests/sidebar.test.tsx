@@ -510,7 +510,7 @@ describe("Sidebar", () => {
     expect(maxCharsRow?.textContent).toContain("Current: 55 characters.")
   })
 
-  it("shows extra CPS precision when one-decimal rounding hides a threshold violation", () => {
+  it("does not show low-CPS finding when one-decimal CPS rounds to the minimum", () => {
     render(<App />)
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
 
@@ -523,13 +523,7 @@ describe("Sidebar", () => {
       },
     })
 
-    fireEvent.click(screen.getAllByText("Reading speed is too low")[0])
-    const minCpsRow = screen
-      .getAllByText("Reading speed is too low")[0]
-      ?.closest(".finding-row-button")
-
-    expect(minCpsRow?.textContent).toContain("Current: 6.96 CPS.")
-    expect(minCpsRow?.textContent).not.toContain("Current: 7.0 CPS.")
+    expect(screen.queryByText("Reading speed is too low")).not.toBeInTheDocument()
   })
 
   it("uses explicit percent rule help text without parentheses", () => {

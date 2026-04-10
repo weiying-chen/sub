@@ -46,6 +46,19 @@ describe("cpsRule (segments)", () => {
     expect(findings[0].minCps).toBe(10)
   })
 
+  it("does not flag low CPS when one-decimal CPS rounds to the minimum", () => {
+    const text = [
+      "00:00:00:00\t00:00:06:01\tMarker",
+      "123456789012345678901234567890123456789012",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [cpsRule(17, 7)])
+    const findings = getFindings(metrics).filter((m) => m.type === "MIN_CPS")
+
+    expect(metrics[0]?.cps).toBe(7)
+    expect(findings).toHaveLength(0)
+  })
+
   it("treats empty lines as breaks between identical translations by default", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

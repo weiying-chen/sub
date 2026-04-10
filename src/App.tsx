@@ -316,18 +316,9 @@ function getFindingExplanation(finding: Finding): string | null {
       : null
 
   if (finding.type === "MAX_CPS" || finding.type === "MIN_CPS") {
-    const roundedOneDecimal = Number(finding.cps.toFixed(1))
-    const needsExtraPrecision =
-      finding.type === "MIN_CPS"
-        ? roundedOneDecimal >= finding.minCps
-        : roundedOneDecimal <= finding.maxCps
-    const displayedCps = needsExtraPrecision
-      ? finding.cps.toFixed(2)
-      : finding.cps.toFixed(1)
-
     return instruction
-      ? `${instruction} Current: ${displayedCps} CPS.`
-      : `Current: ${displayedCps} CPS.`
+      ? `${instruction} Current: ${finding.cps.toFixed(1)} CPS.`
+      : `Current: ${finding.cps.toFixed(1)} CPS.`
   }
 
   if (finding.type === "MAX_CHARS") {

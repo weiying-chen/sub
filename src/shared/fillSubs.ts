@@ -960,10 +960,10 @@ function findRightmostClauseStarterLead(window: string, nextText: string): numbe
   return best
 }
 
-// Low-priority fallback: split before "with", but avoid tiny heads.
+// Low-priority fallback: split before selected prepositions, but avoid tiny heads.
 function findRightmostWithStart(window: string, nextText: string): number {
   let best = -1
-  const re = /\bwith\b/gi
+  const re = /\b(with|near)\b/gi
   let m: RegExpExecArray | null
   while ((m = re.exec(window)) !== null) {
     const start = m.index
@@ -979,8 +979,11 @@ function findRightmostWithStart(window: string, nextText: string): number {
     if (left.split(/\s+/).filter(Boolean).length < MIN_WITH_SPLIT_LEFT_WORDS) {
       continue
     }
-    if (!/^with\b/i.test(right)) continue
-    if (/^with\b\s*$/i.test(right)) continue
+    const token = m[0].toLowerCase()
+    const tokenStart = new RegExp(`^${token}\\b`, 'i')
+    const tokenOnly = new RegExp(`^${token}\\b\\s*$`, 'i')
+    if (!tokenStart.test(right)) continue
+    if (tokenOnly.test(right)) continue
     best = start
   }
   return best
@@ -1377,7 +1380,7 @@ function normalizeTrailingPrepositionHead(
   rest: string
 ): { line: string; rest: string } {
   const trimmed = line.trimEnd()
-  const match = trimmed.match(/^(.*)\s+(of)$/i)
+  const match = trimmed.match(/^(.*)\s+(of|near)$/i)
   if (!match) return { line, rest }
 
   const left = (match[1] ?? '').trimEnd()

@@ -1167,6 +1167,29 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("splits before 'near' as a low-priority fallback", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "He suddenly heard knocking outside near where the truck was parked.",
+    { maxChars: 54, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "He suddenly heard knocking outside",
+    "00:00:02:00\t00:00:03:00\tMarker",
+    "near where the truck was parked.",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
   it("avoids one-word heads when splitting before 'with'", () => {
   const split = __testTakeLine(
     "coping with outages, delays, or staffing shortages before recovery.",
@@ -1822,6 +1845,17 @@ describe("fillSelectedTimestampLines", () => {
   )
   expect(split.line.toLowerCase().endsWith(" of")).toBe(false)
   expect(split.rest.toLowerCase().startsWith("of ")).toBe(true)
+  })
+
+  it("moves trailing 'near' to the next split chunk", () => {
+  const split = __testTakeLine(
+    "They waited near the entrance until dawn.",
+    16,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" near")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("near ")).toBe(true)
   })
 
   it("keeps 'how to' together when splitting", () => {

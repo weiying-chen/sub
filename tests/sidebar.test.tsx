@@ -510,6 +510,28 @@ describe("Sidebar", () => {
     expect(maxCharsRow?.textContent).toContain("Current: 55 characters.")
   })
 
+  it("shows extra CPS precision when one-decimal rounding hides a threshold violation", () => {
+    render(<App />)
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+
+    fireEvent.change(editor, {
+      target: {
+        value: [
+          "00:00:00:00\t00:00:06:01\tMarker",
+          "123456789012345678901234567890123456789012",
+        ].join("\n"),
+      },
+    })
+
+    fireEvent.click(screen.getAllByText("Reading speed is too low")[0])
+    const minCpsRow = screen
+      .getAllByText("Reading speed is too low")[0]
+      ?.closest(".finding-row-button")
+
+    expect(minCpsRow?.textContent).toContain("Current: 6.96 CPS.")
+    expect(minCpsRow?.textContent).not.toContain("Current: 7.0 CPS.")
+  })
+
   it("uses explicit percent rule help text without parentheses", () => {
     const { container } = render(<App />)
     const ui = within(container)

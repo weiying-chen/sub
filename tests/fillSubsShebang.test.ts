@@ -35,4 +35,10 @@ describe("fill-subs executable entry", () => {
     const source = readFileSync(CLI_FILE_URL, "utf8")
     expect(source).not.toContain("process.env")
   })
+
+  it("does not hardcode a removed home path in the shebang", () => {
+    const source = readFileSync(CLI_FILE_URL, "utf8")
+    const firstLine = source.split(/\r?\n/, 1)[0]
+    expect(firstLine).not.toContain("/home/wei-ying-chen/")
+  })
 })

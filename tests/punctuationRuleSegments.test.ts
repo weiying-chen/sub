@@ -318,6 +318,30 @@ describe("punctuationRule (segments)", () => {
     ).toBe(true)
   })
 
+  it("does not flag missing punctuation before capital when quoted next cue starts with I pronoun", () => {
+    const text = [
+      "00:06:32:16\t00:06:34:13\tMarker",
+      "\"But not too much---\"",
+      "00:06:34:13\t00:06:36:28\tMarker",
+      "\"I don't want us to start fighting again.\"",
+    ].join("\n")
+
+    const segments = parseSubs(text)
+    const metrics = analyzeSegments(segments, [punctuationRule()], {
+      lines: text.split("\n"),
+      sourceText: text,
+    })
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL" &&
+          f.text === "\"But not too much---\""
+      )
+    ).toBe(false)
+  })
+
   it("does not require ':' for non-comma lead-ins before quoted cues across timestamps", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

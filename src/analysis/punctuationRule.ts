@@ -10,7 +10,7 @@ import {
 } from '../shared/tsvRuns'
 import type { SegmentCtx, SegmentRule } from './segments'
 
-const I_PRONOUN_RE = /^\s*I(\b|')/
+const I_PRONOUN_RE = /^\s*(?:["'\(\[\{]\s*)*I(\b|')/
 const HYPHENATED_ROMANIZED_NAME_RE =
   /^\s*(?:["'\(\[\{]\s*)?[A-Z][a-z]+(?:-[a-z]+)+(?:\b|(?=\s))/
 const ACRONYM_RE =

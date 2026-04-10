@@ -925,6 +925,27 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("does not keep fragment-plus-sentence lines whole in inline fill", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+  const paragraph = "the neighbors. He'd brought her lots of gifts."
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    maxChars: 54,
+    inline: true,
+  })
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(translations).toEqual([
+    "the neighbors.",
+    "He'd brought her lots of gifts.",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
   it("forces split on fragment + new sentence even under maxChars", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

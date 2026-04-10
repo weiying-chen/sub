@@ -275,6 +275,27 @@ function shouldKeepShortSentencePairTogether(left: string, right: string): boole
   return true
 }
 
+function firstAlphaChar(text: string): string {
+  return text.match(/[A-Za-z]/)?.[0] ?? ''
+}
+
+function startsWithLowercaseAlpha(text: string): boolean {
+  const ch = firstAlphaChar(text)
+  return ch !== '' && ch === ch.toLowerCase()
+}
+
+function startsWithUppercaseAlpha(text: string): boolean {
+  const ch = firstAlphaChar(text)
+  return ch !== '' && ch === ch.toUpperCase()
+}
+
+function shouldForceFragmentSentenceSplit(left: string, right: string): boolean {
+  return (
+    (startsWithLowercaseAlpha(left) && startsWithUppercaseAlpha(right)) ||
+    (startsWithUppercaseAlpha(left) && startsWithLowercaseAlpha(right))
+  )
+}
+
 function findRightmostStrongPunct(
   window: string,
   noSplitAbbrevMatcher: RegExp | null
@@ -1076,14 +1097,18 @@ function takeLine(
   }
 
   if (s.length <= limit) {
-    if (keepWholeWhenFits) {
-      return normalizeSplit(s.trimEnd(), '')
-    }
-
     const sentenceCut = findSentenceBoundaryCut(s, '', noSplitAbbrevMatcher)
     if (sentenceCut > 0 && sentenceCut < s.length) {
       const left = s.slice(0, sentenceCut).trimEnd()
       const right = s.slice(sentenceCut).trimStart()
+      if (
+        keepWholeWhenFits &&
+        left &&
+        right &&
+        !shouldForceFragmentSentenceSplit(left, right)
+      ) {
+        return normalizeSplit(s.trimEnd(), '')
+      }
       if (
         left &&
         right &&
@@ -1111,6 +1136,10 @@ function takeLine(
         )
         return normalizeSplit(adjusted.line, adjusted.rest)
       }
+    }
+
+    if (keepWholeWhenFits) {
+      return normalizeSplit(s.trimEnd(), '')
     }
 
     if (!allowHeuristicSplitsWhenFits) {

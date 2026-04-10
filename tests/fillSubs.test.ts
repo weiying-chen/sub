@@ -1970,6 +1970,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("are always cold, so every night before bed he warms them up.")
   })
 
+  it("keeps coordinated subject noun phrases together before predicates", () => {
+  const split = __testTakeLine(
+    "The father and his five-year-old daughter stood at the gate, watching the repaired truck being backed in.",
+    54,
+    null,
+    false
+  )
+  expect(split.line).not.toBe("The father")
+  expect(split.line.toLowerCase().includes("father and his five-year-old daughter")).toBe(true)
+  })
+
   it("prefers splitting before copular verb when no higher-priority cut exists", () => {
   const split = __testTakeLine(
     "Actually, staying quiet and letting himself pause was far more effective than anything he could say.",

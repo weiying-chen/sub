@@ -500,6 +500,27 @@ function isLikelyCoordinatedPhraseSplit(
   )
 }
 
+function isLikelyCoordinatedSubjectSplit(
+  left: string,
+  right: string,
+  conjunction: string
+): boolean {
+  if (!/^and$/i.test(conjunction)) return false
+
+  const leftWords = getPhraseWords(left)
+  if (leftWords.length === 0 || leftWords.length > 3) return false
+  const leftHead = leftWords[0] ?? ''
+  if (!DET_RE.test(leftHead)) return false
+
+  const rightTail = right.replace(new RegExp(`^${conjunction}\\b\\s*`, 'i'), '')
+  const rightWords = getPhraseWords(rightTail)
+  if (rightWords.length < 2) return false
+  const rightHead = rightWords[0] ?? ''
+  if (!DET_RE.test(rightHead)) return false
+
+  return true
+}
+
 function findRightmostConjunctionStart(window: string, nextText: string): number {
   let best = -1
   const re = new RegExp(CONJ_RE.source, 'gi')
@@ -526,6 +547,7 @@ function findRightmostConjunctionStart(window: string, nextText: string): number
     const leftWords = left.split(/\s+/).filter(Boolean)
     if (leftWords.length === 1) continue
     if (leftWords.length === 1 && CONJ_RE.test(leftWords[0])) continue
+    if (isLikelyCoordinatedSubjectSplit(left, right, m[0])) continue
     if (isLikelyCoordinatedPhraseSplit(left, right, m[0])) continue
     best = start
   }

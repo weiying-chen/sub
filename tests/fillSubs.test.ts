@@ -1903,6 +1903,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("are always cold, so every night before bed he warms them up.")
   })
 
+  it("prefers splitting before copular verb when no higher-priority cut exists", () => {
+  const split = __testTakeLine(
+    "Actually, staying quiet and letting himself pause was far more effective than anything he could say.",
+    54,
+    null,
+    false
+  )
+  expect(split.line).toBe("Actually, staying quiet and letting himself pause")
+  expect(split.rest).toBe("was far more effective than anything he could say.")
+  })
+
   it("keeps body-part pairs together in inline fill", () => {
   const lines = [
     "00:03:15:18\t00:03:17:24\t常常跟人家炫耀說",

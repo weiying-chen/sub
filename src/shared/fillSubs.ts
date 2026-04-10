@@ -757,7 +757,12 @@ function findRightmostCopularLead(window: string, nextText: string): number {
     const left = window.slice(0, start).trimEnd()
     if (!left) continue
     if (CLAUSE_STARTER_ANY_RE.test(left)) continue
-    if (left.includes(',')) continue
+    const lastComma = left.lastIndexOf(',')
+    if (lastComma >= 0) {
+      const postComma = left.slice(lastComma + 1).trim()
+      const postCommaWordCount = postComma.split(/\s+/).filter(Boolean).length
+      if (postCommaWordCount < 3) continue
+    }
     const wordCount = left.split(/\s+/).filter(Boolean).length
     if (wordCount < 3) continue
     const tail = (window.slice(end) + nextText).trimStart()

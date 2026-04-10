@@ -1975,6 +1975,19 @@ function runInlineFill(
     lastFilledIndex = i
   }
 
+  const trailingOrphanQuote = remaining.trim() === '"'
+  if (trailingOrphanQuote && lastFilledIndex != null) {
+    if (!dryRun) {
+      const previous = translations.get(lastFilledIndex) ?? lastTranslation
+      if (previous && !hasTrailingDoubleQuote(previous)) {
+        const withQuote = `${previous}"`
+        translations.set(lastFilledIndex, withQuote)
+        lastTranslation = withQuote
+      }
+    }
+    remaining = ''
+  }
+
   if (!dryRun && !remaining && lastTranslation && lastFilledIndex != null) {
     for (let i = lastFilledIndex + 1; i < lines.length; i += 1) {
       if (!isFillableTimestamp(lines, selectedLineIndices, i)) continue

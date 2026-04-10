@@ -1722,6 +1722,30 @@ describe("fillSelectedTimestampLines", () => {
   expect(translations.some((line) => line.trim() === '"')).toBe(false)
   })
 
+  it("attaches trailing orphan closing quote to the last emitted line", () => {
+  const lines = [
+    "00:14:35:13\t00:14:36:26\tSource 1",
+    "00:14:36:26\t00:14:38:24\tSource 2",
+    "00:14:38:24\t00:14:40:06\tSource 3",
+    "00:14:40:06\t00:14:41:15\tSource 4",
+    "00:14:41:15\t00:14:43:18\tSource 5",
+    "00:14:43:18\t00:14:44:17\tSource 6",
+    "00:14:44:17\t00:14:46:15\tSource 7",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+  const paragraph =
+    `A lot of times when parents buy something new and see their kids messing with it, they go, "Don't touch that, it's dangerous," or "If you break it, it's expensive."`
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    maxChars: 54,
+    inline: true,
+  })
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(result.remaining).toBe("")
+  expect(translations[translations.length - 1]?.endsWith('."')).toBe(true)
+  })
+
   it("does not return quote-only head chunks from splitter", () => {
   const split = __testTakeLine('"', 54, null, false)
   expect(split.line).toBe("")

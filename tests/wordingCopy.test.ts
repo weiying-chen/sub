@@ -86,16 +86,16 @@ describe("wording copy", () => {
     const findings = getFindings(metrics)
     expect(findings).toHaveLength(4)
     expect(findings[0]?.instruction).toBe(
-      "End this translation with terminal punctuation (., ?, !, :, …, —, or '...')."
+      "End this translation line with terminal punctuation (., ?, !, :, …, —, or '...')."
     )
     expect(findings[1]?.instruction).toBe(
-      "These lines may be the same translation with a minor typo. Consider merging them."
+      "These translation lines may be duplicates with a minor typo. Consider merging them."
     )
     expect(findings[2]?.instruction).toBe(
       "These adjacent translation lines can be joined and still fit the max character limit."
     )
     expect(findings[3]?.instruction).toBe(
-      "This translation disappears and reappears after a timing gap. Split or rewrite it instead of spanning across it."
+      "This translation line disappears and reappears after a timing gap. Split or rewrite it instead of spanning across it."
     )
   })
 

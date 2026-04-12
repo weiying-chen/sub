@@ -118,7 +118,7 @@ export function getFindings(
         ...m,
         severity: 'warn',
         instruction:
-          'These lines may be the same translation with a minor typo. Consider merging them.',
+          'These translation lines may be duplicates with a minor typo. Consider merging them.',
       })
       continue
     }
@@ -138,7 +138,7 @@ export function getFindings(
         ...m,
         severity: 'warn',
         instruction:
-          'This translation disappears and reappears after a timing gap. Split or rewrite it instead of spanning across it.',
+          'This translation line disappears and reappears after a timing gap. Split or rewrite it instead of spanning across it.',
       })
       continue
     }
@@ -188,13 +188,13 @@ export function getFindings(
     if (m.type === 'PUNCTUATION') {
       const instruction =
         m.ruleCode === 'LOWERCASE_AFTER_PERIOD'
-          ? 'Capitalize the start of this translation.'
+          ? 'Capitalize the start of this translation line.'
           : m.ruleCode === 'MISSING_PUNCTUATION_BEFORE_CAPITAL'
-            ? 'End this translation with sentence-ending punctuation, or lowercase the next translation.'
+            ? 'End this translation line with sentence-ending punctuation, or lowercase the next translation line.'
             : m.ruleCode === 'COMMA_BEFORE_QUOTE'
-              ? "End this translation with ':' before the next quoted translation."
+              ? "End this translation line with ':' before the next quoted translation line."
               : m.ruleCode === 'MISSING_END_PUNCTUATION'
-                ? "End this translation with terminal punctuation (., ?, !, :, …, —, or '...')."
+                ? "End this translation line with terminal punctuation (., ?, !, :, …, —, or '...')."
                 : m.ruleCode === 'MISSING_CLOSING_QUOTE'
                   ? 'Add a closing " to match the opening quote.'
                   : 'Remove the extra closing " or add a matching opening ".'

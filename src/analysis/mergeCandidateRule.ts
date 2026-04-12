@@ -99,9 +99,7 @@ export function mergeCandidateRule(
       text: cur.translation,
       nextText: next.translation,
       gapFrames,
-      editDistance,
-      instruction:
-        "These lines may be the same translation with a minor typo. Consider merging them.",
+      editDistance
     }
 
     return [metric]

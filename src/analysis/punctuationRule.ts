@@ -205,8 +205,6 @@ function addRule4Metric(
     type: 'PUNCTUATION',
     lineIndex: cue.lineIndex,
     ruleCode: 'MISSING_END_PUNCTUATION',
-    instruction:
-      "End this translation line with terminal punctuation (., ?, !, :, …, —, or '...').",
     text: cue.text,
     timestamp: cueTimestamp(cue),
   })
@@ -293,7 +291,6 @@ function collectMetrics(
         type: 'PUNCTUATION',
         lineIndex: next.lineIndex,
         ruleCode: 'LOWERCASE_AFTER_PERIOD',
-        instruction: 'Capitalize the start of this translation line.',
         text: next.text,
         timestamp: cueTimestamp(next),
         prevText: prev.text,
@@ -315,8 +312,6 @@ function collectMetrics(
         type: 'PUNCTUATION',
         lineIndex: prev.lineIndex,
         ruleCode: 'MISSING_PUNCTUATION_BEFORE_CAPITAL',
-        instruction:
-          'End this translation line with sentence-ending punctuation, or lowercase the next translation line.',
         text: prev.text,
         timestamp: cueTimestamp(prev),
         nextText: next.text,
@@ -336,7 +331,6 @@ function collectMetrics(
         type: 'PUNCTUATION',
         lineIndex: prev.lineIndex,
         ruleCode: 'COMMA_BEFORE_QUOTE',
-        instruction: "End this translation line with ':' before the next quoted translation line.",
         text: prev.text,
         timestamp: cueTimestamp(prev),
         nextText: next.text,

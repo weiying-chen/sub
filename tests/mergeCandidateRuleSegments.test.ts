@@ -36,7 +36,7 @@ describe("mergeCandidateRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
-  it("flags when one cue only adds a short trailing word", () => {
+  it("does not flag when one cue adds a trailing word beyond threshold", () => {
     const text = [
       "00:07:09:14\t00:07:11:23\t手麻 不舒服",
       "This is a long paragrph This is a long paragrph delay",
@@ -45,12 +45,7 @@ describe("mergeCandidateRule (segments)", () => {
     ].join("\n")
 
     const metrics = analyzeTextByType(text, "subs", [mergeCandidateRule()])
-    expect(metrics).toHaveLength(1)
-
-    const finding = metrics[0]
-    expect(finding?.type).toBe("MERGE_CANDIDATE")
-    if (!finding || finding.type !== "MERGE_CANDIDATE") return
-    expect(finding.editDistance).toBe(6)
+    expect(metrics).toHaveLength(0)
   })
 
   it("does not flag when the timing gap is too large", () => {
@@ -59,6 +54,30 @@ describe("mergeCandidateRule (segments)", () => {
       "Gap text",
       "00:00:12:00\t00:00:13:00\tMarker",
       "Gap text.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [mergeCandidateRule()])
+    expect(metrics).toHaveLength(0)
+  })
+
+  it("does not flag when a different middle word changes meaning", () => {
+    const text = [
+      "00:22:00:09\t00:22:01:05\t當我難過了",
+      "When I'm upset, I've got something to say.",
+      "00:22:01:10\t00:22:02:20\t當我悲傷了",
+      "When I'm hurting, I've got something to say.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [mergeCandidateRule()])
+    expect(metrics).toHaveLength(0)
+  })
+
+  it("does not flag when edit distance is five", () => {
+    const text = [
+      "00:22:00:09\t00:22:01:05\t當我難過了",
+      "Gap text",
+      "00:22:01:10\t00:22:02:20\t當我悲傷了",
+      "Gap text abcd",
     ].join("\n")
 
     const metrics = analyzeTextByType(text, "subs", [mergeCandidateRule()])

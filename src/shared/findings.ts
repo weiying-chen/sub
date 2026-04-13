@@ -37,7 +37,7 @@ export function getFindings(
       out.push({
         ...m,
         severity: 'error',
-        instruction: 'Add the missing translation line below these timestamps.',
+        instruction: 'Add the missing translation line below this timestamp.',
       })
       continue
     }
@@ -138,7 +138,7 @@ export function getFindings(
         ...m,
         severity: 'warn',
         instruction:
-          'This translation line disappears and reappears after a timing gap. Split or rewrite it instead of spanning across it.',
+          'This translation line disappears and reappears after a timing gap. Split or rewrite it instead of spanning across the timestamps.',
       })
       continue
     }
@@ -192,11 +192,11 @@ export function getFindings(
           : m.ruleCode === 'MISSING_PUNCTUATION_BEFORE_CAPITAL'
             ? 'End this translation line with sentence-ending punctuation, or lowercase the next translation line.'
             : m.ruleCode === 'COMMA_BEFORE_QUOTE'
-              ? "End this translation line with ':' before the next quoted translation line."
+              ? "End this translation line with : before the next quoted translation line."
               : m.ruleCode === 'MISSING_END_PUNCTUATION'
-                ? "End this translation line with terminal punctuation (., ?, !, :, …, —, or '...')."
+                ? "End this translation line with sentence-ending punctuation (., ?, !, :, …, —, or '...')."
                 : m.ruleCode === 'MISSING_CLOSING_QUOTE'
-                  ? 'Add a closing " to match the opening quote.'
+                  ? 'Remove the extra opening " or add a matching closing ".'
                   : 'Remove the extra closing " or add a matching opening ".'
       out.push({ ...m, severity: 'error', instruction })
       continue

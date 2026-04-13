@@ -48,7 +48,7 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "BLOCK_STRUCTURE",
     label: "Translation line is missing",
-    explanation: "Flags rows with timestamps that are missing a translation line.",
+    explanation: "Flags timestamps that are missing a translation line.",
     severity: "error",
   },
   {
@@ -60,7 +60,7 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "MAX_CPS",
     label: "Reading speed is too high",
-    explanation: "Flags translation lines whose reading speed exceeds the maximum CPS limit. You can edit it in the input below.",
+    explanation: "Flags translation lines with reading speed above the maximum CPS limit. You can edit it in the input below.",
     severity: "error",
   },
   {
@@ -72,7 +72,7 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "PUNCTUATION",
     label: "Punctuation is incorrect",
-    explanation: "Checks punctuation, quote pairing, and punctuation flow between translation lines.",
+    explanation: "Checks sentence-ending punctuation, punctuation continuity between adjacent translation lines, and quote matching.",
     severity: "error",
   },
   {
@@ -84,31 +84,31 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "PERCENT_STYLE",
     label: "Percent format is incorrect",
-    explanation: "Checks percent formatting style: use % instead of the word \"percent\".",
+    explanation: "Checks percent formatting style. Use % instead of the word \"percent\".",
     severity: "error",
   },
   {
     type: "DASH_STYLE",
     label: "Dash style is incorrect",
-    explanation: "Checks whether the text uses the required dash form for subs, VO, and SUPER.",
+    explanation: "Checks whether the text uses the correct dash form for subs, VO, and SUPER.",
     severity: "error",
   },
   {
     type: "MIN_CPS",
     label: "Reading speed is too low",
-    explanation: "Warns when a translation line's reading speed falls below the minimum CPS limit. You can edit it in the input below.",
+    explanation: "Warns for translation lines with reading speed below the minimum CPS limit. You can edit it in the input below.",
     severity: "warn",
   },
   {
     type: "SPAN_GAP",
     label: "Translation line spans across a timing gap",
-    explanation: "Warns when the same translation line disappears and then reappears after a real timing gap.",
+    explanation: "Warns when a translation line spans across a timing gap.",
     severity: "warn",
   },
   {
     type: "MERGE_CANDIDATE",
     label: "Translation lines could be merged",
-    explanation: "Warns when neighboring translation lines are very similar and may be duplicates with minor typos.",
+    explanation: "Warns when neighboring lines are very similar and may be the same translation with minor typos.",
     severity: "warn",
   },
   {

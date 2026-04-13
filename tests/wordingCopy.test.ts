@@ -41,7 +41,7 @@ describe("wording copy", () => {
 
     expect(findings[0]?.instruction).toBe("Reduce reading speed to 25 CPS or less.")
     expect(findings[1]?.instruction).toBe(
-      "Add the missing translation line below these timestamps."
+      "Add the missing translation line below this timestamp."
     )
     expect(findings[2]?.instruction).toBe("Use a row with timestamps in this format: HH:MM:SS:FF<TAB>HH:MM:SS:FF<TAB>original text. You can optionally add XXX before the first timestamp.")
   })
@@ -86,7 +86,7 @@ describe("wording copy", () => {
     const findings = getFindings(metrics)
     expect(findings).toHaveLength(4)
     expect(findings[0]?.instruction).toBe(
-      "End this translation line with terminal punctuation (., ?, !, :, …, —, or '...')."
+      "End this translation line with sentence-ending punctuation (., ?, !, :, …, —, or '...')."
     )
     expect(findings[1]?.instruction).toBe(
       "These translation lines may be duplicates with a minor typo. Consider merging them."
@@ -95,7 +95,7 @@ describe("wording copy", () => {
       "These adjacent translation lines can be joined and still fit the max character limit."
     )
     expect(findings[3]?.instruction).toBe(
-      "This translation line disappears and reappears after a timing gap. Split or rewrite it instead of spanning across it."
+      "This translation line disappears and reappears after a timing gap. Split or rewrite it instead of spanning across the timestamps."
     )
   })
 
@@ -132,9 +132,9 @@ describe("wording copy", () => {
 
     expect(appTsx).toContain("TIMESTAMP_FORMAT_MODAL_EXPLANATION")
     expect(appTsx).toContain("./shared/wording")
-    expect(appTsx).toContain("punctuation flow between translation lines")
+    expect(appTsx).toContain("sentence-ending punctuation, punctuation continuity between adjacent translation lines, and quote matching")
     expect(appTsx).toContain(
-      "Warns when neighboring translation lines are very similar and may be duplicates with minor typos."
+      "Warns when neighboring lines are very similar and may be the same translation with minor typos."
     )
   })
 })

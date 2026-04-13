@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node_modules/.bin/tsx
+#!/usr/bin/env -S sh -c 'script=$(readlink -f "$1" 2>/dev/null || printf "%s" "$1"); shift; exec "$(dirname "$script")/../../node_modules/.bin/tsx" "$script" "$@"' sh
 import { appendFileSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
 import { spawnSync } from 'node:child_process'

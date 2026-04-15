@@ -410,6 +410,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("before taking action.")
   })
 
+  it("does not split early at comma when a later conjunction break still fits", () => {
+  const split = __testTakeLine(
+    "I hope that when I die, they'll take my body and place it in cold storage at the funeral home.",
+    54,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("I hope that when I die, they'll take my body")
+  expect(split.rest).toBe("and place it in cold storage at the funeral home.")
+  })
+
   it("prefers breaking before copular verb phrases", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

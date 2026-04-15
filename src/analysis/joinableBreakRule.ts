@@ -57,6 +57,7 @@ export function joinableBreakRule(
     const left = normalizeJoinText(cur.translation)
     const right = normalizeJoinText(next.translation)
     if (!left || !right) return []
+    if (left === right) return []
     if (looksLikeSentenceFragment(left)) return []
 
     const joined = `${left} ${right}`.trim()

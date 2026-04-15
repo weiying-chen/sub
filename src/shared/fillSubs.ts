@@ -1036,7 +1036,19 @@ function findBestCut(
 
   // 2) Mid-priority syntactic/list boundaries.
   const commaCut = findRightmostNonListComma(window, nextText)
-  if (commaCut >= 0) return { cut: commaCut, reason: 'comma' }
+  if (commaCut >= 0) {
+    const conjunctionCut = findRightmostConjunctionStart(window, nextText)
+    if (conjunctionCut > commaCut) {
+      const conjunction = (window.slice(conjunctionCut) + nextText)
+        .trimStart()
+        .match(/^(and|but|or|so|yet|nor)\b/i)?.[1]
+        ?.toLowerCase()
+      if (conjunction && conjunction !== 'or' && conjunction !== 'nor') {
+        return { cut: conjunctionCut, reason: 'conjunction' }
+      }
+    }
+    return { cut: commaCut, reason: 'comma' }
+  }
 
   const onHowCut = findRightmostOnHowBreak(window)
   if (onHowCut >= 0) return { cut: onHowCut, reason: 'onHow' }

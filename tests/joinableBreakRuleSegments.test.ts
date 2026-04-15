@@ -69,4 +69,20 @@ describe("joinableBreakRule (segments)", () => {
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
     expect(metrics).toHaveLength(0)
   })
+
+  it("does not flag adjacent duplicate translations used for spanning", () => {
+    const text = [
+      "00:05:19:29\t00:05:20:22\t我們在面對",
+      "When a new life is coming,",
+      "00:05:20:22\t00:05:21:18\t新生命的到來",
+      "When a new life is coming,",
+      "00:05:21:18\t00:05:22:24\t我們會花很多心思",
+      "we put a lot of thought into preparing for it.",
+      "00:05:22:24\t00:05:24:25\t去準備待產包",
+      "we put a lot of thought into preparing for it.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(0)
+  })
 })

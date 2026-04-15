@@ -375,6 +375,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("or staffing constraints before launch.")
   })
 
+  it("splits before clause-style 'or how to' after a comma", () => {
+  const split = __testTakeLine(
+    "behind, like their assets and belongings, or how to sort things out without causing regret.",
+    54,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("behind, like their assets and belongings,")
+  expect(split.rest).toBe("or how to sort things out without causing regret.")
+  })
+
   it("avoids early comma splits on short lead-ins", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

@@ -349,6 +349,9 @@ function isListComma(window: string, index: number): boolean {
   const before = window.slice(0, index)
   const after = window.slice(index + 1)
 
+  // ", or how ..." typically starts an alternative clause, not a list item.
+  if (/^\s*(and|or|nor)\s+how\b/i.test(after)) return false
+
   if (/^\s*(and|or|nor)\b/i.test(after) && before.includes(',')) return true
   if (/,\s*(and|or|nor)\b/i.test(after)) return true
 

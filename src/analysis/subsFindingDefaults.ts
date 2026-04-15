@@ -3,6 +3,7 @@ import type { Metric } from "./types"
 export const DEFAULT_SUBS_FINDING_RULE_TYPES: Metric["type"][] = [
   "MAX_CHARS",
   "MERGE_CANDIDATE",
+  "JOINABLE_BREAK",
   "NUMBER_STYLE",
   "PUNCTUATION",
   "MAX_CPS",

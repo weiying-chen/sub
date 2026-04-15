@@ -19,10 +19,15 @@ describe("subs finding defaults", () => {
     expect(DEFAULT_SUBS_FINDING_RULE_TYPES).toEqual([
       "MAX_CHARS",
       "MERGE_CANDIDATE",
+      "JOINABLE_BREAK",
       "NUMBER_STYLE",
       "PUNCTUATION",
       "MAX_CPS",
       "MIN_CPS",
     ])
+  })
+
+  it("does not include cps-balance by default", () => {
+    expect(DEFAULT_SUBS_FINDING_RULE_TYPES).not.toContain("CPS_BALANCE")
   })
 })

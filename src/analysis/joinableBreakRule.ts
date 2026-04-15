@@ -2,6 +2,7 @@ import type { JoinableBreakMetric } from "./types"
 import type { Segment, SegmentCtx, SegmentRule } from "./segments"
 import { hasEmptyLineBetween, type LineSource, type ParseBlockOptions } from "../shared/tsvRuns"
 import { DEFAULT_MAX_CHARS } from "../shared/maxChars"
+import { looksLikeSentenceFragment } from "../shared/sentenceFragments"
 
 type JoinableBreakRuleOptions = ParseBlockOptions & {
   maxGapFrames?: number
@@ -56,6 +57,7 @@ export function joinableBreakRule(
     const left = normalizeJoinText(cur.translation)
     const right = normalizeJoinText(next.translation)
     if (!left || !right) return []
+    if (looksLikeSentenceFragment(left)) return []
 
     const joined = `${left} ${right}`.trim()
     if (joined.length > maxJoinedChars) return []

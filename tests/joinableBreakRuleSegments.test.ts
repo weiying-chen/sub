@@ -57,4 +57,16 @@ describe("joinableBreakRule (segments)", () => {
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
     expect(metrics).toHaveLength(0)
   })
+
+  it("does not flag when previous line looks like an incomplete sentence fragment", () => {
+    const text = [
+      "00:05:04:04\t00:05:05:06\t這樣的一些辛苦",
+      "went through this.",
+      "00:05:05:07\t00:05:07:11\t更何況是一般社會大眾呢",
+      "So imagine everyone else.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(0)
+  })
 })

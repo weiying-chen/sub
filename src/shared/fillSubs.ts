@@ -7,6 +7,7 @@ import {
   hasTrailingDoubleQuote,
 } from './doubleQuoteSpan'
 import { DASH_VARIANTS_RE, EM_DASH } from './dashes'
+import { looksLikeSentenceFragment } from './sentenceFragments'
 
 export type FillSubsOptions = {
   maxChars?: number
@@ -244,28 +245,6 @@ function isVeryShortSentenceTail(text: string): boolean {
     .map((word) => word.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, ''))
     .filter(Boolean)
   return words.length <= 1
-}
-
-function looksLikeSentenceFragment(text: string): boolean {
-  const trimmed = text.trim()
-  if (!trimmed) return true
-
-  const firstAlpha = trimmed.match(/[A-Za-z]/)?.[0] ?? ''
-  if (firstAlpha && firstAlpha === firstAlpha.toLowerCase()) return true
-
-  const words = trimmed
-    .replace(/^["']+|["']+$/g, '')
-    .split(/\s+/)
-    .map((word) => word.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, ''))
-    .filter(Boolean)
-
-  if (words.length <= 1) return true
-
-  const firstWord = (words[0] ?? '').toLowerCase()
-  if (!firstWord) return true
-  if (CONJ_RE.test(firstWord)) return true
-
-  return false
 }
 
 function shouldKeepShortSentencePairTogether(left: string, right: string): boolean {

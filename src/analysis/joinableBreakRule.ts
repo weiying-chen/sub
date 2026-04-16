@@ -59,6 +59,7 @@ export function joinableBreakRule(
     if (!left || !right) return []
     if (left === right) return []
     if (looksLikeSentenceFragment(left)) return []
+    if (/,\s*$/.test(right)) return []
 
     const joined = `${left} ${right}`.trim()
     if (joined.length > maxJoinedChars) return []

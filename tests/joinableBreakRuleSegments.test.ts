@@ -85,4 +85,22 @@ describe("joinableBreakRule (segments)", () => {
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
     expect(metrics).toHaveLength(0)
   })
+
+  it("does not flag when the next line is an incomplete sentence fragment", () => {
+    const text = [
+      "00:17:59:13\t00:18:00:17\t概念上大概是這樣",
+      "That's the basic idea.",
+      "00:18:00:17\t00:18:02:12\t如果你有相關的需求",
+      "That's the basic idea.",
+      "00:18:02:12\t00:18:03:16\t就可以回頭再去",
+      "If you want to know more,",
+      "00:18:03:16\t00:18:04:14\t認真研究起來",
+      "If you want to know more,",
+      "00:18:04:14\t00:18:06:15\t什麼叫做意定監護",
+      "you can always look into it later.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(0)
+  })
 })

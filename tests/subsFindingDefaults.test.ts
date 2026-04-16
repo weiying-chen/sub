@@ -24,6 +24,7 @@ describe("subs finding defaults", () => {
       "PUNCTUATION",
       "MAX_CPS",
       "MIN_CPS",
+      "BASELINE",
     ])
   })
 

@@ -8,6 +8,7 @@ export const DEFAULT_SUBS_FINDING_RULE_TYPES: Metric["type"][] = [
   "PUNCTUATION",
   "MAX_CPS",
   "MIN_CPS",
+  "BASELINE",
 ]
 
 export function resolveSubsFindingRuleFilters(

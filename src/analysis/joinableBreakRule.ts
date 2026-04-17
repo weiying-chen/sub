@@ -25,6 +25,10 @@ function normalizeJoinText(text: string): string {
   return text.trim().replace(/\s+/g, " ")
 }
 
+function endsWithPeriod(text: string): boolean {
+  return /\.\s*(?:["')\]]\s*)?$/.test(text)
+}
+
 export function joinableBreakRule(
   options: JoinableBreakRuleOptions = {}
 ): SegmentRule {
@@ -58,7 +62,7 @@ export function joinableBreakRule(
     const right = normalizeJoinText(next.translation)
     if (!left || !right) return []
     if (left === right) return []
-    if (looksLikeSentenceFragment(left)) return []
+    if (looksLikeSentenceFragment(left) && endsWithPeriod(left)) return []
     if (/,\s*$/.test(right)) return []
 
     const joined = `${left} ${right}`.trim()

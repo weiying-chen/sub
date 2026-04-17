@@ -34,6 +34,24 @@ describe("joinableBreakRule (segments)", () => {
     expect(metrics[0]?.type).toBe("JOINABLE_BREAK")
   })
 
+  it("flags continuation when left side is conjunction-style but ends with comma", () => {
+    const text = [
+      "00:22:34:22\t00:22:35:17\t具體來講",
+      "So after hearing all this,",
+      "00:22:35:17\t00:22:36:07\t聽了那麼多",
+      "So after hearing all this,",
+      "00:22:36:07\t00:22:37:11\t講了那麼多",
+      "So after hearing all this,",
+      "00:22:37:11\t00:22:38:28\t到底具體我應該要怎麼做",
+      "what should you do?",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+
+    expect(metrics).toHaveLength(1)
+    expect(metrics[0]?.type).toBe("JOINABLE_BREAK")
+  })
+
   it("does not flag when joining would exceed max chars", () => {
     const text = [
       "00:00:08:00\t00:00:09:00\tMarker",

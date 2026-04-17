@@ -47,7 +47,7 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "BLOCK_STRUCTURE",
     label: "Translation line is missing",
-    explanation: "Flags timestamps that are missing a translation line.",
+    explanation: "Flags a timestamp that is missing a translation line.",
     severity: "error",
   },
   {
@@ -59,13 +59,13 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "MAX_CPS",
     label: "Reading speed is too high",
-    explanation: "Flags translation lines with reading speed above the maximum CPS limit. You can edit it in the input below.",
+    explanation: "Flags a translation line with reading speed above the maximum CPS limit. You can edit it in the input below.",
     severity: "error",
   },
   {
     type: "MAX_CHARS",
     label: "Translation line has too many characters",
-    explanation: "Flags translation lines with 55 or more characters.",
+    explanation: "Flags a translation line with 55 or more characters.",
     severity: "error",
   },
   {
@@ -89,13 +89,13 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "DASH_STYLE",
     label: "Dash style is incorrect",
-    explanation: "Checks dash style in translation lines.",
+    explanation: "Checks dash style in each translation line.",
     severity: "error",
   },
   {
     type: "MIN_CPS",
     label: "Reading speed is too low",
-    explanation: "Warns for translation lines with reading speed below the minimum CPS limit. You can edit it in the input below.",
+    explanation: "Warns when a translation line has reading speed below the minimum CPS limit. You can edit it in the input below.",
     severity: "warn",
   },
   {

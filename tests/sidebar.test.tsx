@@ -143,13 +143,12 @@ describe("Sidebar", () => {
     expect(screen.getByRole("heading", { name: "Findings" })).toBeInTheDocument()
     expect(screen.queryByText("Dummy data for sidebar layout.")).not.toBeInTheDocument()
     expect(screen.getAllByText("Reading speed is too high").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("Reading speed is too low").length).toBeGreaterThan(0)
+    expect(screen.queryByText("Reading speed is too low")).not.toBeInTheDocument()
     const errorIcon = container.querySelector(".la-times-circle")
     const warningIcon = container.querySelector(".la-exclamation-triangle")
     expect(errorIcon).not.toBeNull()
-    expect(warningIcon).not.toBeNull()
+    expect(warningIcon).toBeNull()
     expect(errorIcon).toHaveAttribute("data-severity", "error")
-    expect(warningIcon).toHaveAttribute("data-severity", "warn")
 
     const root = container.firstElementChild
     expect(root).toHaveClass("app-shell")
@@ -497,6 +496,10 @@ describe("Sidebar", () => {
       ?.closest(".finding-row-button")
     expect(maxCpsRow?.textContent).toContain("Current: 55.0 CPS.")
 
+    fireEvent.click(screen.getByRole("button", { name: "Open rules modal" }))
+    fireEvent.click(screen.getByRole("checkbox", { name: /Reading speed is too low/i }))
+    fireEvent.click(screen.getByRole("button", { name: "Close rules modal" }))
+
     fireEvent.click(screen.getAllByText("Reading speed is too low")[0])
     const minCpsRow = screen
       .getAllByText("Reading speed is too low")[0]
@@ -592,6 +595,17 @@ describe("Sidebar", () => {
     ).not.toBeChecked()
   })
 
+  it("keeps low reading speed rule off by default in the rules modal", () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+
+    expect(
+      ui.getByRole("checkbox", { name: /Reading speed is too low/i })
+    ).not.toBeChecked()
+  })
+
   it("filters findings when a rule is unchecked in the modal", async () => {
     const { container } = render(<App />)
     const ui = within(container)
@@ -623,7 +637,7 @@ describe("Sidebar", () => {
     })
   })
 
-  it("shows cps threshold inputs under cps rules and disables them with the rule toggle", () => {
+  it("shows cps threshold inputs under cps rules and syncs with the rule toggle", () => {
     const { container } = render(<App />)
     const ui = within(container)
 
@@ -642,13 +656,13 @@ describe("Sidebar", () => {
     const minCpsInput = within(minRuleRow).getByLabelText("Min CPS")
 
     expect(maxCpsInput).toBeEnabled()
-    expect(minCpsInput).toBeEnabled()
+    expect(minCpsInput).toBeDisabled()
 
     fireEvent.click(maxRule)
     fireEvent.click(minRule)
 
     expect(maxCpsInput).toBeDisabled()
-    expect(minCpsInput).toBeDisabled()
+    expect(minCpsInput).toBeEnabled()
   })
 
   it("updates cps findings when cps thresholds change in the rules modal", async () => {
@@ -673,9 +687,10 @@ describe("Sidebar", () => {
     })
 
     expect(countFindingRowsWithText("Reading speed is too high")).toBeGreaterThan(0)
-    expect(countFindingRowsWithText("Reading speed is too low")).toBeGreaterThan(0)
+    expect(countFindingRowsWithText("Reading speed is too low")).toBe(0)
 
     fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+    fireEvent.click(ui.getByRole("checkbox", { name: /Reading speed is too low/i }))
     const maxInput = ui.getByLabelText("Max CPS") as HTMLInputElement
     const minInput = ui.getByLabelText("Min CPS") as HTMLInputElement
     fireEvent.change(maxInput, { target: { value: "60" } })

@@ -606,6 +606,29 @@ describe("Sidebar", () => {
     ).not.toBeChecked()
   })
 
+  it("persists non-default rule toggles across reload", () => {
+    const first = render(<App />)
+    const firstUi = within(first.container)
+
+    fireEvent.click(firstUi.getByRole("button", { name: "Open rules modal" }))
+    const dashToggle = firstUi.getByRole("checkbox", { name: /Dash style is incorrect/i })
+    expect(dashToggle).not.toBeChecked()
+    fireEvent.click(dashToggle)
+    expect(dashToggle).toBeChecked()
+
+    const saved = window.localStorage.getItem("subs.ruleFilters")
+    expect(saved).toContain("DASH_STYLE")
+
+    first.unmount()
+
+    const second = render(<App />)
+    const secondUi = within(second.container)
+    fireEvent.click(secondUi.getByRole("button", { name: "Open rules modal" }))
+    expect(
+      secondUi.getByRole("checkbox", { name: /Dash style is incorrect/i })
+    ).toBeChecked()
+  })
+
   it("filters findings when a rule is unchecked in the modal", async () => {
     const { container } = render(<App />)
     const ui = within(container)

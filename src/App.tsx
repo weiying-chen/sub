@@ -146,12 +146,12 @@ function loadEnabledRuleTypes(): Set<Finding["type"]> {
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) return fallback
 
-    const allowed = new Set(DEFAULT_ENABLED_RULE_TYPES)
+    const allowed = DISPLAYED_RULE_TYPES
     const selected = parsed.filter(
       (entry): entry is Finding["type"] =>
         typeof entry === "string" && allowed.has(entry as Finding["type"])
     )
-    if (selected.length === 0) return fallback
+    if (parsed.length > 0 && selected.length === 0) return fallback
     return new Set(selected)
   } catch {
     return fallback

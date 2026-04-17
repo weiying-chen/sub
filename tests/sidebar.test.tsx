@@ -256,6 +256,21 @@ describe("Sidebar", () => {
     expect(toggleButton.querySelector(".la-sun")).toBeNull()
   })
 
+  it("persists theme toggle to localStorage across reload", () => {
+    const first = render(<App />)
+    const firstToggle = first.getByRole("button", { name: "Toggle theme" })
+
+    fireEvent.click(firstToggle)
+    expect(window.localStorage.getItem("subs.theme")).toBe("light")
+
+    first.unmount()
+
+    const second = render(<App />)
+    const secondToggle = second.getByRole("button", { name: "Toggle theme" })
+    expect(secondToggle.querySelector(".la-moon")).not.toBeNull()
+    expect(secondToggle.querySelector(".la-sun")).toBeNull()
+  })
+
   it("jumps editor selection when clicking a finding", () => {
     render(<App />)
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement

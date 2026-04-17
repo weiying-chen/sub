@@ -34,6 +34,7 @@ const RULE_FILTERS_STORAGE_KEY = "subs.ruleFilters"
 const EDITOR_TEXT_STORAGE_KEY = "subs.editorText"
 const MAX_CPS_STORAGE_KEY = "subs.maxCps"
 const MIN_CPS_STORAGE_KEY = "subs.minCps"
+const THEME_STORAGE_KEY = "subs.theme"
 const FINDINGS_MOTION_SUPPRESS_MS = 220
 
 type RuleOption = {
@@ -181,6 +182,18 @@ function loadStoredEditorText(): string {
     return raw
   } catch {
     return sampleSubtitles
+  }
+}
+
+function loadStoredTheme(): "dark" | "light" {
+  if (typeof window === "undefined") return "dark"
+
+  try {
+    const raw = window.localStorage.getItem(THEME_STORAGE_KEY)
+    if (raw === "dark" || raw === "light") return raw
+    return "dark"
+  } catch {
+    return "dark"
   }
 }
 
@@ -484,7 +497,7 @@ export default function App({
   includeWarnings = true,
   colorizeGutterIndicators = false,
 }: AppProps) {
-  const [theme, setTheme] = useState<"dark" | "light">("dark")
+  const [theme, setTheme] = useState<"dark" | "light">(() => loadStoredTheme())
   const editorScrollRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -548,6 +561,11 @@ export default function App({
     if (typeof window === "undefined") return
     window.localStorage.setItem(EDITOR_TEXT_STORAGE_KEY, value)
   }, [value])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme)
+  }, [theme])
 
   useEffect(() => {
     setMaxCpsDraft(String(maxCps))

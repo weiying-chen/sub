@@ -89,7 +89,7 @@ const RULE_OPTIONS: RuleOption[] = [
   {
     type: "DASH_STYLE",
     label: "Dash style is incorrect",
-    explanation: "Checks whether the text uses the correct dash form for subs, VO, and SUPER.",
+    explanation: "Checks dash style in translation lines.",
     severity: "error",
   },
   {

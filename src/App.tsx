@@ -9,7 +9,7 @@ import type { Metric, Finding } from "./analysis/types"
 
 import { getFindings } from "./shared/findings"
 import { sortFindingsWithIndex } from "./shared/findingsSort"
-import { getFindingLabel } from "./shared/findingLabels"
+import { getFindingLabel, getFindingTypeLabel } from "./shared/findingLabels"
 
 import { findingsDecorations } from "./cm/findingsDecorations"
 import {
@@ -23,7 +23,7 @@ import { selectLineOnTripleClick } from "./cm/selectLineOnTripleClick"
 import { mergedRunTranslationIndices, parseBlockAt, type LineSource } from "./shared/tsvRuns"
 
 import { sampleSubtitles } from "./fixtures/subtitles"
-import { TIMESTAMP_FORMAT_MODAL_EXPLANATION } from "./shared/wording"
+import { RULE_MODAL_EXPLANATIONS } from "./shared/wording"
 import { MAX_CPS, MIN_CPS } from "./shared/subtitles"
 import capitalizationTermsText from "../capitalization-terms.txt?raw"
 import punctuationAbbreviationsText from "../punctuation-abbreviations.txt?raw"
@@ -44,81 +44,36 @@ type RuleOption = {
   severity: "error" | "warn"
 }
 
-const RULE_OPTIONS: RuleOption[] = [
-  {
-    type: "BLOCK_STRUCTURE",
-    label: "Translation line is missing",
-    explanation: "Flags a timestamp that is missing a translation line.",
-    severity: "error",
-  },
-  {
-    type: "TIMESTAMP_FORMAT",
-    label: "Timestamp format is incorrect",
-    explanation: TIMESTAMP_FORMAT_MODAL_EXPLANATION,
-    severity: "error",
-  },
-  {
-    type: "MAX_CPS",
-    label: "Reading speed is too high",
-    explanation: "Flags a translation line with reading speed above the maximum CPS limit. You can edit it in the input below.",
-    severity: "error",
-  },
-  {
-    type: "MAX_CHARS",
-    label: "Translation line has too many characters",
-    explanation: "Flags a translation line with 55 or more characters.",
-    severity: "error",
-  },
-  {
-    type: "PUNCTUATION",
-    label: "Punctuation is incorrect",
-    explanation: "Checks sentence-ending punctuation, punctuation continuity between adjacent translation lines, and quote matching.",
-    severity: "error",
-  },
-  {
-    type: "NUMBER_STYLE",
-    label: "Number format is incorrect",
-    explanation: "Checks number formatting and spelling style conventions.",
-    severity: "error",
-  },
-  {
-    type: "PERCENT_STYLE",
-    label: "Percent format is incorrect",
-    explanation: "Checks percent formatting style. Use % instead of the word \"percent\".",
-    severity: "error",
-  },
-  {
-    type: "DASH_STYLE",
-    label: "Dash style is incorrect",
-    explanation: "Checks dash style in each translation line.",
-    severity: "error",
-  },
-  {
-    type: "MIN_CPS",
-    label: "Reading speed is too low",
-    explanation: "Warns when a translation line has reading speed below the minimum CPS limit. You can edit it in the input below.",
-    severity: "warn",
-  },
-  {
-    type: "SPAN_GAP",
-    label: "Translation line spans across a timing gap",
-    explanation: "Warns when a translation line spans across a timing gap.",
-    severity: "warn",
-  },
-  {
-    type: "MERGE_CANDIDATE",
-    label: "Translation lines could be merged",
-    explanation: "Warns when neighboring lines are very similar and may be the same translation with minor typos.",
-    severity: "warn",
-  },
-  {
-    type: "JOINABLE_BREAK",
-    label: "Translation lines can be joined",
-    explanation:
-      "Warns when neighboring translation lines can be joined and still stay within the max character limit.",
-    severity: "warn",
-  },
+const RULE_OPTION_SPECS: Array<{
+  type: Finding["type"]
+  severity: "error" | "warn"
+}> = [
+  { type: "BLOCK_STRUCTURE", severity: "error" },
+  { type: "TIMESTAMP_FORMAT", severity: "error" },
+  { type: "MAX_CPS", severity: "error" },
+  { type: "MAX_CHARS", severity: "error" },
+  { type: "PUNCTUATION", severity: "error" },
+  { type: "NUMBER_STYLE", severity: "error" },
+  { type: "PERCENT_STYLE", severity: "error" },
+  { type: "DASH_STYLE", severity: "error" },
+  { type: "MIN_CPS", severity: "warn" },
+  { type: "SPAN_GAP", severity: "warn" },
+  { type: "MERGE_CANDIDATE", severity: "warn" },
+  { type: "JOINABLE_BREAK", severity: "warn" },
 ]
+
+const RULE_OPTIONS: RuleOption[] = RULE_OPTION_SPECS.map((spec) => {
+  const explanation = RULE_MODAL_EXPLANATIONS[spec.type]
+  if (!explanation) {
+    throw new Error(`Missing modal explanation for rule type: ${spec.type}`)
+  }
+  return {
+    type: spec.type,
+    label: getFindingTypeLabel(spec.type),
+    explanation,
+    severity: spec.severity,
+  }
+})
 
 const DISPLAYED_RULE_TYPES = new Set<Finding["type"]>(RULE_OPTIONS.map((rule) => rule.type))
 const DEFAULT_UI_ENABLED_RULE_TYPES: Finding["type"][] = [

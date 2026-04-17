@@ -6,8 +6,8 @@ import { describe, expect, it } from "vitest"
 import type { Metric } from "../src/analysis/types"
 import { getFindings } from "../src/shared/findings"
 import {
+  RULE_MODAL_EXPLANATIONS,
   TIMESTAMP_FORMAT_FINDING_INSTRUCTION,
-  TIMESTAMP_FORMAT_MODAL_EXPLANATION,
 } from "../src/shared/wording"
 
 describe("wording copy", () => {
@@ -127,13 +127,15 @@ describe("wording copy", () => {
     expect(findings[1]?.instruction).toBe("Inline source text mismatch vs baseline")
   })
 
-  it("uses shared timestamp format wording for modal copy", () => {
+  it("uses shared rule wording map for modal copy", () => {
     const appTsx = readFileSync(join(process.cwd(), "src/App.tsx"), "utf8")
 
-    expect(appTsx).toContain("TIMESTAMP_FORMAT_MODAL_EXPLANATION")
+    expect(appTsx).toContain("RULE_MODAL_EXPLANATIONS")
     expect(appTsx).toContain("./shared/wording")
-    expect(appTsx).toContain("sentence-ending punctuation, punctuation continuity between adjacent translation lines, and quote matching")
-    expect(appTsx).toContain(
+    expect(RULE_MODAL_EXPLANATIONS.PUNCTUATION).toContain(
+      "sentence-ending punctuation, punctuation continuity between adjacent translation lines, and quote matching"
+    )
+    expect(RULE_MODAL_EXPLANATIONS.MERGE_CANDIDATE).toContain(
       "Warns when neighboring lines are very similar and may be the same translation with minor typos."
     )
   })

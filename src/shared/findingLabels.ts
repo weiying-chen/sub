@@ -22,6 +22,10 @@ const FINDING_LABELS: Partial<Record<Finding["type"], string>> = {
   SUPER_PEOPLE: "SUPER entry is incorrect",
 }
 
+export function getFindingTypeLabel(type: Finding["type"]): string {
+  return FINDING_LABELS[type] ?? type
+}
+
 export function getFindingLabel(finding: Finding): string {
-  return FINDING_LABELS[finding.type] ?? finding.type
+  return getFindingTypeLabel(finding.type)
 }

@@ -18,8 +18,15 @@ describe("subs finding defaults", () => {
   it("uses the agreed demo default rule set", () => {
     expect(DEFAULT_SUBS_FINDING_RULE_TYPES).toEqual([
       "MAX_CHARS",
+      "BLOCK_STRUCTURE",
+      "TIMESTAMP_FORMAT",
+      "LEADING_WHITESPACE",
+      "SPAN_GAP",
       "MERGE_CANDIDATE",
       "JOINABLE_BREAK",
+      "CAPITALIZATION",
+      "DASH_STYLE",
+      "PERCENT_STYLE",
       "NUMBER_STYLE",
       "PUNCTUATION",
       "MAX_CPS",

@@ -6,7 +6,6 @@ import { insertTab } from "@codemirror/commands"
 
 import { buildAnalysisOutput } from "./analysis/buildAnalysisOutput"
 import type { Metric, Finding } from "./analysis/types"
-import { DEFAULT_SUBS_FINDING_RULE_TYPES } from "./analysis/subsFindingDefaults"
 
 import { getFindings } from "./shared/findings"
 import { sortFindingsWithIndex } from "./shared/findingsSort"
@@ -121,8 +120,17 @@ const RULE_OPTIONS: RuleOption[] = [
 ]
 
 const DISPLAYED_RULE_TYPES = new Set<Finding["type"]>(RULE_OPTIONS.map((rule) => rule.type))
-const DEFAULT_ENABLED_RULE_TYPES = DEFAULT_SUBS_FINDING_RULE_TYPES.filter(
-  (type): type is Finding["type"] => DISPLAYED_RULE_TYPES.has(type as Finding["type"])
+const DEFAULT_UI_ENABLED_RULE_TYPES: Finding["type"][] = [
+  "MAX_CHARS",
+  "MERGE_CANDIDATE",
+  "JOINABLE_BREAK",
+  "NUMBER_STYLE",
+  "PUNCTUATION",
+  "MAX_CPS",
+  "MIN_CPS",
+]
+const DEFAULT_ENABLED_RULE_TYPES = DEFAULT_UI_ENABLED_RULE_TYPES.filter(
+  (type) => DISPLAYED_RULE_TYPES.has(type)
 )
 const WARNING_RULE_TYPES = RULE_OPTIONS.filter((rule) => rule.severity === "warn").map(
   (rule) => rule.type

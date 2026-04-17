@@ -533,7 +533,7 @@ describe("Sidebar", () => {
     fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
 
     expect(
-      ui.getByText("Checks percent formatting style: use % instead of the word \"percent\".")
+      ui.getByText("Checks percent formatting style. Use % instead of the word \"percent\".")
     ).toBeInTheDocument()
   })
 
@@ -578,6 +578,18 @@ describe("Sidebar", () => {
     expect(
       ui.queryByRole("checkbox", { name: /Translation line starts with extra spaces/i })
     ).not.toBeInTheDocument()
+  })
+
+  it("keeps dash and percent rules off by default in the rules modal", () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+
+    expect(ui.getByRole("checkbox", { name: /Dash style is incorrect/i })).not.toBeChecked()
+    expect(
+      ui.getByRole("checkbox", { name: /Percent format is incorrect/i })
+    ).not.toBeChecked()
   })
 
   it("filters findings when a rule is unchecked in the modal", async () => {

@@ -298,6 +298,23 @@ describe("analyze CLI output", () => {
     expect(output.some((metric) => metric.type === "MIN_CPS")).toBe(true)
   })
 
+  it("uses full default subs findings set in findings mode", async () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "  This should drift—apart.",
+      "00:00:03:00\t00:00:04:00\tMarker",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "subs",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(output.some((metric) => metric.type === "LEADING_WHITESPACE")).toBe(true)
+    expect(output.some((metric) => metric.type === "DASH_STYLE")).toBe(true)
+    expect(output.some((metric) => metric.type === "BLOCK_STRUCTURE")).toBe(true)
+  })
+
   it("includes merge-candidate findings for near-identical close cues", async () => {
     const text = [
       "00:00:08:00\t00:00:09:00\tMarker",

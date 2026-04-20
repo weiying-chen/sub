@@ -126,6 +126,16 @@ export function buildDecorationLayers(
   )
 }
 
+export function usesTokenDecoration(f: Finding): boolean {
+  return (
+    f.type === 'NUMBER_STYLE' ||
+    f.type === 'DASH_STYLE' ||
+    f.type === 'QUOTE_STYLE' ||
+    f.type === 'PERCENT_STYLE' ||
+    f.type === 'CAPITALIZATION'
+  )
+}
+
 export function findingsDecorations(findings: Finding[], activeFindingId: string | null) {
   return defineDecorationsPlugin((view: EditorView) => {
     const builder = new RangeSetBuilder<Decoration>()
@@ -217,11 +227,7 @@ export function findingsDecorations(findings: Finding[], activeFindingId: string
         continue
       }
 
-      if (
-        f.type === 'NUMBER_STYLE' ||
-        f.type === 'PERCENT_STYLE' ||
-        f.type === 'CAPITALIZATION'
-      ) {
+      if (usesTokenDecoration(f)) {
         const line = doc.line(f.lineIndex + 1)
         const tokenLength = f.token.length
         const from = Math.min(line.to, line.from + f.index)

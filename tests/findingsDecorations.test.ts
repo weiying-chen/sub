@@ -4,6 +4,7 @@ import {
   buildDecorationLayers,
   sortFindingsForDecorations,
   subtractOverlapsBySeverity,
+  usesTokenDecoration,
 } from "../src/cm/findingsDecorations"
 import type { Finding } from "../src/analysis/types"
 
@@ -118,5 +119,32 @@ describe("buildDecorationLayers", () => {
       to: 10,
       className: "cm-finding-active",
     })
+  })
+})
+
+describe("usesTokenDecoration", () => {
+  it("treats dash and quote style as token-level decorations", () => {
+    const dashFinding: Finding = {
+      type: "DASH_STYLE",
+      lineIndex: 0,
+      index: 5,
+      token: "—",
+      text: "Hello—world",
+      expected: "triple_hyphen",
+      found: "em_dash",
+      blockType: "subs",
+      severity: "error",
+    }
+    const quoteFinding: Finding = {
+      type: "QUOTE_STYLE",
+      lineIndex: 0,
+      index: 6,
+      token: "’",
+      text: "That’s nice",
+      severity: "error",
+    }
+
+    expect(usesTokenDecoration(dashFinding)).toBe(true)
+    expect(usesTokenDecoration(quoteFinding)).toBe(true)
   })
 })

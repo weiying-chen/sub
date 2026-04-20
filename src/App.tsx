@@ -265,6 +265,7 @@ function getFindingRanges(view: EditorView, findings: Finding[]): FindingRange[]
     if (
       f.type === "NUMBER_STYLE" ||
       f.type === "DASH_STYLE" ||
+      f.type === "QUOTE_STYLE" ||
       f.type === "PERCENT_STYLE" ||
       f.type === "CAPITALIZATION"
     ) {
@@ -378,6 +379,8 @@ function getFindingAnchor(view: EditorView, finding: Finding): number {
 
   if (
     finding.type === "NUMBER_STYLE" ||
+    finding.type === "DASH_STYLE" ||
+    finding.type === "QUOTE_STYLE" ||
     finding.type === "PERCENT_STYLE" ||
     finding.type === "CAPITALIZATION" ||
     finding.type === "LEADING_WHITESPACE"

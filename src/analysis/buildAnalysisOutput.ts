@@ -6,10 +6,10 @@ import { quoteStyleRule } from './quoteStyleRule'
 import { maxCharsRule } from './maxCharsRule'
 import { missingTranslationRule } from './missingTranslationRule'
 import { newsMarkerRule } from './newsMarkerRule'
-import { newsPunctuationRule } from './newsPunctuationRule'
 import { numberStyleRule } from './numberStyleRule'
 import { punctuationRule } from './punctuationRule'
 import { superPeopleRule } from './superPeopleRule'
+import type { SegmentCtx, SegmentRule } from './segments'
 import type { Metric, Finding } from './types'
 import { getFindings } from '../shared/findings'
 import { filterSegments } from './segmentRuleFilters'
@@ -35,6 +35,38 @@ export type BuildAnalysisOutputOptions = {
   maxChars?: number
   ignoreEmptyLines?: boolean
   includeWarnings?: boolean
+}
+
+function newsSuperPunctuationRule(
+  options: {
+    properNouns?: string[]
+    abbreviations?: string[]
+    ignoreEmptyLines?: boolean
+  } = {}
+): SegmentRule {
+  const baseRule = punctuationRule(options) as SegmentRule
+  return (ctx: SegmentCtx) => {
+    if (ctx.segmentIndex !== 0 || !ctx.lines) return []
+
+    const targetLineIndices = new Set<number>()
+    for (const segment of ctx.segments) {
+      if (segment.blockType !== 'super') continue
+      for (const line of segment.targetLines ?? []) {
+        targetLineIndices.add(line.lineIndex)
+      }
+    }
+
+    if (targetLineIndices.size === 0) return []
+
+    const filteredLines = ctx.lines.map((line, i) =>
+      targetLineIndices.has(i) ? line : ''
+    )
+
+    return baseRule({
+      ...ctx,
+      lines: filteredLines,
+    })
+  }
 }
 
 function buildRules(options: BuildAnalysisOutputOptions) {
@@ -72,7 +104,15 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     if (!enabled || enabled.has('NUMBER_STYLE')) rules.push(numberStyleRule())
     if (!enabled || enabled.has('DASH_STYLE')) rules.push(dashStyleRule())
     if (!enabled || enabled.has('QUOTE_STYLE')) rules.push(quoteStyleRule())
-    if (!enabled || enabled.has('PUNCTUATION')) rules.push(newsPunctuationRule())
+    if (!enabled || enabled.has('PUNCTUATION')) {
+      rules.push(
+        newsSuperPunctuationRule({
+          properNouns,
+          abbreviations,
+          ignoreEmptyLines,
+        })
+      )
+    }
     if (!enabled || enabled.has('CAPITALIZATION')) {
       rules.push(
         capitalizationRule({

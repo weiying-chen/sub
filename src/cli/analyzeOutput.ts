@@ -31,11 +31,11 @@ export async function buildAnalyzeOutput(
         : undefined
   const capitalizationTerms = await loadCapitalizationTerms()
   const properNouns =
-    options.type === 'subs' || options.type === 'text'
+    options.type === 'subs' || options.type === 'text' || options.type === 'news'
       ? await loadProperNouns()
       : undefined
   const abbreviations =
-    options.type === 'subs' || options.type === 'text'
+    options.type === 'subs' || options.type === 'text' || options.type === 'news'
       ? await loadAbbreviations()
       : undefined
   const mode = options.mode ?? 'metrics'

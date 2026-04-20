@@ -551,7 +551,7 @@ describe("Sidebar", () => {
     fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
 
     expect(
-      ui.getByText("Checks percent style for this text type. Use % instead of the word \"percent\".")
+      ui.getByText("Checks percent style. Use % instead of the word \"percent\".")
     ).toBeInTheDocument()
   })
 

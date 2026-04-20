@@ -182,7 +182,7 @@ describe("wording copy", () => {
       "Use straight quotes (' or \") instead of curly quotes (’, ‘, “, ”)."
     )
     expect(RULE_MODAL_EXPLANATIONS.PERCENT_STYLE).toBe(
-      "Checks percent style for this text type. Use % instead of the word \"percent\"."
+      "Checks percent style. Use % instead of the word \"percent\"."
     )
     expect(RULE_MODAL_EXPLANATIONS.DASH_STYLE).toBe(
       "Checks dash style for this text type. Use --- or — as required by the text type."

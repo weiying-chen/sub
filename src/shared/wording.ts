@@ -20,7 +20,7 @@ export const RULE_MODAL_EXPLANATIONS: Partial<Record<Finding["type"], string>> =
   NUMBER_STYLE: "Checks number formatting and spelling style conventions.",
   PERCENT_STYLE: "Checks percent formatting style. Use % instead of the word \"percent\".",
   DASH_STYLE: "Checks dash style in a translation line. Use --- instead of —.",
-  QUOTE_STYLE: "Checks quote style. Use straight quotes (' or \") instead of curly quotes.",
+  QUOTE_STYLE: "Checks quote style. Use straight quotes (' or \") instead of curly quotes (’, ‘, “, ”).",
   MIN_CPS:
     "Warns when a translation line has reading speed below the minimum CPS limit. You can edit it in the input below.",
   SPAN_GAP: "Warns when a translation line spans across a timing gap.",

@@ -189,7 +189,7 @@ export function getFindings(
       out.push({
         ...m,
         severity: 'error',
-        instruction: "Use straight quotes (' or \") instead of curly quotes.",
+        instruction: "Use straight quotes (' or \") instead of curly quotes (’, ‘, “, ”).",
       })
       continue
     }

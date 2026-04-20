@@ -139,4 +139,24 @@ describe("wording copy", () => {
       "Warns when neighboring lines are very similar and may be the same translation with minor typos."
     )
   })
+
+  it("shows quote-style examples in findings and modal wording", () => {
+    const metrics: Metric[] = [
+      {
+        type: "QUOTE_STYLE",
+        lineIndex: 1,
+        index: 4,
+        token: "’",
+        text: "That’s fine.",
+      },
+    ]
+
+    const findings = getFindings(metrics)
+    expect(findings[0]?.instruction).toBe(
+      "Use straight quotes (' or \") instead of curly quotes (’, ‘, “, ”)."
+    )
+    expect(RULE_MODAL_EXPLANATIONS.QUOTE_STYLE).toBe(
+      "Checks quote style. Use straight quotes (' or \") instead of curly quotes (’, ‘, “, ”)."
+    )
+  })
 })

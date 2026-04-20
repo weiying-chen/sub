@@ -399,4 +399,22 @@ describe("punctuationRule (segments)", () => {
       true
     )
   })
+
+  it("does not analyze timestamp-row source text", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tThis source line lacks punctuation",
+      "This translation is clean.",
+      "00:00:02:00\t00:00:03:00\tAnother Source Starts Capital",
+      "This translation is also clean.",
+    ].join("\n")
+
+    const segments = parseSubs(text)
+    const metrics = analyzeSegments(segments, [punctuationRule()], {
+      lines: text.split("\n"),
+      sourceText: text,
+    })
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings).toHaveLength(0)
+  })
 })

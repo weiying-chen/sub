@@ -390,4 +390,23 @@ describe("analyze CLI output", () => {
 
     expect(output.some((metric) => metric.type === "PUNCTUATION")).toBe(false)
   })
+
+  it("does not apply style rules to timestamp-row source text", async () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tthis source has 5 percent and can’t use em—dash",
+      "Clean translation line.",
+      "00:00:02:00\t00:00:03:00\tanother source line with 7 percent",
+      "Another clean translation line.",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "subs",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(output.some((metric) => metric.type === "NUMBER_STYLE")).toBe(false)
+    expect(output.some((metric) => metric.type === "PERCENT_STYLE")).toBe(false)
+    expect(output.some((metric) => metric.type === "DASH_STYLE")).toBe(false)
+    expect(output.some((metric) => metric.type === "QUOTE_STYLE")).toBe(false)
+  })
 })

@@ -8,7 +8,7 @@ import {
   type ParseBlockOptions,
   parseBlockAt,
 } from '../shared/tsvRuns'
-import type { SegmentCtx, SegmentRule } from './segments'
+import { parseText, type SegmentCtx, type SegmentRule } from './segments'
 
 const I_PRONOUN_RE = /^\s*(?:["'\(\[\{]\s*)*I(\b|')/
 const HYPHENATED_ROMANIZED_NAME_RE =
@@ -24,8 +24,8 @@ const TERMINAL_RE = new RegExp(
 )
 
 type Cue = {
-  start: string
-  end: string
+  start?: string
+  end?: string
   text: string
   lineIndex: number
   tsIndex: number
@@ -175,6 +175,16 @@ function collectCues(
   return cues
 }
 
+function collectTextCues(lines: string[]): Cue[] {
+  const segments = parseText(lines.join('\n'))
+  return segments.map((segment) => ({
+    text: segment.translation.trim(),
+    lineIndex: segment.lineIndex,
+    tsIndex: segment.lineIndex,
+    translationIndex: segment.lineIndex,
+  }))
+}
+
 function hasInterveningNonEmptyLine(
   src: LineSource,
   startIndex: number,
@@ -187,6 +197,7 @@ function hasInterveningNonEmptyLine(
 }
 
 function cueTimestamp(cue: Cue): string {
+  if (!cue.start || !cue.end) return ''
   return `${cue.start} -> ${cue.end}`
 }
 
@@ -222,7 +233,8 @@ function collectMetrics(
     lineCount: lines.length,
     getLine: (i) => lines[i] ?? '',
   }
-  const cues = collectCues(src, options)
+  const cuesFromTimestamps = collectCues(src, options)
+  const cues = cuesFromTimestamps.length > 0 ? cuesFromTimestamps : collectTextCues(lines)
   const quoteTracker = createDoubleQuoteSpanTracker()
   const quoteStateByCue = cues.map((cue) => quoteTracker.inspect(cue.text))
   const metrics: PunctuationMetric[] = []
@@ -242,7 +254,7 @@ function collectMetrics(
       lineIndex: cue.lineIndex,
       ruleCode: 'MISSING_CLOSING_QUOTE',
       text: cue.text,
-      timestamp: cueTimestamp(cue),
+      timestamp: cueTimestamp(cue) || undefined,
     })
   }
 
@@ -258,7 +270,7 @@ function collectMetrics(
       lineIndex: cue.lineIndex,
       ruleCode: 'MISSING_OPENING_QUOTE',
       text: cue.text,
-      timestamp: cueTimestamp(cue),
+      timestamp: cueTimestamp(cue) || undefined,
     })
   }
 
@@ -292,9 +304,9 @@ function collectMetrics(
         lineIndex: next.lineIndex,
         ruleCode: 'LOWERCASE_AFTER_PERIOD',
         text: next.text,
-        timestamp: cueTimestamp(next),
+        timestamp: cueTimestamp(next) || undefined,
         prevText: prev.text,
-        prevTimestamp: cueTimestamp(prev),
+        prevTimestamp: cueTimestamp(prev) || undefined,
       })
     }
 
@@ -313,9 +325,9 @@ function collectMetrics(
         lineIndex: prev.lineIndex,
         ruleCode: 'MISSING_PUNCTUATION_BEFORE_CAPITAL',
         text: prev.text,
-        timestamp: cueTimestamp(prev),
+        timestamp: cueTimestamp(prev) || undefined,
         nextText: next.text,
-        nextTimestamp: cueTimestamp(next),
+        nextTimestamp: cueTimestamp(next) || undefined,
       })
     }
 
@@ -332,9 +344,9 @@ function collectMetrics(
         lineIndex: prev.lineIndex,
         ruleCode: 'COMMA_BEFORE_QUOTE',
         text: prev.text,
-        timestamp: cueTimestamp(prev),
+        timestamp: cueTimestamp(prev) || undefined,
         nextText: next.text,
-        nextTimestamp: cueTimestamp(next),
+        nextTimestamp: cueTimestamp(next) || undefined,
       })
     }
   }

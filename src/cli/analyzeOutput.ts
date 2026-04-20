@@ -30,8 +30,14 @@ export async function buildAnalyzeOutput(
         ? (options.ruleFilters as Metric['type'][])
         : undefined
   const capitalizationTerms = await loadCapitalizationTerms()
-  const properNouns = options.type === 'subs' ? await loadProperNouns() : undefined
-  const abbreviations = options.type === 'subs' ? await loadAbbreviations() : undefined
+  const properNouns =
+    options.type === 'subs' || options.type === 'text'
+      ? await loadProperNouns()
+      : undefined
+  const abbreviations =
+    options.type === 'subs' || options.type === 'text'
+      ? await loadAbbreviations()
+      : undefined
   const mode = options.mode ?? 'metrics'
 
   return buildAnalysisOutput({

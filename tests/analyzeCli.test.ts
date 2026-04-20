@@ -383,7 +383,7 @@ describe("analyze CLI output", () => {
     ).toBe(false)
   })
 
-  it("does not include punctuation findings in text mode defaults", async () => {
+  it("includes punctuation findings in text mode defaults", async () => {
     const text = [
       "First sentence without ending",
       "Second Sentence starts with capital",
@@ -394,7 +394,7 @@ describe("analyze CLI output", () => {
       mode: "findings",
     } as any)) as Metric[]
 
-    expect(output.some((metric) => metric.type === "PUNCTUATION")).toBe(false)
+    expect(output.some((metric) => metric.type === "PUNCTUATION")).toBe(true)
   })
 
   it("does not apply style rules to timestamp-row source text", async () => {

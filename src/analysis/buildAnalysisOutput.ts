@@ -8,6 +8,7 @@ import { missingTranslationRule } from './missingTranslationRule'
 import { newsMarkerRule } from './newsMarkerRule'
 import { newsPunctuationRule } from './newsPunctuationRule'
 import { numberStyleRule } from './numberStyleRule'
+import { punctuationRule } from './punctuationRule'
 import { superPeopleRule } from './superPeopleRule'
 import type { Metric, Finding } from './types'
 import { getFindings } from '../shared/findings'
@@ -93,6 +94,15 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     if (!enabled || enabled.has('PERCENT_STYLE')) rules.push(percentStyleRule())
     if (!enabled || enabled.has('DASH_STYLE')) rules.push(dashStyleRule())
     if (!enabled || enabled.has('QUOTE_STYLE')) rules.push(quoteStyleRule())
+    if (!enabled || enabled.has('PUNCTUATION')) {
+      rules.push(
+        punctuationRule({
+          properNouns,
+          abbreviations,
+          ignoreEmptyLines,
+        })
+      )
+    }
     if (!enabled || enabled.has('CAPITALIZATION')) {
       rules.push(
         capitalizationRule({

@@ -92,6 +92,7 @@ const APPLICABLE_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Set<Findin
     "PERCENT_STYLE",
     "DASH_STYLE",
     "QUOTE_STYLE",
+    "PUNCTUATION",
     "CAPITALIZATION",
   ]),
 }
@@ -104,7 +105,14 @@ const DEFAULT_UI_ENABLED_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Fi
     "PUNCTUATION",
     "MAX_CPS",
   ],
-  text: ["MAX_CHARS", "NUMBER_STYLE", "DASH_STYLE", "PERCENT_STYLE", "QUOTE_STYLE"],
+  text: [
+    "MAX_CHARS",
+    "NUMBER_STYLE",
+    "PUNCTUATION",
+    "DASH_STYLE",
+    "PERCENT_STYLE",
+    "QUOTE_STYLE",
+  ],
 }
 const WARNING_RULE_TYPES = RULE_OPTIONS.filter((rule) => rule.severity === "warn").map(
   (rule) => rule.type

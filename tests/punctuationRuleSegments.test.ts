@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest"
 
+import { analyzeTextByType } from "../src/analysis/analyzeTextByType"
 import { analyzeSegments, parseSubs } from "../src/analysis/segments"
 import { punctuationRule } from "../src/analysis/punctuationRule"
 
@@ -416,5 +417,23 @@ describe("punctuationRule (segments)", () => {
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
     expect(findings).toHaveLength(0)
+  })
+
+  it("checks punctuation continuity in text mode without timestamps", () => {
+    const text = [
+      "First sentence without ending",
+      "Second Sentence starts with capital.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "text", [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL" &&
+          f.text === "First sentence without ending"
+      )
+    ).toBe(true)
   })
 })

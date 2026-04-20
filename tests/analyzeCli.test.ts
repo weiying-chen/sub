@@ -416,10 +416,12 @@ describe("analyze CLI output", () => {
     expect(output.some((metric) => metric.type === "QUOTE_STYLE")).toBe(false)
   })
 
-  it("ignores reference URL lines and their note lines in text mode", async () => {
+  it("ignores multi-line reference URL blocks in text mode", async () => {
     const text = [
       "https://example.com/source/with-5-percent-and—dash",
-      "this note has 5 percent and can’t be trusted.",
+      "訪趙可式博士談安寧療護",
+      "An Interview with Dr. Chao Co-shi: Hospice and Palliative Nursing",
+      "",
       "This clean translation line should be checked.",
     ].join("\n")
 
@@ -429,6 +431,7 @@ describe("analyze CLI output", () => {
     })) as Metric[]
 
     expectNoStyleRuleFindings(output)
+    expect(output.some((metric) => metric.type === "PUNCTUATION")).toBe(false)
   })
 
   it("ignores reference URL blocks in subs mode", async () => {

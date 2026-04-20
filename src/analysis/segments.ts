@@ -124,19 +124,21 @@ export function parseSubs(
 export function parseText(text: string): Segment[] {
   const lines = text.split('\n')
   const segments: Segment[] = []
-  let skipNextNonEmptyAfterUrl = false
+  let skipReferenceBlockAfterUrl = false
 
   for (let i = 0; i < lines.length; i += 1) {
     const raw = lines[i] ?? ''
     const trimmed = raw.trim()
 
     if (isReferenceUrlLine(trimmed)) {
-      skipNextNonEmptyAfterUrl = true
+      skipReferenceBlockAfterUrl = true
       continue
     }
 
-    if (skipNextNonEmptyAfterUrl && trimmed !== '') {
-      skipNextNonEmptyAfterUrl = false
+    if (skipReferenceBlockAfterUrl) {
+      if (trimmed === '') {
+        skipReferenceBlockAfterUrl = false
+      }
       continue
     }
 

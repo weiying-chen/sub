@@ -3,6 +3,12 @@ import { describe, it, expect } from "vitest"
 import type { Metric } from "../src/analysis/types"
 import { buildAnalyzeOutput } from "../src/cli/analyzeOutput"
 
+function expectNoStyleRuleFindings(metrics: Metric[]) {
+  expect(metrics.some((metric) => metric.type === "PERCENT_STYLE")).toBe(false)
+  expect(metrics.some((metric) => metric.type === "DASH_STYLE")).toBe(false)
+  expect(metrics.some((metric) => metric.type === "QUOTE_STYLE")).toBe(false)
+}
+
 describe("analyze CLI output", () => {
   it("returns MAX_CHARS metrics for news SUPER lines", async () => {
     const text = [
@@ -408,5 +414,55 @@ describe("analyze CLI output", () => {
     expect(output.some((metric) => metric.type === "PERCENT_STYLE")).toBe(false)
     expect(output.some((metric) => metric.type === "DASH_STYLE")).toBe(false)
     expect(output.some((metric) => metric.type === "QUOTE_STYLE")).toBe(false)
+  })
+
+  it("ignores reference URL lines and their note lines in text mode", async () => {
+    const text = [
+      "https://example.com/source/with-5-percent-and—dash",
+      "this note has 5 percent and can’t be trusted.",
+      "This clean translation line should be checked.",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "text",
+      mode: "findings",
+    })) as Metric[]
+
+    expectNoStyleRuleFindings(output)
+  })
+
+  it("ignores reference URL blocks in subs mode", async () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\t中",
+      "https://example.com/source/with-5-percent-and—dash",
+      "00:00:02:00\t00:00:03:00\t中",
+      "this note has 5 percent and can’t be trusted.",
+      "00:00:03:00\t00:00:04:00\t中",
+      "This clean translation line should be checked.",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "subs",
+      mode: "findings",
+    })) as Metric[]
+
+    expectNoStyleRuleFindings(output)
+  })
+
+  it("ignores reference URL lines and their note lines in news mode", async () => {
+    const text = [
+      "1_0001",
+      "這是來源文字",
+      "https://example.com/source/with-5-percent-and—dash",
+      "this note has 5 percent and can’t be trusted.",
+      "This clean translation line should be checked.",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "news",
+      mode: "findings",
+    })) as Metric[]
+
+    expectNoStyleRuleFindings(output)
   })
 })

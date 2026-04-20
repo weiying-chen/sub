@@ -86,10 +86,23 @@ export function parseSubs(
   }
 
   const segments: Segment[] = []
+  let skipNextNonEmptyAfterUrl = false
 
   for (let i = 0; i < lines.length; i += 1) {
     const block = parseBlockAt(src, i, options)
     if (!block) continue
+    const trimmedTranslation = block.translation.trim()
+
+    if (isReferenceUrlLine(trimmedTranslation)) {
+      skipNextNonEmptyAfterUrl = true
+      continue
+    }
+
+    if (skipNextNonEmptyAfterUrl && trimmedTranslation !== '') {
+      skipNextNonEmptyAfterUrl = false
+      continue
+    }
+
     const targetLines = isEnglishLikeLine(block.translation)
       ? [{ lineIndex: block.translationIndex, lineText: block.translation }]
       : []
@@ -111,9 +124,22 @@ export function parseSubs(
 export function parseText(text: string): Segment[] {
   const lines = text.split('\n')
   const segments: Segment[] = []
+  let skipNextNonEmptyAfterUrl = false
 
   for (let i = 0; i < lines.length; i += 1) {
     const raw = lines[i] ?? ''
+    const trimmed = raw.trim()
+
+    if (isReferenceUrlLine(trimmed)) {
+      skipNextNonEmptyAfterUrl = true
+      continue
+    }
+
+    if (skipNextNonEmptyAfterUrl && trimmed !== '') {
+      skipNextNonEmptyAfterUrl = false
+      continue
+    }
+
     if (!isEnglishLikeLine(raw)) continue
 
     segments.push({
@@ -142,6 +168,7 @@ export function parseNews(text: string): Segment[] {
   let inSuperPeopleSection = false
   let superPeopleBuffer: CandidateLine[] = []
   let superActive = false
+  let skipNextNonEmptyAfterUrl = false
 
   const flush = () => {
     if (!currentBlock || (sourceBuffer.length === 0 && targetBuffer.length === 0)) {
@@ -194,6 +221,16 @@ export function parseNews(text: string): Segment[] {
   for (let i = 0; i < lines.length; i += 1) {
     const raw = lines[i]
     const trimmed = raw.trim()
+
+    if (isReferenceUrlLine(trimmed)) {
+      skipNextNonEmptyAfterUrl = true
+      continue
+    }
+
+    if (skipNextNonEmptyAfterUrl && trimmed !== '') {
+      skipNextNonEmptyAfterUrl = false
+      continue
+    }
 
     if (trimmed === 'SUPER_PEOPLE:') {
       flush()
@@ -403,6 +440,10 @@ function isNewsStructureLine(text: string): boolean {
   if (isNewsLabel(text)) return true
   if (/^[<>]+$/.test(text)) return true
   return false
+}
+
+function isReferenceUrlLine(trimmed: string): boolean {
+  return /^(https?:\/\/|www\.)\S+$/i.test(trimmed)
 }
 
 function parseNewsMarker(text: string, lineIndex: number): NewsMarker | null {

@@ -234,6 +234,7 @@ function collectMetrics(
     getLine: (i) => lines[i] ?? '',
   }
   const cuesFromTimestamps = collectCues(src, options)
+  const usesTimestampCues = cuesFromTimestamps.length > 0
   const cues = cuesFromTimestamps.length > 0 ? cuesFromTimestamps : collectTextCues(lines)
   const quoteTracker = createDoubleQuoteSpanTracker()
   const quoteStateByCue = cues.map((cue) => quoteTracker.inspect(cue.text))
@@ -278,7 +279,10 @@ function collectMetrics(
     const prev = cues[j]
     const next = cues[j + 1]
     if (next.text === prev.text) continue
-    if (hasInterveningNonEmptyLine(src, prev.translationIndex, next.tsIndex)) {
+    if (
+      usesTimestampCues &&
+      hasInterveningNonEmptyLine(src, prev.translationIndex, next.tsIndex)
+    ) {
       continue
     }
 

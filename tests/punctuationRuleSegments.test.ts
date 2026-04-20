@@ -436,4 +436,26 @@ describe("punctuationRule (segments)", () => {
       )
     ).toBe(true)
   })
+
+  it("checks punctuation continuity in text mode across source lines", () => {
+    const text = [
+      "慈濟提醒我們行善要及時",
+      "At Tzu Chi, volunteers walk together with compassion and care.",
+      "志工持續陪伴有需要的家庭",
+      "Our volunteers keep showing up for families in need",
+      "志工持續陪伴有需要的家庭",
+      "Our volunteer keeps showing up for families in need.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "text", [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL" &&
+          f.text === "Our volunteers keep showing up for families in need"
+      )
+    ).toBe(true)
+  })
 })

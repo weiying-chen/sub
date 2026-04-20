@@ -16,6 +16,17 @@ type PendingActiveDecoration = {
   from: number
   to: number
 }
+type TokenDecoratedFinding = Extract<
+  Finding,
+  {
+    type:
+      | 'NUMBER_STYLE'
+      | 'DASH_STYLE'
+      | 'QUOTE_STYLE'
+      | 'PERCENT_STYLE'
+      | 'CAPITALIZATION'
+  }
+>
 
 function findingTsLineIndex(finding: Finding): number {
   if (
@@ -126,7 +137,7 @@ export function buildDecorationLayers(
   )
 }
 
-export function usesTokenDecoration(f: Finding): boolean {
+export function usesTokenDecoration(f: Finding): f is TokenDecoratedFinding {
   return (
     f.type === 'NUMBER_STYLE' ||
     f.type === 'DASH_STYLE' ||

@@ -160,7 +160,7 @@ export function getFindings(
       out.push({
         ...m,
         severity: 'error',
-        instruction: 'Use the percent symbol (%) instead of the word "percent".',
+        instruction: 'Use % instead of the word "percent".',
       })
       continue
     }

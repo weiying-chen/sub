@@ -140,8 +140,28 @@ describe("wording copy", () => {
     )
   })
 
-  it("shows quote-style examples in findings and modal wording", () => {
+  it("uses generic style wording for percent, dash, and quote rules", () => {
     const metrics: Metric[] = [
+      {
+        type: "PERCENT_STYLE",
+        lineIndex: 0,
+        index: 7,
+        value: 5,
+        found: "word",
+        expected: "symbol",
+        token: "5 percent",
+        text: "We saw 5 percent growth.",
+      },
+      {
+        type: "DASH_STYLE",
+        lineIndex: 0,
+        index: 10,
+        token: "—",
+        text: "This drifts—apart.",
+        expected: "triple_hyphen",
+        found: "em_dash",
+        blockType: "subs",
+      },
       {
         type: "QUOTE_STYLE",
         lineIndex: 1,
@@ -153,7 +173,19 @@ describe("wording copy", () => {
 
     const findings = getFindings(metrics)
     expect(findings[0]?.instruction).toBe(
+      "Use % instead of the word \"percent\"."
+    )
+    expect(findings[1]?.instruction).toBe(
+      "Use triple hyphens (---) for this text type."
+    )
+    expect(findings[2]?.instruction).toBe(
       "Use straight quotes (' or \") instead of curly quotes (’, ‘, “, ”)."
+    )
+    expect(RULE_MODAL_EXPLANATIONS.PERCENT_STYLE).toBe(
+      "Checks percent style for this text type. Use % instead of the word \"percent\"."
+    )
+    expect(RULE_MODAL_EXPLANATIONS.DASH_STYLE).toBe(
+      "Checks dash style for this text type. Use --- or — as required by the text type."
     )
     expect(RULE_MODAL_EXPLANATIONS.QUOTE_STYLE).toBe(
       "Checks quote style. Use straight quotes (' or \") instead of curly quotes (’, ‘, “, ”)."

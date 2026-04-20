@@ -2,6 +2,7 @@ import { analyzeTextByType, type AnalysisType } from './analyzeTextByType'
 import { capitalizationRule } from './capitalizationRule'
 import { createSubsFindingsRules, createSubsMetricsRules } from './subsSegmentRules'
 import { dashStyleRule } from './dashStyleRule'
+import { quoteStyleRule } from './quoteStyleRule'
 import { maxCharsRule } from './maxCharsRule'
 import { missingTranslationRule } from './missingTranslationRule'
 import { newsMarkerRule } from './newsMarkerRule'
@@ -69,6 +70,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     }
     if (!enabled || enabled.has('NUMBER_STYLE')) rules.push(numberStyleRule())
     if (!enabled || enabled.has('DASH_STYLE')) rules.push(dashStyleRule())
+    if (!enabled || enabled.has('QUOTE_STYLE')) rules.push(quoteStyleRule())
     if (!enabled || enabled.has('PUNCTUATION')) rules.push(newsPunctuationRule())
     if (!enabled || enabled.has('CAPITALIZATION')) {
       rules.push(
@@ -90,6 +92,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     if (!enabled || enabled.has('NUMBER_STYLE')) rules.push(numberStyleRule())
     if (!enabled || enabled.has('PERCENT_STYLE')) rules.push(percentStyleRule())
     if (!enabled || enabled.has('DASH_STYLE')) rules.push(dashStyleRule())
+    if (!enabled || enabled.has('QUOTE_STYLE')) rules.push(quoteStyleRule())
     if (!enabled || enabled.has('CAPITALIZATION')) {
       rules.push(
         capitalizationRule({

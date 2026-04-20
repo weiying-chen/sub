@@ -28,6 +28,7 @@ describe("subs finding defaults", () => {
       "DASH_STYLE",
       "PERCENT_STYLE",
       "NUMBER_STYLE",
+      "QUOTE_STYLE",
       "PUNCTUATION",
       "MAX_CPS",
       "MIN_CPS",

@@ -122,6 +122,15 @@ export type DashStyleMetric = {
   severity?: 'error' | 'warn'
 }
 
+export type QuoteStyleMetric = {
+  type: 'QUOTE_STYLE'
+  lineIndex: number
+  index: number
+  token: '“' | '”' | '‘' | '’'
+  text: string
+  severity?: 'error' | 'warn'
+}
+
 export type PunctuationMetric = {
   type: 'PUNCTUATION'
   lineIndex: number
@@ -239,6 +248,7 @@ export type Metric =
   | PercentStyleMetric
   | CapitalizationMetric
   | DashStyleMetric
+  | QuoteStyleMetric
   | PunctuationMetric
   | TimestampFormatMetric
   | BlockStructureMetric

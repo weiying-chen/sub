@@ -185,6 +185,15 @@ export function getFindings(
       continue
     }
 
+    if (m.type === 'QUOTE_STYLE') {
+      out.push({
+        ...m,
+        severity: 'error',
+        instruction: "Use straight quotes (' or \") instead of curly quotes.",
+      })
+      continue
+    }
+
     if (m.type === 'PUNCTUATION') {
       const instruction =
         m.ruleCode === 'LOWERCASE_AFTER_PERIOD'

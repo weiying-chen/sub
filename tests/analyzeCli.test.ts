@@ -301,7 +301,7 @@ describe("analyze CLI output", () => {
   it("uses full default subs findings set in findings mode", async () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
-      "  This should drift—apart.",
+      "  This should drift—apart and I can’t ignore it.",
       "00:00:03:00\t00:00:04:00\tMarker",
     ].join("\n")
 
@@ -312,6 +312,7 @@ describe("analyze CLI output", () => {
 
     expect(output.some((metric) => metric.type === "LEADING_WHITESPACE")).toBe(true)
     expect(output.some((metric) => metric.type === "DASH_STYLE")).toBe(true)
+    expect(output.some((metric) => metric.type === "QUOTE_STYLE")).toBe(true)
     expect(output.some((metric) => metric.type === "BLOCK_STRUCTURE")).toBe(true)
   })
 

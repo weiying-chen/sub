@@ -6,6 +6,7 @@ export const DEFAULT_TEXT_FINDING_RULE_TYPES: Metric["type"][] = [
   "NUMBER_STYLE",
   "PERCENT_STYLE",
   "DASH_STYLE",
+  "QUOTE_STYLE",
   "CAPITALIZATION",
 ]
 

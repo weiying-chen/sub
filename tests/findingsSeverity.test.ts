@@ -8,6 +8,7 @@ import { cpsBalanceRule } from "../src/analysis/cpsBalanceRule"
 import { cpsRule } from "../src/analysis/cpsRule"
 import { leadingWhitespaceRule } from "../src/analysis/leadingWhitespaceRule"
 import { dashStyleRule } from "../src/analysis/dashStyleRule"
+import { quoteStyleRule } from "../src/analysis/quoteStyleRule"
 import { joinableBreakRule } from "../src/analysis/joinableBreakRule"
 import { maxCharsRule } from "../src/analysis/maxCharsRule"
 import { mergeCandidateRule } from "../src/analysis/mergeCandidateRule"
@@ -91,6 +92,19 @@ describe("getFindings severity", () => {
       (m) => m.type === "DASH_STYLE"
     )
     expect(dashFindings[0]?.severity).toBe("error")
+
+    const curlyMetrics = analyzeTextByType(
+      [
+        "00:00:01:00\t00:00:02:00\tMarker",
+        "I can’t do this.",
+      ].join("\n"),
+      "subs",
+      [quoteStyleRule()]
+    )
+    const curlyFindings = getFindings(curlyMetrics).filter(
+      (m) => m.type === "QUOTE_STYLE"
+    )
+    expect(curlyFindings[0]?.severity).toBe("error")
   })
 
   it("uses numeric decade wording for decade words", () => {

@@ -12,6 +12,7 @@ export const DEFAULT_SUBS_FINDING_RULE_TYPES: Metric["type"][] = [
   "DASH_STYLE",
   "PERCENT_STYLE",
   "NUMBER_STYLE",
+  "QUOTE_STYLE",
   "PUNCTUATION",
   "MAX_CPS",
   "MIN_CPS",

@@ -3,6 +3,7 @@ import { blockStructureRule } from "./blockStructureRule"
 import { capitalizationRule } from "./capitalizationRule"
 import { cpsRule } from "./cpsRule"
 import { dashStyleRule } from "./dashStyleRule"
+import { quoteStyleRule } from "./quoteStyleRule"
 import { leadingWhitespaceRule } from "./leadingWhitespaceRule"
 import { joinableBreakRule } from "./joinableBreakRule"
 import { maxCharsRule } from "./maxCharsRule"
@@ -76,6 +77,9 @@ function createSubsCommonRules(
   }
   if (isEnabled(enabled, "DASH_STYLE")) {
     rules.push(dashStyleRule())
+  }
+  if (isEnabled(enabled, "QUOTE_STYLE")) {
+    rules.push(quoteStyleRule())
   }
   if (isEnabled(enabled, "PERCENT_STYLE")) {
     rules.push(percentStyleRule())

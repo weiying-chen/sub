@@ -4,6 +4,7 @@ import type { SegmentRule } from './segments'
 import { maxCharsRule } from './maxCharsRule'
 import { leadingWhitespaceRule } from './leadingWhitespaceRule'
 import { dashStyleRule } from './dashStyleRule'
+import { quoteStyleRule } from './quoteStyleRule'
 import { capitalizationRule } from './capitalizationRule'
 import { percentStyleRule } from './percentStyleRule'
 import { mergeCandidateRule } from './mergeCandidateRule'
@@ -45,6 +46,7 @@ export function defaultSegmentRules(
       ignoreEmptyLines: options.ignoreEmptyLines,
     }),
     dashStyleRule(),
+    quoteStyleRule(),
     spanGapRule(),
     mergeCandidateRule({ ignoreEmptyLines: options.ignoreEmptyLines }),
     capitalizationRule({ terms: options.capitalizationTerms }),

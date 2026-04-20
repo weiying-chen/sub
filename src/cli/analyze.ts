@@ -5,7 +5,7 @@ import { buildAnalyzeOutput } from './analyzeOutput'
 
 function printUsage() {
   console.error(
-    'Usage: analyze <file>|--text/-t "..." [--type subs|news] [--mode metrics|findings] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines]'
+    'Usage: analyze <file>|--text/-t "..." [--type subs|news|text] [--mode metrics|findings] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines]'
   )
 }
 
@@ -20,7 +20,7 @@ function readStdin(): Promise<string> {
   })
 }
 
-if (args.type !== 'subs' && args.type !== 'news') {
+if (args.type !== 'subs' && args.type !== 'news' && args.type !== 'text') {
   printUsage()
   process.exit(1)
 }
@@ -51,7 +51,7 @@ if (!text.trim() && !args.filePath && !args.textArg) {
   process.exit(1)
 }
 
-if (args.type === 'news' && args.baselinePath) {
+if (args.type !== 'subs' && args.baselinePath) {
   console.warn('WARN --baseline is only supported with --type subs; ignoring.')
 }
 

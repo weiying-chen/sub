@@ -31,11 +31,13 @@ import properNounsText from "../punctuation-proper-nouns.txt?raw"
 
 const RULES_MODAL_ANIMATION_MS = 170
 const RULE_FILTERS_STORAGE_KEY = "subs.ruleFilters"
+const MODE_STORAGE_KEY = "subs.analysisType"
 const EDITOR_TEXT_STORAGE_KEY = "subs.editorText"
 const MAX_CPS_STORAGE_KEY = "subs.maxCps"
 const MIN_CPS_STORAGE_KEY = "subs.minCps"
 const THEME_STORAGE_KEY = "subs.theme"
 const FINDINGS_MOTION_SUPPRESS_MS = 220
+type AppAnalysisType = "subs" | "text"
 
 type RuleOption = {
   type: Finding["type"]
@@ -76,27 +78,63 @@ const RULE_OPTIONS: RuleOption[] = RULE_OPTION_SPECS.map((spec) => {
 })
 
 const DISPLAYED_RULE_TYPES = new Set<Finding["type"]>(RULE_OPTIONS.map((rule) => rule.type))
-const DEFAULT_UI_ENABLED_RULE_TYPES: Finding["type"][] = [
-  "MAX_CHARS",
-  "MERGE_CANDIDATE",
-  "JOINABLE_BREAK",
-  "NUMBER_STYLE",
-  "PUNCTUATION",
-  "MAX_CPS",
+const ANALYSIS_TYPE_OPTIONS: Array<{ type: AppAnalysisType; label: string }> = [
+  { type: "subs", label: "Subs" },
+  { type: "text", label: "Text" },
 ]
-const DEFAULT_ENABLED_RULE_TYPES = DEFAULT_UI_ENABLED_RULE_TYPES.filter(
-  (type) => DISPLAYED_RULE_TYPES.has(type)
-)
+const APPLICABLE_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Set<Finding["type"]>> = {
+  subs: new Set<Finding["type"]>(RULE_OPTIONS.map((rule) => rule.type)),
+  text: new Set<Finding["type"]>([
+    "MAX_CHARS",
+    "LEADING_WHITESPACE",
+    "NUMBER_STYLE",
+    "PERCENT_STYLE",
+    "DASH_STYLE",
+    "CAPITALIZATION",
+  ]),
+}
+const DEFAULT_UI_ENABLED_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Finding["type"][]> = {
+  subs: [
+    "MAX_CHARS",
+    "MERGE_CANDIDATE",
+    "JOINABLE_BREAK",
+    "NUMBER_STYLE",
+    "PUNCTUATION",
+    "MAX_CPS",
+  ],
+  text: ["MAX_CHARS", "NUMBER_STYLE", "DASH_STYLE", "PERCENT_STYLE"],
+}
 const WARNING_RULE_TYPES = RULE_OPTIONS.filter((rule) => rule.severity === "warn").map(
   (rule) => rule.type
 )
 
-function loadEnabledRuleTypes(): Set<Finding["type"]> {
-  const fallback = new Set<Finding["type"]>(DEFAULT_ENABLED_RULE_TYPES)
+function loadStoredAnalysisType(): AppAnalysisType {
+  if (typeof window === "undefined") return "subs"
+  try {
+    const raw = window.localStorage.getItem(MODE_STORAGE_KEY)
+    if (raw === "subs" || raw === "text") return raw
+    return "subs"
+  } catch {
+    return "subs"
+  }
+}
+
+function getRuleFiltersStorageKey(type: AppAnalysisType): string {
+  if (type === "subs") return RULE_FILTERS_STORAGE_KEY
+  return `${RULE_FILTERS_STORAGE_KEY}.${type}`
+}
+
+function loadEnabledRuleTypes(type: AppAnalysisType): Set<Finding["type"]> {
+  const applicable = APPLICABLE_RULE_TYPES_BY_ANALYSIS_TYPE[type]
+  const fallback = new Set<Finding["type"]>(
+    DEFAULT_UI_ENABLED_RULE_TYPES_BY_ANALYSIS_TYPE[type].filter(
+      (ruleType) => DISPLAYED_RULE_TYPES.has(ruleType) && applicable.has(ruleType)
+    )
+  )
   if (typeof window === "undefined") return fallback
 
   try {
-    const raw = window.localStorage.getItem(RULE_FILTERS_STORAGE_KEY)
+    const raw = window.localStorage.getItem(getRuleFiltersStorageKey(type))
     if (!raw) return fallback
 
     const parsed = JSON.parse(raw)
@@ -105,7 +143,9 @@ function loadEnabledRuleTypes(): Set<Finding["type"]> {
     const allowed = DISPLAYED_RULE_TYPES
     const selected = parsed.filter(
       (entry): entry is Finding["type"] =>
-        typeof entry === "string" && allowed.has(entry as Finding["type"])
+        typeof entry === "string" &&
+        allowed.has(entry as Finding["type"]) &&
+        applicable.has(entry as Finding["type"])
     )
     if (parsed.length > 0 && selected.length === 0) return fallback
     return new Set(selected)
@@ -452,6 +492,9 @@ export default function App({
   includeWarnings = true,
   colorizeGutterIndicators = false,
 }: AppProps) {
+  const [analysisType, setAnalysisType] = useState<AppAnalysisType>(() =>
+    loadStoredAnalysisType()
+  )
   const [theme, setTheme] = useState<"dark" | "light">(() => loadStoredTheme())
   const editorScrollRef = useRef<HTMLDivElement | null>(null)
 
@@ -467,7 +510,7 @@ export default function App({
   const [view, setView] = useState<EditorView | null>(null)
   const [activeFindingId, setActiveFindingId] = useState<string | null>(null)
   const [enabledRuleTypes, setEnabledRuleTypes] = useState<Set<Finding["type"]>>(
-    () => loadEnabledRuleTypes()
+    () => loadEnabledRuleTypes(loadStoredAnalysisType())
   )
   const [isRulesModalOpen, setIsRulesModalOpen] = useState(false)
   const [isRulesModalMounted, setIsRulesModalMounted] = useState(false)
@@ -500,11 +543,20 @@ export default function App({
 
   useEffect(() => {
     if (typeof window === "undefined") return
+    window.localStorage.setItem(MODE_STORAGE_KEY, analysisType)
+  }, [analysisType])
+
+  useEffect(() => {
+    setEnabledRuleTypes(loadEnabledRuleTypes(analysisType))
+  }, [analysisType])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
     window.localStorage.setItem(
-      RULE_FILTERS_STORAGE_KEY,
+      getRuleFiltersStorageKey(analysisType),
       JSON.stringify(Array.from(enabledRuleTypes))
     )
-  }, [enabledRuleTypes])
+  }, [enabledRuleTypes, analysisType])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -597,17 +649,17 @@ export default function App({
   }, [minCpsDraft, minCps, maxCps, suppressFindingMotionForRuleChange])
 
   const analysisEnabledRuleTypes = useMemo(() => {
+    const applicable = APPLICABLE_RULE_TYPES_BY_ANALYSIS_TYPE[analysisType]
+    const filtered = Array.from(enabledRuleTypes).filter((type) => applicable.has(type))
     return includeWarnings
-      ? Array.from(enabledRuleTypes)
-      : Array.from(enabledRuleTypes).filter(
-          (type) => !WARNING_RULE_TYPES.includes(type)
-        )
-  }, [enabledRuleTypes, includeWarnings])
+      ? filtered
+      : filtered.filter((type) => !WARNING_RULE_TYPES.includes(type))
+  }, [enabledRuleTypes, includeWarnings, analysisType])
 
   const rawRuleOutputs = useMemo<Metric[]>(() => {
     return buildAnalysisOutput({
       text: value,
-      type: "subs",
+      type: analysisType,
       ruleSet: "findings",
       output: "metrics",
       enabledRuleTypes: analysisEnabledRuleTypes,
@@ -617,7 +669,7 @@ export default function App({
       properNouns,
       abbreviations: punctuationAbbreviations,
     }) as Metric[]
-  }, [value, analysisEnabledRuleTypes, maxCps, minCps])
+  }, [value, analysisEnabledRuleTypes, maxCps, minCps, analysisType])
 
   const findings = useMemo<Finding[]>(() => {
     return getFindings(rawRuleOutputs, { includeWarnings })
@@ -627,7 +679,7 @@ export default function App({
   const cpsMetrics = useMemo<Metric[]>(() => {
     return buildAnalysisOutput({
       text: value,
-      type: "subs",
+      type: analysisType,
       ruleSet: "metrics",
       output: "metrics",
       enabledRuleTypes: analysisEnabledRuleTypes,
@@ -637,7 +689,7 @@ export default function App({
       properNouns,
       abbreviations: punctuationAbbreviations,
     }) as Metric[]
-  }, [value, analysisEnabledRuleTypes, maxCps, minCps])
+  }, [value, analysisEnabledRuleTypes, maxCps, minCps, analysisType])
 
   useEffect(() => {
     console.log("[analysis] cps metrics", cpsMetrics)
@@ -717,10 +769,38 @@ export default function App({
     setTheme((t) => (t === "dark" ? "light" : "dark"))
   }, [])
 
+  const handleAnalysisTypeChange = useCallback(
+    (nextType: AppAnalysisType) => {
+      if (nextType === analysisType) return
+      suppressFindingMotionForRuleChange()
+      setAnalysisType(nextType)
+    },
+    [analysisType, suppressFindingMotionForRuleChange]
+  )
+
+  const applicableRuleTypes = APPLICABLE_RULE_TYPES_BY_ANALYSIS_TYPE[analysisType]
+
   return (
     <div
       className={`app-shell${suppressFindingMotion ? " findings-motion-paused" : ""}`}
     >
+      <div className="app-topbar">
+        <div className="mode-switcher" role="group" aria-label="Analysis mode">
+          {ANALYSIS_TYPE_OPTIONS.map((option) => (
+            <button
+              key={option.type}
+              type="button"
+              className={`mode-switcher-button${
+                analysisType === option.type ? " is-active" : ""
+              }`}
+              aria-pressed={analysisType === option.type}
+              onClick={() => handleAnalysisTypeChange(option.type)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
       <div className="app-editor-wrap">
         <div className="app-editor-scroll" ref={editorScrollRef}>
           <div className="app-editor-inner">
@@ -834,11 +914,17 @@ export default function App({
                   <span>Errors</span>
                 </div>
                 {RULE_OPTIONS.filter((rule) => rule.severity === "error").map((rule) => (
-                  <div key={rule.type} className="rules-modal-rule">
+                  <div
+                    key={rule.type}
+                    className={`rules-modal-rule${
+                      applicableRuleTypes.has(rule.type) ? "" : " is-disabled"
+                    }`}
+                  >
                     <label className="rules-modal-checkbox">
                       <input
                         type="checkbox"
                         checked={enabledRuleTypes.has(rule.type)}
+                        disabled={!applicableRuleTypes.has(rule.type)}
                         onChange={() => toggleRule(rule.type)}
                       />
                       <span className="rules-modal-checkbox-label">{rule.label}</span>
@@ -853,7 +939,10 @@ export default function App({
                             value={maxCpsDraft}
                             aria-label="Max CPS"
                             placeholder="Max CPS"
-                            disabled={!enabledRuleTypes.has("MAX_CPS")}
+                            disabled={
+                              !applicableRuleTypes.has("MAX_CPS") ||
+                              !enabledRuleTypes.has("MAX_CPS")
+                            }
                             onChange={(e) => handleMaxCpsChange(e.target.value)}
                             onBlur={commitMaxCpsDraft}
                             onKeyDown={(e) => {
@@ -876,11 +965,17 @@ export default function App({
                   <span>Warnings</span>
                 </div>
                 {RULE_OPTIONS.filter((rule) => rule.severity === "warn").map((rule) => (
-                  <div key={rule.type} className="rules-modal-rule">
+                  <div
+                    key={rule.type}
+                    className={`rules-modal-rule${
+                      applicableRuleTypes.has(rule.type) ? "" : " is-disabled"
+                    }`}
+                  >
                     <label className="rules-modal-checkbox">
                       <input
                         type="checkbox"
                         checked={enabledRuleTypes.has(rule.type)}
+                        disabled={!applicableRuleTypes.has(rule.type)}
                         onChange={() => toggleRule(rule.type)}
                       />
                       <span className="rules-modal-checkbox-label">{rule.label}</span>
@@ -895,7 +990,10 @@ export default function App({
                             value={minCpsDraft}
                             aria-label="Min CPS"
                             placeholder="Min CPS"
-                            disabled={!enabledRuleTypes.has("MIN_CPS")}
+                            disabled={
+                              !applicableRuleTypes.has("MIN_CPS") ||
+                              !enabledRuleTypes.has("MIN_CPS")
+                            }
                             onChange={(e) => handleMinCpsChange(e.target.value)}
                             onBlur={commitMinCpsDraft}
                             onKeyDown={(e) => {

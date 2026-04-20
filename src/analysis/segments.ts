@@ -108,6 +108,25 @@ export function parseSubs(
   return segments
 }
 
+export function parseText(text: string): Segment[] {
+  const lines = text.split('\n')
+  const segments: Segment[] = []
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const raw = lines[i] ?? ''
+    if (!isEnglishLikeLine(raw)) continue
+
+    segments.push({
+      lineIndex: i,
+      lineIndexEnd: i,
+      translation: raw,
+      targetLines: [{ lineIndex: i, lineText: raw }],
+    })
+  }
+
+  return segments
+}
+
 export function parseNews(text: string): Segment[] {
   const lines = text.split('\n')
   const segments: Segment[] = []
@@ -420,7 +439,7 @@ function isNewsSourceLine(text: string): boolean {
   return cjkRe.test(trimmed)
 }
 
-function isEnglishLikeLine(text: string): boolean {
+export function isEnglishLikeLine(text: string): boolean {
   const trimmed = text.trim()
   if (trimmed === '') return false
   if (trimmed.startsWith('(') || trimmed.startsWith('[')) return false

@@ -1,11 +1,11 @@
 import type { Metric } from './types'
 import type { SegmentRule } from './segments'
 
-import { analyzeSegments, parseNews, parseSubs } from './segments'
+import { analyzeSegments, parseNews, parseSubs, parseText } from './segments'
 import { normalizeLineEndings } from '../shared/normalizeLineEndings'
 import type { ParseBlockOptions } from '../shared/tsvRuns'
 
-export type AnalysisType = 'subs' | 'news'
+export type AnalysisType = 'subs' | 'news' | 'text'
 
 export function analyzeTextByType(
   text: string,
@@ -18,7 +18,9 @@ export function analyzeTextByType(
   const parsed =
     type === 'news'
       ? parseNews(normalizedText)
-      : parseSubs(normalizedText, options.parseOptions)
+      : type === 'text'
+        ? parseText(normalizedText)
+        : parseSubs(normalizedText, options.parseOptions)
   const segments =
     parsed.length > 0 ? parsed : [{ lineIndex: 0, translation: '' }]
   return analyzeSegments(segments, rules, {

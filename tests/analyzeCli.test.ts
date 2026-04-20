@@ -351,4 +351,42 @@ describe("analyze CLI output", () => {
 
     expect(output.some((metric) => metric.type === "BASELINE")).toBe(true)
   })
+
+  it("supports text findings mode on English-only lines without timestamps", async () => {
+    const text = [
+      "這一行中文應該被忽略 123",
+      "This line is definitely longer than the configured maximum character count for one subtitle row.",
+      "  Another English line with leading spaces.",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "text" as any,
+      mode: "findings",
+    } as any)) as Metric[]
+
+    expect(output.some((metric) => metric.type === "MAX_CHARS")).toBe(true)
+    expect(output.some((metric) => metric.type === "LEADING_WHITESPACE")).toBe(true)
+    expect(
+      output.some(
+        (metric) =>
+          "text" in metric &&
+          typeof metric.text === "string" &&
+          metric.text.includes("中文")
+      )
+    ).toBe(false)
+  })
+
+  it("does not include punctuation findings in text mode defaults", async () => {
+    const text = [
+      "First sentence without ending",
+      "Second Sentence starts with capital",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "text" as any,
+      mode: "findings",
+    } as any)) as Metric[]
+
+    expect(output.some((metric) => metric.type === "PUNCTUATION")).toBe(false)
+  })
 })

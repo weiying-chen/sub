@@ -3,7 +3,7 @@ import { parseSharedCliFlags } from './sharedArgs'
 export type AnalyzeArgs = {
   filePath: string | null
   textArg: string
-  type: 'subs' | 'news' | string
+  type: 'subs' | 'news' | 'text' | string
   includeWarnings: boolean
   mode: 'metrics' | 'findings' | string
   ruleFilters: string[]

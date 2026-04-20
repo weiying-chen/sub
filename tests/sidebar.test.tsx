@@ -675,6 +675,39 @@ describe("Sidebar", () => {
     })
   })
 
+  it("switches from subs mode to text mode", async () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+    const countFindingRowsWithText = (text: string) =>
+      Array.from(container.querySelectorAll(".finding-row-button")).filter((el) =>
+        el.textContent?.includes(text)
+      ).length
+
+    fireEvent.change(editor, {
+      target: {
+        value: [
+          "00:00:01:00\t00:00:02:00\tMarker",
+          "This translation is definitely too long for one second.",
+        ].join("\n"),
+      },
+    })
+
+    const subsButton = ui.getByRole("button", { name: "Subs" })
+    const textButton = ui.getByRole("button", { name: "Text" })
+    expect(subsButton).toHaveAttribute("aria-pressed", "true")
+    expect(textButton).toHaveAttribute("aria-pressed", "false")
+    expect(countFindingRowsWithText("Reading speed is too high")).toBeGreaterThan(0)
+
+    fireEvent.click(textButton)
+
+    await waitFor(() => {
+      expect(subsButton).toHaveAttribute("aria-pressed", "false")
+      expect(textButton).toHaveAttribute("aria-pressed", "true")
+      expect(countFindingRowsWithText("Reading speed is too high")).toBe(0)
+    })
+  })
+
   it("shows cps threshold inputs under cps rules and syncs with the rule toggle", () => {
     const { container } = render(<App />)
     const ui = within(container)

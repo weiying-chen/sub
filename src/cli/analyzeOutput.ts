@@ -1,6 +1,7 @@
 import { buildAnalysisOutput } from '../analysis/buildAnalysisOutput'
 import type { Metric, Finding } from '../analysis/types'
 import { resolveSubsFindingRuleFilters } from '../analysis/subsFindingDefaults'
+import { resolveTextFindingRuleFilters } from '../analysis/textFindingDefaults'
 import {
   loadAbbreviations,
   loadCapitalizationTerms,
@@ -8,7 +9,7 @@ import {
 } from './properNouns'
 
 export type AnalyzeOptions = {
-  type: 'subs' | 'news'
+  type: 'subs' | 'news' | 'text'
   mode?: 'metrics' | 'findings'
   ruleFilters?: string[]
   baselineText?: string
@@ -23,6 +24,8 @@ export async function buildAnalyzeOutput(
   const enabledFindingTypes =
     options.type === 'subs'
       ? resolveSubsFindingRuleFilters(options.ruleFilters as Metric['type'][] | undefined)
+      : options.type === 'text'
+        ? resolveTextFindingRuleFilters(options.ruleFilters as Metric['type'][] | undefined)
       : (options.ruleFilters?.length ?? 0) > 0
         ? (options.ruleFilters as Metric['type'][])
         : undefined

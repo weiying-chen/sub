@@ -208,6 +208,45 @@ body {
   overflow: hidden;
 }
 
+.app-topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.mode-switcher {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--panel);
+}
+
+.mode-switcher-button {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+.mode-switcher-button:hover {
+  color: var(--text);
+  background: var(--panel-hover);
+}
+
+.mode-switcher-button.is-active {
+  color: var(--text);
+  background: var(--bg);
+}
+
 .app-editor-wrap {
   flex: 1;
   min-height: 0;
@@ -420,6 +459,10 @@ body {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.rules-modal-rule.is-disabled {
+  opacity: 0.6;
 }
 
 .rules-modal-group-title {

@@ -11,6 +11,8 @@ import { superPeopleRule } from './superPeopleRule'
 import type { Metric, Finding } from './types'
 import { getFindings } from '../shared/findings'
 import { filterSegments } from './segmentRuleFilters'
+import { leadingWhitespaceRule } from './leadingWhitespaceRule'
+import { percentStyleRule } from './percentStyleRule'
 import { DEFAULT_MAX_CHARS } from '../shared/maxChars'
 
 export type AnalysisRuleSet = 'findings' | 'metrics'
@@ -75,6 +77,27 @@ function buildRules(options: BuildAnalysisOutputOptions) {
         })
       )
     }
+    return rules
+  }
+
+  if (type === 'text') {
+    const enabled = enabledRuleTypes ? new Set<Metric['type']>(enabledRuleTypes) : null
+    const rules = []
+    const maxCharsLimit = Math.max(1, maxChars ?? DEFAULT_MAX_CHARS)
+
+    if (!enabled || enabled.has('MAX_CHARS')) rules.push(maxCharsRule(maxCharsLimit))
+    if (!enabled || enabled.has('LEADING_WHITESPACE')) rules.push(leadingWhitespaceRule())
+    if (!enabled || enabled.has('NUMBER_STYLE')) rules.push(numberStyleRule())
+    if (!enabled || enabled.has('PERCENT_STYLE')) rules.push(percentStyleRule())
+    if (!enabled || enabled.has('DASH_STYLE')) rules.push(dashStyleRule())
+    if (!enabled || enabled.has('CAPITALIZATION')) {
+      rules.push(
+        capitalizationRule({
+          terms: capitalizationTerms,
+        })
+      )
+    }
+
     return rules
   }
 

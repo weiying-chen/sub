@@ -79,8 +79,8 @@ const RULE_OPTIONS: RuleOption[] = RULE_OPTION_SPECS.map((spec) => {
 
 const DISPLAYED_RULE_TYPES = new Set<Finding["type"]>(RULE_OPTIONS.map((rule) => rule.type))
 const ANALYSIS_TYPE_OPTIONS: Array<{ type: AppAnalysisType; label: string }> = [
-  { type: "subs", label: "Subs" },
-  { type: "text", label: "Text" },
+  { type: "subs", label: "Timecoded" },
+  { type: "text", label: "No timecodes" },
 ]
 const APPLICABLE_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Set<Finding["type"]>> = {
   subs: new Set<Finding["type"]>(RULE_OPTIONS.map((rule) => rule.type)),

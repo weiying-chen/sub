@@ -693,8 +693,8 @@ describe("Sidebar", () => {
       },
     })
 
-    const subsButton = ui.getByRole("button", { name: "Subs" })
-    const textButton = ui.getByRole("button", { name: "Text" })
+    const subsButton = ui.getByRole("button", { name: "Timecoded" })
+    const textButton = ui.getByRole("button", { name: "No timecodes" })
     expect(subsButton).toHaveAttribute("aria-pressed", "true")
     expect(textButton).toHaveAttribute("aria-pressed", "false")
     expect(countFindingRowsWithText("Reading speed is too high")).toBeGreaterThan(0)

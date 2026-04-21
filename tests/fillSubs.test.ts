@@ -1950,6 +1950,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("in that spot.")
   })
 
+  it("prefers splitting before 'in the' noun phrase for natural flow", () => {
+  const split = __testTakeLine(
+    "since these symptoms all pointed to compression in the cervical spine.",
+    48,
+    null,
+    false
+  )
+  expect(split.line).toBe("since these symptoms all pointed to compression")
+  expect(split.rest).toBe("in the cervical spine.")
+  })
+
   it("keeps 'how to' together when splitting", () => {
   const split = __testTakeLine(
     "One time, I was teaching a group of managers how to handle emotions at work.",

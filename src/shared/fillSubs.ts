@@ -1036,11 +1036,26 @@ function findRightmostPrepositionLead(window: string, nextText: string): number 
     const right = (window.slice(start) + nextText).trimStart()
     if (!left || !right) continue
     if (left.split(/\s+/).filter(Boolean).length < 2) continue
-    if (!PREPOSITION_PHRASE_HEAD_RE.test(right)) continue
+    if (!isSplittablePrepositionPhrase(right)) continue
     if (/^(?:in|on|at)\b\s*$/i.test(right)) continue
     best = start
   }
   return best
+}
+
+function startsWithAcronymAfterThe(text: string): boolean {
+  const afterThe = text.replace(/^in\s+the\s+/i, '').trimStart()
+  if (!afterThe) return false
+  if (/^(?:[A-Z]\.){2,}[A-Z]?(?:\b|$)/.test(afterThe)) return true
+  if (/^[A-Z]{2,}\b/.test(afterThe)) return true
+  return false
+}
+
+function isSplittablePrepositionPhrase(right: string): boolean {
+  if (PREPOSITION_PHRASE_HEAD_RE.test(right)) return true
+  if (!/^in\s+the\b/i.test(right)) return false
+  if (startsWithAcronymAfterThe(right)) return false
+  return true
 }
 
 function findBestCut(
@@ -1460,7 +1475,9 @@ function normalizeTrailingPrepositionHead(
     (word === 'in' || word === 'on' || word === 'at') &&
     !/^(?:this|that|these|those|it|them|him|her|us|you)\b/i.test(rest.trimStart())
   ) {
-    return { line, rest }
+    if (word !== 'in' || !/^the\b/i.test(rest.trimStart()) || startsWithAcronymAfterThe(`in ${rest.trimStart()}`)) {
+      return { line, rest }
+    }
   }
 
   if (!rest) return { line: left, rest: word }

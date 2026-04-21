@@ -81,6 +81,24 @@ describe("analyze CLI output", () => {
     ).toBe(false)
   })
 
+  it("does not flag missing translation when NS marker appears between source and translation", async () => {
+    const text = [
+      "5_0203",
+      "不只如此，志工還為阿媽換上了新裝，慎重打扮，滿屋子充滿歡樂的歌聲，是阿媽送給志工們的回禮",
+      "NS",
+      "Volunteers helped dress her up, and she filled the home with song in return.",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "news",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(
+      output.some((metric) => metric.type === "MISSING_TRANSLATION")
+    ).toBe(false)
+  })
+
   it("does not flag missing translation when multiple VO source paragraphs map to one translation", async () => {
     const text = [
       "2_0059",

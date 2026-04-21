@@ -320,6 +320,10 @@ export function parseNews(text: string): Segment[] {
       continue
     }
 
+    if (isInlineNewsMarker(trimmed)) {
+      continue
+    }
+
     const parsedMarker = parseNewsMarker(trimmed, i)
     if (parsedMarker) {
       flush()
@@ -442,6 +446,10 @@ function isNewsStructureLine(text: string): boolean {
   if (isNewsLabel(text)) return true
   if (/^[<>]+$/.test(text)) return true
   return false
+}
+
+function isInlineNewsMarker(text: string): boolean {
+  return /^NS:?$/i.test(text)
 }
 
 function isReferenceUrlLine(trimmed: string): boolean {

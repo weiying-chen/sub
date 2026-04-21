@@ -484,4 +484,28 @@ describe("punctuationRule (segments)", () => {
       )
     ).toBe(true)
   })
+
+  it("flags missing end punctuation in text mode before a source-line break to lowercase continuation", () => {
+    const text = [
+      "在我二十三歲那一年",
+      "When I was 23, my dad was diagntttt.",
+      "我父親因為罹患了肺腺癌",
+      "When I was 23, my dad was ancertttt.",
+      "我父親因為罹患了肺腺癌",
+      "When I was 23, my dad was ancertttt",
+      "前後不超過一個月",
+      "and passed away within a month.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "text", [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_END_PUNCTUATION" &&
+          f.text === "When I was 23, my dad was ancertttt"
+      )
+    ).toBe(true)
+  })
 })

@@ -280,13 +280,23 @@ function collectMetrics(
     const prev = cues[j]
     const next = cues[j + 1]
     if (next.text === prev.text) continue
-    const hasMetadataBreak =
-      usesTimestampCues &&
-      hasInterveningNonEmptyLine(src, prev.translationIndex, next.tsIndex)
+    const hasMetadataBreak = hasInterveningNonEmptyLine(
+      src,
+      prev.translationIndex,
+      next.tsIndex
+    )
 
     if (hasMetadataBreak) {
+      if (!usesTimestampCues) {
+        const nextCase = firstAlphaCase(next.text)
+        if (nextCase === 'lower') {
+          addRule4Metric(prev, metrics, reportedRule4)
+          continue
+        }
+      }
+
       addRule4Metric(prev, metrics, reportedRule4)
-      continue
+      if (usesTimestampCues) continue
     }
 
     const case1 = firstAlphaCase(next.text)

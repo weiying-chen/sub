@@ -675,6 +675,53 @@ describe("Sidebar", () => {
     })
   })
 
+  it("shows missing end punctuation before a metadata break", async () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+    const countFindingRowsWithText = (text: string) =>
+      Array.from(container.querySelectorAll(".finding-row-button")).filter((el) =>
+        el.textContent?.includes(text)
+      ).length
+
+    fireEvent.change(editor, {
+      target: {
+        value: [
+          "00:03:53:02\t00:03:54:14\t若干年後很榮幸有機會",
+          "After learning from Dr. Chao Co-shi,",
+          "00:03:54:14\t00:03:55:28\t接觸到趙可式老師",
+          "After learning from Dr. Chao Co-shi,",
+          "00:03:55:28\t00:03:58:21\t我才了解什麼叫做人生四道",
+          "I finally understood it's important to say thank you,",
+          "00:03:58:21\t00:03:59:18\t很重要就是",
+          "I finally understood it's important to say thank you,",
+          "00:03:59:18\t00:04:01:09\t道謝 道愛",
+          "I love you, sorry, and goodbye.",
+          "00:04:01:09\t00:04:02:19\t道歉 道別",
+          "I love you, sorry, and goodbye",
+          "",
+          "https://www.airitilibrary.com/Article/Detail/02584727-200112-200911270052-200911270052-441-443",
+          "訪趙可式博士談安寧療護",
+          "An Interview with Dr. Chao Co-shi: Hospice and Palliative Nursing",
+          "",
+          "00:04:02:19\t00:04:03:22\t在這個過程當中",
+          "But it's not as simple as you think.",
+        ].join("\n"),
+      },
+    })
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+    const punctuationToggle = ui.getByRole("checkbox", { name: /Punctuation is incorrect/i })
+    if (!punctuationToggle.matches(":checked")) {
+      fireEvent.click(punctuationToggle)
+    }
+
+    await waitFor(() => {
+      expect(countFindingRowsWithText("Punctuation is incorrect")).toBeGreaterThan(0)
+      expect(countFindingRowsWithText("I love you, sorry, and goodbye")).toBeGreaterThan(0)
+    })
+  })
+
   it("switches from subs mode to text mode", async () => {
     const { container } = render(<App />)
     const ui = within(container)

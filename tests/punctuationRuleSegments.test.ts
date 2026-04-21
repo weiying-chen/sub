@@ -160,6 +160,32 @@ describe("punctuationRule (segments)", () => {
     ).toBe(false)
   })
 
+  it("flags missing end punctuation before a metadata break", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "I love you, sorry, and goodbye",
+      "https://example.com/source",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "This starts a new sentence.",
+      "",
+    ].join("\n")
+
+    const segments = parseSubs(text)
+    const metrics = analyzeSegments(segments, [punctuationRule()], {
+      lines: text.split("\n"),
+      sourceText: text,
+    })
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_END_PUNCTUATION" &&
+          f.text === "I love you, sorry, and goodbye"
+      )
+    ).toBe(true)
+  })
+
   it("flags dangling closing quote", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

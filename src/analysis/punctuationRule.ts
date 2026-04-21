@@ -239,6 +239,7 @@ function collectMetrics(
   const quoteTracker = createDoubleQuoteSpanTracker()
   const quoteStateByCue = cues.map((cue) => quoteTracker.inspect(cue.text))
   const metrics: PunctuationMetric[] = []
+  const reportedRule4 = new Set<string>()
 
   const reportedRule5 = new Set<string>()
   for (const cue of cues) {
@@ -279,10 +280,12 @@ function collectMetrics(
     const prev = cues[j]
     const next = cues[j + 1]
     if (next.text === prev.text) continue
-    if (
+    const hasMetadataBreak =
       usesTimestampCues &&
       hasInterveningNonEmptyLine(src, prev.translationIndex, next.tsIndex)
-    ) {
+
+    if (hasMetadataBreak) {
+      addRule4Metric(prev, metrics, reportedRule4)
       continue
     }
 
@@ -355,7 +358,6 @@ function collectMetrics(
     }
   }
 
-  const reportedRule4 = new Set<string>()
   const last = cues.at(-1) ?? null
   if (last) addRule4Metric(last, metrics, reportedRule4)
 

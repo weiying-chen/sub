@@ -64,6 +64,8 @@ const CLAUSE_STARTER_RE =
   /^(?:because|since|as|although|though|while|if|when)\b/i
 const CLAUSE_STARTER_ANY_RE =
   /\b(?:because|since|as|although|though|while|if|when)\b/i
+const PREPOSITION_PHRASE_HEAD_RE =
+  /^(?:in|on|at)\s+(?:this|that|these|those|it|them|him|her|us|you)\b/i
 const COORDINATED_PHRASE_STOP_RE =
   /^(?:who|whom|whose|that|which|to|with|for|from|before|after|while|because|since|if|when|as|would|could|should|will|can|may|might|must|is|are|was|were|be|being|been|am|do|does|did|has|have|had)\b/i
 const TO_VERB_HELPER_RE =
@@ -1019,6 +1021,28 @@ function findRightmostWithStart(window: string, nextText: string): number {
   return best
 }
 
+function findRightmostPrepositionLead(window: string, nextText: string): number {
+  let best = -1
+  const re = /\b(?:in|on|at)\b/gi
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const end = start + m[0].length
+    const prev = window[start - 1] ?? ''
+    const next = window[end] ?? ''
+    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
+
+    const left = window.slice(0, start).trimEnd()
+    const right = (window.slice(start) + nextText).trimStart()
+    if (!left || !right) continue
+    if (left.split(/\s+/).filter(Boolean).length < 2) continue
+    if (!PREPOSITION_PHRASE_HEAD_RE.test(right)) continue
+    if (/^(?:in|on|at)\b\s*$/i.test(right)) continue
+    best = start
+  }
+  return best
+}
+
 function findBestCut(
   window: string,
   nextText: string,
@@ -1089,6 +1113,9 @@ function findBestCut(
   // 3) Last-resort lexical/space fallback boundaries.
   const withCut = findRightmostWithStart(window, nextText)
   if (withCut >= 0) return { cut: withCut, reason: 'with' }
+
+  const prepositionCut = findRightmostPrepositionLead(window, nextText)
+  if (prepositionCut >= 0) return { cut: prepositionCut, reason: 'preposition' }
 
   const spaceCut = findRightmostSpace(window, nextText)
   if (spaceCut >= 0) return { cut: spaceCut, reason: 'space' }
@@ -1422,12 +1449,19 @@ function normalizeTrailingPrepositionHead(
   rest: string
 ): { line: string; rest: string } {
   const trimmed = line.trimEnd()
-  const match = trimmed.match(/^(.*)\s+(of|near)$/i)
+  const match = trimmed.match(/^(.*)\s+(of|near|in|on|at)$/i)
   if (!match) return { line, rest }
 
   const left = (match[1] ?? '').trimEnd()
   const word = (match[2] ?? '').trim().toLowerCase()
   if (!left) return { line, rest }
+
+  if (
+    (word === 'in' || word === 'on' || word === 'at') &&
+    !/^(?:this|that|these|those|it|them|him|her|us|you)\b/i.test(rest.trimStart())
+  ) {
+    return { line, rest }
+  }
 
   if (!rest) return { line: left, rest: word }
   if (rest.trimStart().toLowerCase().startsWith(`${word} `)) {

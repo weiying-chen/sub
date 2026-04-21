@@ -1906,6 +1906,50 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("near ")).toBe(true)
   })
 
+  it("moves trailing 'in' to the next split chunk", () => {
+  const split = __testTakeLine(
+    "The team checked in that report before submission.",
+    20,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" in")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("in ")).toBe(true)
+  })
+
+  it("moves trailing 'on' to the next split chunk", () => {
+  const split = __testTakeLine(
+    "Please focus on that chart before the meeting starts.",
+    21,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" on")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("on ")).toBe(true)
+  })
+
+  it("moves trailing 'at' to the next split chunk", () => {
+  const split = __testTakeLine(
+    "They arrived at that station just before sunrise.",
+    18,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" at")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("at ")).toBe(true)
+  })
+
+  it("prefers splitting before 'in that' phrase over trailing-space fallback", () => {
+  const split = __testTakeLine(
+    "This man in his 60s had several polyps like these in that spot.",
+    54,
+    null,
+    false
+  )
+  expect(split.line).toBe("This man in his 60s had several polyps like these")
+  expect(split.rest).toBe("in that spot.")
+  })
+
   it("keeps 'how to' together when splitting", () => {
   const split = __testTakeLine(
     "One time, I was teaching a group of managers how to handle emotions at work.",

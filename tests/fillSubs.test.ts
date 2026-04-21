@@ -1983,6 +1983,39 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("behind it")).toBe(true)
   })
 
+  it("keeps trailing 'from' with pronoun objects", () => {
+  const split = __testTakeLine(
+    "the team collected blood from it and sent the sample to pathology.",
+    30,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" from")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("from it")).toBe(true)
+  })
+
+  it("keeps trailing 'under' with determiner noun phrases", () => {
+  const split = __testTakeLine(
+    "they found pressure under the cervical segment on imaging.",
+    30,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" under")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("under the ")).toBe(true)
+  })
+
+  it("avoids one-word fallback heads before attached phrase tails", () => {
+  const split = __testTakeLine(
+    "After that we completed surgery and closed the incision.",
+    8,
+    null,
+    false
+  )
+  expect(split.line).not.toBe("After")
+  expect(split.rest.toLowerCase().startsWith("that ")).toBe(false)
+  })
+
   it("keeps 'how to' together when splitting", () => {
   const split = __testTakeLine(
     "One time, I was teaching a group of managers how to handle emotions at work.",

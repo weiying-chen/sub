@@ -65,7 +65,7 @@ const CLAUSE_STARTER_RE =
 const CLAUSE_STARTER_ANY_RE =
   /\b(?:because|since|as|although|though|while|if|when)\b/i
 const PREPOSITION_PHRASE_HEAD_RE =
-  /^(?:in|on|at)\s+(?:this|that|these|those|it|them|him|her|us|you)\b/i
+  /^(?:in|on|at|behind|from|under)\s+(?:the|a|an|this|that|these|those|it|them|him|her|us|you)\b/i
 const COORDINATED_PHRASE_STOP_RE =
   /^(?:who|whom|whose|that|which|to|with|for|from|before|after|while|because|since|if|when|as|would|could|should|will|can|may|might|must|is|are|was|were|be|being|been|am|do|does|did|has|have|had)\b/i
 const TO_VERB_HELPER_RE =
@@ -1024,7 +1024,7 @@ function findRightmostWithStart(window: string, nextText: string): number {
 
 function findRightmostPrepositionLead(window: string, nextText: string): number {
   let best = -1
-  const re = /\b(?:in|on|at)\b/gi
+  const re = /\b(?:in|on|at|behind|from|under)\b/gi
   let m: RegExpExecArray | null
   while ((m = re.exec(window)) !== null) {
     const start = m.index
@@ -1038,7 +1038,7 @@ function findRightmostPrepositionLead(window: string, nextText: string): number 
     if (!left || !right) continue
     if (left.split(/\s+/).filter(Boolean).length < 2) continue
     if (!isSplittablePrepositionPhrase(right)) continue
-    if (/^(?:in|on|at)\b\s*$/i.test(right)) continue
+    if (/^(?:in|on|at|behind|from|under)\b\s*$/i.test(right)) continue
     best = start
   }
   return best
@@ -1053,8 +1053,8 @@ function startsWithAcronymAfterThe(text: string): boolean {
 }
 
 function isSplittablePrepositionPhrase(right: string): boolean {
-  if (PREPOSITION_PHRASE_HEAD_RE.test(right)) return true
-  if (!/^in\s+the\b/i.test(right)) return false
+  if (!PREPOSITION_PHRASE_HEAD_RE.test(right)) return false
+  if (!/^in\s+the\b/i.test(right)) return true
   if (startsWithAcronymAfterThe(right)) return false
   return true
 }
@@ -1465,21 +1465,31 @@ function normalizeTrailingPrepositionHead(
   rest: string
 ): { line: string; rest: string } {
   const trimmed = line.trimEnd()
-  const match = trimmed.match(/^(.*)\s+(of|near|in|on|at|behind)$/i)
+  const match = trimmed.match(/^(.*)\s+(of|near|in|on|at|behind|from|under)$/i)
   if (!match) return { line, rest }
 
   const left = (match[1] ?? '').trimEnd()
   const word = (match[2] ?? '').trim().toLowerCase()
   if (!left) return { line, rest }
+  if (
+    word === 'in' &&
+    /^the\b/i.test(rest.trimStart()) &&
+    startsWithAcronymAfterThe(`in ${rest.trimStart()}`)
+  ) {
+    return { line, rest }
+  }
 
   if (
-    (word === 'in' || word === 'on' || word === 'at' || word === 'behind') &&
-    !/^(?:this|that|these|those|it|them|him|her|us|you)\b/i.test(rest.trimStart())
-  ) {
-    if (word !== 'in' || !/^the\b/i.test(rest.trimStart()) || startsWithAcronymAfterThe(`in ${rest.trimStart()}`)) {
-      return { line, rest }
-    }
-  }
+    (word === 'in' ||
+      word === 'on' ||
+      word === 'at' ||
+      word === 'behind' ||
+      word === 'from' ||
+      word === 'under') &&
+    !/^(?:the|a|an|this|that|these|those|it|them|him|her|us|you)\b/i.test(
+      rest.trimStart()
+    )
+  ) return { line, rest }
 
   if (!rest) return { line: left, rest: word }
   if (rest.trimStart().toLowerCase().startsWith(`${word} `)) {

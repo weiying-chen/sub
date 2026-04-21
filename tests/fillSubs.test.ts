@@ -1961,6 +1961,28 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("in the cervical spine.")
   })
 
+  it("does not split 'After that' into orphaned head + clause", () => {
+  const split = __testTakeLine(
+    "After that, they went in through the middle and reached the area---the white part they saw was the spinal nerve behind it.",
+    54,
+    null,
+    false
+  )
+  expect(split.line).not.toBe("After")
+  expect(split.rest.toLowerCase().startsWith("that,")).toBe(false)
+  })
+
+  it("moves trailing 'behind' before pronoun to the next split chunk", () => {
+  const split = __testTakeLine(
+    "the white part they saw was the spinal nerve behind it.",
+    54,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" behind")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("behind it")).toBe(true)
+  })
+
   it("keeps 'how to' together when splitting", () => {
   const split = __testTakeLine(
     "One time, I was teaching a group of managers how to handle emotions at work.",

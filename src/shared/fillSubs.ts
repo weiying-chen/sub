@@ -600,6 +600,7 @@ function shouldSplitBeforeThatClause(left: string, right: string): boolean {
   if (!looksLikeThatClauseStart(trimmedRight)) return false
 
   const words = trimmedLeft.split(/\s+/).filter(Boolean)
+  if (words.length < 2) return false
   const lastWord = (words[words.length - 1] ?? '').toLowerCase()
   if (CONJ_RE.test(lastWord)) return false
 
@@ -1464,7 +1465,7 @@ function normalizeTrailingPrepositionHead(
   rest: string
 ): { line: string; rest: string } {
   const trimmed = line.trimEnd()
-  const match = trimmed.match(/^(.*)\s+(of|near|in|on|at)$/i)
+  const match = trimmed.match(/^(.*)\s+(of|near|in|on|at|behind)$/i)
   if (!match) return { line, rest }
 
   const left = (match[1] ?? '').trimEnd()
@@ -1472,7 +1473,7 @@ function normalizeTrailingPrepositionHead(
   if (!left) return { line, rest }
 
   if (
-    (word === 'in' || word === 'on' || word === 'at') &&
+    (word === 'in' || word === 'on' || word === 'at' || word === 'behind') &&
     !/^(?:this|that|these|those|it|them|him|her|us|you)\b/i.test(rest.trimStart())
   ) {
     if (word !== 'in' || !/^the\b/i.test(rest.trimStart()) || startsWithAcronymAfterThe(`in ${rest.trimStart()}`)) {

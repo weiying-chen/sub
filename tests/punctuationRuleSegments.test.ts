@@ -508,4 +508,28 @@ describe("punctuationRule (segments)", () => {
       )
     ).toBe(true)
   })
+
+  it("flags missing end punctuation when the next cue repeats the same text with a period", () => {
+    const text = [
+      "00:16:33:21\t00:16:35:22\t過去我曾經服務過一個個案",
+      "I once worked with a couple",
+      "00:16:35:22\t00:16:37:06\t夫妻他們當初認為",
+      "who thought love didn't need a legal contract",
+      "00:16:37:06\t00:16:38:19\t情感不需要法律的",
+      "who thought love didn't need a legal contract.",
+      "00:16:38:19\t00:16:40:03\t一份合約來約束",
+      "who thought love didn't need a legal contract.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_END_PUNCTUATION" &&
+          f.text === "who thought love didn't need a legal contract"
+      )
+    ).toBe(true)
+  })
 })

@@ -121,4 +121,16 @@ describe("joinableBreakRule (segments)", () => {
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
     expect(metrics).toHaveLength(0)
   })
+
+  it("does not flag when the next line does not end with sentence punctuation", () => {
+    const text = [
+      "00:10:08:10\t00:10:09:20\t來到了財務",
+      "Now, finances.",
+      "00:10:09:20\t00:10:11:18\t會關注到財務重點",
+      "I once had a client",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(0)
+  })
 })

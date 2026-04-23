@@ -98,6 +98,23 @@ function endsTerminal(s: string): boolean {
   return TERMINAL_RE.test(s.trimEnd())
 }
 
+function normalizeForTerminalCompare(s: string): string {
+  const trimmed = s.trim()
+  const withoutClosers = trimmed.replace(/["'\)\]\}]+\s*$/, '').trimEnd()
+  const withoutTerminal = withoutClosers
+    .replace(/(?:\.{3}|[.!?:…]|—|---)\s*$/, '')
+    .trimEnd()
+  return withoutTerminal.replace(/\s+/g, ' ')
+}
+
+function isSameTextWithAddedTerminal(prevText: string, nextText: string): boolean {
+  if (endsTerminal(prevText) || !endsTerminal(nextText)) return false
+
+  const left = normalizeForTerminalCompare(prevText)
+  const right = normalizeForTerminalCompare(nextText)
+  return left !== '' && left === right
+}
+
 function isStandaloneDoubleQuotedCue(s: string): boolean {
   const trimmed = s.trim()
   if (!trimmed.startsWith('"') || !trimmed.endsWith('"')) return false
@@ -279,6 +296,12 @@ function collectMetrics(
   for (let j = 0; j < cues.length - 1; j += 1) {
     const prev = cues[j]
     const next = cues[j + 1]
+
+    if (isSameTextWithAddedTerminal(prev.text, next.text)) {
+      addRule4Metric(prev, metrics, reportedRule4)
+      continue
+    }
+
     if (next.text === prev.text) continue
     const hasMetadataBreak = hasInterveningNonEmptyLine(
       src,

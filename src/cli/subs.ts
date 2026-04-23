@@ -1,14 +1,10 @@
 import { readFile } from 'node:fs/promises'
 
-import { analyzeTextByType } from '../analysis/analyzeTextByType'
-import { createSubsSegmentRules } from '../analysis/subsSegmentRules'
-import { resolveSubsFindingRuleFilters } from '../analysis/subsFindingDefaults'
-import { getFindings } from '../shared/findings'
 import { sortFindingsWithIndex } from '../shared/findingsSort'
 import type { Finding, Metric } from '../analysis/types'
 import type { Reporter } from './watch'
 import { findMarkerScope } from './markerScope'
-import { loadCapitalizationTerms, loadProperNouns } from './properNouns'
+import { buildAnalyzeOutput } from './analyzeOutput'
 import { formatCliNumber } from './numberFormat'
 
 // --- ANSI colors (use terminal theme palette) ---
@@ -239,43 +235,37 @@ async function printReport(
   const baselineText = options.baselinePath
     ? await readFile(options.baselinePath, 'utf8')
     : null
-  const properNouns = await loadProperNouns()
-  const capitalizationTerms = await loadCapitalizationTerms()
-
-  const rules = createSubsSegmentRules({
-    enabledFindingTypes: resolveSubsFindingRuleFilters(options.ruleFilters),
-    capitalizationTerms: capitalizationTerms ?? undefined,
-    properNouns: properNouns ?? undefined,
+  const findings = (await buildAnalyzeOutput(text, {
+    type: 'subs',
+    mode: 'findings',
+    ruleFilters: options.ruleFilters,
     baselineText: baselineText ?? undefined,
     ignoreEmptyLines: options.ignoreEmptyLines,
-  })
-
-  const metrics = analyzeTextByType(text, 'subs', rules, {
-    parseOptions: {
-      ignoreEmptyLines: options.ignoreEmptyLines,
-    },
-  })
-  const scope = findMarkerScope(lines)
-  const scopedMetrics = scope
-    ? metrics.filter(
-        (m) => m.lineIndex >= scope.start && m.lineIndex <= scope.end
-      )
-    : metrics
-  const findings = getFindings(scopedMetrics, {
     includeWarnings: options.includeWarnings,
-  }) as Finding[]
+  })) as Finding[]
+
+  const scope = findMarkerScope(lines)
+  const scopedFindings = scope
+    ? findings.filter((finding: any) => {
+        const lineIndex =
+          asNum(finding?.lineIndex) ??
+          asNum(finding?.tsIndex) ??
+          asNum(finding?.startTsIndex)
+        return lineIndex != null && lineIndex >= scope.start && lineIndex <= scope.end
+      })
+    : findings
 
   clearScreen()
 
-  if (findings.length === 0) {
+  if (scopedFindings.length === 0) {
     console.log('OK')
     return
   }
 
-  console.log(`${findings.length} issues`)
+  console.log(`${scopedFindings.length} issues`)
   console.log('')
 
-  const sorted = sortFindingsWithIndex(findings).map((x) => x.finding)
+  const sorted = sortFindingsWithIndex(scopedFindings).map((x) => x.finding)
 
   const baselineFindings = sorted.filter(
     (f: any) => typeof f?.type === 'string' && f.type === 'BASELINE'

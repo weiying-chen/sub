@@ -1,5 +1,8 @@
 # One proper noun per line.
 English
+Tzu Chi
+Bodhisattva
+Venerable Master Cheng Yen
 President
 Taipei
 New Taipei

@@ -1460,12 +1460,37 @@ function normalizeTrailingProtectedPhraseHead(
   return { line, rest }
 }
 
+function normalizeTrailingPrepositionDeterminerHead(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmed = line.trimEnd()
+  const match = trimmed.match(
+    /^(.*)\s+(for)\s+(the|a|an|this|that|these|those|it|them|him|her|us|you)$/i
+  )
+  if (!match) return { line, rest }
+
+  const left = (match[1] ?? "").trimEnd()
+  const prep = (match[2] ?? "").trim().toLowerCase()
+  const determiner = (match[3] ?? "").trim().toLowerCase()
+  if (!left) return { line, rest }
+
+  const phrase = `${prep} ${determiner}`
+  if (!rest) return { line: left, rest: phrase }
+  if (rest.trimStart().toLowerCase().startsWith(`${phrase} `)) {
+    return { line: left, rest }
+  }
+  return { line: left, rest: `${phrase} ${rest}` }
+}
+
 function normalizeTrailingPrepositionHead(
   line: string,
   rest: string
 ): { line: string; rest: string } {
   const trimmed = line.trimEnd()
-  const match = trimmed.match(/^(.*)\s+(of|near|in|on|at|behind|from|under)$/i)
+  const match = trimmed.match(
+    /^(.*)\s+(of|near|in|on|at|behind|from|under|for)$/i
+  )
   if (!match) return { line, rest }
 
   const left = (match[1] ?? '').trimEnd()
@@ -1485,7 +1510,8 @@ function normalizeTrailingPrepositionHead(
       word === 'at' ||
       word === 'behind' ||
       word === 'from' ||
-      word === 'under') &&
+      word === 'under' ||
+      word === 'for') &&
     !/^(?:the|a|an|this|that|these|those|it|them|him|her|us|you)\b/i.test(
       rest.trimStart()
     )
@@ -1563,9 +1589,13 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     howToNormalized.line,
     howToNormalized.rest
   )
-  const prepositionNormalized = normalizeTrailingPrepositionHead(
+  const prepositionDeterminerNormalized = normalizeTrailingPrepositionDeterminerHead(
     protectedPhraseNormalized.line,
     protectedPhraseNormalized.rest
+  )
+  const prepositionNormalized = normalizeTrailingPrepositionHead(
+    prepositionDeterminerNormalized.line,
+    prepositionDeterminerNormalized.rest
   )
   const hyphenNormalized = normalizeTrailingHyphenCompound(
     prepositionNormalized.line,

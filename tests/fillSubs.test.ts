@@ -2087,6 +2087,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("to the ")).toBe(true)
   })
 
+  it("keeps 'for those' together when splitting", () => {
+  const split = __testTakeLine(
+    "I'm not trying to make you feel sorry for those people, or just feel sympathy---",
+    45,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" for those")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("for those ")).toBe(true)
+  })
+
   it("moves trailing 'the' with acronym phrases", () => {
   const split = __testTakeLine(
     "hugely respected in the U.S.",

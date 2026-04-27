@@ -21,7 +21,7 @@ function hasTiming(
 }
 
 function normalizeTextForCompare(text: string): string {
-  return text.trim().replace(/\s+/g, " ").toLowerCase()
+  return text.trim()
 }
 
 function boundedLevenshtein(

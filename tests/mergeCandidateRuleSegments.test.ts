@@ -60,6 +60,40 @@ describe("mergeCandidateRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
+  it("flags case-only differences between adjacent cues", () => {
+    const text = [
+      "00:11:20:26\t00:11:21:27\t不只是金錢",
+      "He gave up not just money, but also a home.",
+      "00:11:21:27\t00:11:22:24\t包括房子",
+      "he gave up not just money, but also a home.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [mergeCandidateRule()])
+    expect(metrics).toHaveLength(1)
+
+    const finding = metrics[0]
+    expect(finding?.type).toBe("MERGE_CANDIDATE")
+    if (!finding || finding.type !== "MERGE_CANDIDATE") return
+    expect(finding.editDistance).toBe(1)
+  })
+
+  it("flags internal whitespace differences between adjacent cues", () => {
+    const text = [
+      "00:11:20:26\t00:11:21:27\t不只是金錢",
+      "He gave up not just money, but also a home.",
+      "00:11:21:27\t00:11:22:24\t包括房子",
+      "He gave up not just money,  but also a home.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [mergeCandidateRule()])
+    expect(metrics).toHaveLength(1)
+
+    const finding = metrics[0]
+    expect(finding?.type).toBe("MERGE_CANDIDATE")
+    if (!finding || finding.type !== "MERGE_CANDIDATE") return
+    expect(finding.editDistance).toBe(1)
+  })
+
   it("does not flag when a different middle word changes meaning", () => {
     const text = [
       "00:22:00:09\t00:22:01:05\t當我難過了",

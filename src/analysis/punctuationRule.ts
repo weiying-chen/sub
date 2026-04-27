@@ -13,6 +13,8 @@ import { parseText, type SegmentCtx, type SegmentRule } from './segments'
 const I_PRONOUN_RE = /^\s*(?:["'\(\[\{]\s*)*I(\b|')/
 const HYPHENATED_ROMANIZED_NAME_RE =
   /^\s*(?:["'\(\[\{]\s*)?[A-Z][a-z]+(?:-[a-z]+)+(?:\b|(?=\s))/
+const A_PREFIX_ROMANIZED_NAME_RE =
+  /^\s*(?:["'\(\[\{]\s*)?A(?:h)?\s+[A-Z][a-z]+(?:\b|(?=\s|['"]))/
 const ACRONYM_RE =
   /^\s*(["'\(\[\{])?\s*(?:[A-Z]{2,}(?:'s\b|s\b|\b)|(?:[A-Z]\.){2,}[A-Z]?(?:'s\b|s\b)?)/ 
 const ACRONYM_END_RE =
@@ -80,6 +82,10 @@ function startsWithIPronoun(s: string): boolean {
 
 function startsWithHyphenatedRomanizedName(s: string): boolean {
   return HYPHENATED_ROMANIZED_NAME_RE.test(s)
+}
+
+function startsWithAPrefixRomanizedName(s: string): boolean {
+  return A_PREFIX_ROMANIZED_NAME_RE.test(s)
 }
 
 function startsWithAcronym(s: string): boolean {
@@ -355,6 +361,7 @@ function collectMetrics(
       (!nextQuoteStart || allowCapitalCheckWithQuotedNext) &&
       !startsWithIPronoun(next.text) &&
       !startsWithHyphenatedRomanizedName(next.text) &&
+      !startsWithAPrefixRomanizedName(next.text) &&
       !startsWithAcronym(next.text) &&
       !startsWithProperNoun(next.text, abbreviationMatchers) &&
       !startsWithProperNoun(next.text, properNounMatchers) &&

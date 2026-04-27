@@ -486,4 +486,27 @@ describe("analyze CLI output", () => {
 
     expectNoStyleRuleFindings(output)
   })
+
+  it("does not flag missing punctuation before capital for A-prefix romanized names", async () => {
+    const text = [
+      "00:09:37:09\t00:09:39:22\t因為緣分不足",
+      "But unfortunately, it just wasn't meant to be---",
+      "00:09:39:22\t00:09:42:11\t婆婆就是不喜歡阿布",
+      "A Guang's mother didn't like A Bu,",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "subs",
+      mode: "findings",
+      ruleFilters: ["PUNCTUATION"],
+    })) as Metric[]
+
+    expect(
+      output.some(
+        (metric) =>
+          metric.type === "PUNCTUATION" &&
+          metric.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL"
+      )
+    ).toBe(false)
+  })
 })

@@ -30,7 +30,7 @@ function endsWithPeriod(text: string): boolean {
 }
 
 function endsWithSentencePunctuation(text: string): boolean {
-  return /[.!?]\s*(?:["')\]]\s*)?$/.test(text)
+  return /[.!?,]\s*(?:["')\]]\s*)?$/.test(text)
 }
 
 export function joinableBreakRule(
@@ -68,7 +68,6 @@ export function joinableBreakRule(
     if (left === right) return []
     if (looksLikeSentenceFragment(left) && endsWithPeriod(left)) return []
     if (!endsWithSentencePunctuation(right)) return []
-    if (/,\s*$/.test(right)) return []
 
     const joined = `${left} ${right}`.trim()
     if (joined.length > maxJoinedChars) return []

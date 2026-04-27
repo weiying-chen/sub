@@ -104,7 +104,7 @@ describe("joinableBreakRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
-  it("does not flag when the next line is an incomplete sentence fragment", () => {
+  it("flags comma-ended continuation when the following line completes the sentence", () => {
     const text = [
       "00:17:59:13\t00:18:00:17\t概念上大概是這樣",
       "That's the basic idea.",
@@ -119,7 +119,8 @@ describe("joinableBreakRule (segments)", () => {
     ].join("\n")
 
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
-    expect(metrics).toHaveLength(0)
+    expect(metrics).toHaveLength(1)
+    expect(metrics[0]?.type).toBe("JOINABLE_BREAK")
   })
 
   it("does not flag when the next line does not end with sentence punctuation", () => {
@@ -132,5 +133,18 @@ describe("joinableBreakRule (segments)", () => {
 
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
     expect(metrics).toHaveLength(0)
+  })
+
+  it("flags when the next line ends with a comma and join still fits", () => {
+    const text = [
+      "00:18:53:06\t00:18:54:17\t在什麼地方",
+      "where they came from,",
+      "00:18:54:17\t00:18:57:19\t他所期待產生的後果是什麼",
+      "what outcome was intended,",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(1)
+    expect(metrics[0]?.type).toBe("JOINABLE_BREAK")
   })
 })

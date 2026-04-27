@@ -1040,6 +1040,32 @@ describe("fillSelectedTimestampLines", () => {
   }
   })
 
+  it("keeps carried-quote inline output within maxChars", () => {
+  const lines = [
+    "00:13:57:11\t00:13:58:21\t她說",
+    "00:13:58:21\t00:13:59:28\t她打電話給哥哥",
+    "00:13:59:28\t00:14:01:18\t在美國的哥哥說",
+    "00:14:01:18\t00:14:03:23\t你下個月回來吧",
+    "00:14:03:23\t00:14:06:07\t我把房子過戶給你",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+  const maxChars = 54
+  const paragraph =
+    `She said she called him, and he told her, "Next month, I’ll take care of the transfer."`
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    maxChars,
+    inline: true,
+  })
+
+  const translations = result.lines.filter(
+    (line) => line.trim() !== "" && !line.includes("\t")
+  )
+  for (const translation of translations) {
+    expect(translation.length).toBeLessThanOrEqual(maxChars)
+  }
+  })
+
   it("splits at the first fragment boundary", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

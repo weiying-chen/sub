@@ -1983,13 +1983,47 @@ function runInlineFill(
 
     if (!remaining) continue
 
-    const { line: fillLine, rest } = takeLine(
-      remaining,
-      limit,
+    const remainingBeforeSplit = remaining
+    let splitLimit = limit
+    let split = takeLine(
+      remainingBeforeSplit,
+      splitLimit,
       noSplitAbbrevMatcher,
       noSplitUsAbbreviation,
       { keepWholeWhenFits: options.inline === true }
     )
+
+    // Quote carry can append quote characters after splitting.
+    // Reserve space so emitted lines still respect maxChars.
+    while (split.line && splitLimit > 1) {
+      const previewMeta = getQuoteMeta(split.line, quoteOpen)
+      const preview = applyQuoteCarry(
+        split.line,
+        quoteOpen,
+        previewMeta,
+        true,
+        false
+      )
+      const carryExtra = preview.text.length - split.line.length
+      const quoteAdjustedOverflow =
+        split.line.length > limit && hasTrailingDoubleQuote(split.line)
+      if (
+        !quoteAdjustedOverflow &&
+        (preview.text.length <= limit || carryExtra <= 0)
+      ) {
+        break
+      }
+      splitLimit -= 1
+      split = takeLine(
+        remainingBeforeSplit,
+        splitLimit,
+        noSplitAbbrevMatcher,
+        noSplitUsAbbreviation,
+        { keepWholeWhenFits: options.inline === true }
+      )
+    }
+
+    const { line: fillLine, rest } = split
     remaining = rest
 
     if (!fillLine) continue

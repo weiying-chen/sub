@@ -2053,6 +2053,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("how to ")).toBe(true)
   })
 
+  it("keeps 'in how' together when splitting", () => {
+  const split = __testTakeLine(
+    "so we naturally keep ourselves in check in how we think and act.",
+    54,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" in")).toBe(false)
+  expect(split.line.toLowerCase().endsWith("check")).toBe(true)
+  expect(split.rest.toLowerCase().startsWith("in how ")).toBe(true)
+  })
+
   it("keeps 'each other' together when splitting", () => {
   const split = __testTakeLine(
     "That kind of flexibility helps us take care of each other and feel more in control.",

@@ -553,6 +553,19 @@ function findRightmostOnHowBreak(window: string): number {
   return best
 }
 
+function findRightmostInHowBreak(window: string): number {
+  const re = /\bin\s+how\b/gi
+  let best = -1
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const left = window.slice(0, start).trimEnd()
+    const right = window.slice(start).trimStart()
+    if (left && right) best = start
+  }
+  return best
+}
+
 function findRightmostCommaThatStart(window: string): number {
   let best = -1
   const re = new RegExp(THAT_RE.source, 'gi')
@@ -1093,6 +1106,9 @@ function findBestCut(
   const onHowCut = findRightmostOnHowBreak(window)
   if (onHowCut >= 0) return { cut: onHowCut, reason: 'onHow' }
 
+  const inHowCut = findRightmostInHowBreak(window)
+  if (inHowCut >= 0) return { cut: inHowCut, reason: 'inHow' }
+
   const conjCut = findRightmostConjunctionStart(window, nextText)
   if (conjCut >= 0) return { cut: conjCut, reason: 'conjunction' }
 
@@ -1436,6 +1452,27 @@ function normalizeTrailingHowToHead(
   return { line: left, rest: `how ${rest.trimStart()}` }
 }
 
+function normalizeTrailingInHowHead(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmed = line.trimEnd()
+  const match = trimmed.match(/^(.*)\s+(in)\s+(how)$/i)
+  if (!match) return { line, rest }
+
+  const left = (match[1] ?? "").trimEnd()
+  const prep = (match[2] ?? "").trim().toLowerCase()
+  const wh = (match[3] ?? "").trim().toLowerCase()
+  if (!left) return { line, rest }
+
+  const phrase = `${prep} ${wh}`
+  if (!rest) return { line: left, rest: phrase }
+  if (rest.trimStart().toLowerCase().startsWith(`${phrase} `)) {
+    return { line: left, rest }
+  }
+  return { line: left, rest: `${phrase} ${rest}` }
+}
+
 function normalizeTrailingProtectedPhraseHead(
   line: string,
   rest: string
@@ -1504,6 +1541,8 @@ function normalizeTrailingPrepositionHead(
     return { line, rest }
   }
 
+  const allowInHow = word === "in" && /^how\b/i.test(rest.trimStart())
+
   if (
     (word === 'in' ||
       word === 'on' ||
@@ -1512,6 +1551,7 @@ function normalizeTrailingPrepositionHead(
       word === 'from' ||
       word === 'under' ||
       word === 'for') &&
+    !allowInHow &&
     !/^(?:the|a|an|this|that|these|those|it|them|him|her|us|you)\b/i.test(
       rest.trimStart()
     )
@@ -1585,9 +1625,13 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     subordinatorNormalized.line,
     subordinatorNormalized.rest
   )
-  const protectedPhraseNormalized = normalizeTrailingProtectedPhraseHead(
+  const inHowNormalized = normalizeTrailingInHowHead(
     howToNormalized.line,
     howToNormalized.rest
+  )
+  const protectedPhraseNormalized = normalizeTrailingProtectedPhraseHead(
+    inHowNormalized.line,
+    inHowNormalized.rest
   )
   const prepositionDeterminerNormalized = normalizeTrailingPrepositionDeterminerHead(
     protectedPhraseNormalized.line,

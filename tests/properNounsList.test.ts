@@ -10,5 +10,6 @@ describe("loadProperNouns", () => {
     expect(properNouns).toContain("Tzu Chi")
     expect(properNouns).toContain("Bodhisattva")
     expect(properNouns).toContain("Venerable Master Cheng Yen")
+    expect(properNouns).toContain("Emperor Yao")
   })
 })

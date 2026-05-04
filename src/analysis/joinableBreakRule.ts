@@ -29,6 +29,10 @@ function endsWithPeriod(text: string): boolean {
   return /\.\s*(?:["')\]]\s*)?$/.test(text)
 }
 
+function endsWithTerminalSentencePunctuation(text: string): boolean {
+  return /[.?!]\s*(?:["')\]]\s*)?$/.test(text)
+}
+
 function endsWithSentencePunctuation(text: string): boolean {
   return /[.!?,]\s*(?:["')\]]\s*)?$/.test(text)
 }
@@ -66,6 +70,7 @@ export function joinableBreakRule(
     const right = normalizeJoinText(next.translation)
     if (!left || !right) return []
     if (left === right) return []
+    if (endsWithTerminalSentencePunctuation(left)) return []
     if (looksLikeSentenceFragment(left) && endsWithPeriod(left)) return []
     if (!endsWithSentencePunctuation(right)) return []
 

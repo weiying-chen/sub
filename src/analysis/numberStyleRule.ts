@@ -184,6 +184,11 @@ function isCurrencyToken(text: string, index: number) {
   return /\$\s*$/.test(window)
 }
 
+function isLevelNumberToken(text: string, index: number) {
+  const prefix = text.slice(0, index)
+  return /\blevel\s+$/i.test(prefix)
+}
+
 function isPrecededByDigitToken(text: string, index: number) {
   let i = index - 1
   while (i >= 0 && isSpace(text[i])) i -= 1
@@ -364,6 +369,7 @@ function collectMetrics(
     if (isPercentToken(text, match.index, rawToken.length)) continue
     if (isMeasurementUnitToken(text, match.index, rawToken.length)) continue
     if (isCurrencyToken(text, match.index)) continue
+    if (isLevelNumberToken(text, match.index)) continue
 
     const sentenceStart = isSentenceStart(
       text,

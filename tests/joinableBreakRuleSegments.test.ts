@@ -104,7 +104,7 @@ describe("joinableBreakRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
-  it("flags comma-ended continuation when the following line completes the sentence", () => {
+  it("does not flag when left side is a complete sentence before a comma-ended continuation", () => {
     const text = [
       "00:17:59:13\t00:18:00:17\t概念上大概是這樣",
       "That's the basic idea.",
@@ -119,8 +119,7 @@ describe("joinableBreakRule (segments)", () => {
     ].join("\n")
 
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
-    expect(metrics).toHaveLength(1)
-    expect(metrics[0]?.type).toBe("JOINABLE_BREAK")
+    expect(metrics).toHaveLength(0)
   })
 
   it("does not flag when the next line does not end with sentence punctuation", () => {
@@ -146,5 +145,29 @@ describe("joinableBreakRule (segments)", () => {
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
     expect(metrics).toHaveLength(1)
     expect(metrics[0]?.type).toBe("JOINABLE_BREAK")
+  })
+
+  it("does not flag when left side is a complete sentence and next is a trailing fragment", () => {
+    const text = [
+      "00:05:17:01\t00:05:19:06\t他們兩個八十幾歲",
+      "They were both in their 80s.",
+      "00:05:19:06\t00:05:21:20\t今年非常不幸地",
+      "Unfortunately, this year,",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(0)
+  })
+
+  it("does not flag when left side ends a question and next line is an incomplete clause", () => {
+    const text = [
+      "00:10:31:02\t00:10:32:17\t什麼叫做真情",
+      "\"Do you even know what love is?\"",
+      "00:10:32:17\t00:10:34:19\t所以最後",
+      "But A Guang was kind,",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(0)
   })
 })

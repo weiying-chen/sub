@@ -104,4 +104,16 @@ describe("numberStyleRule", () => {
 
     expect(findings).toHaveLength(0)
   })
+
+  it("ignores Level <number> clinical labels", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "He was diagnosed with Level 3 autism,",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
 })

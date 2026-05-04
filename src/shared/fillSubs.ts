@@ -148,6 +148,13 @@ function isPartialDottedAcronymSplit(left: string, right: string): boolean {
   return /(?:^|\s)[A-Z]\.$/.test(left.trimEnd()) && /^[A-Z]\./.test(right.trimStart())
 }
 
+function isMiddleInitialNameSplit(left: string, right: string): boolean {
+  const leftTrimmed = left.trimEnd()
+  const rightTrimmed = right.trimStart()
+  return /(?:^|\s)[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+[A-Z]\.$/.test(leftTrimmed) &&
+    /^[A-Z][a-z]+(?:['-][A-Za-z]+)*(?:\b|,)/.test(rightTrimmed)
+}
+
 function endsWithIncompleteLeadIn(text: string): boolean {
   const trimmed = text.trimEnd()
   return (
@@ -301,6 +308,7 @@ function findRightmostStrongPunct(
     if (!left || !right) continue
     if (ch === '.' && isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher)) continue
     if (ch === '.' && isPartialDottedAcronymSplit(left, right)) continue
+    if (ch === '.' && isMiddleInitialNameSplit(left, right)) continue
     if (ch === '.' && isDecimalInnerSplit(left, right)) continue
     if (ch === '.' && isMeridiemInnerSplit(left, right)) continue
     if (isToVerbSplit(left, right)) continue
@@ -892,6 +900,7 @@ function findSentenceBoundaryCut(
     if (!left || !right) continue
     if (ch === '.' && isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher)) continue
     if (ch === '.' && isPartialDottedAcronymSplit(left, right)) continue
+    if (ch === '.' && isMiddleInitialNameSplit(left, right)) continue
     if (ch === '.' && isDecimalInnerSplit(left, right)) continue
     if (ch === '.' && isMeridiemInnerSplit(left, right)) continue
     if (

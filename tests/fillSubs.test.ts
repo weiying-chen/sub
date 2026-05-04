@@ -1612,6 +1612,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.rest).toBe("NDDs are common.")
   })
 
+  it("does not split after middle initials before surnames", () => {
+  const result = __testTakeLine(
+    "According to Richard N. Wolman, spirituality is a human capacity.",
+    31,
+    /(?:^|\s)(?:Mr\.|Mrs\.|Ms\.|Dr\.|U\.S\.|a\.m\.|p\.m\.)$/i,
+    true
+  )
+
+  expect(result.line.endsWith("N.")).toBe(false)
+  expect(result.line).toContain("Wolman,")
+  })
+
   it("does not split decimal percentages across cues", () => {
   const lines = [
     "00:05:28:24\t00:05:30:21\t像自閉症好了",

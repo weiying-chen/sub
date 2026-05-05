@@ -134,6 +134,19 @@ describe("joinableBreakRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
+  it("flags when previous line ends with comma even if next line has no ending punctuation", () => {
+    const text = [
+      "00:21:39:12\t00:21:41:16\tMarker",
+      "The next morning,",
+      "00:21:41:16\t00:21:42:16\tMarker",
+      "my elderly friend said",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(1)
+    expect(metrics[0]?.type).toBe("JOINABLE_BREAK")
+  })
+
   it("flags when the next line ends with a comma and join still fits", () => {
     const text = [
       "00:18:53:06\t00:18:54:17\t在什麼地方",

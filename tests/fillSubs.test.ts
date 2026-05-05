@@ -1423,6 +1423,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("pause and feel grateful for what made your meal possible.")
   })
 
+  it("prefers dash split over last-resort space split", () => {
+  const split = __testTakeLine(
+    "A natural death is part of God's plan---it's life coming full circle.",
+    49,
+    /(?:^|\s)(?:Mr\.|Mrs\.|Ms\.|Dr\.|U\.S\.|a\.m\.|p\.m\.)$/i,
+    true
+  )
+
+  expect(split.line).toBe("A natural death is part of God's plan---")
+  expect(split.rest).toBe("it's life coming full circle.")
+  })
+
   it("keeps hyphenated compounds glued without inserting spaces", () => {
   const lines = [
     "00:00:00:00\t00:00:02:00\tMarker",

@@ -882,6 +882,29 @@ function findRightmostSpace(window: string, nextText: string): number {
   return -1
 }
 
+function findRightmostDashBoundary(window: string, nextText: string): number {
+  for (let i = window.length - 1; i >= 0; i--) {
+    const ch = window[i]
+    if (ch !== '-' && ch !== EM_DASH) continue
+
+    if (ch === '-') {
+      if (window[i - 1] !== '-') continue
+      const cut = i + 1
+      const left = window.slice(0, cut).trimEnd()
+      const right = (window.slice(cut) + nextText).trimStart()
+      if (left && right) return cut
+      i--
+      continue
+    }
+
+    const cut = i + 1
+    const left = window.slice(0, cut).trimEnd()
+    const right = (window.slice(cut) + nextText).trimStart()
+    if (left && right) return cut
+  }
+  return -1
+}
+
 function adjustCutForTrailingQuote(window: string, cut: number): number {
   if (cut <= 0) return cut
   if (!isPunctForQuote(window[cut - 1])) return cut
@@ -1117,6 +1140,9 @@ function findBestCut(
     }
     return { cut: commaCut, reason: 'comma' }
   }
+
+  const dashCut = findRightmostDashBoundary(window, nextText)
+  if (dashCut >= 0) return { cut: dashCut, reason: 'dash' }
 
   const onHowCut = findRightmostOnHowBreak(window)
   if (onHowCut >= 0) return { cut: onHowCut, reason: 'onHow' }

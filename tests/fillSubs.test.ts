@@ -1411,6 +1411,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(translations.some((line) => line.includes("now--- that"))).toBe(false)
   })
 
+  it("keeps dash + lowercase continuation together", () => {
+  const split = __testTakeLine(
+    "Try this---every day when you eat, pause and feel grateful for what made your meal possible.",
+    54,
+    /(?:^|\s)(?:Mr\.|Mrs\.|Ms\.|Dr\.|U\.S\.|a\.m\.|p\.m\.)$/i,
+    true
+  )
+
+  expect(split.line).toBe("Try this---every day when you eat,")
+  expect(split.rest).toBe("pause and feel grateful for what made your meal possible.")
+  })
+
   it("keeps hyphenated compounds glued without inserting spaces", () => {
   const lines = [
     "00:00:00:00\t00:00:02:00\tMarker",

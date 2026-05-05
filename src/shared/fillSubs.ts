@@ -295,7 +295,13 @@ function findRightmostStrongPunct(
       const cut = i + 1
       const left = window.slice(0, cut).trimEnd()
       const right = window.slice(cut).trimStart()
-      if (left && right) return cut
+      if (left && right) {
+        const clauseLikeStart =
+          startsWithUppercaseAlpha(right) ||
+          /^that(?:'s)?\b/i.test(right) ||
+          CLAUSE_STARTER_ANY_RE.test(right)
+        if (clauseLikeStart) return cut
+      }
       i--
       continue
     }
@@ -1850,6 +1856,20 @@ function mergeNoSplitPhrases(
     if (meridiemMatch) {
       const token = meridiemMatch[0]
       const nextRest = trimmedRest.slice(token.length).trimStart()
+      return { line: appendToken(trimmedLine, token), rest: nextRest }
+    }
+  }
+
+  if (
+    /(?:---|—)$/.test(trimmedLine) &&
+    /^[a-z]/.test(trimmedRest) &&
+    !/^that(?:'s)?\b/i.test(trimmedRest) &&
+    !/^(?:because|since|as|although|though|while|if|when)\b/i.test(trimmedRest)
+  ) {
+    const continuation = trimmedRest.match(/^[a-z][^,!?;:.]*(?:,|$)/)
+    if (continuation && continuation[0]) {
+      const token = continuation[0].trimEnd()
+      const nextRest = trimmedRest.slice(continuation[0].length).trimStart()
       return { line: appendToken(trimmedLine, token), rest: nextRest }
     }
   }

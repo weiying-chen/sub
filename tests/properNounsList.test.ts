@@ -8,6 +8,7 @@ describe("loadProperNouns", () => {
 
     expect(properNouns).not.toBeNull()
     expect(properNouns).toContain("Tzu Chi")
+    expect(properNouns).toContain("Guanyin Bodhisattva")
     expect(properNouns).toContain("Bodhisattva")
     expect(properNouns).toContain("Venerable Master Cheng Yen")
     expect(properNouns).toContain("Emperor Yao")

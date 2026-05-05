@@ -1,6 +1,7 @@
 # One proper noun per line.
 English
 Tzu Chi
+Guanyin Bodhisattva
 Bodhisattva
 Venerable Master Cheng Yen
 Emperor Yao

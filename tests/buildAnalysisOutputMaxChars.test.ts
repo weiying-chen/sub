@@ -31,6 +31,33 @@ describe("buildAnalysisOutput maxChars override", () => {
     expect(strictFindings.some((f) => f.type === "MAX_CHARS")).toBe(true)
     expect(relaxedFindings.some((f) => f.type === "MAX_CHARS")).toBe(false)
   })
+
+  it("uses stricter default maxChars for news than subs", () => {
+    const text = [
+      "/*SUPER:",
+      "*/",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    ].join("\n")
+
+    const subsFindings = buildAnalysisOutput({
+      text,
+      type: "subs",
+      ruleSet: "findings",
+      output: "findings",
+      enabledRuleTypes: ["MAX_CHARS"],
+    }) as Finding[]
+
+    const newsFindings = buildAnalysisOutput({
+      text,
+      type: "news",
+      ruleSet: "findings",
+      output: "findings",
+      enabledRuleTypes: ["MAX_CHARS"],
+    }) as Finding[]
+
+    expect(subsFindings.some((f) => f.type === "MAX_CHARS")).toBe(false)
+    expect(newsFindings.some((f) => f.type === "MAX_CHARS")).toBe(true)
+  })
 })
 
 describe("buildAnalysisOutput CPS overrides", () => {

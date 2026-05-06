@@ -10,3 +10,15 @@
 ## TDD workflow
 
 - For every code change, add a generic test, make sure it fails first, then implement the code and make sure it passes.
+
+## Command approval policy
+
+- Assume approved prefixes (`git`, `npm`, `npx`) should be sufficient for normal work.
+- Do not request escalated permissions unless a required command fails in sandbox first.
+- Avoid shell forms that bypass prefix-rule matching:
+  - no pipes (`|`)
+  - no command chaining (`&&`, `||`, `;`)
+  - no command substitution (`$()`)
+  - no redirection (`>`, `>>`, `<`)
+  - no heredoc/herestring (`<<`, `<<<`)
+- Prefer direct one-command invocations so persistent prefix approvals apply across new chats.

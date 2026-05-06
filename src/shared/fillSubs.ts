@@ -1156,12 +1156,20 @@ function findBestCut(
   // 2) Mid-priority syntactic/list boundaries.
   const commaCut = findRightmostNonListComma(window, nextText)
   if (commaCut >= 0) {
+    const afterComma = (window.slice(commaCut) + nextText).trimStart()
+    if (/^(or|nor)\b/i.test(afterComma)) {
+      const dashCutAfterComma = findRightmostDashBoundary(window, nextText)
+      if (dashCutAfterComma > commaCut) {
+        return { cut: dashCutAfterComma, reason: 'dash' }
+      }
+    }
+
     const conjunctionCut = findRightmostConjunctionStart(window, nextText)
+    const conjunction = (window.slice(conjunctionCut) + nextText)
+      .trimStart()
+      .match(/^(and|but|or|so|yet|nor)\b/i)?.[1]
+      ?.toLowerCase()
     if (conjunctionCut > commaCut) {
-      const conjunction = (window.slice(conjunctionCut) + nextText)
-        .trimStart()
-        .match(/^(and|but|or|so|yet|nor)\b/i)?.[1]
-        ?.toLowerCase()
       if (conjunction && conjunction !== 'or' && conjunction !== 'nor') {
         return { cut: conjunctionCut, reason: 'conjunction' }
       }

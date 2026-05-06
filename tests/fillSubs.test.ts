@@ -1447,6 +1447,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("can be at peace, without regret.")
   })
 
+  it("prefers later dash split over early comma-or split", () => {
+  const split = __testTakeLine(
+    "Not our parents, or the generations before them--- because none of them ever lived this long.",
+    54,
+    /(?:^|\s)(?:Mr\.|Mrs\.|Ms\.|Dr\.|U\.S\.|a\.m\.|p\.m\.)$/i,
+    true
+  )
+
+  expect(split.line).toBe("Not our parents, or the generations before them---")
+  expect(split.rest).toBe("because none of them ever lived this long.")
+  })
+
   it("keeps hyphenated compounds glued without inserting spaces", () => {
   const lines = [
     "00:00:00:00\t00:00:02:00\tMarker",

@@ -110,6 +110,17 @@ export type CapitalizationMetric = {
   severity?: 'error' | 'warn'
 }
 
+export type TermVariantMetric = {
+  type: 'TERM_VARIANT'
+  lineIndex: number
+  index: number
+  found: string
+  expected: string
+  token: string
+  text?: string
+  severity?: 'error' | 'warn'
+}
+
 export type DashStyleMetric = {
   type: 'DASH_STYLE'
   lineIndex: number
@@ -247,6 +258,7 @@ export type Metric =
   | NumberStyleMetric
   | PercentStyleMetric
   | CapitalizationMetric
+  | TermVariantMetric
   | DashStyleMetric
   | QuoteStyleMetric
   | PunctuationMetric

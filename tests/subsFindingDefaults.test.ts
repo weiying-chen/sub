@@ -25,6 +25,7 @@ describe("subs finding defaults", () => {
       "MERGE_CANDIDATE",
       "JOINABLE_BREAK",
       "CAPITALIZATION",
+      "TERM_VARIANT",
       "DASH_STYLE",
       "PERCENT_STYLE",
       "NUMBER_STYLE",

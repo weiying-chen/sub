@@ -14,6 +14,7 @@ import { numberStyleRule } from "./numberStyleRule"
 import { percentStyleRule } from "./percentStyleRule"
 import { punctuationRule } from "./punctuationRule"
 import { spanGapRule } from "./spanGapRule"
+import { termVariantRule, type TermVariantEntry } from "./termVariantRule"
 import { timestampFormatRule } from "./timestampFormatRule"
 import type { SegmentRule } from "./segments"
 import type { Metric } from "./types"
@@ -21,6 +22,7 @@ import { DEFAULT_MAX_CHARS } from "../shared/maxChars"
 
 export type CreateSubsSegmentRulesOptions = {
   capitalizationTerms?: string[]
+  termVariants?: TermVariantEntry[]
   properNouns?: string[]
   abbreviations?: string[]
   baselineText?: string
@@ -74,6 +76,9 @@ function createSubsCommonRules(
   }
   if (isEnabled(enabled, "CAPITALIZATION")) {
     rules.push(capitalizationRule({ terms: options.capitalizationTerms }))
+  }
+  if (isEnabled(enabled, "TERM_VARIANT")) {
+    rules.push(termVariantRule({ variants: options.termVariants }))
   }
   if (isEnabled(enabled, "DASH_STYLE")) {
     rules.push(dashStyleRule())

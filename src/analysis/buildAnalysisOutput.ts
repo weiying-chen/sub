@@ -9,13 +9,14 @@ import { newsMarkerRule } from './newsMarkerRule'
 import { numberStyleRule } from './numberStyleRule'
 import { punctuationRule } from './punctuationRule'
 import { superPeopleRule } from './superPeopleRule'
+import { termVariantRule, type TermVariantEntry } from './termVariantRule'
 import type { SegmentCtx, SegmentRule } from './segments'
 import type { Metric, Finding } from './types'
 import { getFindings } from '../shared/findings'
 import { filterSegments } from './segmentRuleFilters'
 import { leadingWhitespaceRule } from './leadingWhitespaceRule'
 import { percentStyleRule } from './percentStyleRule'
-import { DEFAULT_MAX_CHARS } from '../shared/maxChars'
+import { DEFAULT_MAX_CHARS, NEWS_MAX_CHARS } from '../shared/maxChars'
 
 export type AnalysisRuleSet = 'findings' | 'metrics'
 export type AnalysisOutputMode = 'metrics' | 'findings'
@@ -29,6 +30,7 @@ export type BuildAnalysisOutputOptions = {
   maxCps?: number
   minCps?: number
   capitalizationTerms?: string[]
+  termVariants?: TermVariantEntry[]
   properNouns?: string[]
   abbreviations?: string[]
   baselineText?: string
@@ -77,6 +79,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     maxCps,
     minCps,
     capitalizationTerms,
+    termVariants,
     properNouns,
     abbreviations,
     baselineText,
@@ -88,7 +91,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
   if (type === 'news') {
     const enabled = enabledRuleTypes ? new Set<Metric['type']>(enabledRuleTypes) : null
     const rules = []
-    const maxCharsLimit = Math.max(1, maxChars ?? DEFAULT_MAX_CHARS)
+    const maxCharsLimit = Math.max(1, maxChars ?? NEWS_MAX_CHARS)
     if (!enabled || enabled.has('MAX_CHARS')) {
       rules.push(filterSegments((segment) => segment.blockType === 'super', maxCharsRule(maxCharsLimit)))
     }
@@ -120,6 +123,9 @@ function buildRules(options: BuildAnalysisOutputOptions) {
         })
       )
     }
+    if (!enabled || enabled.has('TERM_VARIANT')) {
+      rules.push(termVariantRule({ variants: termVariants }))
+    }
     return rules
   }
 
@@ -150,6 +156,9 @@ function buildRules(options: BuildAnalysisOutputOptions) {
         })
       )
     }
+    if (!enabled || enabled.has('TERM_VARIANT')) {
+      rules.push(termVariantRule({ variants: termVariants }))
+    }
 
     return rules
   }
@@ -157,6 +166,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
   const assembly = ruleSet === 'findings' ? createSubsFindingsRules : createSubsMetricsRules
   return assembly({
     capitalizationTerms,
+    termVariants,
     properNouns,
     abbreviations,
     baselineText,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { loadProperNouns } from "../src/cli/properNouns"
+import { loadProperNouns, loadTermVariants } from "../src/cli/properNouns"
 
 describe("loadProperNouns", () => {
   it("includes key Buddhist terms in the default proper noun list", async () => {
@@ -12,5 +12,17 @@ describe("loadProperNouns", () => {
     expect(properNouns).toContain("Bodhisattva")
     expect(properNouns).toContain("Venerable Master Cheng Yen")
     expect(properNouns).toContain("Emperor Yao")
+  })
+})
+
+describe("loadTermVariants", () => {
+  it("loads canonical term mappings", async () => {
+    const entries = await loadTermVariants()
+
+    expect(entries).not.toBeNull()
+    expect(entries).toContainEqual({
+      variant: "Pingdong",
+      canonical: "Pingtung",
+    })
   })
 })

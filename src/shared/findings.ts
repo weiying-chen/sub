@@ -174,6 +174,15 @@ export function getFindings(
       continue
     }
 
+    if (m.type === 'TERM_VARIANT') {
+      out.push({
+        ...m,
+        severity: 'error',
+        instruction: `Use "${m.expected}" instead of "${m.found}".`,
+      })
+      continue
+    }
+
     if (m.type === 'DASH_STYLE') {
       const expected =
         m.expected === 'em_dash' ? 'an em dash (—)' : 'triple hyphens (---)'

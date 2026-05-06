@@ -17,6 +17,8 @@ export const RULE_MODAL_EXPLANATIONS: Partial<Record<Finding["type"], string>> =
   MAX_CHARS: "Flags a translation line with 55 or more characters.",
   PUNCTUATION:
     "Checks sentence-ending punctuation, punctuation continuity between adjacent translation lines, and quote matching.",
+  TERM_VARIANT:
+    "Checks configured term variants and enforces the preferred canonical spelling.",
   NUMBER_STYLE: "Checks number formatting and spelling style conventions.",
   PERCENT_STYLE: "Checks percent style. Use % instead of the word \"percent\".",
   DASH_STYLE: "Checks dash style for this text type. Use --- or — as required by the text type.",

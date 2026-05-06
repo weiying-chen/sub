@@ -9,6 +9,7 @@ export const DEFAULT_TEXT_FINDING_RULE_TYPES: Metric["type"][] = [
   "QUOTE_STYLE",
   "PUNCTUATION",
   "CAPITALIZATION",
+  "TERM_VARIANT",
 ]
 
 export function resolveTextFindingRuleFilters(

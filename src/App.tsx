@@ -28,6 +28,7 @@ import { MAX_CPS, MIN_CPS } from "./shared/subtitles"
 import capitalizationTermsText from "../capitalization-terms.txt?raw"
 import punctuationAbbreviationsText from "../punctuation-abbreviations.txt?raw"
 import properNounsText from "../punctuation-proper-nouns.txt?raw"
+import termVariantsText from "../term-variants.txt?raw"
 
 const RULES_MODAL_ANIMATION_MS = 170
 const RULE_FILTERS_STORAGE_KEY = "subs.ruleFilters"
@@ -55,6 +56,7 @@ const RULE_OPTION_SPECS: Array<{
   { type: "MAX_CPS", severity: "error" },
   { type: "MAX_CHARS", severity: "error" },
   { type: "PUNCTUATION", severity: "error" },
+  { type: "TERM_VARIANT", severity: "error" },
   { type: "NUMBER_STYLE", severity: "error" },
   { type: "PERCENT_STYLE", severity: "error" },
   { type: "DASH_STYLE", severity: "error" },
@@ -94,6 +96,7 @@ const APPLICABLE_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Set<Findin
     "QUOTE_STYLE",
     "PUNCTUATION",
     "CAPITALIZATION",
+    "TERM_VARIANT",
   ]),
 }
 const DEFAULT_UI_ENABLED_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Finding["type"][]> = {
@@ -101,14 +104,17 @@ const DEFAULT_UI_ENABLED_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Fi
     "MAX_CHARS",
     "MERGE_CANDIDATE",
     "JOINABLE_BREAK",
+    "TERM_VARIANT",
     "NUMBER_STYLE",
     "PUNCTUATION",
     "MAX_CPS",
   ],
   text: [
     "MAX_CHARS",
+    "TERM_VARIANT",
     "NUMBER_STYLE",
     "PUNCTUATION",
+    "TERM_VARIANT",
     "DASH_STYLE",
     "PERCENT_STYLE",
     "QUOTE_STYLE",
@@ -209,9 +215,27 @@ function parseTextList(raw: string): string[] {
     .filter((line) => line !== "" && !line.startsWith("#"))
 }
 
+function parseTermVariants(
+  raw: string
+): Array<{ variant: string; canonical: string }> {
+  return raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line !== "" && !line.startsWith("#"))
+    .map((line) => {
+      const [left, right] = line.split(/\s*=>\s*/, 2)
+      return {
+        variant: left?.trim() ?? "",
+        canonical: right?.trim() ?? "",
+      }
+    })
+    .filter((entry) => entry.variant !== "" && entry.canonical !== "")
+}
+
 const capitalizationTerms = parseTextList(capitalizationTermsText)
 const punctuationAbbreviations = parseTextList(punctuationAbbreviationsText)
 const properNouns = parseTextList(properNounsText)
+const termVariants = parseTermVariants(termVariantsText)
 
 function getFindingId(finding: Finding, index: number): string {
   return `${finding.type}-${finding.lineIndex}-${index}`
@@ -275,7 +299,8 @@ function getFindingRanges(view: EditorView, findings: Finding[]): FindingRange[]
       f.type === "DASH_STYLE" ||
       f.type === "QUOTE_STYLE" ||
       f.type === "PERCENT_STYLE" ||
-      f.type === "CAPITALIZATION"
+      f.type === "CAPITALIZATION" ||
+      f.type === "TERM_VARIANT"
     ) {
       const line = doc.line(f.lineIndex + 1)
       const tokenLength = f.token.length
@@ -391,6 +416,7 @@ function getFindingAnchor(view: EditorView, finding: Finding): number {
     finding.type === "QUOTE_STYLE" ||
     finding.type === "PERCENT_STYLE" ||
     finding.type === "CAPITALIZATION" ||
+    finding.type === "TERM_VARIANT" ||
     finding.type === "LEADING_WHITESPACE"
   ) {
     return Math.min(line.to, line.from + finding.index)
@@ -679,6 +705,7 @@ export default function App({
       maxCps,
       minCps,
       capitalizationTerms,
+      termVariants,
       properNouns,
       abbreviations: punctuationAbbreviations,
     }) as Metric[]
@@ -699,6 +726,7 @@ export default function App({
       maxCps,
       minCps,
       capitalizationTerms,
+      termVariants,
       properNouns,
       abbreviations: punctuationAbbreviations,
     }) as Metric[]

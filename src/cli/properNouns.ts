@@ -5,6 +5,12 @@ import { fileURLToPath } from 'node:url'
 const PROPER_NOUNS_FILE = 'punctuation-proper-nouns.txt'
 const ABBREVIATIONS_FILE = 'punctuation-abbreviations.txt'
 const CAPITALIZATION_TERMS_FILE = 'capitalization-terms.txt'
+const TERM_VARIANTS_FILE = 'term-variants.txt'
+
+export type TermVariantEntry = {
+  variant: string
+  canonical: string
+}
 
 async function pathExists(candidate: string): Promise<boolean> {
   try {
@@ -57,4 +63,19 @@ export async function loadAbbreviations(): Promise<string[] | null> {
 
 export async function loadCapitalizationTerms(): Promise<string[] | null> {
   return loadTextList(CAPITALIZATION_TERMS_FILE)
+}
+
+export async function loadTermVariants(): Promise<TermVariantEntry[] | null> {
+  const lines = await loadTextList(TERM_VARIANTS_FILE)
+  if (!lines) return null
+
+  const out: TermVariantEntry[] = []
+  for (const line of lines) {
+    const [left, right] = line.split(/\s*=>\s*/, 2)
+    const variant = left?.trim() ?? ''
+    const canonical = right?.trim() ?? ''
+    if (!variant || !canonical) continue
+    out.push({ variant, canonical })
+  }
+  return out
 }

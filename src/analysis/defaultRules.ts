@@ -6,6 +6,7 @@ import { leadingWhitespaceRule } from './leadingWhitespaceRule'
 import { dashStyleRule } from './dashStyleRule'
 import { quoteStyleRule } from './quoteStyleRule'
 import { capitalizationRule } from './capitalizationRule'
+import { termVariantRule, type TermVariantEntry } from './termVariantRule'
 import { percentStyleRule } from './percentStyleRule'
 import { mergeCandidateRule } from './mergeCandidateRule'
 import { maxCpsRule } from './maxCpsRule'
@@ -15,6 +16,7 @@ import { DEFAULT_MAX_CHARS } from '../shared/maxChars'
 
 type DefaultRulesOptions = {
   capitalizationTerms?: string[]
+  termVariants?: TermVariantEntry[]
   ignoreEmptyLines?: boolean
 }
 
@@ -29,6 +31,7 @@ export function defaultRules(options: DefaultRulesOptions = {}): Rule[] {
       ignoreEmptyLines: options.ignoreEmptyLines,
     }),
     capitalizationRule({ terms: options.capitalizationTerms }),
+    termVariantRule({ variants: options.termVariants }),
     percentStyleRule(),
   ]
 }
@@ -50,6 +53,7 @@ export function defaultSegmentRules(
     spanGapRule(),
     mergeCandidateRule({ ignoreEmptyLines: options.ignoreEmptyLines }),
     capitalizationRule({ terms: options.capitalizationTerms }),
+    termVariantRule({ variants: options.termVariants }),
     percentStyleRule(),
   ]
 }

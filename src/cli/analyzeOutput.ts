@@ -6,6 +6,7 @@ import {
   loadAbbreviations,
   loadCapitalizationTerms,
   loadProperNouns,
+  loadTermVariants,
 } from './properNouns'
 
 export type AnalyzeOptions = {
@@ -38,6 +39,10 @@ export async function buildAnalyzeOutput(
     options.type === 'subs' || options.type === 'text' || options.type === 'news'
       ? await loadAbbreviations()
       : undefined
+  const termVariants =
+    options.type === 'subs' || options.type === 'text' || options.type === 'news'
+      ? await loadTermVariants()
+      : undefined
   const mode = options.mode ?? 'metrics'
 
   return buildAnalysisOutput({
@@ -47,6 +52,7 @@ export async function buildAnalyzeOutput(
     output: mode,
     enabledRuleTypes: enabledFindingTypes,
     capitalizationTerms: capitalizationTerms ?? undefined,
+    termVariants: termVariants ?? undefined,
     properNouns: properNouns ?? undefined,
     abbreviations: abbreviations ?? undefined,
     baselineText: options.baselineText,

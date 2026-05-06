@@ -1095,6 +1095,34 @@ function findRightmostPrepositionLead(window: string, nextText: string): number 
   return best
 }
 
+function findRightmostModalLead(window: string, nextText: string): number {
+  if (countDoubleQuotes(window) > 0) return -1
+
+  let best = -1
+  const re = /\b(?:can|could|will|would|should|may|might|must|shall)\b/gi
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const end = start + m[0].length
+    const prev = window[start - 1] ?? ''
+    const next = window[end] ?? ''
+    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
+
+    const left = window.slice(0, start).trimEnd()
+    const right = (window.slice(start) + nextText).trimStart()
+    if (!left || !right) continue
+    if (left.length < MIN_CLAUSE_START_SPLIT_CHARS) continue
+    if (left.split(/\s+/).filter(Boolean).length < MIN_CLAUSE_START_SPLIT_WORDS) {
+      continue
+    }
+    if (/\b(?:i|you|we|they|he|she|it|this|that|there)\b$/i.test(left)) {
+      continue
+    }
+    best = start
+  }
+  return best
+}
+
 function startsWithAcronymAfterThe(text: string): boolean {
   const afterThe = text.replace(/^in\s+the\s+/i, '').trimStart()
   if (!afterThe) return false
@@ -1189,6 +1217,9 @@ function findBestCut(
 
   const prepositionCut = findRightmostPrepositionLead(window, nextText)
   if (prepositionCut >= 0) return { cut: prepositionCut, reason: 'preposition' }
+
+  const modalCut = findRightmostModalLead(window, nextText)
+  if (modalCut >= 0) return { cut: modalCut, reason: 'modal' }
 
   const spaceCut = findRightmostSpace(window, nextText)
   if (spaceCut >= 0) return { cut: spaceCut, reason: 'space' }

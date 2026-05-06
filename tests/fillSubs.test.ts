@@ -1435,6 +1435,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("it's life coming full circle.")
   })
 
+  it("uses modal split before plain space as second-last recourse", () => {
+  const split = __testTakeLine(
+    "That's how both the living and the dead can be at peace, without regret.",
+    54,
+    /(?:^|\s)(?:Mr\.|Mrs\.|Ms\.|Dr\.|U\.S\.|a\.m\.|p\.m\.)$/i,
+    true
+  )
+
+  expect(split.line).toBe("That's how both the living and the dead")
+  expect(split.rest).toBe("can be at peace, without regret.")
+  })
+
   it("keeps hyphenated compounds glued without inserting spaces", () => {
   const lines = [
     "00:00:00:00\t00:00:02:00\tMarker",

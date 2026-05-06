@@ -12,6 +12,7 @@ vi.mock("../src/analysis/subsSegmentRules", () => ({
 
 vi.mock("../src/cli/properNouns", () => ({
   loadCapitalizationTerms: vi.fn(async () => ["OpenAI"]),
+  loadTermVariants: vi.fn(async () => [{ variant: "Pingdong", canonical: "Pingtung" }]),
   loadProperNouns: vi.fn(async () => ["Taipei"]),
   loadAbbreviations: vi.fn(async () => ["Mr.", "U.S."]),
 }))
@@ -37,6 +38,7 @@ describe("analyzeOutput rule assembly", () => {
     expect(mocks.createSubsFindingsRulesMock).toHaveBeenCalledWith(
       expect.objectContaining({
         capitalizationTerms: ["OpenAI"],
+        termVariants: [{ variant: "Pingdong", canonical: "Pingtung" }],
         properNouns: ["Taipei"],
         abbreviations: ["Mr.", "U.S."],
         ignoreEmptyLines: true,
@@ -56,6 +58,7 @@ describe("analyzeOutput rule assembly", () => {
 
     expect(mocks.createSubsMetricsRulesMock).toHaveBeenCalledWith({
       capitalizationTerms: ["OpenAI"],
+      termVariants: [{ variant: "Pingdong", canonical: "Pingtung" }],
       properNouns: ["Taipei"],
       abbreviations: ["Mr.", "U.S."],
       ignoreEmptyLines: undefined,

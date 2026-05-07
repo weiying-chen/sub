@@ -422,6 +422,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("and place it in cold storage at the funeral home.")
   })
 
+  it("keeps comma split precedence over later so split", () => {
+  const split = __testTakeLine(
+    "I may be making less money now, but I'm so much happier.",
+    40,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("I may be making less money now,")
+  expect(split.rest).toBe("but I'm so much happier.")
+  })
+
   it("prefers breaking before copular verb phrases", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

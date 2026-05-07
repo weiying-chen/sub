@@ -1170,7 +1170,12 @@ function findBestCut(
       .match(/^(and|but|or|so|yet|nor)\b/i)?.[1]
       ?.toLowerCase()
     if (conjunctionCut > commaCut) {
-      if (conjunction && conjunction !== 'or' && conjunction !== 'nor') {
+      if (
+        conjunction &&
+        conjunction !== 'or' &&
+        conjunction !== 'nor' &&
+        conjunction !== 'so'
+      ) {
         return { cut: conjunctionCut, reason: 'conjunction' }
       }
     }

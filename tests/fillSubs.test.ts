@@ -456,7 +456,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("but I'm so much happier.")
   })
 
-  it("avoids splitting subordinate lead-ins at comma when a later preposition break fits", () => {
+  it("keeps comma split precedence on subordinate lead-ins", () => {
   const split = __testTakeLine(
     "Because if we don't, it'll be hard to transition from the second stage of life into the third.",
     54,
@@ -464,8 +464,39 @@ describe("fillSelectedTimestampLines", () => {
     false
   )
 
-  expect(split.line).toBe("Because if we don't, it'll be hard to transition")
-  expect(split.rest).toBe("from the second stage of life into the third.")
+  expect(split.line).toBe("Because if we don't,")
+  expect(split.rest).toBe("it'll be hard to transition from the second stage of life into the third.")
+  })
+
+  it("merges joinable adjacent fill outputs when joined text fits max chars", () => {
+  const lines = [
+    "00:10:29:07\t00:10:31:18\tA",
+    "00:10:31:18\t00:10:33:27\tB",
+    "00:10:33:27\t00:10:36:25\tC",
+    "00:10:36:25\t00:10:39:17\tD",
+    "00:10:39:17\t00:10:42:08\tE",
+  ]
+  const selected = new Set([0, 1, 2, 3, 4])
+  const paragraph =
+    "We need to prepare for this. Because if we don't, it'll be hard to transition from the second stage of life into the third."
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    maxChars: 54,
+    inline: true,
+  })
+
+  expect(result.lines).toEqual([
+    "00:10:29:07\t00:10:31:18\tA",
+    "We need to prepare for this.",
+    "00:10:31:18\t00:10:33:27\tB",
+    "Because if we don't, it'll be hard to transition",
+    "00:10:33:27\t00:10:36:25\tC",
+    "Because if we don't, it'll be hard to transition",
+    "00:10:36:25\t00:10:39:17\tD",
+    "from the second stage of life into the third.",
+    "00:10:39:17\t00:10:42:08\tE",
+    "from the second stage of life into the third.",
+  ])
   })
 
   it("prefers breaking before copular verb phrases", () => {

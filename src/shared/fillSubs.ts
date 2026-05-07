@@ -1164,14 +1164,7 @@ function findBestCut(
   // 2) Mid-priority syntactic/list boundaries.
   const commaCut = findRightmostNonListComma(window, nextText)
   if (commaCut >= 0) {
-    const beforeComma = window.slice(0, commaCut).trimEnd()
     const afterComma = (window.slice(commaCut) + nextText).trimStart()
-    if (/^(?:because|if|when|while|although|though|since|as)\b/i.test(beforeComma)) {
-      const prepositionCutAfterComma = findRightmostPrepositionLead(window, nextText)
-      if (prepositionCutAfterComma > commaCut) {
-        return { cut: prepositionCutAfterComma, reason: 'preposition' }
-      }
-    }
     if (/^(or|nor)\b/i.test(afterComma)) {
       const dashCutAfterComma = findRightmostDashBoundary(window, nextText)
       if (dashCutAfterComma > commaCut) {
@@ -1792,6 +1785,45 @@ function normalizeLeadingOfTranslations(
   }
 }
 
+function normalizeJoinText(text: string): string {
+  return text.trim().replace(/\s+/g, ' ')
+}
+
+function endsWithPeriod(text: string): boolean {
+  return /\.\s*(?:["')\]]\s*)?$/.test(text)
+}
+
+function endsWithTerminalSentencePunctuation(text: string): boolean {
+  return /[.?!]\s*(?:["')\]]\s*)?$/.test(text)
+}
+
+function mergeJoinableTranslations(
+  translations: Map<number, string>,
+  orderedIndices: number[],
+  maxChars: number
+): void {
+  for (let i = 0; i < orderedIndices.length - 1; i += 1) {
+    const leftIndex = orderedIndices[i]
+    const rightIndex = orderedIndices[i + 1]
+    const leftRaw = translations.get(leftIndex) ?? ''
+    const rightRaw = translations.get(rightIndex) ?? ''
+    const left = normalizeJoinText(leftRaw)
+    const right = normalizeJoinText(rightRaw)
+    if (!left || !right) continue
+    if (left === right) continue
+    if (endsWithTerminalSentencePunctuation(left)) continue
+    if (looksLikeSentenceFragment(left) && endsWithPeriod(left)) continue
+    if (endsWithTerminalSentencePunctuation(left) && looksLikeSentenceFragment(right)) {
+      continue
+    }
+
+    const joined = `${left} ${right}`.trim()
+    if (joined.length > maxChars) continue
+    translations.set(leftIndex, joined)
+    translations.set(rightIndex, joined)
+  }
+}
+
 export function __testTakeLine(
   text: string,
   limit: number,
@@ -2303,6 +2335,10 @@ function runInlineFill(
   if (!dryRun && options.altBreak) {
     const orderedIndices = [...translations.keys()].sort((a, b) => a - b)
     normalizeLeadingOfTranslations(translations, orderedIndices)
+  }
+  if (!dryRun) {
+    const orderedIndices = [...translations.keys()].sort((a, b) => a - b)
+    mergeJoinableTranslations(translations, orderedIndices, limit)
   }
 
   if (!dryRun) {

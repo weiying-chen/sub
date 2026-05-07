@@ -50,7 +50,9 @@ export function joinableBreakRule(
     const gapFrames = next.startFrames - cur.endFrames
     if (gapFrames < 0 || gapFrames > maxGapFrames) return []
 
-    const join = canJoinAdjacentText(cur.translation, next.translation, maxJoinedChars)
+    const join = canJoinAdjacentText(cur.translation, next.translation, maxJoinedChars, {
+      allowSentenceEndJoin: true,
+    })
     if (!join) return []
 
     const metric: JoinableBreakMetric = {

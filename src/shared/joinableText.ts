@@ -15,15 +15,20 @@ export function endsWithTerminalSentencePunctuation(text: string): boolean {
 export function canJoinAdjacentText(
   leftRaw: string,
   rightRaw: string,
-  maxChars: number
+  maxChars: number,
+  options: { allowSentenceEndJoin?: boolean } = {}
 ): { joined: string; joinedLength: number } | null {
+  const allowSentenceEndJoin = options.allowSentenceEndJoin ?? false
   const left = normalizeJoinText(leftRaw)
   const right = normalizeJoinText(rightRaw)
   if (!left || !right) return null
   if (left === right) return null
-  if (endsWithTerminalSentencePunctuation(left)) return null
+  const leftEndsSentence = endsWithTerminalSentencePunctuation(left)
+  const rightEndsSentence = endsWithTerminalSentencePunctuation(right)
+  if (leftEndsSentence && !allowSentenceEndJoin) return null
+  if (leftEndsSentence && allowSentenceEndJoin && !rightEndsSentence) return null
   if (looksLikeSentenceFragment(left) && endsWithPeriod(left)) return null
-  if (endsWithTerminalSentencePunctuation(left) && looksLikeSentenceFragment(right)) {
+  if (leftEndsSentence && looksLikeSentenceFragment(right) && !rightEndsSentence) {
     return null
   }
 

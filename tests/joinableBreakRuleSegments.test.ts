@@ -122,6 +122,19 @@ describe("joinableBreakRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
+  it("flags when both adjacent lines are full sentences and joined text fits", () => {
+    const text = [
+      "00:18:57:11\t00:18:59:05\tMarker",
+      "I'd do the opposite.",
+      "00:18:59:05\t00:19:00:29\tMarker",
+      "So there was a lot of tension.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(1)
+    expect(metrics[0]?.type).toBe("JOINABLE_BREAK")
+  })
+
   it("does not flag when the next line does not end with sentence punctuation", () => {
     const text = [
       "00:10:08:10\t00:10:09:20\t來到了財務",

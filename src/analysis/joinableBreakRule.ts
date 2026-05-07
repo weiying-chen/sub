@@ -2,7 +2,7 @@ import type { JoinableBreakMetric } from "./types"
 import type { Segment, SegmentCtx, SegmentRule } from "./segments"
 import { hasEmptyLineBetween, type LineSource, type ParseBlockOptions } from "../shared/tsvRuns"
 import { DEFAULT_MAX_CHARS } from "../shared/maxChars"
-import { looksLikeSentenceFragment } from "../shared/sentenceFragments"
+import { canJoinAdjacentText } from "../shared/joinableText"
 
 type JoinableBreakRuleOptions = ParseBlockOptions & {
   maxGapFrames?: number
@@ -19,18 +19,6 @@ function hasTiming(
     typeof segment.startFrames === "number" &&
     typeof segment.endFrames === "number"
   )
-}
-
-function normalizeJoinText(text: string): string {
-  return text.trim().replace(/\s+/g, " ")
-}
-
-function endsWithPeriod(text: string): boolean {
-  return /\.\s*(?:["')\]]\s*)?$/.test(text)
-}
-
-function endsWithTerminalSentencePunctuation(text: string): boolean {
-  return /[.?!]\s*(?:["')\]]\s*)?$/.test(text)
 }
 
 export function joinableBreakRule(
@@ -62,18 +50,8 @@ export function joinableBreakRule(
     const gapFrames = next.startFrames - cur.endFrames
     if (gapFrames < 0 || gapFrames > maxGapFrames) return []
 
-    const left = normalizeJoinText(cur.translation)
-    const right = normalizeJoinText(next.translation)
-    if (!left || !right) return []
-    if (left === right) return []
-    if (endsWithTerminalSentencePunctuation(left)) return []
-    if (looksLikeSentenceFragment(left) && endsWithPeriod(left)) return []
-    if (endsWithTerminalSentencePunctuation(left) && looksLikeSentenceFragment(right)) {
-      return []
-    }
-
-    const joined = `${left} ${right}`.trim()
-    if (joined.length > maxJoinedChars) return []
+    const join = canJoinAdjacentText(cur.translation, next.translation, maxJoinedChars)
+    if (!join) return []
 
     const metric: JoinableBreakMetric = {
       type: "JOINABLE_BREAK",
@@ -82,7 +60,7 @@ export function joinableBreakRule(
       text: cur.translation,
       nextText: next.translation,
       gapFrames,
-      joinedLength: joined.length,
+      joinedLength: join.joinedLength,
       maxJoinedChars,
     }
 

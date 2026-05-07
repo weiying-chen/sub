@@ -8,6 +8,7 @@ import {
 } from './doubleQuoteSpan'
 import { DASH_VARIANTS_RE, EM_DASH } from './dashes'
 import { looksLikeSentenceFragment } from './sentenceFragments'
+import { canJoinAdjacentText } from './joinableText'
 
 export type FillSubsOptions = {
   maxChars?: number
@@ -1785,18 +1786,6 @@ function normalizeLeadingOfTranslations(
   }
 }
 
-function normalizeJoinText(text: string): string {
-  return text.trim().replace(/\s+/g, ' ')
-}
-
-function endsWithPeriod(text: string): boolean {
-  return /\.\s*(?:["')\]]\s*)?$/.test(text)
-}
-
-function endsWithTerminalSentencePunctuation(text: string): boolean {
-  return /[.?!]\s*(?:["')\]]\s*)?$/.test(text)
-}
-
 function mergeJoinableTranslations(
   translations: Map<number, string>,
   orderedIndices: number[],
@@ -1807,20 +1796,10 @@ function mergeJoinableTranslations(
     const rightIndex = orderedIndices[i + 1]
     const leftRaw = translations.get(leftIndex) ?? ''
     const rightRaw = translations.get(rightIndex) ?? ''
-    const left = normalizeJoinText(leftRaw)
-    const right = normalizeJoinText(rightRaw)
-    if (!left || !right) continue
-    if (left === right) continue
-    if (endsWithTerminalSentencePunctuation(left)) continue
-    if (looksLikeSentenceFragment(left) && endsWithPeriod(left)) continue
-    if (endsWithTerminalSentencePunctuation(left) && looksLikeSentenceFragment(right)) {
-      continue
-    }
-
-    const joined = `${left} ${right}`.trim()
-    if (joined.length > maxChars) continue
-    translations.set(leftIndex, joined)
-    translations.set(rightIndex, joined)
+    const join = canJoinAdjacentText(leftRaw, rightRaw, maxChars)
+    if (!join) continue
+    translations.set(leftIndex, join.joined)
+    translations.set(rightIndex, join.joined)
   }
 }
 

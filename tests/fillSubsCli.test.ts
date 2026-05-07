@@ -49,6 +49,11 @@ describe("fill-subs CLI args", () => {
     expect(args.preserveExisting).toBe(true)
   })
 
+  it("parses cross-block-fill flag", () => {
+    const args = parseFillSubsArgs(["--cross-block-fill"])
+    expect(args.crossBlockFill).toBe(true)
+  })
+
   it("does not expose deprecated inline args", () => {
     const args = parseFillSubsArgs(["--no-inline"])
     expect("inline" in args).toBe(false)

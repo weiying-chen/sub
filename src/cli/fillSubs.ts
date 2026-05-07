@@ -112,6 +112,7 @@ const {
   outputFile,
   altBreak,
   preserveExisting,
+  crossBlockFill,
   paragraphArg,
   maxChars,
   showOverflow,
@@ -173,6 +174,7 @@ const result = fillSelectedTimestampLines(
     inline: true,
     altBreak,
     preserveExisting,
+    crossBlockFill,
     noSplitAbbreviations: noSplitAbbreviations ?? undefined,
   }
 )

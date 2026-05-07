@@ -15,6 +15,7 @@ export type FillSubsOptions = {
   inline?: boolean
   altBreak?: boolean
   preserveExisting?: boolean
+  crossBlockFill?: boolean
   noSplitAbbreviations?: string[]
 }
 
@@ -211,6 +212,17 @@ function findPreviousNonEmptyIndex(lines: string[], startIndex: number): number 
     if (lines[i].trim() !== '') return i
   }
   return -1
+}
+
+function hasEmptyLineBetweenIndices(
+  lines: string[],
+  startIndex: number,
+  endIndex: number
+): boolean {
+  for (let i = startIndex + 1; i < endIndex; i += 1) {
+    if ((lines[i] ?? '').trim() === '') return true
+  }
+  return false
 }
 
 function isWordChar(ch: string): boolean {
@@ -1097,7 +1109,9 @@ function findRightmostPrepositionLead(window: string, nextText: string): number 
     const right = (window.slice(start) + nextText).trimStart()
     if (!left || !right) continue
     if (left.split(/\s+/).filter(Boolean).length < 2) continue
-    if (!isSplittablePrepositionPhrase(right)) continue
+    const isPossessiveOnPhrase = /^on\s+(?:my|your|his|her|our|their|its)\b/i.test(right)
+    const allowsPossessiveOn = isPossessiveOnPhrase && /\ba lot$/i.test(left)
+    if (!allowsPossessiveOn && !isSplittablePrepositionPhrase(right)) continue
     if (/^(?:in|on|at|behind|from|under)\b\s*$/i.test(right)) continue
     best = start
   }
@@ -1201,7 +1215,7 @@ function findBestCut(
   if (inHowCut >= 0) return { cut: inHowCut, reason: 'inHow' }
 
   const conjCut = findRightmostConjunctionStart(window, nextText)
-  if (conjCut >= 0) return { cut: conjCut, reason: 'conjunction' }
+  if (conjCut > 0) return { cut: conjCut, reason: 'conjunction' }
 
   const whoCut = findRightmostWhoStart(window)
   if (whoCut >= 0) return { cut: whoCut, reason: 'who' }
@@ -1855,7 +1869,8 @@ function getSpanForTargetCps(
   startIndex: number,
   text: string,
   targetCps: number,
-  preserveExisting: boolean
+  preserveExisting: boolean,
+  crossBlockFill: boolean
 ): { count: number; satisfied: boolean } {
   const charCount = text.length
   if (charCount === 0) return { count: 1, satisfied: true }
@@ -1867,9 +1882,17 @@ function getSpanForTargetCps(
   let frames = 0
   let count = 0
 
+  let previousTsIndex: number | null = null
   for (let i = startIndex; i < lines.length; i++) {
     if (!isTimestampRow(lines[i] ?? '')) continue
     if (!isFillableTimestamp(lines, selectedLineIndices, i, preserveExisting)) break
+    if (
+      !crossBlockFill &&
+      previousTsIndex != null &&
+      hasEmptyLineBetweenIndices(lines, previousTsIndex, i)
+    ) {
+      break
+    }
 
     const durationFrames = getTimestampDurationFrames(lines[i] ?? '')
     if (durationFrames == null) {
@@ -1879,6 +1902,7 @@ function getSpanForTargetCps(
     }
     frames += Math.max(0, durationFrames)
     count += 1
+    previousTsIndex = i
     if (count >= MAX_SPAN_PER_LINE) {
       return { count: MAX_SPAN_PER_LINE, satisfied: frames >= targetFrames }
     }
@@ -2169,6 +2193,8 @@ function runInlineFill(
   let lastFilledIndex: number | null = null
   let lastTranslation: string | null = null
   const preserveExisting = options.preserveExisting === true
+  const crossBlockFill = options.crossBlockFill === true
+  let previousFillableTsIndex: number | null = null
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
@@ -2180,6 +2206,14 @@ function runInlineFill(
       }
       continue
     }
+    if (
+      !crossBlockFill &&
+      previousFillableTsIndex != null &&
+      hasEmptyLineBetweenIndices(lines, previousFillableTsIndex, i)
+    ) {
+      break
+    }
+    previousFillableTsIndex = i
 
     if (spanRemaining > 0 && spanText && spanMeta) {
       spanIndex += 1
@@ -2262,7 +2296,8 @@ function runInlineFill(
       i,
       fillLine,
       targetCps,
-      preserveExisting
+      preserveExisting,
+      crossBlockFill
     )
     if (!spanInfo.satisfied) overflow = true
     spanText = fillLine
@@ -2270,7 +2305,8 @@ function runInlineFill(
       lines,
       selectedLineIndices,
       i,
-      preserveExisting
+      preserveExisting,
+      crossBlockFill
     )
     const maxSpanCount =
       remaining && availableSlots > 1 ? availableSlots - 1 : availableSlots
@@ -2339,11 +2375,24 @@ function runInlineFill(
 function countFillableSlots(
   lines: string[],
   selectedLineIndices: Set<number>,
-  preserveExisting: boolean
+  preserveExisting: boolean,
+  crossBlockFill: boolean
 ): number {
   let count = 0
+  let started = false
+  let previousTsIndex: number | null = null
   for (let i = 0; i < lines.length; i += 1) {
-    if (isFillableTimestamp(lines, selectedLineIndices, i, preserveExisting)) count += 1
+    if (!isFillableTimestamp(lines, selectedLineIndices, i, preserveExisting)) continue
+    if (
+      !crossBlockFill &&
+      previousTsIndex != null &&
+      hasEmptyLineBetweenIndices(lines, previousTsIndex, i)
+    ) {
+      if (started) break
+    }
+    count += 1
+    started = true
+    previousTsIndex = i
   }
   return count
 }
@@ -2352,11 +2401,22 @@ function countFillableSlotsFrom(
   lines: string[],
   selectedLineIndices: Set<number>,
   startIndex: number,
-  preserveExisting: boolean
+  preserveExisting: boolean,
+  crossBlockFill: boolean
 ): number {
   let count = 0
+  let previousTsIndex: number | null = null
   for (let i = startIndex; i < lines.length; i += 1) {
-    if (isFillableTimestamp(lines, selectedLineIndices, i, preserveExisting)) count += 1
+    if (!isFillableTimestamp(lines, selectedLineIndices, i, preserveExisting)) continue
+    if (
+      !crossBlockFill &&
+      previousTsIndex != null &&
+      hasEmptyLineBetweenIndices(lines, previousTsIndex, i)
+    ) {
+      break
+    }
+    count += 1
+    previousTsIndex = i
   }
   return count
 }
@@ -2368,11 +2428,17 @@ function chooseTargetCps(
   limit: number,
   noSplitAbbrevMatcher: RegExp | null,
   noSplitUsAbbreviation: boolean,
-  preserveExisting: boolean
+  preserveExisting: boolean,
+  crossBlockFill: boolean
 ): number {
   const maxCps = MAX_CPS
   const minCps = MIN_TARGET_CPS
-  const totalSlots = countFillableSlots(lines, selectedLineIndices, preserveExisting)
+  const totalSlots = countFillableSlots(
+    lines,
+    selectedLineIndices,
+    preserveExisting,
+    crossBlockFill
+  )
   if (totalSlots === 0) return maxCps
 
   const candidates = new Set<number>([maxCps, minCps])
@@ -2394,7 +2460,7 @@ function chooseTargetCps(
       true,
       noSplitAbbrevMatcher,
       noSplitUsAbbreviation,
-      { preserveExisting }
+      { preserveExisting, crossBlockFill }
     )
     if (run.overflow) continue
 
@@ -2445,6 +2511,7 @@ export function fillSelectedTimestampLines(
   const noSplitAbbrevMatcher = buildNoSplitAbbrevRe(noSplitAbbreviations)
   const noSplitUsAbbreviation = hasNoSplitUsAbbreviation(noSplitAbbreviations)
   const preserveExisting = options.preserveExisting === true
+  const crossBlockFill = options.crossBlockFill === true
 
   const targetCps = chooseTargetCps(
     lines,
@@ -2453,7 +2520,8 @@ export function fillSelectedTimestampLines(
     limit,
     noSplitAbbrevMatcher,
     noSplitUsAbbreviation,
-    preserveExisting
+    preserveExisting,
+    crossBlockFill
   )
   const run = runInlineFill(
     lines,

@@ -255,12 +255,6 @@ export function parseNews(text: string): Segment[] {
         continue
       }
 
-      if (trimmed === '字幕：') {
-        flushSuperPeople()
-        inSuperPeopleSection = false
-        continue
-      }
-
       superPeopleBuffer.push({ lineIndex: i, lineText: raw })
       continue
     }

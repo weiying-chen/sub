@@ -69,7 +69,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("ignores blank lines when deciding whether to fill", () => {
+  it("ignores blank lines when deciding whether to fill inside cross-block mode", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "",
@@ -80,6 +80,53 @@ describe("fillSelectedTimestampLines", () => {
   const result = fillSelectedTimestampLines(lines, selected, "One two three", {
     maxChars: 10,
     inline: false,
+    crossBlockFill: true,
+  })
+
+  expect(result.lines).toEqual([
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "One two",
+    "",
+    "00:00:02:00\t00:00:03:00\tMarker",
+    "three",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
+  it("stops filling at empty-line block boundaries by default", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 2])
+
+  const result = fillSelectedTimestampLines(lines, selected, "One two three", {
+    maxChars: 10,
+    inline: false,
+  })
+
+  expect(result.lines).toEqual([
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "One two",
+    "",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ])
+  expect(result.remaining).toBe("three")
+  })
+
+  it("can continue filling across empty-line boundaries when crossBlockFill is enabled", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 2])
+
+  const result = fillSelectedTimestampLines(lines, selected, "One two three", {
+    maxChars: 10,
+    inline: false,
+    crossBlockFill: true,
   })
 
   expect(result.lines).toEqual([
@@ -454,6 +501,18 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(split.line).toBe("I may be making less money now,")
   expect(split.rest).toBe("but I'm so much happier.")
+  })
+
+  it("does not fallback-split at leading conjunction index zero", () => {
+  const split = __testTakeLine(
+    "but I do think wealth depends a lot on your background, abilities, and luck.",
+    40,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("but I do think wealth depends a lot")
+  expect(split.rest).toBe("on your background, abilities, and luck.")
   })
 
   it("keeps comma split precedence on subordinate lead-ins", () => {

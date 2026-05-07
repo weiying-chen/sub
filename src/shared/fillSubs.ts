@@ -13,6 +13,7 @@ export type FillSubsOptions = {
   maxChars?: number
   inline?: boolean
   altBreak?: boolean
+  preserveExisting?: boolean
   noSplitAbbreviations?: string[]
 }
 
@@ -202,6 +203,13 @@ function findNextNonEmptyLine(lines: string[], startIndex: number): string | nul
     if (lines[i].trim() !== '') return lines[i]
   }
   return null
+}
+
+function findPreviousNonEmptyIndex(lines: string[], startIndex: number): number {
+  for (let i = startIndex - 1; i >= 0; i -= 1) {
+    if (lines[i].trim() !== '') return i
+  }
+  return -1
 }
 
 function isWordChar(ch: string): boolean {
@@ -1156,7 +1164,14 @@ function findBestCut(
   // 2) Mid-priority syntactic/list boundaries.
   const commaCut = findRightmostNonListComma(window, nextText)
   if (commaCut >= 0) {
+    const beforeComma = window.slice(0, commaCut).trimEnd()
     const afterComma = (window.slice(commaCut) + nextText).trimStart()
+    if (/^(?:because|if|when|while|although|though|since|as)\b/i.test(beforeComma)) {
+      const prepositionCutAfterComma = findRightmostPrepositionLead(window, nextText)
+      if (prepositionCutAfterComma > commaCut) {
+        return { cut: prepositionCutAfterComma, reason: 'preposition' }
+      }
+    }
     if (/^(or|nor)\b/i.test(afterComma)) {
       const dashCutAfterComma = findRightmostDashBoundary(window, nextText)
       if (dashCutAfterComma > commaCut) {
@@ -1796,13 +1811,31 @@ export function __testTakeLine(
 function isFillableTimestamp(
   lines: string[],
   selectedLineIndices: Set<number>,
-  index: number
+  index: number,
+  preserveExisting: boolean
 ): boolean {
   if (!selectedLineIndices.has(index)) return false
   if (!isTimestampRow(lines[index] ?? '')) return false
+  if (!preserveExisting) return true
   const nextLine = findNextNonEmptyLine(lines, index)
   if (nextLine != null && !isTimestampRow(nextLine)) return false
   return true
+}
+
+function isOverwrittenSubtitleLine(
+  lines: string[],
+  selectedLineIndices: Set<number>,
+  index: number,
+  preserveExisting: boolean
+): boolean {
+  if (preserveExisting) return false
+  if ((lines[index] ?? '').trim() === '') return false
+  if (isTimestampRow(lines[index] ?? '')) return false
+  const prevIndex = findPreviousNonEmptyIndex(lines, index)
+  if (prevIndex < 0) return false
+  const prevLine = lines[prevIndex] ?? ''
+  if (!isTimestampRow(prevLine)) return false
+  return isFillableTimestamp(lines, selectedLineIndices, prevIndex, false)
 }
 
 function getSpanForTargetCps(
@@ -1810,7 +1843,8 @@ function getSpanForTargetCps(
   selectedLineIndices: Set<number>,
   startIndex: number,
   text: string,
-  targetCps: number
+  targetCps: number,
+  preserveExisting: boolean
 ): { count: number; satisfied: boolean } {
   const charCount = text.length
   if (charCount === 0) return { count: 1, satisfied: true }
@@ -1824,7 +1858,7 @@ function getSpanForTargetCps(
 
   for (let i = startIndex; i < lines.length; i++) {
     if (!isTimestampRow(lines[i] ?? '')) continue
-    if (!isFillableTimestamp(lines, selectedLineIndices, i)) break
+    if (!isFillableTimestamp(lines, selectedLineIndices, i, preserveExisting)) break
 
     const durationFrames = getTimestampDurationFrames(lines[i] ?? '')
     if (durationFrames == null) {
@@ -2123,11 +2157,12 @@ function runInlineFill(
   let quoteOpen = false
   let lastFilledIndex: number | null = null
   let lastTranslation: string | null = null
+  const preserveExisting = options.preserveExisting === true
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
 
-    if (!isFillableTimestamp(lines, selectedLineIndices, i)) {
+    if (!isFillableTimestamp(lines, selectedLineIndices, i, preserveExisting)) {
       if (isTimestampRow(line)) {
         spanText = null
         spanRemaining = 0
@@ -2215,11 +2250,17 @@ function runInlineFill(
       selectedLineIndices,
       i,
       fillLine,
-      targetCps
+      targetCps,
+      preserveExisting
     )
     if (!spanInfo.satisfied) overflow = true
     spanText = fillLine
-    const availableSlots = countFillableSlotsFrom(lines, selectedLineIndices, i)
+    const availableSlots = countFillableSlotsFrom(
+      lines,
+      selectedLineIndices,
+      i,
+      preserveExisting
+    )
     const maxSpanCount =
       remaining && availableSlots > 1 ? availableSlots - 1 : availableSlots
     spanTotal = Math.max(1, Math.min(spanInfo.count, maxSpanCount))
@@ -2253,7 +2294,7 @@ function runInlineFill(
 
   if (!dryRun && !remaining && lastTranslation && lastFilledIndex != null) {
     for (let i = lastFilledIndex + 1; i < lines.length; i += 1) {
-      if (!isFillableTimestamp(lines, selectedLineIndices, i)) continue
+      if (!isFillableTimestamp(lines, selectedLineIndices, i, preserveExisting)) continue
       if (translations.has(i)) continue
       translations.set(i, lastTranslation)
     }
@@ -2266,9 +2307,12 @@ function runInlineFill(
 
   if (!dryRun) {
     for (let i = 0; i < lines.length; i++) {
+      if (isOverwrittenSubtitleLine(lines, selectedLineIndices, i, preserveExisting)) {
+        continue
+      }
       const line = lines[i]
       outLines.push(line)
-      if (!isFillableTimestamp(lines, selectedLineIndices, i)) continue
+      if (!isFillableTimestamp(lines, selectedLineIndices, i, preserveExisting)) continue
       const translation = translations.get(i)
       if (translation) outLines.push(translation)
     }
@@ -2279,11 +2323,12 @@ function runInlineFill(
 
 function countFillableSlots(
   lines: string[],
-  selectedLineIndices: Set<number>
+  selectedLineIndices: Set<number>,
+  preserveExisting: boolean
 ): number {
   let count = 0
   for (let i = 0; i < lines.length; i += 1) {
-    if (isFillableTimestamp(lines, selectedLineIndices, i)) count += 1
+    if (isFillableTimestamp(lines, selectedLineIndices, i, preserveExisting)) count += 1
   }
   return count
 }
@@ -2291,11 +2336,12 @@ function countFillableSlots(
 function countFillableSlotsFrom(
   lines: string[],
   selectedLineIndices: Set<number>,
-  startIndex: number
+  startIndex: number,
+  preserveExisting: boolean
 ): number {
   let count = 0
   for (let i = startIndex; i < lines.length; i += 1) {
-    if (isFillableTimestamp(lines, selectedLineIndices, i)) count += 1
+    if (isFillableTimestamp(lines, selectedLineIndices, i, preserveExisting)) count += 1
   }
   return count
 }
@@ -2306,11 +2352,12 @@ function chooseTargetCps(
   paragraph: string,
   limit: number,
   noSplitAbbrevMatcher: RegExp | null,
-  noSplitUsAbbreviation: boolean
+  noSplitUsAbbreviation: boolean,
+  preserveExisting: boolean
 ): number {
   const maxCps = MAX_CPS
   const minCps = MIN_TARGET_CPS
-  const totalSlots = countFillableSlots(lines, selectedLineIndices)
+  const totalSlots = countFillableSlots(lines, selectedLineIndices, preserveExisting)
   if (totalSlots === 0) return maxCps
 
   const candidates = new Set<number>([maxCps, minCps])
@@ -2331,7 +2378,8 @@ function chooseTargetCps(
       cps,
       true,
       noSplitAbbrevMatcher,
-      noSplitUsAbbreviation
+      noSplitUsAbbreviation,
+      { preserveExisting }
     )
     if (run.overflow) continue
 
@@ -2381,6 +2429,7 @@ export function fillSelectedTimestampLines(
     options.noSplitAbbreviations ?? DEFAULT_NO_SPLIT_ABBREVIATIONS
   const noSplitAbbrevMatcher = buildNoSplitAbbrevRe(noSplitAbbreviations)
   const noSplitUsAbbreviation = hasNoSplitUsAbbreviation(noSplitAbbreviations)
+  const preserveExisting = options.preserveExisting === true
 
   const targetCps = chooseTargetCps(
     lines,
@@ -2388,7 +2437,8 @@ export function fillSelectedTimestampLines(
     paragraph,
     limit,
     noSplitAbbrevMatcher,
-    noSplitUsAbbreviation
+    noSplitUsAbbreviation,
+    preserveExisting
   )
   const run = runInlineFill(
     lines,

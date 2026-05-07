@@ -2,6 +2,7 @@ export type FillSubsCliArgs = {
   inputFile: string
   outputFile: string
   altBreak: boolean
+  preserveExisting: boolean
   paragraphArg: string
   maxChars?: number
   showOverflow?: boolean
@@ -15,6 +16,7 @@ export function parseFillSubsArgs(argv: string[]): FillSubsCliArgs {
     inputFile: '',
     outputFile: '',
     altBreak: false,
+    preserveExisting: false,
     paragraphArg: '',
   }
 
@@ -32,6 +34,10 @@ export function parseFillSubsArgs(argv: string[]): FillSubsCliArgs {
     }
     if (a === '--alt-break') {
       args.altBreak = true
+      continue
+    }
+    if (a === '--preserve-existing') {
+      args.preserveExisting = true
       continue
     }
     if (a === '--max-chars') {

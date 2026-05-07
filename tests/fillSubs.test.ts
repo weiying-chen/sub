@@ -26,7 +26,7 @@ describe("fillSelectedTimestampLines", () => {
   ])
   })
 
-  it("skips timestamps that already have subtitle text below", () => {
+  it("overwrites timestamps that already have subtitle text below by default", () => {
   const lines = [
     "00:00:01:00\t00:00:03:00\tMarker",
     "Already translated line",
@@ -36,6 +36,28 @@ describe("fillSelectedTimestampLines", () => {
 
   const result = fillSelectedTimestampLines(lines, selected, "Hello world", {
     inline: false,
+  })
+
+  expect(result.lines).toEqual([
+    "00:00:01:00\t00:00:03:00\tMarker",
+    "Hello world",
+    "00:00:03:00\t00:00:05:00\tMarker",
+    "Hello world",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
+  it("skips timestamps with existing subtitle text when preserveExisting is enabled", () => {
+  const lines = [
+    "00:00:01:00\t00:00:03:00\tMarker",
+    "Already translated line",
+    "00:00:03:00\t00:00:05:00\tMarker",
+  ]
+  const selected = new Set([0, 2])
+
+  const result = fillSelectedTimestampLines(lines, selected, "Hello world", {
+    inline: false,
+    preserveExisting: true,
   })
 
   expect(result.lines).toEqual([
@@ -432,6 +454,18 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(split.line).toBe("I may be making less money now,")
   expect(split.rest).toBe("but I'm so much happier.")
+  })
+
+  it("avoids splitting subordinate lead-ins at comma when a later preposition break fits", () => {
+  const split = __testTakeLine(
+    "Because if we don't, it'll be hard to transition from the second stage of life into the third.",
+    54,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("Because if we don't, it'll be hard to transition")
+  expect(split.rest).toBe("from the second stage of life into the third.")
   })
 
   it("prefers breaking before copular verb phrases", () => {

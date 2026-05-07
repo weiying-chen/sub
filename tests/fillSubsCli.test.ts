@@ -44,6 +44,11 @@ describe("fill-subs CLI args", () => {
     expect(args.altBreak).toBe(true)
   })
 
+  it("parses preserve-existing flag", () => {
+    const args = parseFillSubsArgs(["--preserve-existing"])
+    expect(args.preserveExisting).toBe(true)
+  })
+
   it("does not expose deprecated inline args", () => {
     const args = parseFillSubsArgs(["--no-inline"])
     expect("inline" in args).toBe(false)

@@ -101,7 +101,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     if (!enabled || enabled.has('NEWS_MARKER')) {
       rules.push(newsMarkerRule())
     }
-    if (!enabled || enabled.has('SUPER_PEOPLE')) {
+    if (!enabled || enabled.has('PEOPLE')) {
       rules.push(superPeopleRule())
     }
     if (!enabled || enabled.has('NUMBER_STYLE')) rules.push(numberStyleRule())

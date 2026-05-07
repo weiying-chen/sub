@@ -232,9 +232,9 @@ describe("parseNews", () => {
     expect(segments[1]?.marker).toBeUndefined()
   })
 
-  it("parses SUPER_PEOPLE entries as dedicated news segments", () => {
+  it("parses PEOPLE entries as dedicated news segments", () => {
     const text = [
-      "SUPER_PEOPLE:",
+      "PEOPLE:",
       "病患 | 王大明",
       "Alex Wang",
       "Patient",
@@ -255,7 +255,7 @@ describe("parseNews", () => {
       {
         lineIndex: 1,
         lineIndexEnd: 3,
-        blockType: "super_people",
+        blockType: "people",
         superPerson: {
           zhTitle: "病患",
           zhName: "王大明",
@@ -266,7 +266,7 @@ describe("parseNews", () => {
       {
         lineIndex: 5,
         lineIndexEnd: 8,
-        blockType: "super_people",
+        blockType: "people",
         superPerson: {
           zhTitle: "醫師",
           zhName: "陳醫師",
@@ -280,6 +280,41 @@ describe("parseNews", () => {
         blockType: "vo",
         sourceText: "中文內文。",
         translation: "English line.",
+      },
+    ])
+  })
+
+  it("parses PEOPLE entries as dedicated news segments", () => {
+    const text = [
+      "PEOPLE:",
+      "病患 | 王大明",
+      "Alex Wang",
+      "Patient",
+      "",
+      "1_0001",
+      "中文內文。",
+      "English line.",
+    ].join("\n")
+
+    const segments = parseNews(text)
+
+    expect(segments).toMatchObject([
+      {
+        lineIndex: 1,
+        lineIndexEnd: 3,
+        blockType: "people",
+        superPerson: {
+          zhTitle: "病患",
+          zhName: "王大明",
+          enName: "Alex Wang",
+          enTitle: "Patient",
+        },
+      },
+      {
+        lineIndex: 7,
+        translation: "English line.",
+        sourceText: "中文內文。",
+        blockType: "vo",
       },
     ])
   })

@@ -212,9 +212,9 @@ describe("analyze CLI output", () => {
     expect(output.some((metric) => metric.type === "NEWS_MARKER")).toBe(false)
   })
 
-  it("returns SUPER_PEOPLE findings for swapped name-title order and title case", async () => {
+  it("returns PEOPLE findings for swapped name-title order and title case", async () => {
     const text = [
-      "SUPER_PEOPLE:",
+      "PEOPLE:",
       "病患 | 王大明",
       "Patient care coordinator",
       "Alex Wang",
@@ -231,21 +231,21 @@ describe("analyze CLI output", () => {
 
     expect(output).toMatchObject([
       {
-        type: "SUPER_PEOPLE",
+        type: "PEOPLE",
         lineIndex: 2,
         ruleCode: "NAME_TITLE_ORDER",
       },
       {
-        type: "SUPER_PEOPLE",
+        type: "PEOPLE",
         lineIndex: 7,
         ruleCode: "TITLE_NOT_SENTENCE_CASE",
       },
     ])
   })
 
-  it("returns SUPER_PEOPLE findings for missing English name and title", async () => {
+  it("returns PEOPLE findings for missing English name and title", async () => {
     const text = [
-      "SUPER_PEOPLE:",
+      "PEOPLE:",
       "病患 | 羅伯托",
       "Patient coordinator",
       "",
@@ -260,12 +260,12 @@ describe("analyze CLI output", () => {
 
     expect(output).toMatchObject([
       {
-        type: "SUPER_PEOPLE",
+        type: "PEOPLE",
         lineIndex: 2,
         ruleCode: "MISSING_EN_NAME",
       },
       {
-        type: "SUPER_PEOPLE",
+        type: "PEOPLE",
         lineIndex: 5,
         ruleCode: "MISSING_EN_TITLE",
       },

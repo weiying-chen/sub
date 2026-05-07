@@ -8,7 +8,7 @@ export type SuperPeopleRuleCode =
   | 'MISSING_EN_TITLE'
 
 export type SuperPeopleMetric = {
-  type: 'SUPER_PEOPLE'
+  type: 'PEOPLE'
   lineIndex: number
   ruleCode: SuperPeopleRuleCode
   text: string
@@ -42,7 +42,7 @@ function isSentenceCase(text: string): boolean {
 export function superPeopleRule(): SegmentRule {
   return ((ctx: SegmentCtx) => {
     const { segment } = ctx
-    if (segment.blockType !== 'super_people' || !segment.superPerson) return []
+    if (segment.blockType !== 'people' || !segment.superPerson) return []
 
     const metrics: Metric[] = []
     const { enName, enTitle } = segment.superPerson
@@ -52,7 +52,7 @@ export function superPeopleRule(): SegmentRule {
 
     if (!enName) {
       metrics.push({
-        type: 'SUPER_PEOPLE',
+        type: 'PEOPLE',
         lineIndex: enNameLineIndex,
         ruleCode: 'MISSING_EN_NAME',
         text: '',
@@ -61,7 +61,7 @@ export function superPeopleRule(): SegmentRule {
 
     if (!enTitle) {
       metrics.push({
-        type: 'SUPER_PEOPLE',
+        type: 'PEOPLE',
         lineIndex: enTitleLineIndex,
         ruleCode: 'MISSING_EN_TITLE',
         text: '',
@@ -74,7 +74,7 @@ export function superPeopleRule(): SegmentRule {
 
     if (hasSwappedNameTitle) {
       metrics.push({
-        type: 'SUPER_PEOPLE',
+        type: 'PEOPLE',
         lineIndex: enNameLineIndex,
         ruleCode: 'NAME_TITLE_ORDER',
         text: enName,
@@ -83,7 +83,7 @@ export function superPeopleRule(): SegmentRule {
 
     if (!hasSwappedNameTitle && enTitle && !isSentenceCase(enTitle)) {
       metrics.push({
-        type: 'SUPER_PEOPLE',
+        type: 'PEOPLE',
         lineIndex: enTitleLineIndex,
         ruleCode: 'TITLE_NOT_SENTENCE_CASE',
         text: enTitle,

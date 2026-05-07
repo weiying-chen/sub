@@ -27,7 +27,7 @@ export type Segment = {
   lineIndex: number
   lineIndexEnd?: number
   translation: string
-  blockType?: 'vo' | 'super' | 'super_people'
+  blockType?: 'vo' | 'super' | 'people'
   skipTranslation?: boolean
   marker?: NewsMarker
   superPerson?: SuperPersonEntry
@@ -212,7 +212,7 @@ export function parseNews(text: string): Segment[] {
       lineIndex: first.lineIndex,
       lineIndexEnd: last.lineIndex,
       translation: superPeopleBuffer.map((line) => line.lineText.trim()).join(' '),
-      blockType: 'super_people',
+      blockType: 'people',
       targetLines: [...superPeopleBuffer],
       superPerson: entry,
     })
@@ -234,7 +234,7 @@ export function parseNews(text: string): Segment[] {
       continue
     }
 
-    if (trimmed === 'SUPER_PEOPLE:') {
+    if (trimmed === 'PEOPLE:') {
       flush()
       inSuperPeopleSection = true
       superActive = false

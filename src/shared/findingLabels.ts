@@ -21,7 +21,7 @@ const FINDING_LABELS: Partial<Record<Finding["type"], string>> = {
   BASELINE: "Text does not match baseline",
   MISSING_TRANSLATION: "Translation line is missing",
   NEWS_MARKER: "News marker is incorrect",
-  SUPER_PEOPLE: "SUPER entry is incorrect",
+  PEOPLE: "People entry is incorrect",
 }
 
 export function getFindingTypeLabel(type: Finding["type"]): string {

@@ -241,7 +241,7 @@ export type MissingTranslationMetric = {
 }
 
 export type SuperPeopleMetric = {
-  type: 'SUPER_PEOPLE'
+  type: 'PEOPLE'
   lineIndex: number
   ruleCode: import('./superPeopleRule').SuperPeopleRuleCode
   text: string

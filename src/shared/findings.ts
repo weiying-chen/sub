@@ -263,7 +263,7 @@ export function getFindings(
       continue
     }
 
-    if (m.type === 'SUPER_PEOPLE') {
+    if (m.type === 'PEOPLE') {
       const instruction =
         m.ruleCode === 'NAME_TITLE_ORDER'
           ? 'Keep the English name on line 2 and the English title on line 3.'

@@ -272,6 +272,34 @@ describe("analyze CLI output", () => {
     ])
   })
 
+  it("treats single-word role labels as titles, not names", async () => {
+    const text = [
+      "PEOPLE:",
+      "學員 | 納吉",
+      "Teacher",
+      "Islam Naji",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "news",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(output).toMatchObject([
+      {
+        type: "PEOPLE",
+        lineIndex: 2,
+        ruleCode: "NAME_TITLE_ORDER",
+      },
+    ])
+    expect(
+      output.some(
+        (metric) =>
+          metric.type === "PEOPLE" && metric.ruleCode === "TITLE_NOT_SENTENCE_CASE"
+      )
+    ).toBe(false)
+  })
+
   it("returns only CPS metrics for subs metrics mode", async () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

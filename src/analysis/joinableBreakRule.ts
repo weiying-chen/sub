@@ -10,6 +10,8 @@ type JoinableBreakRuleOptions = ParseBlockOptions & {
 }
 
 const DEFAULT_MAX_GAP_FRAMES = 30
+const COMMA_END_RE = /[,，]\s*$/
+const SENTENCE_END_RE = /[.!?]["')\]]*\s*$/
 
 function hasTiming(
   segment: Segment
@@ -30,6 +32,7 @@ export function joinableBreakRule(
 
   return (ctx: SegmentCtx) => {
     const cur = ctx.segment
+    const prev = ctx.segmentIndex > 0 ? ctx.segments[ctx.segmentIndex - 1] : undefined
     const next = ctx.segments[ctx.segmentIndex + 1]
     if (!next) return []
     if (!hasTiming(cur) || !hasTiming(next)) return []
@@ -49,6 +52,24 @@ export function joinableBreakRule(
 
     const gapFrames = next.startFrames - cur.endFrames
     if (gapFrames < 0 || gapFrames > maxGapFrames) return []
+
+    // If `cur` already completes a comma-ended previous line, prefer that
+    // boundary and avoid flagging an additional join from `cur` to `next`.
+    if (
+      prev &&
+      hasTiming(prev) &&
+      COMMA_END_RE.test(prev.translation.trim()) &&
+      SENTENCE_END_RE.test(cur.translation.trim())
+    ) {
+      const prevGapFrames = cur.startFrames - prev.endFrames
+      if (prevGapFrames >= 0 && prevGapFrames <= maxGapFrames) {
+        const prevJoin = canJoinAdjacentText(prev.translation, cur.translation, maxJoinedChars, {
+          allowSentenceEndJoin: true,
+        })
+        if (prevJoin) return []
+        return []
+      }
+    }
 
     const join = canJoinAdjacentText(cur.translation, next.translation, maxJoinedChars, {
       allowSentenceEndJoin: true,

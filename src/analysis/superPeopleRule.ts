@@ -21,7 +21,7 @@ function getWordTokens(text: string): string[] {
 
 function looksLikeName(text: string): boolean {
   const words = getWordTokens(text)
-  if (words.length === 0 || words.length > 4) return false
+  if (words.length < 2 || words.length > 4) return false
 
   return words.every(
     (word) =>

@@ -55,7 +55,8 @@ const THAT_SPLIT_VERB_RE =
   /\b(?:say|says|said|tell|tells|told|ask|asks|asked|think|thinks|thought|know|knows|knew|realize|realizes|realized|feel|feels|felt|hope|hopes|hoped|decide|decides|decided|learn|learns|learned|hear|hears|heard|believe|believes|believed|suspect|suspects|suspected|guess|guesses|guessed|remember|remembers|remembered|notice|notices|noticed|find|finds|found)\b/i
 const THAT_SPLIT_OBJECT_RE =
   /^(?:me|you|him|her|us|them|it|this|that|there|someone|somebody|anyone|anybody|everyone|everybody|noone|nobody)$/i
-const COPULAR_RE = /\b(am|is|are|was|were)\b/i
+const COPULAR_RE =
+  /\b(am|is|are|was|were|isn['’]?t|aren['’]?t|wasn['’]?t|weren['’]?t)\b/i
 const COPULAR_VERB_START_RE =
   /^(?:give|make|take|help|let|get|keep|try|need|want|have)\b/i
 const COPULAR_CLAUSE_START_RE =

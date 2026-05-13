@@ -2440,6 +2440,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("was far more effective than anything he could say.")
   })
 
+  it("supports contracted copular negatives in copular fallback splits", () => {
+  const split = __testTakeLine(
+    "One day, a doctor told him his test results weren't looking good, and that if he didn't make changes, he could face serious health problems later in life.",
+    54,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().includes("weren't")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("weren't looking good")).toBe(true)
+  })
+
   it("keeps possessive determiners with following noun phrases", () => {
   const cases = [
     { determiner: "my", noun: "notes" },

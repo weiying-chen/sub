@@ -2162,6 +2162,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("in ")).toBe(true)
   })
 
+  it("moves trailing 'into' to the next split chunk", () => {
+  const split = __testTakeLine(
+    "and I help clients turn numbers into meaningful stories.",
+    38,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" into")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("into ")).toBe(true)
+  })
+
   it("moves trailing 'on' to the next split chunk", () => {
   const split = __testTakeLine(
     "Please focus on that chart before the meeting starts.",

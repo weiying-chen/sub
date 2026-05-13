@@ -1096,7 +1096,7 @@ function findRightmostWithStart(window: string, nextText: string): number {
 
 function findRightmostPrepositionLead(window: string, nextText: string): number {
   let best = -1
-  const re = /\b(?:in|on|at|behind|from|under)\b/gi
+  const re = /\b(?:in|into|on|at|behind|from|under)\b/gi
   let m: RegExpExecArray | null
   while ((m = re.exec(window)) !== null) {
     const start = m.index
@@ -1112,7 +1112,7 @@ function findRightmostPrepositionLead(window: string, nextText: string): number 
     const isPossessiveOnPhrase = /^on\s+(?:my|your|his|her|our|their|its)\b/i.test(right)
     const allowsPossessiveOn = isPossessiveOnPhrase && /\ba lot$/i.test(left)
     if (!allowsPossessiveOn && !isSplittablePrepositionPhrase(right)) continue
-    if (/^(?:in|on|at|behind|from|under)\b\s*$/i.test(right)) continue
+    if (/^(?:in|into|on|at|behind|from|under)\b\s*$/i.test(right)) continue
     best = start
   }
   return best
@@ -1639,7 +1639,7 @@ function normalizeTrailingPrepositionHead(
 ): { line: string; rest: string } {
   const trimmed = line.trimEnd()
   const match = trimmed.match(
-    /^(.*)\s+(of|near|in|on|at|behind|from|under|for)$/i
+    /^(.*)\s+(of|near|in|into|on|at|behind|from|under|for)$/i
   )
   if (!match) return { line, rest }
 

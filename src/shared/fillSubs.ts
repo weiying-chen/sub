@@ -1110,6 +1110,7 @@ function findRightmostPrepositionLead(window: string, nextText: string): number 
     const right = (window.slice(start) + nextText).trimStart()
     if (!left || !right) continue
     if (left.split(/\s+/).filter(Boolean).length < 2) continue
+    if (hasNearModalAfterPrepositionPhrase(right)) continue
     const isPossessiveOnPhrase = /^on\s+(?:my|your|his|her|our|their|its)\b/i.test(right)
     const allowsPossessiveOn = isPossessiveOnPhrase && /\ba lot$/i.test(left)
     if (!allowsPossessiveOn && !isSplittablePrepositionPhrase(right)) continue
@@ -1160,6 +1161,13 @@ function isSplittablePrepositionPhrase(right: string): boolean {
   if (!/^in\s+the\b/i.test(right)) return true
   if (startsWithAcronymAfterThe(right)) return false
   return true
+}
+
+function hasNearModalAfterPrepositionPhrase(right: string): boolean {
+  const trimmed = right.trimStart().toLowerCase()
+  return /^(?:in|on|at|for)\s+(?:\S+\s+){0,5}(?:can|could|will|would|should|may|might|must|shall)\b/.test(
+    trimmed
+  )
 }
 
 function findBestCut(

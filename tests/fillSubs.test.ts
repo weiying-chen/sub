@@ -2195,6 +2195,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("in ")).toBe(true)
   })
 
+  it("avoids preposition split when a near modal break is better", () => {
+  const split = __testTakeLine(
+    "how you respond in those first few minutes can determine whether people trust you again.",
+    54,
+    null,
+    false
+  )
+  expect(split.line).toBe("how you respond in those first few minutes")
+  expect(split.rest).toBe("can determine whether people trust you again.")
+  })
+
   it("moves trailing 'into' to the next split chunk", () => {
   const split = __testTakeLine(
     "and I help clients turn numbers into meaningful stories.",

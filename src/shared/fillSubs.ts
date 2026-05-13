@@ -1344,7 +1344,7 @@ function takeLine(
           right,
           noSplitAbbrevMatcher,
           noSplitUsAbbreviation,
-          { preserveLeadingThat: true }
+          { preserveLeadingThat: true, maxLineLength: limit }
         )
         return normalizeSplit(adjusted.line, adjusted.rest)
       }
@@ -1367,7 +1367,8 @@ function takeLine(
           left,
           right,
           noSplitAbbrevMatcher,
-          noSplitUsAbbreviation
+          noSplitUsAbbreviation,
+          { maxLineLength: limit }
         )
         return normalizeSplit(adjusted.line, adjusted.rest)
       }
@@ -1382,7 +1383,8 @@ function takeLine(
           left,
           right,
           noSplitAbbrevMatcher,
-          noSplitUsAbbreviation
+          noSplitUsAbbreviation,
+          { maxLineLength: limit }
         )
         return normalizeSplit(adjusted.line, adjusted.rest)
       }
@@ -1397,7 +1399,8 @@ function takeLine(
           left,
           right,
           noSplitAbbrevMatcher,
-          noSplitUsAbbreviation
+          noSplitUsAbbreviation,
+          { maxLineLength: limit }
         )
         return normalizeSplit(adjusted.line, adjusted.rest)
       }
@@ -1412,7 +1415,8 @@ function takeLine(
           left,
           right,
           noSplitAbbrevMatcher,
-          noSplitUsAbbreviation
+          noSplitUsAbbreviation,
+          { maxLineLength: limit }
         )
         return normalizeSplit(adjusted.line, adjusted.rest)
       }
@@ -1439,7 +1443,8 @@ function takeLine(
       hard.trimEnd(),
       s.slice(limit).trimStart(),
       noSplitAbbrevMatcher,
-      noSplitUsAbbreviation
+      noSplitUsAbbreviation,
+      { maxLineLength: limit }
     )
     return normalizeSplit(adjusted.line, adjusted.rest)
   }
@@ -1449,7 +1454,7 @@ function takeLine(
     rest,
     noSplitAbbrevMatcher,
     noSplitUsAbbreviation,
-    { preserveLeadingThat }
+    { preserveLeadingThat, maxLineLength: limit }
   )
   return normalizeSplit(adjusted.line, adjusted.rest)
 }
@@ -1965,7 +1970,7 @@ function adjustSplitForNoSplitAbbrev(
 function mergeNoSplitPhrases(
   line: string,
   rest: string,
-  options: { preserveLeadingThat?: boolean } = {}
+  options: { preserveLeadingThat?: boolean; maxLineLength?: number; enforceMaxOnMerge?: boolean } = {}
 ): { line: string; rest: string } {
   if (!line || !rest) return { line, rest }
 
@@ -1974,6 +1979,11 @@ function mergeNoSplitPhrases(
   const appendToken = (base: string, token: string) => {
     const noSpace = /(?:---|—|(?:^|\s)[A-Z]\.)$/.test(base)
     return noSpace ? `${base}${token}` : `${base} ${token}`
+  }
+  const canMergeToken = (base: string, token: string): boolean => {
+    const maxLineLength = options.maxLineLength
+    if (typeof maxLineLength !== "number" || !Number.isFinite(maxLineLength)) return true
+    return appendToken(base, token).length <= maxLineLength
   }
 
   const endsWithSentence =
@@ -2008,6 +2018,7 @@ function mergeNoSplitPhrases(
     const continuation = trimmedRest.match(/^[a-z][^,!?;:.]*(?:,|$)/)
     if (continuation && continuation[0]) {
       const token = continuation[0].trimEnd()
+      if (!canMergeToken(trimmedLine, token)) return { line, rest }
       const nextRest = trimmedRest.slice(continuation[0].length).trimStart()
       return { line: appendToken(trimmedLine, token), rest: nextRest }
     }
@@ -2093,7 +2104,7 @@ function adjustSplitForNoSplitAbbrevAndQuotes(
   rest: string,
   noSplitAbbrevMatcher: RegExp | null,
   noSplitUsAbbreviation: boolean,
-  options: { preserveLeadingThat?: boolean } = {}
+  options: { preserveLeadingThat?: boolean; maxLineLength?: number; enforceMaxOnMerge?: boolean } = {}
 ): { line: string; rest: string } {
   const phraseAdjusted = mergeNoSplitPhrases(line, rest, options)
   const abbrevAdjusted = adjustSplitForNoSplitAbbrev(

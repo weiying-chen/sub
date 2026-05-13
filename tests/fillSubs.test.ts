@@ -1199,7 +1199,30 @@ describe("fillSelectedTimestampLines", () => {
   )
   for (const translation of translations) {
     expect(translation.length).toBeLessThanOrEqual(maxChars)
-  }
+    }
+  })
+
+  it("does not let dash continuation merge exceed maxChars", () => {
+    const lines = [
+      "00:06:18:21\t00:06:20:21\t所以他就想了三個",
+      "00:06:20:21\t00:06:22:00\t自己的關鍵詞",
+      "00:06:22:00\t00:06:24:07\t就是讓數字說故事",
+      "00:06:24:07\t00:06:26:21\t解決問題以及細膩",
+    ]
+    const selected = new Set([0, 1, 2, 3])
+    const maxChars = 54
+    const paragraph =
+      "So he came up with three keywords for himself---making numbers tell stories, solving problems, and sweating the details."
+
+    const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+      maxChars,
+      inline: true,
+    })
+
+    const translations = result.lines.filter((line) => !line.includes("\t"))
+    for (const translation of translations) {
+      expect(translation.length).toBeLessThanOrEqual(maxChars)
+    }
   })
 
   it("splits at the first fragment boundary", () => {

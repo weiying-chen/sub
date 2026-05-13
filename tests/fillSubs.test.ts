@@ -2195,6 +2195,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("in ")).toBe(true)
   })
 
+  it("moves trailing 'in' before bare noun phrases", () => {
+  const split = __testTakeLine(
+    "These are probably the three biggest risks in personal branding.",
+    54,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" in")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("in personal ")).toBe(true)
+  })
+
   it("avoids preposition split when a near modal break is better", () => {
   const split = __testTakeLine(
     "how you respond in those first few minutes can determine whether people trust you again.",

@@ -2118,6 +2118,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("while ")).toBe(true)
   })
 
+  it("moves trailing 'just' to the next split chunk before infinitive", () => {
+  const split = __testTakeLine(
+    "And don't become someone you're not just to build a persona.",
+    40,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" just")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("just to ")).toBe(true)
+  })
+
   it("moves trailing copular before where-clause to the next split chunk", () => {
   const split = __testTakeLine(
     "Sharing your own ideas and perspective is where personal branding begins.",

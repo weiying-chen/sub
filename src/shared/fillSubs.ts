@@ -1551,6 +1551,26 @@ function normalizeTrailingSubordinatorHead(
   return { line: left, rest: `${word} ${rest}` }
 }
 
+function normalizeTrailingJustHead(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmed = line.trimEnd()
+  const match = trimmed.match(/^(.*)\s+(just)$/i)
+  if (!match) return { line, rest }
+
+  const left = (match[1] ?? "").trimEnd()
+  const token = (match[2] ?? "").trim().toLowerCase()
+  if (!left) return { line, rest }
+  if (!/^to\b/i.test(rest.trimStart())) return { line, rest }
+
+  if (!rest) return { line: left, rest: token }
+  if (rest.trimStart().toLowerCase().startsWith(`${token} `)) {
+    return { line: left, rest }
+  }
+  return { line: left, rest: `${token} ${rest}` }
+}
+
 function normalizeTrailingCopularHead(
   line: string,
   rest: string
@@ -1757,9 +1777,13 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     possessiveNormalized.line,
     possessiveNormalized.rest
   )
-  const copularNormalized = normalizeTrailingCopularHead(
+  const justNormalized = normalizeTrailingJustHead(
     subordinatorNormalized.line,
     subordinatorNormalized.rest
+  )
+  const copularNormalized = normalizeTrailingCopularHead(
+    justNormalized.line,
+    justNormalized.rest
   )
   const howToNormalized = normalizeTrailingHowToHead(
     copularNormalized.line,

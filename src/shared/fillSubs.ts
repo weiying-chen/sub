@@ -1491,7 +1491,7 @@ function normalizeTrailingArticleHead(
   rest: string
 ): { line: string; rest: string } {
   const trimmed = line.trimEnd()
-  const match = trimmed.match(/^(.*)\s+(the)$/i)
+  const match = trimmed.match(/^(.*)\s+(the|a|an)$/i)
   if (!match) return { line, rest }
 
   const left = (match[1] ?? '').trimEnd()
@@ -1761,6 +1761,20 @@ function normalizeTrailingCommaThat(
   return { line: nextLine, rest: `that ${rest.trimStart()}` }
 }
 
+function normalizeLeadingToAfterPayAttention(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmedLine = line.trimEnd()
+  const trimmedRest = rest.trimStart()
+  if (!/\bpay attention$/i.test(trimmedLine)) return { line, rest }
+  if (!/^to\b/i.test(trimmedRest)) return { line, rest }
+
+  const nextRest = trimmedRest.replace(/^to\b\s*/i, "").trimStart()
+  if (!nextRest) return { line: `${trimmedLine} to`, rest: "" }
+  return { line: `${trimmedLine} to`, rest: nextRest }
+}
+
 function normalizeSplit(line: string, rest: string): { line: string; rest: string } {
   const quoteNormalized = normalizeQuoteOnlyHead(line, rest)
   const conjunctionNormalized = normalizeTrailingConjunctionHead(
@@ -1815,9 +1829,13 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     hyphenNormalized.line,
     hyphenNormalized.rest
   )
-  return normalizeLeadingCommaRest(
+  const commaLeadingNormalized = normalizeLeadingCommaRest(
     commaThatNormalized.line,
     commaThatNormalized.rest
+  )
+  return normalizeLeadingToAfterPayAttention(
+    commaLeadingNormalized.line,
+    commaLeadingNormalized.rest
   )
 }
 

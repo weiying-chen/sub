@@ -2071,6 +2071,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("the ")).toBe(true)
   })
 
+  it("moves trailing 'a' to the next split chunk", () => {
+  const split = __testTakeLine(
+    "whether you can inspire people and make the world a little better just by being here.",
+    54,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" a")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("a little ")).toBe(true)
+  })
+
   it("moves trailing 'before' to the next split chunk", () => {
   const split = __testTakeLine(
     "acid reflux, heart palpitations, or insomnia before they do anything about it.",
@@ -2292,6 +2303,17 @@ describe("fillSelectedTimestampLines", () => {
   )
   expect(split.line.toLowerCase().endsWith(" for")).toBe(false)
   expect(split.rest.toLowerCase().startsWith("for your ")).toBe(true)
+  })
+
+  it("keeps 'pay attention to' together when splitting", () => {
+  const split = __testTakeLine(
+    "Fourth, pay attention to your appearance and how you present yourself.",
+    24,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith("pay attention to")).toBe(true)
+  expect(split.rest.toLowerCase().startsWith("your appearance")).toBe(true)
   })
 
   it("avoids one-word fallback heads before attached phrase tails", () => {

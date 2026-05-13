@@ -1698,6 +1698,10 @@ function normalizeTrailingPrepositionHead(
   }
 
   const allowInHow = word === "in" && /^how\b/i.test(rest.trimStart())
+  const determinerHeadRe =
+    word === "for"
+      ? /^(?:the|a|an|this|that|these|those|it|them|him|her|us|you|my|your|his|our|their|its)\b/i
+      : /^(?:the|a|an|this|that|these|those|it|them|him|her|us|you)\b/i
 
   if (
     (word === 'in' ||
@@ -1708,9 +1712,7 @@ function normalizeTrailingPrepositionHead(
       word === 'under' ||
       word === 'for') &&
     !allowInHow &&
-    !/^(?:the|a|an|this|that|these|those|it|them|him|her|us|you)\b/i.test(
-      rest.trimStart()
-    )
+    !determinerHeadRe.test(rest.trimStart())
   ) return { line, rest }
 
   if (!rest) return { line: left, rest: word }

@@ -2283,6 +2283,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("under the ")).toBe(true)
   })
 
+  it("moves trailing 'for' before possessive noun phrases", () => {
+  const split = __testTakeLine(
+    "Otherwise, you're just setting a trap for your personal brand.",
+    54,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" for")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("for your ")).toBe(true)
+  })
+
   it("avoids one-word fallback heads before attached phrase tails", () => {
   const split = __testTakeLine(
     "After that we completed surgery and closed the incision.",

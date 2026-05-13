@@ -1550,6 +1550,28 @@ function normalizeTrailingSubordinatorHead(
   return { line: left, rest: `${word} ${rest}` }
 }
 
+function normalizeTrailingCopularHead(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmed = line.trimEnd()
+  const match = trimmed.match(/^(.*)\s+(am|is|are|was|were|be|been|being)$/i)
+  if (!match) return { line, rest }
+
+  const left = (match[1] ?? "").trimEnd()
+  const verb = (match[2] ?? "").trim().toLowerCase()
+  if (!left) return { line, rest }
+
+  const trimmedRest = rest.trimStart()
+  if (!/^(where|when|why|how)\b/i.test(trimmedRest)) return { line, rest }
+
+  if (!rest) return { line: left, rest: verb }
+  if (trimmedRest.toLowerCase().startsWith(`${verb} `)) {
+    return { line: left, rest }
+  }
+  return { line: left, rest: `${verb} ${rest}` }
+}
+
 function normalizeTrailingHowToHead(
   line: string,
   rest: string
@@ -1734,9 +1756,13 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     possessiveNormalized.line,
     possessiveNormalized.rest
   )
-  const howToNormalized = normalizeTrailingHowToHead(
+  const copularNormalized = normalizeTrailingCopularHead(
     subordinatorNormalized.line,
     subordinatorNormalized.rest
+  )
+  const howToNormalized = normalizeTrailingHowToHead(
+    copularNormalized.line,
+    copularNormalized.rest
   )
   const inHowNormalized = normalizeTrailingInHowHead(
     howToNormalized.line,

@@ -2118,6 +2118,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("while ")).toBe(true)
   })
 
+  it("moves trailing copular before where-clause to the next split chunk", () => {
+  const split = __testTakeLine(
+    "Sharing your own ideas and perspective is where personal branding begins.",
+    40,
+    null,
+    false
+  )
+  expect(split.line.toLowerCase().endsWith(" is")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("is where ")).toBe(true)
+  })
+
   it("moves trailing 'like' to the next split chunk", () => {
   const split = __testTakeLine(
     "It also raises your risk of chronic diseases like high blood pressure and diabetes.",

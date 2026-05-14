@@ -66,6 +66,8 @@ const DET_RE =
 const PRONOUN_RE = /^(?:me|you|him|her|us|them|it|this|that|there)\b/i
 const CLAUSE_STARTER_RE =
   /^(?:because|since|as|although|though|while|if|when)\b/i
+const THAT_CLAUSE_STARTER_RE =
+  /^that\s+(?:because|since|as|although|though|while|if|when|whether)\b/i
 const CLAUSE_STARTER_ANY_RE =
   /\b(?:because|since|as|although|though|while|if|when)\b/i
 const PREPOSITION_PHRASE_HEAD_RE =
@@ -2069,6 +2071,7 @@ function mergeNoSplitPhrases(
 
   const endsWithSentence =
     /[.!?]["']?\s*$/.test(trimmedLine) || /[.!?]["']?\s*$/.test(line)
+  const lineWordCount = trimmedLine.split(/\s+/).filter(Boolean).length
 
   if (endsWithPronounContraction(trimmedLine)) {
     const wordMatch = trimmedRest.match(/^[^\s]+/)
@@ -2110,9 +2113,21 @@ function mergeNoSplitPhrases(
     thatMatch &&
     !options.preserveLeadingThat &&
     !endsWithSentence &&
+    THAT_CLAUSE_STARTER_RE.test(trimmedRest) &&
+    canMergeToken(trimmedLine, thatMatch[0])
+  ) {
+    const token = thatMatch[0]
+    const nextRest = trimmedRest.slice(token.length).trimStart()
+    return { line: appendToken(trimmedLine, token), rest: nextRest }
+  }
+
+  if (
+    thatMatch &&
+    !options.preserveLeadingThat &&
+    !endsWithSentence &&
+    lineWordCount >= 2 &&
     !endsWithClauseStarter(trimmedLine) &&
-    !canSplitBeforeThat(trimmedLine) &&
-    !shouldSplitBeforeThatClause(trimmedLine, trimmedRest)
+    canMergeToken(trimmedLine, thatMatch[0])
   ) {
     const token = thatMatch[0]
     const nextRest = trimmedRest.slice(token.length).trimStart()

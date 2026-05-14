@@ -409,7 +409,7 @@ describe("fillSelectedTimestampLines", () => {
   )
   })
 
-  it("avoids splitting list items at commas", () => {
+  it("avoids splitting list items at commas and keeps trailing 'that'", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -425,9 +425,9 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "Let him know",
+    "Let him know that",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "that feeling frustrated, sad, or worn out is normal.",
+    "feeling frustrated, sad, or worn out is normal.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -761,7 +761,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("splits before 'that' after reporting verbs", () => {
+  it("keeps trailing 'that' after reporting verbs when it fits", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -777,9 +777,9 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "He told me",
+    "He told me that",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "that it was over.",
+    "it was over.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -823,7 +823,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("that's already something rare in love.")
   })
 
-  it("avoids starting a line with 'that' after noun phrases", () => {
+  it("keeps 'that' with following relative clauses when splitting", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -839,9 +839,9 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "He told me a story that",
+    "He told me a story",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "moved me.",
+    "that moved me.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -893,7 +893,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("that my hands and feet are always cold.")
   })
 
-  it("splits before 'that' when it starts an indefinite-subject clause", () => {
+  it("keeps trailing 'that' before indefinite-subject clauses when it fits", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -909,14 +909,14 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "The truth is",
+    "The truth is that",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "that something changed.",
+    "something changed.",
   ])
   expect(result.remaining).toBe("")
   })
 
-  it("splits before 'that' when it starts a bare indefinite-subject clause", () => {
+  it("keeps trailing 'that' before bare indefinite-subject clauses when it fits", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -932,9 +932,9 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "The truth is",
+    "The truth is that",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "that nobody noticed.",
+    "nobody noticed.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -2341,7 +2341,7 @@ describe("fillSelectedTimestampLines", () => {
   it("avoids one-word fallback heads before attached phrase tails", () => {
   const split = __testTakeLine(
     "After that we completed surgery and closed the incision.",
-    8,
+    12,
     null,
     false
   )
@@ -2515,6 +2515,20 @@ describe("fillSelectedTimestampLines", () => {
   )
   expect(split.line.toLowerCase().includes("weren't")).toBe(false)
   expect(split.rest.toLowerCase().startsWith("weren't looking good")).toBe(true)
+  })
+
+  it("keeps 'that' at the end of previous line before 'if' clauses", () => {
+  const split = __testTakeLine(
+    "And then they also told me that if the power went out or the machine broke down, we had to quickly get the beans out by hand.",
+    54,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("And then they also told me that")
+  expect(split.rest).toBe(
+    "if the power went out or the machine broke down, we had to quickly get the beans out by hand."
+  )
   })
 
   it("keeps possessive determiners with following noun phrases", () => {

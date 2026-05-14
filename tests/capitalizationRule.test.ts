@@ -56,4 +56,22 @@ describe("capitalizationRule", () => {
     const byToken = new Map(findings.map((f) => [f.token, f]))
     expect(byToken.get("riverton")?.expected).toBe("Riverton")
   })
+
+  it("flags partial-case mismatches for multi-word terms", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "Tzu Chi follows the Bodhisattva path in action.",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "Tzu Chi follows the Bodhisattva Path in action.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [
+      capitalizationRule({ terms: ["the Bodhisattva Path"] }),
+    ])
+    const findings = metrics.filter((m) => m.type === "CAPITALIZATION")
+
+    const tokens = findings.map((f) => f.token)
+    expect(tokens).toEqual(["the Bodhisattva path"])
+    expect(findings[0]?.expected).toBe("the Bodhisattva Path")
+  })
 })

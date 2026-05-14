@@ -10,3 +10,8 @@
 ## TDD workflow
 
 - For every code change, add a generic test, make sure it fails first, then implement the code and make sure it passes.
+
+## Terminology and capitalization
+
+- Keep canonical term casing exactly as listed in `capitalization-terms.txt`.
+- Add any new required casing conventions to `capitalization-terms.txt` so tooling can enforce them.

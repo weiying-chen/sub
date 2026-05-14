@@ -27,7 +27,7 @@ function buildMatchers(terms: string[]): CapitalizationMatcher[] {
     .filter((term) => term !== '')
 
   return cleaned.map((term) => ({
-    re: new RegExp(`\\b${escapeRegExp(term.toLowerCase())}\\b`, 'g'),
+    re: new RegExp(`\\b${escapeRegExp(term)}\\b`, 'gi'),
     expected: term,
   }))
 }
@@ -70,6 +70,7 @@ function collectMetrics(
     let match: RegExpExecArray | null = null
     while ((match = matcher.re.exec(text))) {
       const token = match[0]
+      if (token === matcher.expected) continue
       metrics.push({
         type: 'CAPITALIZATION',
         lineIndex: anchorIndex,

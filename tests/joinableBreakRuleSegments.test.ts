@@ -4,7 +4,7 @@ import { analyzeTextByType } from "../src/analysis/analyzeTextByType"
 import { joinableBreakRule } from "../src/analysis/joinableBreakRule"
 
 describe("joinableBreakRule (segments)", () => {
-  it("flags adjacent cues when the joined text still fits max chars", () => {
+  it("does not flag when left side is not a full sentence", () => {
     const text = [
       "00:03:19:29\t00:03:20:26\t我的孩子說",
       "My kid said:",
@@ -13,15 +13,10 @@ describe("joinableBreakRule (segments)", () => {
     ].join("\n")
 
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
-    expect(metrics).toHaveLength(1)
-
-    const finding = metrics[0]
-    expect(finding?.type).toBe("JOINABLE_BREAK")
-    if (!finding || finding.type !== "JOINABLE_BREAK") return
-    expect(finding.joinedLength).toBeLessThanOrEqual(finding.maxJoinedChars)
+    expect(metrics).toHaveLength(0)
   })
 
-  it("flags dash and conjunction style continuation breaks", () => {
+  it("does not flag dash continuation when either side is not a full sentence", () => {
     const text = [
       "00:07:51:16\t00:07:53:03\t是這一點有問題",
       "It was this---",
@@ -30,11 +25,10 @@ describe("joinableBreakRule (segments)", () => {
     ].join("\n")
 
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
-    expect(metrics).toHaveLength(1)
-    expect(metrics[0]?.type).toBe("JOINABLE_BREAK")
+    expect(metrics).toHaveLength(0)
   })
 
-  it("flags continuation when left side is conjunction-style but ends with comma", () => {
+  it("does not flag comma continuation when either side is not a full sentence", () => {
     const text = [
       "00:22:34:22\t00:22:35:17\t具體來講",
       "So after hearing all this,",
@@ -48,8 +42,7 @@ describe("joinableBreakRule (segments)", () => {
 
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
 
-    expect(metrics).toHaveLength(1)
-    expect(metrics[0]?.type).toBe("JOINABLE_BREAK")
+    expect(metrics).toHaveLength(0)
   })
 
   it("does not flag when joining would exceed max chars", () => {
@@ -122,7 +115,7 @@ describe("joinableBreakRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
-  it("flags when both adjacent lines are full sentences and joined text fits", () => {
+  it("does not flag when right side looks like a fragment even with sentence punctuation", () => {
     const text = [
       "00:18:57:11\t00:18:59:05\tMarker",
       "I'd do the opposite.",
@@ -131,8 +124,7 @@ describe("joinableBreakRule (segments)", () => {
     ].join("\n")
 
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
-    expect(metrics).toHaveLength(1)
-    expect(metrics[0]?.type).toBe("JOINABLE_BREAK")
+    expect(metrics).toHaveLength(0)
   })
 
   it("does not flag comma-continuation chain as joinable break", () => {
@@ -161,7 +153,7 @@ describe("joinableBreakRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
-  it("flags when previous line ends with comma even if next line has no ending punctuation", () => {
+  it("does not flag when previous line ends with comma if not full sentences", () => {
     const text = [
       "00:21:39:12\t00:21:41:16\tMarker",
       "The next morning,",
@@ -170,11 +162,10 @@ describe("joinableBreakRule (segments)", () => {
     ].join("\n")
 
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
-    expect(metrics).toHaveLength(1)
-    expect(metrics[0]?.type).toBe("JOINABLE_BREAK")
+    expect(metrics).toHaveLength(0)
   })
 
-  it("flags when the next line ends with a comma and join still fits", () => {
+  it("does not flag when the next line ends with a comma if not full sentences", () => {
     const text = [
       "00:18:53:06\t00:18:54:17\t在什麼地方",
       "where they came from,",
@@ -183,8 +174,19 @@ describe("joinableBreakRule (segments)", () => {
     ].join("\n")
 
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
-    expect(metrics).toHaveLength(1)
-    expect(metrics[0]?.type).toBe("JOINABLE_BREAK")
+    expect(metrics).toHaveLength(0)
+  })
+
+  it("does not flag when first line is a fragment question and next is full sentence", () => {
+    const text = [
+      "00:05:42:12\t00:05:44:19\t何不好好好利用這個時間",
+      "we've always wanted to do?",
+      "00:05:44:19\t00:05:47:13\t不是此時此刻又待何時呢",
+      "If not now, then when?",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(0)
   })
 
   it("does not flag when left side is a complete sentence and next is a trailing fragment", () => {

@@ -3,6 +3,7 @@ import type { Segment, SegmentCtx, SegmentRule } from "./segments"
 import { hasEmptyLineBetween, type LineSource, type ParseBlockOptions } from "../shared/tsvRuns"
 import { DEFAULT_MAX_CHARS } from "../shared/maxChars"
 import { canJoinAdjacentText } from "../shared/joinableText"
+import { looksLikeSentenceFragment } from "../shared/sentenceFragments"
 
 type JoinableBreakRuleOptions = ParseBlockOptions & {
   maxGapFrames?: number
@@ -12,6 +13,14 @@ type JoinableBreakRuleOptions = ParseBlockOptions & {
 const DEFAULT_MAX_GAP_FRAMES = 30
 const COMMA_END_RE = /[,，]\s*$/
 const SENTENCE_END_RE = /[.!?]["')\]]*\s*$/
+
+function isFullSentence(text: string): boolean {
+  const trimmed = text.trim()
+  if (!trimmed) return false
+  if (!SENTENCE_END_RE.test(trimmed)) return false
+  if (looksLikeSentenceFragment(trimmed)) return false
+  return true
+}
 
 function hasTiming(
   segment: Segment
@@ -52,6 +61,10 @@ export function joinableBreakRule(
 
     const gapFrames = next.startFrames - cur.endFrames
     if (gapFrames < 0 || gapFrames > maxGapFrames) return []
+
+    if (!isFullSentence(cur.translation) || !isFullSentence(next.translation)) {
+      return []
+    }
 
     // If `cur` already completes a comma-ended previous line, prefer that
     // boundary and avoid flagging an additional join from `cur` to `next`.

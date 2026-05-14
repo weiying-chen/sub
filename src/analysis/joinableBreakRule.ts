@@ -62,7 +62,9 @@ export function joinableBreakRule(
     const gapFrames = next.startFrames - cur.endFrames
     if (gapFrames < 0 || gapFrames > maxGapFrames) return []
 
-    if (!isFullSentence(cur.translation) || !isFullSentence(next.translation)) {
+    const curFullSentence = isFullSentence(cur.translation)
+    const nextFullSentence = isFullSentence(next.translation)
+    if (curFullSentence !== nextFullSentence) {
       return []
     }
 

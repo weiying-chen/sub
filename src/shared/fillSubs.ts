@@ -1905,6 +1905,26 @@ function mergeJoinableTranslations(
   }
 }
 
+function normalizePartialOverlapRepeats(
+  translations: Map<number, string>,
+  orderedIndices: number[]
+): void {
+  for (let i = 1; i < orderedIndices.length; i += 1) {
+    const previousIndex = orderedIndices[i - 1]
+    const currentIndex = orderedIndices[i]
+    const previous = (translations.get(previousIndex) ?? "").trim()
+    const current = (translations.get(currentIndex) ?? "").trim()
+    if (!previous || !current || previous === current) continue
+    if (current.length < 8) continue
+    if (!previous.toLowerCase().includes(current.toLowerCase())) continue
+
+    const nextIndex = orderedIndices[i + 1]
+    const next = nextIndex == null ? "" : (translations.get(nextIndex) ?? "").trim()
+    if (!next || next === current) continue
+    translations.set(currentIndex, next)
+  }
+}
+
 export function __testTakeLine(
   text: string,
   limit: number,
@@ -2473,6 +2493,7 @@ function runInlineFill(
   if (!dryRun) {
     const orderedIndices = [...translations.keys()].sort((a, b) => a - b)
     mergeJoinableTranslations(translations, orderedIndices, limit)
+    normalizePartialOverlapRepeats(translations, orderedIndices)
   }
 
   if (!dryRun) {

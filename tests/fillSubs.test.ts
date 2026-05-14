@@ -2574,4 +2574,30 @@ describe("fillSelectedTimestampLines", () => {
   expect(translations).not.toContain("and feet are always cold,")
   expect(translations.some((line) => line.includes("my hands and feet"))).toBe(true)
   })
+
+  it("avoids strict partial-overlap repeats across adjacent filled slots", () => {
+  const lines = [
+    "00:20:07:06\t00:20:10:15\t回應的原則非常簡單",
+    "00:20:10:15\t00:20:11:17\t有錯就認錯",
+    "00:20:11:17\t00:20:13:06\t沒錯就找證據",
+    "00:20:13:06\t00:20:14:11\t如果有爭議",
+    "00:20:14:11\t00:20:16:05\t我們就啟動調查",
+  ]
+  const selected = new Set([0, 1, 2, 3, 4])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "The rule is simple: admit mistakes, show proof if you're right, and investigate disputes.",
+    { maxChars: 42, inline: false }
+  )
+
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+  for (let i = 1; i < translations.length; i += 1) {
+    const prev = (translations[i - 1] ?? "").trim()
+    const cur = (translations[i] ?? "").trim()
+    if (!prev || !cur || prev === cur) continue
+    expect(prev.toLowerCase().includes(cur.toLowerCase())).toBe(false)
+  }
+  })
 })

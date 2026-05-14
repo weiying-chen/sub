@@ -1442,8 +1442,7 @@ function takeLine(
   const preserveLeadingThat =
     splitDecision.reason === 'sentence' ||
     splitDecision.reason === 'strong' ||
-    splitDecision.reason === 'semicolon' ||
-    splitDecision.reason === 'comma'
+    splitDecision.reason === 'semicolon'
 
   const line = window.slice(0, cut).trimEnd()
   const rest = (window.slice(cut) + s.slice(limit)).trimStart()
@@ -1692,7 +1691,7 @@ function normalizeTrailingPrepositionHead(
 ): { line: string; rest: string } {
   const trimmed = line.trimEnd()
   const match = trimmed.match(
-    /^(.*)\s+(of|near|in|into|on|at|behind|from|under|for)$/i
+    /^(.*)\s+(of|near|in|into|on|at|behind|from|under|for|with)$/i
   )
   if (!match) return { line, rest }
 
@@ -1721,7 +1720,8 @@ function normalizeTrailingPrepositionHead(
       word === 'behind' ||
       word === 'from' ||
       word === 'under' ||
-      word === 'for') &&
+      word === 'for' ||
+      word === 'with') &&
     !allowInHow &&
     !allowInNounPhrase &&
     !determinerHeadRe.test(rest.trimStart())
@@ -2106,6 +2106,18 @@ function mergeNoSplitPhrases(
       const nextRest = trimmedRest.slice(continuation[0].length).trimStart()
       return { line: appendToken(trimmedLine, token), rest: nextRest }
     }
+  }
+
+  const withMatch = trimmedRest.match(/^with\b/i)
+  if (
+    withMatch &&
+    lineWordCount >= 2 &&
+    !endsWithSentence &&
+    canMergeToken(trimmedLine, withMatch[0])
+  ) {
+    const token = withMatch[0]
+    const nextRest = trimmedRest.slice(token.length).trimStart()
+    return { line: appendToken(trimmedLine, token), rest: nextRest }
   }
 
   const thatMatch = trimmedRest.match(/^that(?:'s)?\b/i)

@@ -797,7 +797,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("that being together meant everything.")
   })
 
-  it("keeps comma splits before leading that's clauses", () => {
+  it("keeps trailing that's clauses on comma splits when it fits", () => {
   const split = __testTakeLine(
     "For people who really love each other, that's real growth and a really important way to support each other.",
     54,
@@ -805,9 +805,9 @@ describe("fillSelectedTimestampLines", () => {
     false
   )
 
-  expect(split.line).toBe("For people who really love each other,")
+  expect(split.line).toBe("For people who really love each other, that's")
   expect(split.rest).toBe(
-    "that's real growth and a really important way to support each other."
+    "real growth and a really important way to support each other."
   )
   })
 
@@ -1353,7 +1353,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("to say what matters most.")
   })
 
-  it("splits before 'with' as a low-priority fallback", () => {
+  it("keeps trailing 'with' on previous line when it fits", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -1369,9 +1369,9 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "They arrived at the station",
+    "They arrived at the station with",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "with extra supplies.",
+    "extra supplies.",
   ])
   expect(result.remaining).toBe("")
   })

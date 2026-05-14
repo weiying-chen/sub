@@ -44,11 +44,19 @@ export async function watch(
   reporter: Reporter,
   options: WatchOptions = {}
 ) {
+  const label = options.label ? ` ${options.label}` : ''
+  const watchBanner = `watching ${path}${label}`
+  const clearScreenWithBanner = () => {
+    clearScreen()
+    console.log(watchBanner)
+    console.log('')
+  }
+
   // Lint once immediately
   try {
-    await reporter(path, { clearScreen })
+    await reporter(path, { clearScreen: clearScreenWithBanner })
   } catch (err) {
-    clearScreen()
+    clearScreenWithBanner()
     const msg = err instanceof Error ? err.message : String(err)
     console.error(`ERROR ${msg}`)
   }
@@ -56,9 +64,9 @@ export async function watch(
   // Then watch and re-run on changes
   const run = debounce(async () => {
     try {
-      await reporter(path, { clearScreen })
+      await reporter(path, { clearScreen: clearScreenWithBanner })
     } catch (err) {
-      clearScreen()
+      clearScreenWithBanner()
       const msg = err instanceof Error ? err.message : String(err)
       console.error(`ERROR ${msg}`)
     }
@@ -77,9 +85,6 @@ export async function watch(
     const msg = err instanceof Error ? err.message : String(err)
     console.error(`WATCHER_ERROR ${msg}`)
   })
-
-  const label = options.label ? ` ${options.label}` : ''
-  console.log(`watching ${path}${label}`)
 }
 
 // --- CLI entry ---

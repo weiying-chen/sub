@@ -1068,10 +1068,10 @@ function findRightmostClauseStarterLead(window: string, nextText: string): numbe
   return best
 }
 
-// Low-priority fallback: split before selected prepositions, but avoid tiny heads.
-function findRightmostWithStart(window: string, nextText: string): number {
+// Low-priority fallback: split before "near", but avoid tiny heads.
+function findRightmostNearStart(window: string, nextText: string): number {
   let best = -1
-  const re = /\b(with|near)\b/gi
+  const re = /\bnear\b/gi
   let m: RegExpExecArray | null
   while ((m = re.exec(window)) !== null) {
     const start = m.index
@@ -1087,9 +1087,8 @@ function findRightmostWithStart(window: string, nextText: string): number {
     if (left.split(/\s+/).filter(Boolean).length < MIN_WITH_SPLIT_LEFT_WORDS) {
       continue
     }
-    const token = m[0].toLowerCase()
-    const tokenStart = new RegExp(`^${token}\\b`, 'i')
-    const tokenOnly = new RegExp(`^${token}\\b\\s*$`, 'i')
+    const tokenStart = /^near\b/i
+    const tokenOnly = /^near\b\s*$/i
     if (!tokenStart.test(right)) continue
     if (tokenOnly.test(right)) continue
     best = start
@@ -1234,12 +1233,6 @@ function findBestCut(
   const commaThatCut = findRightmostCommaThatStart(window)
   if (commaThatCut >= 0) return { cut: commaThatCut, reason: 'commaThat' }
 
-  const thatClauseCut = findRightmostThatClauseStart(window, nextText)
-  if (thatClauseCut >= 0) return { cut: thatClauseCut, reason: 'thatClause' }
-
-  const thatCut = findRightmostThatStart(window)
-  if (thatCut >= 0) return { cut: thatCut, reason: 'that' }
-
   const infinitiveLeadCut = findRightmostInfinitiveLead(window, nextText)
   if (infinitiveLeadCut >= 0) return { cut: infinitiveLeadCut, reason: 'infinitive' }
 
@@ -1259,8 +1252,8 @@ function findBestCut(
   if (listTailCut >= 0) return { cut: listTailCut, reason: 'listTail' }
 
   // 3) Last-resort lexical/space fallback boundaries.
-  const withCut = findRightmostWithStart(window, nextText)
-  if (withCut >= 0) return { cut: withCut, reason: 'with' }
+  const nearCut = findRightmostNearStart(window, nextText)
+  if (nearCut >= 0) return { cut: nearCut, reason: 'near' }
 
   const prepositionCut = findRightmostPrepositionLead(window, nextText)
   if (prepositionCut >= 0) return { cut: prepositionCut, reason: 'preposition' }
@@ -1443,6 +1436,7 @@ function takeLine(
     splitDecision.reason === 'sentence' ||
     splitDecision.reason === 'strong' ||
     splitDecision.reason === 'semicolon'
+  const forceTrailingThatWith = !isPunctuationSplitReason(splitDecision.reason)
 
   const line = window.slice(0, cut).trimEnd()
   const rest = (window.slice(cut) + s.slice(limit)).trimStart()
@@ -1464,7 +1458,7 @@ function takeLine(
     rest,
     noSplitAbbrevMatcher,
     noSplitUsAbbreviation,
-    { preserveLeadingThat, maxLineLength: limit }
+    { preserveLeadingThat, maxLineLength: limit, forceTrailingThatWith }
   )
   return normalizeSplit(adjusted.line, adjusted.rest)
 }
@@ -2073,7 +2067,12 @@ function adjustSplitForNoSplitAbbrev(
 function mergeNoSplitPhrases(
   line: string,
   rest: string,
-  options: { preserveLeadingThat?: boolean; maxLineLength?: number; enforceMaxOnMerge?: boolean } = {}
+  options: {
+    preserveLeadingThat?: boolean
+    maxLineLength?: number
+    enforceMaxOnMerge?: boolean
+    forceTrailingThatWith?: boolean
+  } = {}
 ): { line: string; rest: string } {
   if (!line || !rest) return { line, rest }
 
@@ -2133,7 +2132,7 @@ function mergeNoSplitPhrases(
     withMatch &&
     lineWordCount >= 2 &&
     !endsWithSentence &&
-    canMergeToken(trimmedLine, withMatch[0])
+    (options.forceTrailingThatWith || canMergeToken(trimmedLine, withMatch[0]))
   ) {
     const token = withMatch[0]
     const nextRest = trimmedRest.slice(token.length).trimStart()
@@ -2143,10 +2142,10 @@ function mergeNoSplitPhrases(
   const thatMatch = trimmedRest.match(/^that(?:'s)?\b/i)
   if (
     thatMatch &&
-    !options.preserveLeadingThat &&
+    (options.forceTrailingThatWith || !options.preserveLeadingThat) &&
     !endsWithSentence &&
     THAT_CLAUSE_STARTER_RE.test(trimmedRest) &&
-    canMergeToken(trimmedLine, thatMatch[0])
+    (options.forceTrailingThatWith || canMergeToken(trimmedLine, thatMatch[0]))
   ) {
     const token = thatMatch[0]
     const nextRest = trimmedRest.slice(token.length).trimStart()
@@ -2155,11 +2154,11 @@ function mergeNoSplitPhrases(
 
   if (
     thatMatch &&
-    !options.preserveLeadingThat &&
+    (options.forceTrailingThatWith || !options.preserveLeadingThat) &&
     !endsWithSentence &&
     lineWordCount >= 2 &&
     !endsWithClauseStarter(trimmedLine) &&
-    canMergeToken(trimmedLine, thatMatch[0])
+    (options.forceTrailingThatWith || canMergeToken(trimmedLine, thatMatch[0]))
   ) {
     const token = thatMatch[0]
     const nextRest = trimmedRest.slice(token.length).trimStart()
@@ -2232,7 +2231,12 @@ function adjustSplitForNoSplitAbbrevAndQuotes(
   rest: string,
   noSplitAbbrevMatcher: RegExp | null,
   noSplitUsAbbreviation: boolean,
-  options: { preserveLeadingThat?: boolean; maxLineLength?: number; enforceMaxOnMerge?: boolean } = {}
+  options: {
+    preserveLeadingThat?: boolean
+    maxLineLength?: number
+    enforceMaxOnMerge?: boolean
+    forceTrailingThatWith?: boolean
+  } = {}
 ): { line: string; rest: string } {
   const phraseAdjusted = mergeNoSplitPhrases(line, rest, options)
   const abbrevAdjusted = adjustSplitForNoSplitAbbrev(
@@ -2242,6 +2246,17 @@ function adjustSplitForNoSplitAbbrevAndQuotes(
     noSplitUsAbbreviation
   )
   return adjustSplitForQuotes(abbrevAdjusted.line, abbrevAdjusted.rest)
+}
+
+function isPunctuationSplitReason(reason: string): boolean {
+  return (
+    reason === 'sentence' ||
+    reason === 'strong' ||
+    reason === 'semicolon' ||
+    reason === 'comma' ||
+    reason === 'dash' ||
+    reason === 'commaThat'
+  )
 }
 
 type QuoteMeta = {

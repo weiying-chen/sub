@@ -425,9 +425,9 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "Let him know that",
+    "Let him know that feeling frustrated, sad,",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "feeling frustrated, sad, or worn out is normal.",
+    "or worn out is normal.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -777,9 +777,9 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "He told me that",
+    "He told me that it",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "it was over.",
+    "was over.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -823,7 +823,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("that's already something rare in love.")
   })
 
-  it("keeps 'that' with following relative clauses when splitting", () => {
+  it("keeps 'that' at end of previous line for relative clauses", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -839,9 +839,9 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "He told me a story",
+    "He told me a story that",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "that moved me.",
+    "moved me.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -869,7 +869,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("splits before 'that' when it starts a pronoun-led clause", () => {
+  it("keeps trailing 'that' before pronoun-led clauses", () => {
   const split = __testTakeLine(
     "The biggest benefit is that it opens up my perspective.",
     22,
@@ -877,11 +877,11 @@ describe("fillSelectedTimestampLines", () => {
     false
   )
 
-  expect(split.line).toBe("The biggest benefit is")
-  expect(split.rest).toBe("that it opens up my perspective.")
+  expect(split.line).toBe("The biggest benefit is that")
+  expect(split.rest).toBe("it opens up my perspective.")
   })
 
-  it("splits before 'that' after reporting verbs with audience noun objects", () => {
+  it("keeps trailing 'that' after reporting verbs with audience noun objects", () => {
   const split = __testTakeLine(
     "He likes to tell people that my hands and feet are always cold.",
     24,
@@ -889,8 +889,8 @@ describe("fillSelectedTimestampLines", () => {
     false
   )
 
-  expect(split.line).toBe("He likes to tell people")
-  expect(split.rest).toBe("that my hands and feet are always cold.")
+  expect(split.line).toBe("He likes to tell people that")
+  expect(split.rest).toBe("my hands and feet are always cold.")
   })
 
   it("keeps trailing 'that' before indefinite-subject clauses when it fits", () => {
@@ -939,7 +939,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("splits before 'that' when it starts a bare noun-subject clause", () => {
+  it("keeps trailing 'that' before bare noun-subject clauses", () => {
   const split = __testTakeLine(
     "Everyone kept telling me that dementia was a long goodbye.",
     25,
@@ -947,8 +947,8 @@ describe("fillSelectedTimestampLines", () => {
     false
   )
 
-  expect(split.line).toBe("Everyone kept telling me")
-  expect(split.rest).toBe("that dementia was a long goodbye.")
+  expect(split.line).toBe("Everyone kept telling me that")
+  expect(split.rest).toBe("dementia was a long goodbye.")
   })
 
   it("prefers splitting before relative who clauses", () => {
@@ -1369,11 +1369,11 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "They arrived at the station with",
+    "They arrived",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "extra supplies.",
+    "at the station with extra",
   ])
-  expect(result.remaining).toBe("")
+  expect(result.remaining).toBe("supplies.")
   })
 
   it("splits before 'near' as a low-priority fallback", () => {

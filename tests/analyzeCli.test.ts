@@ -243,6 +243,49 @@ describe("analyze CLI output", () => {
     ])
   })
 
+  it("allows proper-noun phrase casing in PEOPLE titles", async () => {
+    const text = [
+      "PEOPLE:",
+      "慈濟志工 | 伊莉莎白",
+      "Elizabeth DuPont",
+      "Tzu Chi volunteer",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "news",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(
+      output.some(
+        (metric) =>
+          metric.type === "PEOPLE" && metric.ruleCode === "TITLE_NOT_SENTENCE_CASE"
+      )
+    ).toBe(false)
+  })
+
+  it("still flags role-style title case in PEOPLE titles", async () => {
+    const text = [
+      "PEOPLE:",
+      "行政主管 | 王大明",
+      "Alex Wang",
+      "Vice President",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "news",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(output).toMatchObject([
+      {
+        type: "PEOPLE",
+        lineIndex: 3,
+        ruleCode: "TITLE_NOT_SENTENCE_CASE",
+      },
+    ])
+  })
+
   it("returns PEOPLE findings for missing English name and title", async () => {
     const text = [
       "PEOPLE:",

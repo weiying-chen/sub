@@ -19,6 +19,8 @@ function getWordTokens(text: string): string[] {
   return text.match(/[A-Za-z][A-Za-z.'-]*/g) ?? []
 }
 
+const ALLOWED_TITLE_PROPER_NOUN_PHRASES = [['Tzu', 'Chi']]
+
 function looksLikeName(text: string): boolean {
   const words = getWordTokens(text)
   if (words.length < 2 || words.length > 4) return false
@@ -32,9 +34,21 @@ function looksLikeName(text: string): boolean {
 }
 
 function isSentenceCase(text: string): boolean {
-  const words = getWordTokens(text)
+  const normalizedText = text.trim().replace(/\s+/g, ' ')
+  const words = getWordTokens(normalizedText)
   if (words.length === 0) return true
   if (!/^[A-Z]/.test(words[0]!)) return false
+
+  const allowsProperNounPhrase = ALLOWED_TITLE_PROPER_NOUN_PHRASES.find((phrase) => {
+    if (words.length < phrase.length) return false
+    return phrase.every((token, index) => words[index]?.toLowerCase() === token.toLowerCase())
+  })
+
+  if (allowsProperNounPhrase) {
+    return words
+      .slice(allowsProperNounPhrase.length)
+      .every((word) => !/^[A-Z][a-z]/.test(word))
+  }
 
   return words.slice(1).every((word) => !/^[A-Z][a-z]/.test(word))
 }

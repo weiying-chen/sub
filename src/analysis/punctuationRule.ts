@@ -59,6 +59,16 @@ function buildProperNounMatchers(properNouns: string[]): RegExp[] {
     })
 }
 
+function buildAbbreviationEndMatchers(abbreviations: string[]): RegExp[] {
+  return abbreviations
+    .map((abbreviation) => abbreviation.trim())
+    .filter((abbreviation) => abbreviation !== '')
+    .map(
+      (abbreviation) =>
+        new RegExp(`(?:^|\\s)${escapeRegExp(abbreviation)}(?:["'\\)\\]\\}]+)?\\s*$`, 'i')
+    )
+}
+
 function startsWithProperNoun(
   text: string,
   properNounMatchers: RegExp[]
@@ -94,6 +104,14 @@ function startsWithAcronym(s: string): boolean {
 
 function endsWithAcronym(s: string): boolean {
   return ACRONYM_END_RE.test(s.trimEnd())
+}
+
+function endsWithConfiguredAbbreviation(
+  s: string,
+  abbreviationEndMatchers: RegExp[]
+): boolean {
+  const trimmed = s.trimEnd()
+  return abbreviationEndMatchers.some((matcher) => matcher.test(trimmed))
 }
 
 function endsCapitalizationBoundary(s: string): boolean {
@@ -250,6 +268,7 @@ function collectMetrics(
   lines: string[],
   properNounMatchers: RegExp[],
   abbreviationMatchers: RegExp[],
+  abbreviationEndMatchers: RegExp[],
   options: ParseBlockOptions = {}
 ): PunctuationMetric[] {
   const src: LineSource = {
@@ -344,7 +363,12 @@ function collectMetrics(
       isStandaloneDoubleQuotedCue(prev.text) &&
       isStandaloneDoubleQuotedCue(next.text)
 
-    if (prevTrim.endsWith('.') && case1 === 'lower' && !endsWithAcronym(prevTrim)) {
+    if (
+      prevTrim.endsWith('.') &&
+      case1 === 'lower' &&
+      !endsWithAcronym(prevTrim) &&
+      !endsWithConfiguredAbbreviation(prevTrim, abbreviationEndMatchers)
+    ) {
       metrics.push({
         type: 'PUNCTUATION',
         lineIndex: next.lineIndex,
@@ -413,6 +437,9 @@ export function punctuationRule(
   const abbreviationMatchers = buildProperNounMatchers(
     options.abbreviations ?? []
   )
+  const abbreviationEndMatchers = buildAbbreviationEndMatchers(
+    options.abbreviations ?? []
+  )
   return ((ctx: RuleCtx | SegmentCtx) => {
     if ('segment' in ctx) {
       if (ctx.segmentIndex !== 0) return []
@@ -421,11 +448,18 @@ export function punctuationRule(
         ctx.lines,
         properNounMatchers,
         abbreviationMatchers,
+        abbreviationEndMatchers,
         options
       )
     }
 
     if (ctx.lineIndex !== 0) return []
-    return collectMetrics(ctx.lines, properNounMatchers, abbreviationMatchers, options)
+    return collectMetrics(
+      ctx.lines,
+      properNounMatchers,
+      abbreviationMatchers,
+      abbreviationEndMatchers,
+      options
+    )
   }) as PunctuationRule
 }

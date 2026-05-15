@@ -104,6 +104,24 @@ describe("punctuationRule", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores lowercase continuation after configured a.m. abbreviation", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "Work started at 9 a.m.",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "and we often brought breakfast to the office.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [
+      punctuationRule({ abbreviations: ["a.m.", "p.m."] }),
+    ])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some((f) => f.ruleCode === "LOWERCASE_AFTER_PERIOD")
+    ).toBe(false)
+  })
+
   it("ignores configured proper nouns starting the next cue", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

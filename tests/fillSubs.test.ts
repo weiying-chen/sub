@@ -1897,6 +1897,27 @@ describe("fillSelectedTimestampLines", () => {
   expect(translations).not.toContain("3")
   })
 
+  it("does not split clock time after colon", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Now we get up at 3:30 a.m. for morning class.",
+    { maxChars: 20, inline: true, noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS }
+  )
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(translations.some((line) => /3:$/.test(line))).toBe(false)
+  expect(translations.some((line) => /^30 a\.m\./.test(line))).toBe(false)
+  expect(translations.join(" ")).toContain("3:30 a.m.")
+  })
+
   it("avoids splitting numeric comma groups", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

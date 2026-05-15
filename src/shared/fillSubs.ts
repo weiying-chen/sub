@@ -136,6 +136,10 @@ function isMeridiemTimeSplit(left: string, right: string): boolean {
     /^(?:a\.m\.(?:\s|$)|p\.m\.(?:\s|$)|am\b|pm\b)/i.test(right)
 }
 
+function isClockTimeInnerSplit(left: string, right: string): boolean {
+  return /\b\d{1,2}:$/.test(left.trimEnd()) && /^\d{2}(?:\b|[:.])/.test(right.trimStart())
+}
+
 function startsWithMeridiemTimePhrase(text: string): boolean {
   return /^\d(?::\d{2})?\s+(?:a\.m\.(?:\s|$)|p\.m\.(?:\s|$)|am\b|pm\b)/i.test(text)
 }
@@ -336,6 +340,7 @@ function findRightmostStrongPunct(
     const left = window.slice(0, cut).trimEnd()
     const right = window.slice(cut).trimStart()
     if (!left || !right) continue
+    if (ch === ':' && isClockTimeInnerSplit(left, right)) continue
     if (ch === '.' && isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher)) continue
     if (ch === '.' && isPartialDottedAcronymSplit(left, right)) continue
     if (ch === '.' && isMiddleInitialNameSplit(left, right)) continue
@@ -1440,6 +1445,16 @@ function takeLine(
 
   const line = window.slice(0, cut).trimEnd()
   const rest = (window.slice(cut) + s.slice(limit)).trimStart()
+  const clockMinuteToken = rest.match(/^\d{2}(?:\b|[:.])/)?.[0] ?? null
+  const repairedClockSplit =
+    /\b\d{1,2}:$/.test(line) &&
+    clockMinuteToken != null &&
+    true
+      ? {
+          line: `${line}${clockMinuteToken}`,
+          rest: rest.slice(clockMinuteToken.length).trimStart(),
+        }
+      : null
 
   if (!line) {
     const hard = s.slice(0, limit)
@@ -1454,8 +1469,8 @@ function takeLine(
   }
 
   const adjusted = adjustSplitForNoSplitAbbrevAndQuotes(
-    line,
-    rest,
+    repairedClockSplit?.line ?? line,
+    repairedClockSplit?.rest ?? rest,
     noSplitAbbrevMatcher,
     noSplitUsAbbreviation,
     { preserveLeadingThat, maxLineLength: limit, forceTrailingThatWith }
@@ -2109,6 +2124,15 @@ function mergeNoSplitPhrases(
       const token = meridiemMatch[0]
       const nextRest = trimmedRest.slice(token.length).trimStart()
       return { line: appendToken(trimmedLine, token), rest: nextRest }
+    }
+  }
+
+  if (/\b\d{1,2}:$/.test(trimmedLine)) {
+    const minuteMatch = trimmedRest.match(/^\d{2}(?:\b|[:.])/)
+    if (minuteMatch) {
+      const token = minuteMatch[0]
+      const nextRest = trimmedRest.slice(token.length).trimStart()
+      return { line: `${trimmedLine}${token}`, rest: nextRest }
     }
   }
 

@@ -5,7 +5,7 @@ import { buildAnalyzeOutput } from './analyzeOutput'
 
 function printUsage() {
   console.error(
-    'Usage: analyze <file>|--text/-t "..." [--type subs|news|text] [--mode metrics|findings] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines]'
+    'Usage: analyze <file>|--text/-t "..." [--type subs|news|text] [--mode metrics|findings] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines] [--max-cps number]'
   )
 }
 
@@ -67,6 +67,7 @@ const output = await buildAnalyzeOutput(text, {
   baselineText,
   ignoreEmptyLines: args.ignoreEmptyLines,
   includeWarnings: args.includeWarnings,
+  maxCps: args.maxCps ?? undefined,
 })
 
 console.log(JSON.stringify(output, null, 2))

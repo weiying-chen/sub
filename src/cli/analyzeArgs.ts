@@ -10,6 +10,7 @@ export type AnalyzeArgs = {
   baselinePath: string | null
   ignoreEmptyLines: boolean
   unknownFlags: string[]
+  maxCps: number | null
 }
 
 export function parseAnalyzeArgs(args: string[]): AnalyzeArgs {
@@ -78,5 +79,6 @@ export function parseAnalyzeArgs(args: string[]): AnalyzeArgs {
     baselinePath,
     ignoreEmptyLines: shared.ignoreEmptyLines,
     unknownFlags,
+    maxCps: shared.maxCps,
   }
 }

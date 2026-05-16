@@ -16,6 +16,7 @@ export type AnalyzeOptions = {
   baselineText?: string
   ignoreEmptyLines?: boolean
   includeWarnings?: boolean
+  maxCps?: number
 }
 
 export async function buildAnalyzeOutput(
@@ -58,5 +59,6 @@ export async function buildAnalyzeOutput(
     baselineText: options.baselineText,
     ignoreEmptyLines: options.ignoreEmptyLines,
     includeWarnings: options.includeWarnings,
+    maxCps: options.maxCps,
   })
 }

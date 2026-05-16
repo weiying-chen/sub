@@ -8,6 +8,7 @@ type WatchArgs = {
   ruleFilters: Metric['type'][]
   baselinePath: string | null
   ignoreEmptyLines: boolean
+  maxCps: number | null
 }
 
 export function parseArgs(argv: string[]): WatchArgs {
@@ -44,5 +45,6 @@ export function parseArgs(argv: string[]): WatchArgs {
     ruleFilters: shared.ruleFilters as Metric['type'][],
     baselinePath,
     ignoreEmptyLines: shared.ignoreEmptyLines,
+    maxCps: shared.maxCps,
   }
 }

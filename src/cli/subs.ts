@@ -21,6 +21,7 @@ type SubsOptions = {
   ruleFilters?: Metric['type'][]
   baselinePath?: string
   ignoreEmptyLines?: boolean
+  maxCps?: number
 }
 
 function asNum(v: unknown): number | null {
@@ -242,6 +243,7 @@ async function printReport(
     baselineText: baselineText ?? undefined,
     ignoreEmptyLines: options.ignoreEmptyLines,
     includeWarnings: options.includeWarnings,
+    maxCps: options.maxCps,
   })) as Finding[]
 
   const scope = findMarkerScope(lines)

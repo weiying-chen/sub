@@ -47,4 +47,9 @@ describe("analyze CLI args", () => {
     ])
     expect(args.ruleFilters).toEqual(["MAX_CHARS", "PUNCTUATION"])
   })
+
+  it("parses --max-cps", () => {
+    const args = parseAnalyzeArgs(["--max-cps", "18", "-t", "x"])
+    expect(args.maxCps).toBe(18)
+  })
 })

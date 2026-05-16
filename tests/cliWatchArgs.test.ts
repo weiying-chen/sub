@@ -10,6 +10,7 @@ describe("watch parseArgs", () => {
       type: "subs",
       includeWarnings: true,
       baselinePath: null,
+      maxCps: null,
     })
   })
 
@@ -20,6 +21,7 @@ describe("watch parseArgs", () => {
       type: "subs",
       includeWarnings: false,
       baselinePath: null,
+      maxCps: null,
     })
   })
 
@@ -31,5 +33,10 @@ describe("watch parseArgs", () => {
       "file.txt",
     ])
     expect(result.ruleFilters).toEqual(["MAX_CHARS", "PUNCTUATION"])
+  })
+
+  it("parses --max-cps value", () => {
+    const result = parseArgs(["--max-cps", "19", "file.txt"])
+    expect(result.maxCps).toBe(19)
   })
 })

@@ -57,6 +57,7 @@ describe("createSubsReporter", () => {
         type: "subs",
         mode: "findings",
         includeWarnings: true,
+        maxCps: undefined,
       })
     )
   })
@@ -94,4 +95,34 @@ describe("createSubsReporter", () => {
     expect(scoped).toHaveLength(1)
     expect(scoped[0]?.lineIndex).toBe(3)
   })
+})
+
+it("passes maxCps through to shared analyze output", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "subs-reporter-"))
+  const filePath = join(dir, "sample-max-cps.txt")
+  await writeFile(
+    filePath,
+    [
+      "00:05:19:06\t00:05:21:20\t今年非常不幸地",
+      "Unfortunately, this year,",
+    ].join("\n"),
+    "utf8"
+  )
+
+  const logSpy = vi.spyOn(console, "log").mockImplementation(() => {})
+  try {
+    const reporter = createSubsReporter({ includeWarnings: true, maxCps: 19 })
+    await reporter(filePath, { clearScreen: () => {} })
+  } finally {
+    logSpy.mockRestore()
+  }
+
+  expect(mocks.buildAnalyzeOutputMock).toHaveBeenCalledWith(
+    expect.any(String),
+    expect.objectContaining({
+      type: "subs",
+      mode: "findings",
+      maxCps: 19,
+    })
+  )
 })

@@ -53,8 +53,6 @@ const THAT_RE = /\b(that)\b/i
 const WHO_RE = /\b(who|whom|whose|who's)\b/i
 const THAT_SPLIT_VERB_RE =
   /\b(?:say|says|said|tell|tells|told|ask|asks|asked|think|thinks|thought|know|knows|knew|realize|realizes|realized|feel|feels|felt|hope|hopes|hoped|decide|decides|decided|learn|learns|learned|hear|hears|heard|believe|believes|believed|suspect|suspects|suspected|guess|guesses|guessed|remember|remembers|remembered|notice|notices|noticed|find|finds|found)\b/i
-const THAT_SPLIT_OBJECT_RE =
-  /^(?:me|you|him|her|us|them|it|this|that|there|someone|somebody|anyone|anybody|everyone|everybody|noone|nobody)$/i
 const COPULAR_RE =
   /\b(am|is|are|was|were|isn['’]?t|aren['’]?t|wasn['’]?t|weren['’]?t)\b/i
 const COPULAR_VERB_START_RE =
@@ -78,27 +76,10 @@ const TO_VERB_HELPER_RE =
   /\b(?:have|has|had|need|needs|want|wants|wanted|going)\s+to\s+[A-Za-z]+$/i
 const SENTENCE_VERB_RE =
   /\b(am|is|are|was|were|be|being|been|have|has|had|do|does|did|can|will|would|should|must)\b/i
-const THAT_CLAUSE_EXPLICIT_SUBJECT_RE =
-  /^(?:it|he|she|they|we|i|this|there|my|your|his|her|our|their|the|a|an|someone|somebody|anyone|anybody|everyone|everybody|noone|nobody|no|something|anything|everything|nothing)\b/i
 const STRONG_PUNCT = new Set(['.', '?', '!', ':', EM_DASH])
 const SEMICOLON_PUNCT = new Set([';'])
 const COMMA_PUNCT = new Set([','])
 const DIALOGUE_TAG_VERBS = ['said', 'asked', 'replied', 'told']
-const THAT_SPLIT_AUDIENCE_OBJECT_NOUNS = new Set([
-  'people',
-  'person',
-  'audience',
-  'audiences',
-  'viewer',
-  'viewers',
-  'listener',
-  'listeners',
-  'reader',
-  'readers',
-  'crowd',
-  'crowds',
-  'folks',
-])
 
 function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -630,114 +611,6 @@ function findRightmostCommaThatStart(window: string): number {
   return best
 }
 
-function findRightmostThatStart(window: string): number {
-  let best = -1
-  const re = new RegExp(THAT_RE.source, 'gi')
-  let m: RegExpExecArray | null
-  while ((m = re.exec(window)) !== null) {
-    const start = m.index
-    const end = start + m[0].length
-
-    const prev = window[start - 1] ?? ''
-    const next = window[end] ?? ''
-    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
-
-    const left = window.slice(0, start).trimEnd()
-    const right = window.slice(start).trimStart()
-    if (left && right && canSplitBeforeThat(left)) best = start
-  }
-  return best
-}
-
-function shouldSplitBeforeThatClause(left: string, right: string): boolean {
-  const trimmedLeft = left.trimEnd()
-  const trimmedRight = right.trimStart()
-  if (!trimmedLeft || !trimmedRight) return false
-  if (!looksLikeThatClauseStart(trimmedRight)) return false
-
-  const words = trimmedLeft.split(/\s+/).filter(Boolean)
-  if (words.length < 2) return false
-  const lastWord = (words[words.length - 1] ?? '').toLowerCase()
-  if (CONJ_RE.test(lastWord)) return false
-
-  return true
-}
-
-function cleanWord(word: string): string {
-  return word.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, '').toLowerCase()
-}
-
-function looksLikeFiniteVerbToken(word: string): boolean {
-  if (!word) return false
-  if (SENTENCE_VERB_RE.test(word)) return true
-  if (/^(?:felt|found|left|lost|made|paid|said|saw|went|won)$/i.test(word)) {
-    return true
-  }
-  return /^[a-z]+(?:s|ed)$/.test(word)
-}
-
-function looksLikeThatClauseStart(right: string): boolean {
-  const trimmedRight = right.trimStart()
-  const thatMatch = trimmedRight.match(/^that\b\s*(.*)$/i)
-  if (!thatMatch) return false
-
-  const tail = thatMatch[1]?.trim() ?? ''
-  if (!tail) return false
-
-  const tokens = tail
-    .split(/\s+/)
-    .map(cleanWord)
-    .filter(Boolean)
-  if (tokens.length < 2) return false
-  if (looksLikeFiniteVerbToken(tokens[0] ?? '')) return false
-
-  const first = tokens[0] ?? ''
-  const startsExplicitly =
-    first === 'no' || THAT_CLAUSE_EXPLICIT_SUBJECT_RE.test(first)
-  const maxVerbIndex = startsExplicitly ? 4 : 3
-
-  for (let i = 1; i < tokens.length && i <= maxVerbIndex; i += 1) {
-    if (looksLikeFiniteVerbToken(tokens[i] ?? '')) return true
-  }
-
-  return false
-}
-
-function isAudienceObjectTail(words: string[]): boolean {
-  if (words.length === 1) {
-    return THAT_SPLIT_AUDIENCE_OBJECT_NOUNS.has(cleanWord(words[0] ?? ''))
-  }
-
-  if (words.length === 2 && DET_RE.test(words[0] ?? '')) {
-    return THAT_SPLIT_AUDIENCE_OBJECT_NOUNS.has(cleanWord(words[1] ?? ''))
-  }
-
-  return false
-}
-
-function canSplitBeforeThat(left: string): boolean {
-  const trimmed = left.trimEnd()
-  if (!trimmed) return false
-
-  const words = trimmed.split(/\s+/).filter(Boolean)
-  if (words.length === 0) return false
-
-  const minIndex = Math.max(0, words.length - 3)
-  for (let i = words.length - 1; i >= minIndex; i--) {
-    const word = words[i] ?? ''
-    if (!THAT_SPLIT_VERB_RE.test(word)) continue
-
-    const tail = words.slice(i + 1)
-    if (tail.length === 0) return true
-    if (tail.length === 1 && THAT_SPLIT_OBJECT_RE.test(tail[0] ?? '')) {
-      return true
-    }
-    if (isAudienceObjectTail(tail)) return true
-  }
-
-  return false
-}
-
 function canSplitBeforeWho(left: string): boolean {
   const trimmed = left.trimEnd()
   if (!trimmed) return false
@@ -775,31 +648,6 @@ function findRightmostWhoStart(window: string): number {
     const right = window.slice(start).trimStart()
     if (!left || !right) continue
     if (!canSplitBeforeWho(left)) continue
-
-    best = start
-  }
-  return best
-}
-
-function findRightmostThatClauseStart(
-  window: string,
-  nextText: string
-): number {
-  let best = -1
-  const re = new RegExp(THAT_RE.source, 'gi')
-  let m: RegExpExecArray | null
-  while ((m = re.exec(window)) !== null) {
-    const start = m.index
-    const end = start + m[0].length
-
-    const prev = window[start - 1] ?? ''
-    const next = window[end] ?? ''
-    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
-
-    const left = window.slice(0, start).trimEnd()
-    const right = (window.slice(start) + nextText).trimStart()
-    if (!left || !right) continue
-    if (!shouldSplitBeforeThatClause(left, right)) continue
 
     best = start
   }

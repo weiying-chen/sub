@@ -145,6 +145,57 @@ function isStandaloneDoubleQuotedCue(s: string): boolean {
   return trimmed.indexOf('"', 1) >= 0
 }
 
+function isSingleLineParentheticalCue(s: string): boolean {
+  const trimmed = s.trim()
+  if (trimmed === '' || /[\r\n]/.test(trimmed)) return false
+  const isAsciiParenthetical = trimmed.startsWith('(') && trimmed.endsWith(')')
+  const isFullWidthParenthetical =
+    trimmed.startsWith('（') && trimmed.endsWith('）')
+  return isAsciiParenthetical || isFullWidthParenthetical
+}
+
+function startsWithOpeningParenthesis(s: string): boolean {
+  const trimmed = s.trim()
+  return trimmed.startsWith('(') || trimmed.startsWith('（')
+}
+
+function endsWithClosingParenthesis(s: string): boolean {
+  const trimmed = s.trim()
+  return trimmed.endsWith(')') || trimmed.endsWith('）')
+}
+
+function buildParentheticalCueExemptions(cues: Cue[]): Set<number> {
+  const exempt = new Set<number>()
+
+  for (let i = 0; i < cues.length; i += 1) {
+    const text = cues[i]?.text ?? ''
+
+    if (isSingleLineParentheticalCue(text)) {
+      exempt.add(i)
+      continue
+    }
+
+    if (!startsWithOpeningParenthesis(text)) continue
+    if (endsWithClosingParenthesis(text)) continue
+
+    let closeIndex: number | null = null
+    for (let j = i + 1; j < cues.length; j += 1) {
+      const nextText = cues[j]?.text ?? ''
+      if (startsWithOpeningParenthesis(nextText)) break
+      if (endsWithClosingParenthesis(nextText)) {
+        closeIndex = j
+        break
+      }
+    }
+
+    if (closeIndex == null) continue
+    for (let j = i; j <= closeIndex; j += 1) exempt.add(j)
+    i = closeIndex
+  }
+
+  return exempt
+}
+
 function hasUnclosedStartingQuote(s: string): boolean {
   const open = startsWithOpenQuote(s)
   if (open !== "'") return false
@@ -249,6 +300,7 @@ function addRule4Metric(
 ) {
   if (reported.has(cue.text)) return
   if (!cue.text.trim()) return
+  if (isSingleLineParentheticalCue(cue.text)) return
   if (!firstAlphaCase(cue.text)) return
   if (endsTerminal(cue.text)) return
   reported.add(cue.text)
@@ -280,11 +332,14 @@ function collectMetrics(
   const cues = cuesFromTimestamps.length > 0 ? cuesFromTimestamps : collectTextCues(lines)
   const quoteTracker = createDoubleQuoteSpanTracker()
   const quoteStateByCue = cues.map((cue) => quoteTracker.inspect(cue.text))
+  const parentheticalCueExemptions = buildParentheticalCueExemptions(cues)
   const metrics: PunctuationMetric[] = []
   const reportedRule4 = new Set<string>()
 
   const reportedRule5 = new Set<string>()
-  for (const cue of cues) {
+  for (let i = 0; i < cues.length; i += 1) {
+    if (parentheticalCueExemptions.has(i)) continue
+    const cue = cues[i]
     if (reportedRule5.has(cue.text)) continue
     const unmatched = findUnmatchedDoubleQuote(cue.text)
     const hasUnclosedOpenDoubleQuote = unmatched?.kind === 'open'
@@ -303,7 +358,9 @@ function collectMetrics(
   }
 
   const reportedRule6 = new Set<string>()
-  for (const cue of cues) {
+  for (let i = 0; i < cues.length; i += 1) {
+    if (parentheticalCueExemptions.has(i)) continue
+    const cue = cues[i]
     if (reportedRule6.has(cue.text)) continue
     const unmatched = findUnmatchedDoubleQuote(cue.text)
     if (unmatched?.kind !== 'close') continue
@@ -321,6 +378,8 @@ function collectMetrics(
   for (let j = 0; j < cues.length - 1; j += 1) {
     const prev = cues[j]
     const next = cues[j + 1]
+    const prevIsParentheticalExempt = parentheticalCueExemptions.has(j)
+    const nextIsParentheticalExempt = parentheticalCueExemptions.has(j + 1)
 
     if (isSameTextWithAddedTerminal(prev.text, next.text)) {
       addRule4Metric(prev, metrics, reportedRule4)
@@ -337,13 +396,15 @@ function collectMetrics(
     if (hasMetadataBreak) {
       if (!usesTimestampCues) {
         const nextCase = firstAlphaCase(next.text)
-        if (nextCase === 'lower') {
+        if (nextCase === 'lower' && !prevIsParentheticalExempt) {
           addRule4Metric(prev, metrics, reportedRule4)
           continue
         }
       }
 
-      addRule4Metric(prev, metrics, reportedRule4)
+      if (!prevIsParentheticalExempt) {
+        addRule4Metric(prev, metrics, reportedRule4)
+      }
       if (usesTimestampCues) continue
     }
 
@@ -364,6 +425,8 @@ function collectMetrics(
       isStandaloneDoubleQuotedCue(next.text)
 
     if (
+      !prevIsParentheticalExempt &&
+      !nextIsParentheticalExempt &&
       prevTrim.endsWith('.') &&
       case1 === 'lower' &&
       !endsWithAcronym(prevTrim) &&
@@ -381,6 +444,7 @@ function collectMetrics(
     }
 
     if (
+      !prevIsParentheticalExempt &&
       !endsCapitalizationBoundary(prevTrim) &&
       (!nextQuoteStart || allowCapitalCheckWithQuotedNext) &&
       !startsWithIPronoun(next.text) &&
@@ -403,6 +467,8 @@ function collectMetrics(
     }
 
     if (
+      !prevIsParentheticalExempt &&
+      !nextIsParentheticalExempt &&
       nextQuoteStart &&
       !nextIsQuoteContinuation &&
       prevTrim.endsWith(',') &&
@@ -423,7 +489,9 @@ function collectMetrics(
   }
 
   const last = cues.at(-1) ?? null
-  if (last) addRule4Metric(last, metrics, reportedRule4)
+  if (last && !parentheticalCueExemptions.has(cues.length - 1)) {
+    addRule4Metric(last, metrics, reportedRule4)
+  }
 
   return metrics
 }

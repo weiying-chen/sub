@@ -574,4 +574,58 @@ describe("punctuationRule (segments)", () => {
       )
     ).toBe(true)
   })
+
+  it("does not flag single-line parenthetical on-screen text in subs mode", () => {
+    const text = [
+      "00:04:28:17\t00:04:31:25\t清熱燥濕 瀉火解毒",
+      "(Clearing Heat and dampness to reduce inflammation)",
+      "00:04:31:25\t00:04:34:00\t續行",
+      "Next sentence starts here.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.text === "(Clearing Heat and dampness to reduce inflammation)"
+      )
+    ).toBe(false)
+  })
+
+  it("does not flag balanced wrapped parenthetical on-screen text in subs mode", () => {
+    const text = [
+      "00:04:28:17\t00:04:31:25\t清熱燥濕 瀉火解毒",
+      "(Clear Heat and dampness to",
+      "00:04:31:25\t00:04:34:00\t續行",
+      "reduce inflammation)",
+      "00:04:34:00\t00:04:36:00\t續行",
+      "Next sentence starts here.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings.some((f) => f.text === "(Clear Heat and dampness to")).toBe(
+      false
+    )
+    expect(findings.some((f) => f.text === "reduce inflammation)")).toBe(false)
+  })
+
+  it("still flags unbalanced wrapped parenthetical text in subs mode", () => {
+    const text = [
+      "00:04:28:17\t00:04:31:25\t清熱燥濕 瀉火解毒",
+      "(Clear Heat and dampness to",
+      "00:04:31:25\t00:04:34:00\t續行",
+      "reduce inflammation",
+      "00:04:34:00\t00:04:36:00\t續行",
+      "Next sentence starts here.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings.some((f) => f.text === "reduce inflammation")).toBe(true)
+  })
 })

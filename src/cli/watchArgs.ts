@@ -9,6 +9,7 @@ type WatchArgs = {
   baselinePath: string | null
   ignoreEmptyLines: boolean
   maxCps: number | null
+  minCps: number | null
 }
 
 export function parseArgs(argv: string[]): WatchArgs {
@@ -46,5 +47,6 @@ export function parseArgs(argv: string[]): WatchArgs {
     baselinePath,
     ignoreEmptyLines: shared.ignoreEmptyLines,
     maxCps: shared.maxCps,
+    minCps: shared.minCps,
   }
 }

@@ -11,6 +11,7 @@ export type AnalyzeArgs = {
   ignoreEmptyLines: boolean
   unknownFlags: string[]
   maxCps: number | null
+  minCps: number | null
 }
 
 export function parseAnalyzeArgs(args: string[]): AnalyzeArgs {
@@ -80,5 +81,6 @@ export function parseAnalyzeArgs(args: string[]): AnalyzeArgs {
     ignoreEmptyLines: shared.ignoreEmptyLines,
     unknownFlags,
     maxCps: shared.maxCps,
+    minCps: shared.minCps,
   }
 }

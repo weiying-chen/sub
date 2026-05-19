@@ -52,4 +52,9 @@ describe("analyze CLI args", () => {
     const args = parseAnalyzeArgs(["--max-cps", "18", "-t", "x"])
     expect(args.maxCps).toBe(18)
   })
+
+  it("parses --min-cps", () => {
+    const args = parseAnalyzeArgs(["--min-cps", "6", "-t", "x"])
+    expect(args.minCps).toBe(6)
+  })
 })

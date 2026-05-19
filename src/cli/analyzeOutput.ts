@@ -17,6 +17,7 @@ export type AnalyzeOptions = {
   ignoreEmptyLines?: boolean
   includeWarnings?: boolean
   maxCps?: number
+  minCps?: number
 }
 
 export async function buildAnalyzeOutput(
@@ -60,5 +61,6 @@ export async function buildAnalyzeOutput(
     ignoreEmptyLines: options.ignoreEmptyLines,
     includeWarnings: options.includeWarnings,
     maxCps: options.maxCps,
+    minCps: options.minCps,
   })
 }

@@ -39,4 +39,9 @@ describe("watch parseArgs", () => {
     const result = parseArgs(["--max-cps", "19", "file.txt"])
     expect(result.maxCps).toBe(19)
   })
+
+  it("parses --min-cps value", () => {
+    const result = parseArgs(["--min-cps", "6", "file.txt"])
+    expect(result.minCps).toBe(6)
+  })
 })

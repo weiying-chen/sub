@@ -393,6 +393,21 @@ describe("analyze CLI output", () => {
     expect(output.some((metric) => metric.type === "MIN_CPS")).toBe(true)
   })
 
+  it("respects custom minCps in findings mode", async () => {
+    const text = [
+      "00:00:01:00\t00:00:03:00\tMarker",
+      "Hi",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "subs",
+      mode: "findings",
+      minCps: 1,
+    })) as Metric[]
+
+    expect(output.some((metric) => metric.type === "MIN_CPS")).toBe(false)
+  })
+
   it("uses full default subs findings set in findings mode", async () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

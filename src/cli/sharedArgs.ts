@@ -4,6 +4,7 @@ export type SharedCliFlags = {
   ignoreEmptyLines: boolean
   ruleFilters: string[]
   maxCps: number | null
+  minCps: number | null
   consumedIndexes: Set<number>
 }
 
@@ -12,6 +13,7 @@ export function parseSharedCliFlags(args: string[]): SharedCliFlags {
   let includeWarnings = true
   let ignoreEmptyLines = false
   let maxCps: number | null = null
+  let minCps: number | null = null
   const ruleFilters: string[] = []
   const consumedIndexes = new Set<number>()
 
@@ -78,6 +80,26 @@ export function parseSharedCliFlags(args: string[]): SharedCliFlags {
       consumedIndexes.add(i)
       continue
     }
+
+    if (arg === '--min-cps' && i + 1 < args.length) {
+      const parsed = Number(args[i + 1])
+      if (Number.isFinite(parsed) && parsed > 0) {
+        minCps = parsed
+      }
+      consumedIndexes.add(i)
+      consumedIndexes.add(i + 1)
+      i += 1
+      continue
+    }
+
+    if (arg.startsWith('--min-cps=')) {
+      const parsed = Number(arg.slice('--min-cps='.length))
+      if (Number.isFinite(parsed) && parsed > 0) {
+        minCps = parsed
+      }
+      consumedIndexes.add(i)
+      continue
+    }
   }
 
   return {
@@ -86,6 +108,7 @@ export function parseSharedCliFlags(args: string[]): SharedCliFlags {
     ignoreEmptyLines,
     ruleFilters,
     maxCps,
+    minCps,
     consumedIndexes,
   }
 }

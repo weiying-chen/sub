@@ -951,6 +951,28 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("dementia was a long goodbye.")
   })
 
+  it("does not exceed maxChars for forced trailing that", () => {
+  const lines = [
+    "00:02:13:20\t00:02:14:23\t參與工程的話",
+    "00:02:14:23\t00:02:18:01\t就是說我到現在就覺得說",
+    "00:02:18:01\t00:02:19:09\t你在叢林工作",
+    "00:02:19:09\t00:02:21:18\t就是說時間做哪一個工作",
+    "00:02:21:18\t00:02:23:25\t都是你的功課",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Working on the construction project made me realize that in monastic life, every kind of work is part of the practice.",
+    { inline: true, maxChars: 54, noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS }
+  )
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+  const maxLength = Math.max(...translations.map((line) => line.length))
+
+  expect(maxLength).toBeLessThanOrEqual(54)
+  })
+
   it("prefers splitting before relative who clauses", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

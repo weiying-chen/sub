@@ -2286,9 +2286,13 @@ function runInlineFill(
       const carryExtra = preview.text.length - split.line.length
       const quoteAdjustedOverflow =
         split.line.length > limit && hasTrailingDoubleQuote(split.line)
+      const enforceInlineMax = options.inline === true && limit >= 10
       if (
         !quoteAdjustedOverflow &&
-        (preview.text.length <= limit || carryExtra <= 0)
+        ((!enforceInlineMax && (preview.text.length <= limit || carryExtra <= 0)) ||
+          (enforceInlineMax &&
+            split.line.length <= limit &&
+            (preview.text.length <= limit || carryExtra <= 0)))
       ) {
         break
       }

@@ -1766,6 +1766,43 @@ function normalizePartialOverlapRepeats(
   translations: Map<number, string>,
   orderedIndices: number[]
 ): void {
+  for (let i = 0; i < orderedIndices.length - 1; i += 1) {
+    const baseIndex = orderedIndices[i]
+    const base = (translations.get(baseIndex) ?? '').trim()
+    if (!base) continue
+
+    let runEnd = i
+    for (let j = i + 1; j < orderedIndices.length; j += 1) {
+      const value = (translations.get(orderedIndices[j]) ?? '').trim()
+      if (value !== base) break
+      runEnd = j
+    }
+    if (runEnd === i) continue
+
+    const fullerIndex = runEnd + 1
+    if (fullerIndex >= orderedIndices.length) continue
+    const fuller = (translations.get(orderedIndices[fullerIndex]) ?? '').trim()
+    if (!fuller) continue
+
+    const baseHasTerminal = /(?:\.{3}|[.!?:…]|---|—)["')\]]*\s*$/.test(base)
+    const canPromoteByPrefix = fuller.toLowerCase().startsWith(base.toLowerCase())
+    let canPromoteByRepeatedCompletion = false
+    if (!baseHasTerminal && i > 0) {
+      const previous = (translations.get(orderedIndices[i - 1]) ?? '').trim()
+      const fullerLooksLikeContinuation = /^[a-z]/.test(fuller)
+      canPromoteByRepeatedCompletion =
+        !!previous &&
+        base.toLowerCase().startsWith(previous.toLowerCase()) &&
+        fullerLooksLikeContinuation
+    }
+    if (!canPromoteByPrefix && !canPromoteByRepeatedCompletion) continue
+
+    for (let j = i; j <= runEnd; j += 1) {
+      translations.set(orderedIndices[j], fuller)
+    }
+    i = runEnd
+  }
+
   for (let i = 1; i < orderedIndices.length; i += 1) {
     const previousIndex = orderedIndices[i - 1]
     const currentIndex = orderedIndices[i]
@@ -1780,6 +1817,10 @@ function normalizePartialOverlapRepeats(
     if (!next || next === current) continue
     translations.set(currentIndex, next)
   }
+}
+
+function endsSentenceTerminal(text: string): boolean {
+  return /(?:\.{3}|[.!?…]|---|—)["')\]]*\s*$/.test(text.trim())
 }
 
 export function __testTakeLine(
@@ -1954,6 +1995,14 @@ function mergeNoSplitPhrases(
   const endsWithSentence =
     /[.!?]["']?\s*$/.test(trimmedLine) || /[.!?]["']?\s*$/.test(line)
   const lineWordCount = trimmedLine.split(/\s+/).filter(Boolean).length
+  const isLikelyProperNameHead = (() => {
+    if (lineWordCount < 1 || lineWordCount > 4) return false
+    const words = trimmedLine.split(/\s+/).filter(Boolean)
+    if (words.length === 0) return false
+    return words.every((word) =>
+      /^[A-Z][A-Za-z'’-]*(?:-[A-Za-z'’-]+)*$/.test(word)
+    )
+  })()
 
   if (endsWithPronounContraction(trimmedLine)) {
     const wordMatch = trimmedRest.match(/^[^\s]+/)
@@ -2007,6 +2056,14 @@ function mergeNoSplitPhrases(
     (options.forceTrailingThatWith || canMergeToken(trimmedLine, withMatch[0]))
   ) {
     const token = withMatch[0]
+    const nextRest = trimmedRest.slice(token.length).trimStart()
+    return { line: appendToken(trimmedLine, token), rest: nextRest }
+  }
+
+  const andPronounMatch = trimmedRest.match(/^(and)\s+(I|we|he|she|they)\b/)
+  if (andPronounMatch && isLikelyProperNameHead) {
+    const token = `${andPronounMatch[1]} ${andPronounMatch[2]}`
+    if (!canMergeToken(trimmedLine, token)) return { line, rest }
     const nextRest = trimmedRest.slice(token.length).trimStart()
     return { line: appendToken(trimmedLine, token), rest: nextRest }
   }
@@ -2370,10 +2427,67 @@ function runInlineFill(
   }
 
   if (!dryRun && !remaining && lastTranslation && lastFilledIndex != null) {
+    const trimmedLast = lastTranslation.trim()
+    if (trimmedLast && !endsSentenceTerminal(trimmedLast)) {
+      const filledIndices = [...translations.keys()].sort((a, b) => a - b)
+      let replacementTail = ''
+      for (let i = filledIndices.length - 2; i >= 0; i -= 1) {
+        const candidate = (translations.get(filledIndices[i]) ?? '').trim()
+        if (candidate && endsSentenceTerminal(candidate)) {
+          replacementTail = candidate
+          break
+        }
+      }
+      if (replacementTail) {
+        translations.set(lastFilledIndex, replacementTail)
+        lastTranslation = replacementTail
+      }
+    }
+  }
+
+  if (!dryRun && !remaining && lastTranslation && lastFilledIndex != null) {
+    const filledIndices = [...translations.keys()].sort((a, b) => a - b)
+    const filledValues = filledIndices
+      .map((index) => (translations.get(index) ?? '').trim())
+      .filter(Boolean)
+    const currentTail = filledValues.at(-1) ?? ''
+    const lastTailIsComplete = endsSentenceTerminal(currentTail)
+    let lastCompleteTail = ''
+    for (let i = filledValues.length - 1; i >= 0; i -= 1) {
+      const candidate = filledValues[i] ?? ''
+      if (candidate && endsSentenceTerminal(candidate)) {
+        lastCompleteTail = candidate
+        break
+      }
+    }
+    const backfillTail =
+      !lastTailIsComplete && lastCompleteTail ? lastCompleteTail : lastTranslation
+    let previousDistinctTail = ''
+    for (let i = filledValues.length - 2; i >= 0; i -= 1) {
+      const candidate = filledValues[i] ?? ''
+      if (candidate && candidate !== currentTail) {
+        previousDistinctTail = candidate
+        break
+      }
+    }
+    const canAlternateTail =
+      !!previousDistinctTail &&
+      !currentTail.includes('"') &&
+      !previousDistinctTail.includes('"') &&
+      endsSentenceTerminal(previousDistinctTail) &&
+      endsSentenceTerminal(currentTail)
+    let nextUsesPrevious = true
+
     for (let i = lastFilledIndex + 1; i < lines.length; i += 1) {
       if (!isFillableTimestamp(lines, selectedLineIndices, i, preserveExisting)) continue
       if (translations.has(i)) continue
-      translations.set(i, lastTranslation)
+      if (canAlternateTail) {
+        const nextTail = nextUsesPrevious ? previousDistinctTail : currentTail
+        translations.set(i, nextTail)
+        nextUsesPrevious = !nextUsesPrevious
+      } else {
+        translations.set(i, backfillTail)
+      }
     }
   }
 

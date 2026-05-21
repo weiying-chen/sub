@@ -38,6 +38,7 @@ export type Segment = {
   endFrames?: number
   sourceLines?: CandidateLine[]
   targetLines?: CandidateLine[]
+  skipAllRules?: boolean
 }
 
 export type SegmentCtx = {
@@ -59,6 +60,7 @@ export function analyzeSegments(
   const { lines, sourceText } = options
 
   segments.forEach((segment, segmentIndex) => {
+    if (segment.skipAllRules) return
     const ctx = {
       segment,
       segmentIndex,
@@ -73,6 +75,31 @@ export function analyzeSegments(
   })
 
   return metrics
+}
+
+function collectTranslationLinesForTimestamp(
+  lines: string[],
+  tsIndex: number
+): CandidateLine[] {
+  const out: CandidateLine[] = []
+  for (let i = tsIndex + 1; i < lines.length; i += 1) {
+    const raw = lines[i] ?? ''
+    if (parseBlockAt({ lineCount: lines.length, getLine: (n) => lines[n] ?? '' }, i)) break
+    if (raw.trim() === '') break
+    out.push({ lineIndex: i, lineText: raw })
+  }
+  return out
+}
+
+function isParentheticalTranslationBlock(lines: CandidateLine[]): boolean {
+  if (lines.length === 0) return false
+  const trimmed = lines.map((line) => line.lineText.trim()).filter(Boolean)
+  if (trimmed.length === 0) return false
+  const first = trimmed[0] ?? ''
+  const last = trimmed[trimmed.length - 1] ?? ''
+  const opens = first.startsWith('(') || first.startsWith('（')
+  const closes = last.endsWith(')') || last.endsWith('）')
+  return opens && closes
 }
 
 export function parseSubs(
@@ -91,6 +118,7 @@ export function parseSubs(
   for (let i = 0; i < lines.length; i += 1) {
     const block = parseBlockAt(src, i, options)
     if (!block) continue
+    const translationLines = collectTranslationLinesForTimestamp(lines, block.tsIndex)
     const trimmedTranslation = block.translation.trim()
 
     if (isReferenceUrlLine(trimmedTranslation)) {
@@ -106,6 +134,7 @@ export function parseSubs(
     const targetLines = isEnglishLikeLine(block.translation)
       ? [{ lineIndex: block.translationIndex, lineText: block.translation }]
       : []
+    const skipAllRules = isParentheticalTranslationBlock(translationLines)
     segments.push({
       lineIndex: block.translationIndex,
       lineIndexEnd: block.translationIndex,
@@ -115,6 +144,7 @@ export function parseSubs(
       startFrames: block.startFrames,
       endFrames: block.endFrames,
       targetLines,
+      skipAllRules,
     })
   }
 

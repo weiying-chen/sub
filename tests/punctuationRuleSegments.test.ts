@@ -42,6 +42,27 @@ describe("punctuationRule (segments)", () => {
     ])
   })
 
+  it("ignores punctuation checks for parenthetical timestamp blocks", () => {
+    const text = [
+      "00:00:20:00\t00:00:25:14\t家庭影響",
+      "(Family influence",
+      "and upbringing)",
+      "00:00:25:14\t00:00:27:00\t下一句",
+      "still lowercase after period",
+    ].join("\n")
+
+    const segments = parseSubs(text)
+    const metrics = analyzeSegments(segments, [punctuationRule()], {
+      lines: text.split("\n"),
+      sourceText: text,
+    })
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some((f) => f.text.includes("Family influence"))
+    ).toBe(false)
+  })
+
   it("ignores acronyms starting the next cue", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

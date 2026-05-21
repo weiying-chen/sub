@@ -28,4 +28,25 @@ describe("baselineRule (segments)", () => {
       actual: "SRC1 EDIT",
     })
   })
+
+  it("still checks later baseline entries when first block is skipped parenthetical", () => {
+    const baseline = [
+      "XXX\t00:00:20:00\t00:00:25:14\t慈善與共善",
+      "(Charity and the common good)",
+      "00:00:26:08\t00:00:27:18\t很多藝術都有",
+      "Art can feel distant to people.",
+    ].join("\n")
+    const current = [
+      "XXX\t00:00:20:00\t00:00:25:14\t慈善與共善",
+      "(Charity and the common good)",
+    ].join("\n")
+
+    const findings = getBaselineFindings(baseline, current)
+    expect(findings).toHaveLength(1)
+    expect(findings[0]).toMatchObject({
+      type: "BASELINE",
+      ruleCode: "MISSING_TIMESTAMP_LINE",
+      baselineLineIndex: 2,
+    })
+  })
 })

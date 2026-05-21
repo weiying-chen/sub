@@ -63,6 +63,7 @@ describe("punctuationRule (segments)", () => {
     ).toBe(false)
   })
 
+
   it("ignores acronyms starting the next cue", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

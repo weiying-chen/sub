@@ -59,8 +59,19 @@ export function analyzeSegments(
   const metrics: Metric[] = []
   const { lines, sourceText } = options
 
+  const shouldSuppressMetricForSkippedSegment = (
+    segment: Segment,
+    metric: Metric
+  ): boolean => {
+    if (!segment.skipAllRules) return false
+    const lineIndex = (metric as { lineIndex?: unknown }).lineIndex
+    if (typeof lineIndex !== 'number') return false
+    const start = segment.lineIndex
+    const end = segment.lineIndexEnd ?? segment.lineIndex
+    return lineIndex >= start && lineIndex <= end
+  }
+
   segments.forEach((segment, segmentIndex) => {
-    if (segment.skipAllRules) return
     const ctx = {
       segment,
       segmentIndex,
@@ -70,7 +81,14 @@ export function analyzeSegments(
     }
 
     for (const rule of rules) {
-      metrics.push(...rule(ctx))
+      const next = rule(ctx)
+      if (!segment.skipAllRules) {
+        metrics.push(...next)
+        continue
+      }
+      metrics.push(
+        ...next.filter((metric) => !shouldSuppressMetricForSkippedSegment(segment, metric))
+      )
     }
   })
 

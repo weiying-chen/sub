@@ -1099,13 +1099,14 @@ function findBestCut(
     if (edgeConjunctionCut > commaCut) {
       return { cut: edgeConjunctionCut, reason: 'commaEdgeConjunction' }
     }
+    const dashCutAfterComma = findRightmostDashBoundary(window, nextText)
+    if (dashCutAfterComma > commaCut) {
+      return { cut: dashCutAfterComma, reason: 'dash' }
+    }
 
     const afterComma = (window.slice(commaCut) + nextText).trimStart()
     if (/^(or|nor)\b/i.test(afterComma)) {
-      const dashCutAfterComma = findRightmostDashBoundary(window, nextText)
-      if (dashCutAfterComma > commaCut) {
-        return { cut: dashCutAfterComma, reason: 'dash' }
-      }
+      if (dashCutAfterComma > commaCut) return { cut: dashCutAfterComma, reason: 'dash' }
     }
 
     const conjunctionCut = findRightmostConjunctionStart(window, nextText)

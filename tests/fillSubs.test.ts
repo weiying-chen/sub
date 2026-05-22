@@ -409,6 +409,57 @@ describe("fillSelectedTimestampLines", () => {
   )
   })
 
+  it("does not let post-merge rewrite cps span allocation", () => {
+  const lines = [
+    "00:07:52:21\t00:07:54:14\t第一大類就是說",
+    "00:07:54:14\t00:07:56:06\t我在職場上碰到內向者",
+    "00:07:56:06\t00:07:56:27\t尤其是我需要",
+    "00:07:56:27\t00:07:58:02\t管理內向者的時候",
+    "00:07:58:02\t00:07:59:18\t我不知道他們在想什麼",
+    "00:07:59:18\t00:08:01:04\t怎麼辦",
+  ]
+  const selected = new Set([0, 1, 2, 3, 4, 5])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "The first is people saying: I work with introverts and have no idea what they're thinking.",
+    { maxChars: 54, inline: true }
+  )
+
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+  expect(translations).not.toContain(
+    "The first is people saying: I work with introverts"
+  )
+  expect(translations.filter((line) => line === "I work with introverts").length).toBeGreaterThanOrEqual(2)
+  expect(translations.filter((line) => line === "and have no idea what they're thinking.").length).toBeGreaterThanOrEqual(2)
+  expect(result.remaining).toBe("")
+  })
+
+  it("avoids early comma split before quoted clause when later fit exists", () => {
+  const lines = [
+    "00:07:52:21\t00:07:54:14\t第一大類就是說",
+    "00:07:54:14\t00:07:56:06\t我在職場上碰到內向者",
+    "00:07:56:06\t00:07:56:27\t尤其是我需要",
+    "00:07:56:27\t00:07:58:02\t管理內向者的時候",
+    "00:07:58:02\t00:07:59:18\t我不知道他們在想什麼",
+    "00:07:59:18\t00:08:01:04\t怎麼辦",
+  ]
+  const selected = new Set([0, 1, 2, 3, 4, 5])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "The first is people saying, \"I work with introverts and have no idea what they're thinking.\"",
+    { maxChars: 54, inline: true }
+  )
+
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+  expect(translations[0]).toBe('The first is people saying, "I work with introverts"')
+  expect(translations).not.toContain("The first is people saying,")
+  expect(result.remaining).toBe("")
+  })
+
   it("avoids splitting list items at commas and keeps trailing 'that'", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

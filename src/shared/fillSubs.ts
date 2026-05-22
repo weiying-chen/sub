@@ -1029,6 +1029,51 @@ function findBestCut(
   nextText: string,
   noSplitAbbrevMatcher: RegExp | null
 ): { cut: number; reason: string } {
+  const findCommaFollowedQuotedClauseCut = (commaCut: number): number => {
+    if (commaCut < 0 || commaCut >= window.length) return -1
+    const afterComma = window.slice(commaCut)
+    const quotedStart = afterComma.match(/^\s*"/)
+    if (!quotedStart) return -1
+
+    const quoteStartOffset = commaCut + quotedStart[0].length - 1
+    const quoteEndOffset = window.indexOf('"', quoteStartOffset + 1)
+    if (quoteEndOffset < 0) return -1
+    const cut = quoteEndOffset + 1
+    if (cut <= commaCut || cut >= window.length) return -1
+    return cut
+  }
+  const findQuotedConjunctionCut = (commaCut: number): number => {
+    if (commaCut < 0 || commaCut >= window.length) return -1
+    const afterComma = window.slice(commaCut)
+    if (!/^\s*"/.test(afterComma)) return -1
+
+    let best = -1
+    const re = /\b(and|but)\b/gi
+    let match = re.exec(window)
+    while (match) {
+      const idx = match.index
+      if (idx > commaCut && idx < window.length) {
+        best = idx
+      }
+      match = re.exec(window)
+    }
+    return best
+  }
+  const findWindowEdgeConjunctionCut = (commaCut: number): number => {
+    if (commaCut < 0 || commaCut >= window.length) return -1
+    const afterComma = window.slice(commaCut)
+    if (!/^\s*"/.test(afterComma)) return -1
+
+    for (let i = window.length - 1; i > commaCut; i -= 1) {
+      if (window[i] !== ' ') continue
+      const right = (window.slice(i) + nextText).trimStart().toLowerCase()
+      if (/^(and|but|or|so|yet|nor)\b/.test(right)) {
+        return i + 1
+      }
+    }
+    return -1
+  }
+
   // 1) Strong punctuation boundaries.
   const sentenceCut = findSentenceBoundaryCut(window, nextText, noSplitAbbrevMatcher)
   if (sentenceCut >= 0) return { cut: sentenceCut, reason: 'sentence' }
@@ -1042,6 +1087,19 @@ function findBestCut(
   // 2) Mid-priority syntactic/list boundaries.
   const commaCut = findRightmostNonListComma(window, nextText)
   if (commaCut >= 0) {
+    const commaQuotedClauseCut = findCommaFollowedQuotedClauseCut(commaCut)
+    if (commaQuotedClauseCut > commaCut) {
+      return { cut: commaQuotedClauseCut, reason: 'commaQuote' }
+    }
+    const quotedConjunctionCut = findQuotedConjunctionCut(commaCut)
+    if (quotedConjunctionCut > commaCut) {
+      return { cut: quotedConjunctionCut, reason: 'commaQuotedConjunction' }
+    }
+    const edgeConjunctionCut = findWindowEdgeConjunctionCut(commaCut)
+    if (edgeConjunctionCut > commaCut) {
+      return { cut: edgeConjunctionCut, reason: 'commaEdgeConjunction' }
+    }
+
     const afterComma = (window.slice(commaCut) + nextText).trimStart()
     if (/^(or|nor)\b/i.test(afterComma)) {
       const dashCutAfterComma = findRightmostDashBoundary(window, nextText)
@@ -1751,10 +1809,24 @@ function mergeJoinableTranslations(
   maxChars: number
 ): void {
   for (let i = 0; i < orderedIndices.length - 1; i += 1) {
+    const previousIndex = i > 0 ? orderedIndices[i - 1] : null
     const leftIndex = orderedIndices[i]
     const rightIndex = orderedIndices[i + 1]
+    const nextIndex = i + 2 < orderedIndices.length ? orderedIndices[i + 2] : null
     const leftRaw = translations.get(leftIndex) ?? ''
     const rightRaw = translations.get(rightIndex) ?? ''
+
+    // Keep CPS-driven span runs stable: avoid merging across a boundary when one
+    // side is already part of an adjacent repeat run.
+    const previousRaw = previousIndex == null ? '' : translations.get(previousIndex) ?? ''
+    const nextRaw = nextIndex == null ? '' : translations.get(nextIndex) ?? ''
+    const rightRepeatsForward =
+      rightRaw.trim() !== '' && rightRaw === nextRaw && leftRaw !== rightRaw
+    if (rightRepeatsForward) continue
+    const leftRepeatsBackward =
+      leftRaw.trim() !== '' && leftRaw === previousRaw && leftRaw !== rightRaw
+    if (leftRepeatsBackward) continue
+
     const join = canJoinAdjacentText(leftRaw, rightRaw, maxChars)
     if (!join) continue
     translations.set(leftIndex, join.joined)
@@ -1773,6 +1845,7 @@ function normalizePartialOverlapRepeats(
     const current = (translations.get(currentIndex) ?? "").trim()
     if (!previous || !current || previous === current) continue
     if (current.length < 8) continue
+    if (!/^[a-z]/.test(current)) continue
     if (!previous.toLowerCase().includes(current.toLowerCase())) continue
 
     const nextIndex = orderedIndices[i + 1]

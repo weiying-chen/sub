@@ -460,6 +460,26 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("does not split a one-word head before who-clauses", () => {
+  const lines = [
+    "00:09:41:00\t00:09:43:11\t再來會有家長來找我",
+    "00:09:43:11\t00:09:46:24\t這種家長通常分成兩種",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Parents who come to see me usually fall into two groups.",
+    { maxChars: 54, inline: true }
+  )
+
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+  expect(translations).not.toContain("Parents")
+  expect(translations[0]?.startsWith("Parents who")).toBe(true)
+  expect(result.remaining).toBe("")
+  })
+
   it("avoids splitting list items at commas and keeps trailing 'that'", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

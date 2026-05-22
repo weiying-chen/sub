@@ -1342,7 +1342,18 @@ function takeLine(
 
   const window = s.slice(0, limit)
   const splitDecision = findBestCut(window, s.slice(limit), noSplitAbbrevMatcher)
-  const cut = adjustCutForTrailingQuote(window, splitDecision.cut)
+  let cut = adjustCutForTrailingQuote(window, splitDecision.cut)
+  if (
+    needsMinimumLeftSplitGuard(splitDecision.reason) &&
+    cut > 0 &&
+    cut < window.length &&
+    !hasMinimumLeftSplitContent(window.slice(0, cut))
+  ) {
+    const guardCut = findRightmostSpace(window, s.slice(limit))
+    if (guardCut > 0 && guardCut < window.length) {
+      cut = guardCut
+    }
+  }
   const preserveLeadingThat =
     splitDecision.reason === 'sentence' ||
     splitDecision.reason === 'strong' ||
@@ -2201,6 +2212,36 @@ function isPunctuationSplitReason(reason: string): boolean {
     reason === 'comma' ||
     reason === 'dash' ||
     reason === 'commaThat'
+  )
+}
+
+function hasMinimumLeftSplitContent(
+  left: string,
+  minChars = MIN_CLAUSE_START_SPLIT_CHARS,
+  minWords = MIN_CLAUSE_START_SPLIT_WORDS
+): boolean {
+  const trimmed = left.trimEnd()
+  if (!trimmed) return false
+  const wordCount = trimmed.split(/\s+/).filter(Boolean).length
+  return trimmed.length >= minChars && wordCount >= minWords
+}
+
+function needsMinimumLeftSplitGuard(reason: string): boolean {
+  return (
+    reason === 'conjunction' ||
+    reason === 'who' ||
+    reason === 'commaThat' ||
+    reason === 'infinitive' ||
+    reason === 'clauseStarter' ||
+    reason === 'copularBreak' ||
+    reason === 'copularLead' ||
+    reason === 'toVerb' ||
+    reason === 'listTail' ||
+    reason === 'near' ||
+    reason === 'preposition' ||
+    reason === 'modal' ||
+    reason === 'commaQuotedConjunction' ||
+    reason === 'commaEdgeConjunction'
   )
 }
 

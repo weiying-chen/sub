@@ -480,6 +480,29 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("prefers later dash boundary over early comma when both fit", () => {
+  const lines = [
+    "00:14:14:04\t00:14:16:28\t記得做我們能做的事情",
+    "00:14:16:28\t00:14:17:29\t用我們最大的努力",
+    "00:14:17:29\t00:14:19:21\t去展現自己的價值",
+    "00:14:19:21\t00:14:20:27\t因為沒有其他人",
+    "00:14:20:27\t00:14:23:07\t可以幫你展現這一點",
+  ]
+  const selected = new Set([0, 1, 2, 3, 4])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Do what you can, do your best to show your value--- because no one else can do it for you.",
+    { maxChars: 54, inline: true }
+  )
+
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+  expect(translations[0]).toBe("Do what you can, do your best to show your value---")
+  expect(translations).not.toContain("Do what you can,")
+  expect(result.remaining).toBe("")
+  })
+
   it("avoids splitting list items at commas and keeps trailing 'that'", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

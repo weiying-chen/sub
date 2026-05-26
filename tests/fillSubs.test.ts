@@ -503,6 +503,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("keeps triple hyphen atomic at split boundaries", () => {
+  const split = __testTakeLine(
+    "Do what you can, and do your best to show your value--- because no one else can show it for you.",
+    54,
+    null,
+    true
+  )
+
+  expect(split.line.endsWith("--") && split.rest.startsWith("-")).toBe(false)
+  })
+
   it("avoids splitting list items at commas and keeps trailing 'that'", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

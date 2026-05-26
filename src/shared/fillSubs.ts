@@ -791,6 +791,29 @@ function adjustCutForTrailingQuote(window: string, cut: number): number {
   return i
 }
 
+function adjustCutForTripleHyphen(window: string, cut: number): number {
+  if (cut <= 0 || cut >= window.length) return cut
+  for (let i = 0; i <= window.length - 3; i += 1) {
+    if (window.slice(i, i + 3) !== '---') continue
+    if (cut <= i || cut >= i + 3) continue
+    return i + 3
+  }
+  return cut
+}
+
+function adjustCutForEdgeTripleHyphen(
+  window: string,
+  overflow: string,
+  cut: number
+): number {
+  if (cut !== window.length) return cut
+  if (!window.endsWith('--')) return cut
+  if (!overflow.startsWith('-')) return cut
+
+  const beforeToken = window.length - 2
+  return beforeToken > 0 ? beforeToken : cut
+}
+
 function findSentenceBoundaryCut(
   window: string,
   nextText: string,
@@ -1342,8 +1365,11 @@ function takeLine(
   }
 
   const window = s.slice(0, limit)
+  const overflow = s.slice(limit)
   const splitDecision = findBestCut(window, s.slice(limit), noSplitAbbrevMatcher)
   let cut = adjustCutForTrailingQuote(window, splitDecision.cut)
+  cut = adjustCutForTripleHyphen(window, cut)
+  cut = adjustCutForEdgeTripleHyphen(window, overflow, cut)
   if (
     needsMinimumLeftSplitGuard(splitDecision.reason) &&
     cut > 0 &&

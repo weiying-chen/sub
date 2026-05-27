@@ -114,4 +114,31 @@ describe("buildAnalysisOutput CPS overrides", () => {
     expect(defaultFindings.some((f) => f.type === "MIN_CPS")).toBe(true)
     expect(relaxedFindings.some((f) => f.type === "MIN_CPS")).toBe(false)
   })
+
+  it("does not flag punctuation-before-capital for capitalization terms", () => {
+    const text = [
+      "00:06:38:29\t00:06:40:07\t我先幫她潤肺",
+      "So I used Chinese angelica, astragalus root,",
+      "00:06:40:07\t00:06:41:25\t然後幫她活血化瘀",
+      "Japanese honeysuckle, and scrophularia root to",
+    ].join("\n")
+
+    const findings = buildAnalysisOutput({
+      text,
+      type: "subs",
+      ruleSet: "findings",
+      output: "findings",
+      enabledRuleTypes: ["PUNCTUATION"],
+      capitalizationTerms: ["Japanese"],
+      properNouns: [],
+    }) as Finding[]
+
+    expect(
+      findings.some(
+        (f) =>
+          f.type === "PUNCTUATION" &&
+          f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL"
+      )
+    ).toBe(false)
+  })
 })

@@ -88,6 +88,11 @@ function buildRules(options: BuildAnalysisOutputOptions) {
   } =
     options
 
+  const punctuationStarts = [
+    ...(properNouns ?? []),
+    ...(capitalizationTerms ?? []),
+  ]
+
   if (type === 'news') {
     const enabled = enabledRuleTypes ? new Set<Metric['type']>(enabledRuleTypes) : null
     const rules = []
@@ -110,7 +115,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     if (!enabled || enabled.has('PUNCTUATION')) {
       rules.push(
         newsSuperPunctuationRule({
-          properNouns,
+          properNouns: punctuationStarts,
           abbreviations,
           ignoreEmptyLines,
         })
@@ -143,7 +148,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     if (!enabled || enabled.has('PUNCTUATION')) {
       rules.push(
         punctuationRule({
-          properNouns,
+          properNouns: punctuationStarts,
           abbreviations,
           ignoreEmptyLines,
         })

@@ -52,6 +52,10 @@ function createSubsCommonRules(
     ? new Set<Metric["type"]>(options.enabledFindingTypes)
     : null
   const rules: SegmentRule[] = []
+  const punctuationStarts = [
+    ...(options.properNouns ?? []),
+    ...(options.capitalizationTerms ?? []),
+  ]
 
   if (isEnabled(enabled, "MAX_CHARS")) {
     rules.push(maxCharsRule(Math.max(1, options.maxChars ?? DEFAULT_MAX_CHARS)))
@@ -95,7 +99,7 @@ function createSubsCommonRules(
   if (isEnabled(enabled, "PUNCTUATION")) {
     rules.push(
       punctuationRule({
-        properNouns: options.properNouns,
+        properNouns: punctuationStarts,
         abbreviations: options.abbreviations,
         ignoreEmptyLines: options.ignoreEmptyLines,
       })

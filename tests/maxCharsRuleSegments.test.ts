@@ -41,4 +41,18 @@ describe("maxCharsRule (segments)", () => {
     expect(byLine.get(5)?.actual).toBe(33)
     expect(byLine.get(7)?.actual).toBe(24)
   })
+
+  it("checks each translation line in a multi-line subtitle block", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "12345678901",
+      "1234",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [maxCharsRule(10)])
+    const byLine = new Map(metrics.map((m) => [m.lineIndex, m]))
+
+    expect(byLine.get(1)?.actual).toBe(11)
+    expect(byLine.get(2)?.actual).toBe(4)
+  })
 })

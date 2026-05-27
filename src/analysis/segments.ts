@@ -149,13 +149,14 @@ export function parseSubs(
       continue
     }
 
-    const targetLines = isEnglishLikeLine(block.translation)
-      ? [{ lineIndex: block.translationIndex, lineText: block.translation }]
-      : []
+    const targetLines = block.translationIndices.map((lineIndex, idx) => ({
+      lineIndex,
+      lineText: block.translationLines[idx] ?? '',
+    }))
     const skipAllRules = isParentheticalTranslationBlock(translationLines)
     segments.push({
       lineIndex: block.translationIndex,
-      lineIndexEnd: block.translationIndex,
+      lineIndexEnd: block.translationIndices[block.translationIndices.length - 1] ?? block.translationIndex,
       translation: block.translation,
       tsIndex: block.tsIndex,
       translationIndex: block.translationIndex,

@@ -18,6 +18,8 @@ export type ParsedBlock = {
   tsIndex: number
   translationIndex: number
   translation: string
+  translationLines: string[]
+  translationIndices: number[]
   startFrames: number
   endFrames: number
 }
@@ -49,18 +51,68 @@ function findTranslationBelow(
   src: LineSource,
   tsIndex: number,
   options: ParseBlockOptions = {}
-): { translationIndex: number | null; translation: string } {
+): {
+  translationIndex: number | null
+  translation: string
+  translationLines: string[]
+  translationIndices: number[]
+} {
+  const isReferenceUrlLine = (text: string): boolean =>
+    /^(https?:\/\/|www\.)\S+$/i.test(text)
+  const endsTerminalPunctuation = (text: string): boolean =>
+    /[.!?…:](?:["'\)\]\}]+)?\s*$/.test(text)
+  const startsLikelyNewSentence = (text: string): boolean =>
+    /^[A-Z0-9]/.test(text.trimStart())
+
   const ignoreEmptyLines = options.ignoreEmptyLines ?? false
+  const translationLines: string[] = []
+  const translationIndices: number[] = []
+  let translationIndex: number | null = null
+
   for (let i = tsIndex + 1; i < src.lineCount; i++) {
     const t = src.getLine(i)
     if (TSV_RE.test(t)) break
     if (t.trim() === '') {
       if (ignoreEmptyLines) continue
-      return { translationIndex: null, translation: '' }
+      break
     }
-    return { translationIndex: i, translation: t }
+    if (isReferenceUrlLine(t.trim())) {
+      if (translationLines.length === 0) {
+        translationIndex = i
+        translationLines.push(t)
+        translationIndices.push(i)
+      }
+      break
+    }
+    if (translationLines.length > 0) {
+      const prev = translationLines[translationLines.length - 1] ?? ''
+      if (
+        endsTerminalPunctuation(prev) &&
+        startsLikelyNewSentence(t)
+      ) {
+        break
+      }
+    }
+    if (translationIndex == null) translationIndex = i
+    translationLines.push(t)
+    translationIndices.push(i)
   }
-  return { translationIndex: null, translation: '' }
+
+  if (translationIndex == null) {
+    return {
+      translationIndex: null,
+      translation: '',
+      translationLines: [],
+      translationIndices: [],
+    }
+  }
+
+  return {
+    translationIndex,
+    translation: translationLines.join(''),
+    translationLines,
+    translationIndices,
+  }
 }
 
 export function hasEmptyLineBetween(
@@ -92,7 +144,7 @@ export function parseBlockAt(
     return null
   }
 
-  const { translationIndex, translation } = findTranslationBelow(
+  const { translationIndex, translation, translationLines, translationIndices } = findTranslationBelow(
     src,
     tsIndex,
     options
@@ -103,6 +155,8 @@ export function parseBlockAt(
     tsIndex,
     translationIndex,
     translation,
+    translationLines,
+    translationIndices,
     startFrames,
     endFrames,
   }

@@ -117,4 +117,17 @@ describe("cpsRule (segments)", () => {
     expect(metrics).toHaveLength(1)
     expect(metrics[0]?.lineIndex).toBe(1)
   })
+
+  it("counts all lines in a multi-line subtitle block for CPS", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "abcd",
+      "efgh",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [cpsRule(99, 0)])
+    expect(metrics).toHaveLength(1)
+    expect(metrics[0]?.charCount).toBe(8)
+    expect(metrics[0]?.cps).toBe(8)
+  })
 })

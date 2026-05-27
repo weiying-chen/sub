@@ -5,14 +5,14 @@ import {
   type ParseBlockOptions,
   parseBlockAt,
 } from '../shared/tsvRuns'
-import type { Segment, SegmentCtx, SegmentRule } from './segments'
+import type { CandidateLine, Segment, SegmentCtx, SegmentRule } from './segments'
 
 type MaxCharsRule = Rule & SegmentRule
 
 function getTextAndAnchor(
   ctx: RuleCtx | SegmentCtx,
   options: ParseBlockOptions = {}
-): { text: string; anchorIndex: number } | null {
+): { text: string; anchorIndex: number; lines: CandidateLine[] } | null {
   if ('segment' in ctx) {
     const seg = ctx.segment as Segment
     if (
@@ -24,12 +24,15 @@ function getTextAndAnchor(
         : [{ lineIndex: seg.lineIndex, lineText: seg.translation }]
       const first = candidates.find((candidate) => candidate.lineText.trim() !== '')
       if (!first) return null
-      return { text: first.lineText, anchorIndex: first.lineIndex }
+      return { text: first.lineText, anchorIndex: first.lineIndex, lines: candidates }
     }
 
     const text = ctx.segment.translation
     if (text.trim() === '') return null
-    return { text, anchorIndex: ctx.segment.lineIndex }
+    const lines = ctx.segment.targetLines?.length
+      ? ctx.segment.targetLines
+      : [{ lineIndex: ctx.segment.lineIndex, lineText: text }]
+    return { text, anchorIndex: ctx.segment.lineIndex, lines }
   }
 
   const src: LineSource = {
@@ -46,7 +49,11 @@ function getTextAndAnchor(
   // Anchor the finding to the translation line when it exists.
   // If the translation only exists source text on the timestamp line, fall back to tsIndex.
   const anchorIndex = block.translationIndex ?? block.tsIndex
-  return { text, anchorIndex }
+  const lines = block.translationIndices.map((lineIndex, idx) => ({
+    lineIndex,
+    lineText: block.translationLines[idx] ?? '',
+  }))
+  return { text, anchorIndex, lines }
 }
 
 export const maxCharsRule = (
@@ -78,14 +85,16 @@ export const maxCharsRule = (
         )
     }
 
-    const metric: MaxCharsMetric = {
-      type: 'MAX_CHARS',
-      lineIndex: extracted.anchorIndex,
-      text: extracted.text,
-      maxAllowed: maxChars,
-      actual: extracted.text.length,
-    }
-
-    return [metric]
+    return extracted.lines
+      .filter((line) => line.lineText.trim() !== '')
+      .map(
+        (line): MaxCharsMetric => ({
+          type: 'MAX_CHARS',
+          lineIndex: line.lineIndex,
+          text: line.lineText,
+          maxAllowed: maxChars,
+          actual: line.lineText.length,
+        })
+      )
   }) as MaxCharsRule
 }

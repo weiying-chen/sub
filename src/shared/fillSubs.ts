@@ -1932,11 +1932,13 @@ function isOverwrittenSubtitleLine(
   if (preserveExisting) return false
   if ((lines[index] ?? '').trim() === '') return false
   if (isTimestampRow(lines[index] ?? '')) return false
-  const prevIndex = findPreviousNonEmptyIndex(lines, index)
-  if (prevIndex < 0) return false
-  const prevLine = lines[prevIndex] ?? ''
-  if (!isTimestampRow(prevLine)) return false
-  return isFillableTimestamp(lines, selectedLineIndices, prevIndex, false)
+  for (let i = index - 1; i >= 0; i -= 1) {
+    const line = lines[i] ?? ''
+    if (line.trim() === '') return false
+    if (!isTimestampRow(line)) continue
+    return isFillableTimestamp(lines, selectedLineIndices, i, false)
+  }
+  return false
 }
 
 function getSpanForTargetCps(

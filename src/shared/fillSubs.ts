@@ -195,13 +195,6 @@ function findNextNonEmptyLine(lines: string[], startIndex: number): string | nul
   return null
 }
 
-function findPreviousNonEmptyIndex(lines: string[], startIndex: number): number {
-  for (let i = startIndex - 1; i >= 0; i -= 1) {
-    if (lines[i].trim() !== '') return i
-  }
-  return -1
-}
-
 function hasEmptyLineBetweenIndices(
   lines: string[],
   startIndex: number,

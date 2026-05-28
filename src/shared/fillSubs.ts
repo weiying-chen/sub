@@ -1258,7 +1258,8 @@ function takeLine(
         right &&
         !/["']\s*$/.test(left) &&
         !/^["']/.test(right) &&
-        shouldKeepShortSentencePairTogether(left, right)
+        shouldKeepShortSentencePairTogether(left, right) &&
+        !shouldForceFragmentSentenceSplit(left, right)
       ) {
         return normalizeSplit(s.trimEnd(), '')
       }

@@ -1278,6 +1278,49 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("splits lowercase sentence tails before a new full sentence", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "back. What should we do?",
+    { maxChars: 60, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "back.",
+    "00:00:02:00\t00:00:03:00\tMarker",
+    "What should we do?",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
+  it("does not keep a sentence tail with the next full sentence after a prior split", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+    "00:00:03:00\t00:00:04:00\tMarker",
+  ]
+  const selected = new Set([0, 1, 2])
+  const paragraph =
+    "but isn't great with people and sometimes pushes back. What should we do?"
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    maxChars: 45,
+    inline: false,
+  })
+
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+  expect(translations.some((line) => line.includes("back. What should we do?"))).toBe(false)
+  expect(translations.some((line) => /back\.\s+What\b/.test(line))).toBe(false)
+  })
+
   it("splits full sentence before a trailing fragment even under maxChars", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

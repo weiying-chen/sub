@@ -182,6 +182,33 @@ describe("parseNews", () => {
     ])
   })
 
+  it("treats parenthesized English lines as SUPER translations", () => {
+    const text = [
+      "/*SUPER:",
+      "環保志工｜//",
+      "(恭喜妳 想要說些什麼嗎)//",
+      "謝謝 也藉此邀請大家//",
+      "我們要繼續回收 讓我們的社區更乾淨",
+      "*/",
+      "(Congratulations! Anything you'd like to say?)",
+      "Thank you. I'd also like to invite everyone to",
+      "keep recycling and help keep",
+      "our community clean.",
+      "",
+    ].join("\n")
+
+    const segments = parseNews(text)
+    const superSegment = segments.find((segment) => segment.blockType === "super")
+
+    expect(superSegment?.sourceText).toContain("環保志工｜//")
+    expect(superSegment?.targetLines?.map((line) => line.lineText)).toEqual([
+      "(Congratulations! Anything you'd like to say?)",
+      "Thank you. I'd also like to invite everyone to",
+      "keep recycling and help keep",
+      "our community clean.",
+    ])
+  })
+
   it("preserves marker metadata on following news blocks", () => {
     const text = [
       "1_0001",

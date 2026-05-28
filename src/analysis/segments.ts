@@ -346,8 +346,9 @@ export function parseNews(text: string): Segment[] {
       if (hasSourceWithoutTarget) {
         const next = nextNonEmptyLine(lines, i + 1)
         if (next) {
-          const nextIsTargetText =
-            isEnglishLikeLine(next.raw) && !isNewsStructureLine(next.trimmed)
+        const nextIsTargetText =
+            isNewsTranslationLine(next.raw, currentBlock === 'super') &&
+            !isNewsStructureLine(next.trimmed)
           const nextIsSourceParagraph =
             currentBlock === 'vo' && isNewsSourceLine(next.raw)
           const nextIsSuperSkipMarker =
@@ -381,7 +382,7 @@ export function parseNews(text: string): Segment[] {
       continue
     }
 
-    if (isEnglishLikeLine(raw)) {
+    if (isNewsTranslationLine(raw, superActive)) {
       const blockType: Segment['blockType'] = superActive ? 'super' : 'vo'
       if (currentBlock && currentBlock !== blockType) {
         flush()
@@ -427,7 +428,7 @@ export function parseNews(text: string): Segment[] {
       continue
     }
 
-    if (!isEnglishLikeLine(raw)) {
+    if (!isNewsTranslationLine(raw, superActive)) {
       flush()
       superActive = false
       continue
@@ -438,6 +439,16 @@ export function parseNews(text: string): Segment[] {
   flush()
 
   return segments
+}
+
+function isNewsTranslationLine(text: string, allowParenthesized: boolean): boolean {
+  if (isEnglishLikeLine(text)) return true
+  if (!allowParenthesized) return false
+  const trimmed = text.trim()
+  if (!(trimmed.startsWith('(') && trimmed.endsWith(')'))) return false
+  const inner = trimmed.slice(1, -1).trim()
+  if (inner === '') return false
+  return isEnglishLikeLine(inner)
 }
 
 function parseSuperPersonEntry(lines: CandidateLine[]): SuperPersonEntry {

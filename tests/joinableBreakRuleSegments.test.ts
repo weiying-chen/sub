@@ -117,6 +117,24 @@ describe("joinableBreakRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
+  it("does not flag duplicated span boundaries for workplace/professional wording", () => {
+    const text = [
+      "00:22:03:16\t00:22:04:13\t最後",
+      "What matters most in the workplace is",
+      "00:22:04:13\t00:22:06:15\t專業的確是在",
+      "What matters most in the workplace is",
+      "00:22:06:15\t00:22:08:25\t職場上面的不二法則",
+      "what you bring to the table.",
+      "00:22:08:25\t00:22:10:06\t你不能沒有專業",
+      "You can't get by on people skills alone.",
+      "00:22:10:06\t00:22:12:20\t只靠做人就想要打通關",
+      "You can't get by on people skills alone.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(0)
+  })
+
   it("does not flag when left side is a complete sentence before a comma-ended continuation", () => {
     const text = [
       "00:17:59:13\t00:18:00:17\t概念上大概是這樣",

@@ -97,6 +97,26 @@ describe("joinableBreakRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
+  it("does not flag boundaries between duplicated span chunks", () => {
+    const text = [
+      "00:20:52:17\t00:20:54:06\t都這麼努力了",
+      "After all that effort,",
+      "00:20:54:06\t00:20:56:12\t耗費心力地去提案了",
+      "After all that effort,",
+      "00:20:56:12\t00:20:57:12\t去回饋了",
+      "wouldn't you be disappointed",
+      "00:20:57:12\t00:20:58:21\t去跟他互動了",
+      "wouldn't you be disappointed",
+      "00:20:58:21\t00:21:01:03\t還沒有得到好的結果",
+      "if you still didn't get the result you wanted?",
+      "00:21:01:03\t00:21:03:20\t難道你不難過嗎",
+      "if you still didn't get the result you wanted?",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(0)
+  })
+
   it("does not flag when left side is a complete sentence before a comma-ended continuation", () => {
     const text = [
       "00:17:59:13\t00:18:00:17\t概念上大概是這樣",

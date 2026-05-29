@@ -43,8 +43,20 @@ export function joinableBreakRule(
     const cur = ctx.segment
     const prev = ctx.segmentIndex > 0 ? ctx.segments[ctx.segmentIndex - 1] : undefined
     const next = ctx.segments[ctx.segmentIndex + 1]
+    const next2 = ctx.segments[ctx.segmentIndex + 2]
     if (!next) return []
     if (!hasTiming(cur) || !hasTiming(next)) return []
+
+    // Skip A A / B B span boundaries produced by CPS-driven fill output.
+    if (
+      prev &&
+      next2 &&
+      prev.translation === cur.translation &&
+      next.translation === next2.translation &&
+      cur.translation !== next.translation
+    ) {
+      return []
+    }
 
     if (!ignoreEmptyLines && ctx.lines) {
       if (typeof cur.translationIndex !== "number" || typeof next.tsIndex !== "number") {

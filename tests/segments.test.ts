@@ -158,6 +158,30 @@ describe("parseNews", () => {
     ])
   })
 
+  it("ignores parenthetical note lines between VO source and translation", () => {
+    const text = [
+      "1_0005",
+      "擁有500年歷史，被喻為墨西哥現今，最早期的天主教堂之一，聖塞巴斯蒂安殉道者堂，敞開大門，提供慈濟舉辦浴佛。有木工師傅，雕刻了三朵木製蓮花。",
+      "(前置的照片鋪陳一段搭音樂)",
+      "In Mexico City, Mexico, a 500-year-old Catholic church opens its doors for Tzu Chi's Buddha Bathing Ceremony. A local carpenter carves three wooden lotus flowers for the event.",
+    ].join("\n")
+
+    const segments = parseNews(text)
+
+    expect(segments).toMatchObject([
+      {
+        lineIndex: 3,
+        lineIndexEnd: 3,
+        blockType: "vo",
+        marker: { raw: "1_0005", index: 1, time: 5, valid: true, lineIndex: 0 },
+        sourceText:
+          "擁有500年歷史，被喻為墨西哥現今，最早期的天主教堂之一，聖塞巴斯蒂安殉道者堂，敞開大門，提供慈濟舉辦浴佛。有木工師傅，雕刻了三朵木製蓮花。",
+        translation:
+          "In Mexico City, Mexico, a 500-year-old Catholic church opens its doors for Tzu Chi's Buddha Bathing Ceremony. A local carpenter carves three wooden lotus flowers for the event.",
+      },
+    ])
+  })
+
   it("marks SUPER blocks with tilde placeholders as translation-skip segments", () => {
     const text = [
       "/*SUPER:",

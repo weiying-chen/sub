@@ -417,6 +417,15 @@ export function parseNews(text: string): Segment[] {
     }
 
     if (
+      currentBlock === 'vo' &&
+      sourceBuffer.length > 0 &&
+      targetBuffer.length === 0 &&
+      isParentheticalNoteLine(trimmed)
+    ) {
+      continue
+    }
+
+    if (
       trimmed === '~' &&
       currentBlock === 'super' &&
       sourceBuffer.length > 0 &&
@@ -449,6 +458,16 @@ function isNewsTranslationLine(text: string, allowParenthesized: boolean): boole
   const inner = trimmed.slice(1, -1).trim()
   if (inner === '') return false
   return isEnglishLikeLine(inner)
+}
+
+function isParentheticalNoteLine(trimmedText: string): boolean {
+  const asciiWrapped = trimmedText.startsWith('(') && trimmedText.endsWith(')')
+  const fullWidthWrapped = trimmedText.startsWith('（') && trimmedText.endsWith('）')
+  if (!asciiWrapped && !fullWidthWrapped) return false
+
+  const inner = trimmedText.slice(1, -1).trim()
+  if (inner === '') return false
+  return !isEnglishLikeLine(inner)
 }
 
 function parseSuperPersonEntry(lines: CandidateLine[]): SuperPersonEntry {

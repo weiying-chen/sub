@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest"
-import { __testTakeLine, fillSelectedTimestampLines } from "../src/shared/fillSubs"
+import {
+  __testMergeJoinableTranslations,
+  __testTakeLine,
+  fillSelectedTimestampLines,
+} from "../src/shared/fillSubs"
 
 const NO_SPLIT_ABBREVIATIONS = ["Mr.", "Mrs.", "Ms.", "Dr.", "U.S.", "a.m.", "p.m."]
 
@@ -682,6 +686,62 @@ describe("fillSelectedTimestampLines", () => {
     "from the second stage of life into the third.",
     "00:10:39:17\t00:10:42:08\tE",
     "from the second stage of life into the third.",
+  ])
+  })
+
+  it("merges sentence-end joins that would otherwise trigger joinable-break", () => {
+  const lines = [
+    "00:19:00:26\t00:19:02:09\tA",
+    "00:19:02:09\t00:19:03:24\tB",
+    "00:19:03:24\t00:19:05:16\tC",
+    "00:19:05:16\t00:19:06:21\tD",
+    "00:19:06:21\t00:19:08:25\tE",
+  ]
+  const selected = new Set([0, 1, 2, 3, 4])
+  const paragraph =
+    "What do they ask about? What do they complain about? What matters to them? Even their personal lives."
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    maxChars: 54,
+    inline: false,
+  })
+
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+  expect(translations).not.toContain("What matters to them?")
+  expect(translations).not.toContain("Even their personal lives.")
+  expect(translations).toContain("What matters to them? Even their personal lives.")
+  })
+
+  it("re-joins cps-driven sentence splits when joined text still fits max chars", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tA",
+    "00:00:02:00\t00:00:03:00\tB",
+  ]
+  const selected = new Set([0, 1])
+  const paragraph = "What matters to them? Even their personal lives."
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    maxChars: 54,
+    inline: false,
+  })
+
+  expect(result.lines).toEqual([
+    "00:00:01:00\t00:00:02:00\tA",
+    "What matters to them? Even their personal lives.",
+    "00:00:02:00\t00:00:03:00\tB",
+    "What matters to them? Even their personal lives.",
+  ])
+  })
+
+  it("merge pass joins sentence-end adjacent lines when they fit max chars", () => {
+  const merged = __testMergeJoinableTranslations(
+    ["What matters to them?", "Even their personal lives."],
+    54
+  )
+
+  expect(merged).toEqual([
+    "What matters to them? Even their personal lives.",
+    "What matters to them? Even their personal lives.",
   ])
   })
 
@@ -1532,7 +1592,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("prefers splitting before infinitive clauses after noun phrases", () => {
+  it("does not force splitting before infinitive clauses after noun phrases", () => {
   const split = __testTakeLine(
     "We don't always get the chance to say what matters most.",
     44,
@@ -1541,8 +1601,8 @@ describe("fillSelectedTimestampLines", () => {
     { allowHeuristicSplitsWhenFits: true }
   )
 
-  expect(split.line).toBe("We don't always get the chance")
-  expect(split.rest).toBe("to say what matters most.")
+  expect(split.line.endsWith(" chance")).toBe(false)
+  expect(split.rest.startsWith("to say")).toBe(false)
   })
 
   it("keeps trailing 'with' on previous line when it fits", () => {

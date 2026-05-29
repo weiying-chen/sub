@@ -34,18 +34,6 @@ const MIN_CLAUSE_START_SPLIT_CHARS = 12
 const MIN_CLAUSE_START_SPLIT_WORDS = 2
 const MIN_WITH_SPLIT_LEFT_CHARS = 12
 const MIN_WITH_SPLIT_LEFT_WORDS = 2
-const INFINITIVE_LEAD_NOUNS = new Set([
-  'chance',
-  'ability',
-  'confidence',
-  'opportunity',
-  'way',
-  'time',
-  'decision',
-  'desire',
-  'plan',
-])
-
 const CONJ_RE = /\b(and|but|or|so|yet|nor)\b/i
 const CLAUSE_START_RE =
   /^\s*(?:I|you|we|they|he|she|it|this|that|there)\b/i
@@ -76,6 +64,7 @@ const TO_VERB_HELPER_RE =
   /\b(?:have|has|had|need|needs|want|wants|wanted|going)\s+to\s+[A-Za-z]+$/i
 const SENTENCE_VERB_RE =
   /\b(am|is|are|was|were|be|being|been|have|has|had|do|does|did|can|will|would|should|must)\b/i
+const SENTENCE_END_RE = /[.!?]["')\]]*\s*$/
 const STRONG_PUNCT = new Set(['.', '?', '!', ':', EM_DASH])
 const SEMICOLON_PUNCT = new Set([';'])
 const COMMA_PUNCT = new Set([','])
@@ -238,6 +227,14 @@ function isDialogueTagStart(text: string): boolean {
 
 function endsWithQuestionOrExclaim(text: string): boolean {
   return /[!?]["']?\s*$/.test(text.trimEnd())
+}
+
+function isMergeFullSentence(text: string): boolean {
+  const trimmed = text.trim()
+  if (!trimmed) return false
+  if (!SENTENCE_END_RE.test(trimmed)) return false
+  if (looksLikeSentenceFragment(trimmed)) return false
+  return true
 }
 
 function isSentenceBoundaryChar(ch: string): boolean {
@@ -860,48 +857,6 @@ function findRightmostToVerbObjectBreak(window: string, nextText: string): numbe
   return -1
 }
 
-function startsWithInfinitiveClause(text: string): boolean {
-  return /^to\s+[A-Za-z]+(?:\b|['-])/i.test(text.trimStart())
-}
-
-function endsWithInfinitiveLeadNoun(left: string): boolean {
-  const words = left
-    .trimEnd()
-    .split(/\s+/)
-    .map((word) => word.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, '').toLowerCase())
-    .filter(Boolean)
-  if (words.length === 0) return false
-  return INFINITIVE_LEAD_NOUNS.has(words[words.length - 1])
-}
-
-function findRightmostInfinitiveLead(window: string, nextText: string): number {
-  let best = -1
-  const re = /\bto\b/gi
-  let m: RegExpExecArray | null
-  while ((m = re.exec(window)) !== null) {
-    const start = m.index
-    const end = start + m[0].length
-    const prev = window[start - 1] ?? ''
-    const next = window[end] ?? ''
-    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
-
-    const left = window.slice(0, start).trimEnd()
-    if (!left) continue
-    if (left.length < MIN_CLAUSE_START_SPLIT_CHARS) continue
-    if (left.split(/\s+/).filter(Boolean).length < MIN_CLAUSE_START_SPLIT_WORDS) {
-      continue
-    }
-    if (!endsWithInfinitiveLeadNoun(left)) continue
-
-    const right = (window.slice(start) + nextText).trimStart()
-    if (!right) continue
-    if (!startsWithInfinitiveClause(right)) continue
-
-    best = start
-  }
-  return best
-}
-
 function isToVerbSplit(left: string, right: string): boolean {
   if (!/\bto$/i.test(left)) return false
   const firstWord = right.split(/\s+/)[0] ?? ''
@@ -1160,9 +1115,6 @@ function findBestCut(
 
   const commaThatCut = findRightmostCommaThatStart(window)
   if (commaThatCut >= 0) return { cut: commaThatCut, reason: 'commaThat' }
-
-  const infinitiveLeadCut = findRightmostInfinitiveLead(window, nextText)
-  if (infinitiveLeadCut >= 0) return { cut: infinitiveLeadCut, reason: 'infinitive' }
 
   const clauseLeadCut = findRightmostClauseStarterLead(window, nextText)
   if (clauseLeadCut >= 0) return { cut: clauseLeadCut, reason: 'clauseStarter' }
@@ -1859,7 +1811,13 @@ function mergeJoinableTranslations(
       leftRaw.trim() !== '' && leftRaw === previousRaw && leftRaw !== rightRaw
     if (leftRepeatsBackward) continue
 
-    const join = canJoinAdjacentText(leftRaw, rightRaw, maxChars)
+    const leftFullSentence = isMergeFullSentence(leftRaw)
+    const rightFullSentence = isMergeFullSentence(rightRaw)
+    if (leftFullSentence !== rightFullSentence) continue
+
+    const join = canJoinAdjacentText(leftRaw, rightRaw, maxChars, {
+      allowSentenceEndJoin: true,
+    })
     if (!join) continue
     translations.set(leftIndex, join.joined)
     translations.set(rightIndex, join.joined)
@@ -1901,6 +1859,19 @@ export function __testTakeLine(
     noSplitUsAbbreviation,
     options
   )
+}
+
+export function __testMergeJoinableTranslations(
+  lines: string[],
+  maxChars: number
+): string[] {
+  const translations = new Map<number, string>()
+  for (let i = 0; i < lines.length; i += 1) {
+    translations.set(i, lines[i] ?? "")
+  }
+  const orderedIndices = [...translations.keys()].sort((a, b) => a - b)
+  mergeJoinableTranslations(translations, orderedIndices, maxChars)
+  return orderedIndices.map((index) => translations.get(index) ?? "")
 }
 
 function isFillableTimestamp(

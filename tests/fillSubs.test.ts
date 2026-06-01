@@ -4,6 +4,7 @@ import {
   __testTakeLine,
   fillSelectedTimestampLines,
 } from "../src/shared/fillSubs"
+import { canJoinAdjacentText } from "../src/shared/joinableText"
 
 const NO_SPLIT_ABBREVIATIONS = ["Mr.", "Mrs.", "Ms.", "Dr.", "U.S.", "a.m.", "p.m."]
 
@@ -768,6 +769,28 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("splits before copular when the tail starts with an infinitive", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "But the goal is to get through it without burning bridges---",
+    { maxChars: 25, inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "But the goal",
+    "00:00:02:00\t00:00:03:00\tMarker",
+    "is to get through it",
+  ])
+  })
+
   it("avoids splitting 'even so'", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
@@ -1359,6 +1382,23 @@ describe("fillSelectedTimestampLines", () => {
     "What should we do?",
   ])
   expect(result.remaining).toBe("")
+  })
+
+  it("splits quoted fragment-plus-sentence lines instead of keeping them whole", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set([0, 1])
+  const paragraph = "\"but isn't great with people. What should we do?\""
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    maxChars: 54,
+    inline: false,
+  })
+
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+  expect(translations.some((line) => line.includes("people. What should"))).toBe(false)
   })
 
   it("does not keep a sentence tail with the next full sentence after a prior split", () => {
@@ -2871,6 +2911,36 @@ describe("fillSelectedTimestampLines", () => {
     const cur = (translations[i] ?? "").trim()
     if (!prev || !cur || prev === cur) continue
     expect(prev.toLowerCase().includes(cur.toLowerCase())).toBe(false)
+  }
+  })
+
+  it("does not create joinable adjacent lines during span carry", () => {
+  const lines = [
+    "00:10:05:14\t00:10:06:22\t他跟我說",
+    "00:10:06:22\t00:10:08:22\t方先生你不用擔心",
+    "00:10:08:22\t00:10:10:18\t我們的車子都很安全",
+    "00:10:10:18\t00:10:12:01\t該有的都有",
+    "00:10:12:01\t00:10:13:15\t你要不要直接試車",
+    "00:10:13:15\t00:10:14:22\t體驗一下我們的引擎",
+    "00:10:14:22\t00:10:16:28\t跟那個貼背感",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+  const paragraph =
+    "He told me not to worry, said the car was very safe and had everything I needed, then asked if I wanted to take it for a test drive and feel the engine."
+  const maxChars = 54
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    maxChars,
+    inline: false,
+  })
+
+  const translations = result.lines.filter(
+    (line) => line.trim() !== "" && !line.includes("\t")
+  )
+  for (let i = 0; i < translations.length - 1; i += 1) {
+    expect(
+      canJoinAdjacentText(translations[i] ?? "", translations[i + 1] ?? "", maxChars)
+    ).toBeNull()
   }
   })
 })

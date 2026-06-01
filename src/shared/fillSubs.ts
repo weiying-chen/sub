@@ -664,12 +664,19 @@ function findRightmostCopularBreak(window: string, nextText: string): number {
     ) {
       continue
     }
-    const tail = (window.slice(end) + nextText).trimStart()
-    if (!tail) continue
+    const tailAfterCopular = (window.slice(end) + nextText).trimStart()
+    if (!tailAfterCopular) continue
     if (
-      !COPULAR_VERB_START_RE.test(tail) &&
-      !COPULAR_CLAUSE_START_RE.test(tail)
+      !COPULAR_VERB_START_RE.test(tailAfterCopular) &&
+      !COPULAR_CLAUSE_START_RE.test(tailAfterCopular)
     ) {
+      continue
+    }
+
+    // Prefer keeping copular with infinitive tails on the next line:
+    // "The goal" + "is to ..."
+    if (/^to\b/i.test(tailAfterCopular)) {
+      best = start
       continue
     }
 
@@ -1189,6 +1196,21 @@ function takeLine(
     countDoubleQuotes(s) > 0 &&
     countDoubleQuotes(s) % 2 === 0
   ) {
+    const sentenceCut = findSentenceBoundaryCut(s, '', noSplitAbbrevMatcher)
+    if (sentenceCut > 0 && sentenceCut < s.length) {
+      const left = s.slice(0, sentenceCut).trimEnd()
+      const right = s.slice(sentenceCut).trimStart()
+      if (left && right && shouldForceFragmentSentenceSplit(left, right)) {
+        const adjusted = adjustSplitForNoSplitAbbrevAndQuotes(
+          left,
+          right,
+          noSplitAbbrevMatcher,
+          noSplitUsAbbreviation,
+          { preserveLeadingThat: true, maxLineLength: limit }
+        )
+        return normalizeSplit(adjusted.line, adjusted.rest)
+      }
+    }
     return normalizeSplit(s.trimEnd(), '')
   }
 
@@ -2449,6 +2471,21 @@ function runInlineFill(
     const maxSpanCount =
       remaining && availableSlots > 1 ? availableSlots - 1 : availableSlots
     spanTotal = Math.max(1, Math.min(spanInfo.count, maxSpanCount))
+    if (spanTotal > 1 && remaining) {
+      const nextPreview = takeLine(
+        remaining,
+        limit,
+        noSplitAbbrevMatcher,
+        noSplitUsAbbreviation,
+        { keepWholeWhenFits: options.inline === true }
+      )
+      if (
+        nextPreview.line &&
+        canJoinAdjacentText(fillLine, nextPreview.line, limit)
+      ) {
+        spanTotal = 1
+      }
+    }
     spanIndex = 0
     spanRemaining = Math.max(0, spanTotal - 1)
     const carried = applyQuoteCarry(

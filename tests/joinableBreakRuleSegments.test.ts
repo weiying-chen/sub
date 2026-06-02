@@ -135,6 +135,27 @@ describe("joinableBreakRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
+  it("flags duplicated span boundaries when both sides are full joinable sentences", () => {
+    const text = [
+      "00:01:44:00\t00:01:45:00\t東西都有帶嗎",
+      "Did you bring everything?",
+      "00:01:45:00\t00:01:46:00\t有",
+      "Did you bring everything?",
+      "00:01:46:00\t00:01:47:00\t譬如水杯",
+      "Like your water bottle?",
+      "00:01:47:00\t00:01:48:00\t有 喔好",
+      "Like your water bottle?",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(1)
+    expect(metrics[0]).toMatchObject({
+      type: "JOINABLE_BREAK",
+      text: "Did you bring everything?",
+      nextText: "Like your water bottle?",
+    })
+  })
+
   it("does not flag when left side is a complete sentence before a comma-ended continuation", () => {
     const text = [
       "00:17:59:13\t00:18:00:17\t概念上大概是這樣",

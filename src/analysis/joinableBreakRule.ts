@@ -53,7 +53,8 @@ export function joinableBreakRule(
       next2 &&
       prev.translation === cur.translation &&
       next.translation === next2.translation &&
-      cur.translation !== next.translation
+      cur.translation !== next.translation &&
+      !(isFullSentence(cur.translation) && isFullSentence(next.translation))
     ) {
       return []
     }

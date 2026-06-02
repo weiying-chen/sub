@@ -19,6 +19,8 @@ const ACRONYM_RE =
   /^\s*(["'\(\[\{])?\s*(?:[A-Z]{2,}(?:'s\b|s\b|\b)|(?:[A-Z]\.){2,}[A-Z]?(?:'s\b|s\b)?)/ 
 const ACRONYM_END_RE =
   /(?:^|\s)(?:[A-Z]{2,}(?:'s\b|s\b|\b)|(?:[A-Z]\.){2,}[A-Z]?(?:'s\b|s\b)?)(?:["'\)\]\}]+)?\s*$/ 
+const KINSHIP_TITLE_START_RE =
+  /^\s*(?:["'\(\[\{]\s*)?(?:Grandma|Grandpa)(?:\b|(?=\s|['"]))/ 
 const DASH_TERMINAL_RE = /(?:—|---)/
 const CAPITALIZATION_BOUNDARY_RE = /(?:[.!?:]|…)(?:["'\)\]\}]+)?\s*$/
 const TERMINAL_RE = new RegExp(
@@ -100,6 +102,10 @@ function startsWithAPrefixRomanizedName(s: string): boolean {
 
 function startsWithAcronym(s: string): boolean {
   return ACRONYM_RE.test(s)
+}
+
+function startsWithKinshipTitle(s: string): boolean {
+  return KINSHIP_TITLE_START_RE.test(s)
 }
 
 function endsWithAcronym(s: string): boolean {
@@ -451,6 +457,7 @@ function collectMetrics(
       !startsWithHyphenatedRomanizedName(next.text) &&
       !startsWithAPrefixRomanizedName(next.text) &&
       !startsWithAcronym(next.text) &&
+      !startsWithKinshipTitle(next.text) &&
       !startsWithProperNoun(next.text, abbreviationMatchers) &&
       !startsWithProperNoun(next.text, properNounMatchers) &&
       case1 === 'upper'

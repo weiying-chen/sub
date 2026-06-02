@@ -74,4 +74,40 @@ describe("capitalizationRule", () => {
     expect(tokens).toEqual(["the Bodhisattva path"])
     expect(findings[0]?.expected).toBe("the Bodhisattva Path")
   })
+
+  it("capitalizes kinship terms used as names", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "grandma was admitted to the ICU.",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "Grandpa came home.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [capitalizationRule()])
+    const findings = metrics.filter((m) => m.type === "CAPITALIZATION")
+
+    expect(findings).toHaveLength(1)
+    expect(findings[0]).toMatchObject({
+      found: "grandma",
+      expected: "Grandma",
+    })
+  })
+
+  it("does not capitalize descriptive kinship terms", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "My grandma was admitted to the ICU.",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "His grandpa came home.",
+      "00:00:03:00\t00:00:04:00\tMarker",
+      "She became a grandma last year.",
+      "00:00:04:00\t00:00:05:00\tMarker",
+      "My grandma is an ordinary grandma in Kaohsiung.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [capitalizationRule()])
+    const findings = metrics.filter((m) => m.type === "CAPITALIZATION")
+
+    expect(findings).toEqual([])
+  })
 })

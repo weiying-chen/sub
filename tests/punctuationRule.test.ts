@@ -140,6 +140,20 @@ describe("punctuationRule", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores kinship titles starting the next cue", () => {
+    const text = [
+      "00:01:48:00\t00:01:52:00\t2021年新冠肺炎期間",
+      "During the COVID-19 pandemic in 2021,",
+      "00:01:52:00\t00:01:57:00\t阿嬤還一度住進重症病房",
+      "Grandma was admitted to the ICU.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("ignores configured proper nouns that end with punctuation", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

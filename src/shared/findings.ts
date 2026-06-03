@@ -211,6 +211,10 @@ export function getFindings(
             ? 'End this translation line with sentence-ending punctuation, or lowercase the next translation line.'
             : m.ruleCode === 'COMMA_BEFORE_QUOTE'
               ? "End this translation line with : before the next quoted translation line."
+              : m.ruleCode === 'MISSING_CLOSING_PAREN'
+                ? 'Add a closing ) to this translation line or remove the opening (.'
+                : m.ruleCode === 'MISSING_OPENING_PAREN'
+                  ? 'Add an opening ( to this translation line or remove the closing ).'
               : m.ruleCode === 'MISSING_END_PUNCTUATION'
                 ? "End this translation line with sentence-ending punctuation (., ?, !, :, …, —, or '...')."
                 : m.ruleCode === 'MISSING_CLOSING_QUOTE'

@@ -310,6 +310,46 @@ describe("punctuationRule", () => {
     )
   })
 
+  it("flags subtitle lines missing a closing parenthesis", () => {
+    const text = [
+      "00:00:20:00\t00:00:26:00\t黃崑祥72歲 許小鳳66歲 x 9歲黃靖媗",
+      "(Huang Kun-xiang and Xu Xiao-feng and",
+      "00:00:26:00\t00:00:28:00\t續行",
+      "(their granddaughter.)",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_CLOSING_PAREN" &&
+          f.text === "(Huang Kun-xiang and Xu Xiao-feng and"
+      )
+    ).toBe(true)
+  })
+
+  it("flags subtitle lines missing an opening parenthesis", () => {
+    const text = [
+      "00:00:20:00\t00:00:26:00\t黃崑祥72歲 許小鳳66歲 x 9歲黃靖媗",
+      "(Huang Kun-xiang and Xu Xiao-feng and)",
+      "00:00:26:00\t00:00:28:00\t續行",
+      "their granddaughter.)",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_OPENING_PAREN" &&
+          f.text === "their granddaughter.)"
+      )
+    ).toBe(true)
+  })
+
   it("does not require ':' when the next quoted line is a continuation", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

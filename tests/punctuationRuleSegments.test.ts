@@ -616,7 +616,7 @@ describe("punctuationRule (segments)", () => {
     ).toBe(false)
   })
 
-  it("does not flag balanced wrapped parenthetical on-screen text in subs mode", () => {
+  it("flags wrapped parenthetical on-screen text when each line is not self-balanced", () => {
     const text = [
       "00:04:28:17\t00:04:31:25\t清熱燥濕 瀉火解毒",
       "(Clear Heat and dampness to",
@@ -629,10 +629,20 @@ describe("punctuationRule (segments)", () => {
     const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
-    expect(findings.some((f) => f.text === "(Clear Heat and dampness to")).toBe(
-      false
-    )
-    expect(findings.some((f) => f.text === "reduce inflammation)")).toBe(false)
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_CLOSING_PAREN" &&
+          f.text === "(Clear Heat and dampness to"
+      )
+    ).toBe(true)
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_OPENING_PAREN" &&
+          f.text === "reduce inflammation)"
+      )
+    ).toBe(true)
   })
 
   it("still flags unbalanced wrapped parenthetical text in subs mode", () => {
@@ -649,5 +659,45 @@ describe("punctuationRule (segments)", () => {
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
     expect(findings.some((f) => f.text === "reduce inflammation")).toBe(true)
+  })
+
+  it("flags parenthetical subtitle lines missing a closing parenthesis", () => {
+    const text = [
+      "00:00:20:00\t00:00:26:00\t黃崑祥72歲 許小鳳66歲 x 9歲黃靖媗",
+      "(Huang Kun-xiang and Xu Xiao-feng and",
+      "00:00:26:00\t00:00:28:00\t續行",
+      "(their granddaughter.)",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_CLOSING_PAREN" &&
+          f.text === "(Huang Kun-xiang and Xu Xiao-feng and"
+      )
+    ).toBe(true)
+  })
+
+  it("flags parenthetical subtitle lines missing an opening parenthesis", () => {
+    const text = [
+      "00:00:20:00\t00:00:26:00\t黃崑祥72歲 許小鳳66歲 x 9歲黃靖媗",
+      "(Huang Kun-xiang and Xu Xiao-feng and)",
+      "00:00:26:00\t00:00:28:00\t續行",
+      "their granddaughter.)",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_OPENING_PAREN" &&
+          f.text === "their granddaughter.)"
+      )
+    ).toBe(true)
   })
 })

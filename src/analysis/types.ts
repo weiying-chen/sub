@@ -162,6 +162,8 @@ export type PunctuationRuleCode =
   | 'MISSING_END_PUNCTUATION'
   | 'MISSING_CLOSING_QUOTE'
   | 'MISSING_OPENING_QUOTE'
+  | 'MISSING_CLOSING_PAREN'
+  | 'MISSING_OPENING_PAREN'
 
 export type BlockStructureMetric = {
   type: 'BLOCK_STRUCTURE'

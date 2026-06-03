@@ -273,6 +273,49 @@ function collectCues(
   return cues
 }
 
+function collectParenthesisLineMetrics(
+  src: LineSource,
+  options: ParseBlockOptions = {}
+): PunctuationMetric[] {
+  const metrics: PunctuationMetric[] = []
+  const seen = new Set<number>()
+
+  for (let i = 0; i < src.lineCount; i += 1) {
+    const block = parseBlockAt(src, i, options)
+    if (!block) continue
+
+    for (const [idx, lineIndex] of block.translationIndices.entries()) {
+      if (seen.has(lineIndex)) continue
+      seen.add(lineIndex)
+
+      const text = block.translationLines[idx] ?? ''
+      const trimmed = text.trim()
+      if (!trimmed) continue
+
+      const startsOpen = startsWithOpeningParenthesis(trimmed)
+      const endsClose = endsWithClosingParenthesis(trimmed)
+
+      if (startsOpen && !endsClose) {
+        metrics.push({
+          type: 'PUNCTUATION',
+          lineIndex,
+          ruleCode: 'MISSING_CLOSING_PAREN',
+          text,
+        })
+      } else if (!startsOpen && endsClose) {
+        metrics.push({
+          type: 'PUNCTUATION',
+          lineIndex,
+          ruleCode: 'MISSING_OPENING_PAREN',
+          text,
+        })
+      }
+    }
+  }
+
+  return metrics
+}
+
 function collectTextCues(lines: string[]): Cue[] {
   const segments = parseText(lines.join('\n'))
   return segments.map((segment) => ({
@@ -333,6 +376,7 @@ function collectMetrics(
     lineCount: lines.length,
     getLine: (i) => lines[i] ?? '',
   }
+  const parenthesisLineMetrics = collectParenthesisLineMetrics(src, options)
   const cuesFromTimestamps = collectCues(src, options)
   const usesTimestampCues = cuesFromTimestamps.length > 0
   const cues = cuesFromTimestamps.length > 0 ? cuesFromTimestamps : collectTextCues(lines)
@@ -500,7 +544,7 @@ function collectMetrics(
     addRule4Metric(last, metrics, reportedRule4)
   }
 
-  return metrics
+  return [...parenthesisLineMetrics, ...metrics]
 }
 
 export function punctuationRule(

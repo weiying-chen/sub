@@ -55,4 +55,21 @@ describe("maxCharsRule (segments)", () => {
     expect(byLine.get(1)?.actual).toBe(11)
     expect(byLine.get(2)?.actual).toBe(4)
   })
+
+  it("still checks max chars for parenthetical subtitle blocks", () => {
+    const text = [
+      "00:00:20:00\t00:00:26:00\t黃崑祥72歲 許小鳳66歲 x 9歲黃靖媗",
+      "(Huang Kun-xiang and Xu Xiao-feng and their granddaughter.)",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [maxCharsRule(54)])
+
+    expect(metrics).toHaveLength(1)
+    expect(metrics[0]).toMatchObject({
+      type: "MAX_CHARS",
+      lineIndex: 1,
+      actual: 59,
+      maxAllowed: 54,
+    })
+  })
 })

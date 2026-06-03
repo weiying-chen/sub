@@ -51,6 +51,13 @@ export type SegmentCtx = {
 
 export type SegmentRule = (ctx: SegmentCtx) => Metric[]
 
+const PARENTHETICAL_SKIP_RULE_TYPES = new Set<Metric['type']>([
+  'PUNCTUATION',
+  'JOINABLE_BREAK',
+  'MERGE_CANDIDATE',
+  'SPAN_GAP',
+])
+
 export function analyzeSegments(
   segments: Segment[],
   rules: SegmentRule[],
@@ -64,6 +71,7 @@ export function analyzeSegments(
     metric: Metric
   ): boolean => {
     if (!segment.skipAllRules) return false
+    if (!PARENTHETICAL_SKIP_RULE_TYPES.has(metric.type)) return false
     const lineIndex = (metric as { lineIndex?: unknown }).lineIndex
     if (typeof lineIndex !== 'number') return false
     const start = segment.lineIndex

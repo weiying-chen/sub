@@ -59,7 +59,7 @@ describe("cpsRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
-  it("ignores low CPS warnings for single-line parenthetical cues", () => {
+  it("flags low CPS warnings for single-line parenthetical cues", () => {
     const text = [
       "00:00:20:00\t00:00:25:14\t家庭影響",
       "(Family influence)",
@@ -68,10 +68,10 @@ describe("cpsRule (segments)", () => {
     const metrics = analyzeTextByType(text, "subs", [cpsRule(17, 7)])
     const findings = getFindings(metrics).filter((m) => m.type === "MIN_CPS")
 
-    expect(findings).toHaveLength(0)
+    expect(findings).toHaveLength(1)
   })
 
-  it("ignores low CPS warnings for multi-line parenthetical timestamp blocks", () => {
+  it("flags low CPS warnings for multi-line parenthetical timestamp blocks", () => {
     const text = [
       "00:00:20:00\t00:00:25:14\t家庭影響",
       "(Family influence",
@@ -81,7 +81,7 @@ describe("cpsRule (segments)", () => {
     const metrics = analyzeTextByType(text, "subs", [cpsRule(17, 7)])
     const findings = getFindings(metrics).filter((m) => m.type === "MIN_CPS")
 
-    expect(findings).toHaveLength(0)
+    expect(findings).toHaveLength(1)
   })
 
   it("treats empty lines as breaks between identical translations by default", () => {

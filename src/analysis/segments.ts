@@ -563,7 +563,14 @@ function parseNewsMarker(text: string, lineIndex: number): NewsMarker | null {
 function isNewsSourceLine(text: string): boolean {
   const trimmed = text.trim()
   if (trimmed === '') return false
-  if (trimmed.startsWith('(') || trimmed.startsWith('[')) return false
+  if (
+    trimmed.startsWith('(') ||
+    trimmed.startsWith('[') ||
+    trimmed.startsWith('（') ||
+    trimmed.startsWith('［')
+  ) {
+    return false
+  }
   if (trimmed.startsWith('/*') || trimmed === '*/') return false
   if (isNewsStructureLine(trimmed)) return false
 
@@ -574,7 +581,14 @@ function isNewsSourceLine(text: string): boolean {
 export function isEnglishLikeLine(text: string): boolean {
   const trimmed = text.trim()
   if (trimmed === '') return false
-  if (trimmed.startsWith('(') || trimmed.startsWith('[')) return false
+  if (
+    trimmed.startsWith('(') ||
+    trimmed.startsWith('[') ||
+    trimmed.startsWith('（') ||
+    trimmed.startsWith('［')
+  ) {
+    return false
+  }
   if (trimmed.startsWith('/*')) return false
 
   const cjkRe = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/

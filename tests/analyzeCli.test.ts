@@ -81,6 +81,21 @@ describe("analyze CLI output", () => {
     ).toBe(false)
   })
 
+  it("does not treat full-width parenthetical notes as VO blocks", async () => {
+    const text = [
+      "（字：規畫五層樓建築，預計兩年後完工，服務大馬尼拉南部一千萬人口。）",
+    ].join("\n")
+
+    const output = (await buildAnalyzeOutput(text, {
+      type: "news",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(
+      output.some((metric) => metric.type === "MISSING_TRANSLATION")
+    ).toBe(false)
+  })
+
   it("does not flag missing translation when NS marker appears between source and translation", async () => {
     const text = [
       "5_0203",

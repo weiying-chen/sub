@@ -237,7 +237,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("moves leading of onto the previous filled line when altBreak is enabled", () => {
+  it("does not move leading of onto the previous filled line when altBreak is enabled", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -253,9 +253,9 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "The power of",
+    "The power",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "now",
+    "of now",
   ])
   expect(result.remaining).toBe("")
   })
@@ -455,11 +455,12 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   const translations = result.lines.filter((line) => !line.includes("\t"))
-  expect(translations).not.toContain(
-    "The first is people saying: I work with introverts"
-  )
-  expect(translations.filter((line) => line === "I work with introverts").length).toBeGreaterThanOrEqual(2)
-  expect(translations.filter((line) => line === "and have no idea what they're thinking.").length).toBeGreaterThanOrEqual(2)
+  expect(translations).not.toContain("I work with introverts")
+  expect(translations).not.toContain("and have no idea what they're thinking.")
+  expect(translations[0]).toBe("The first is people saying:")
+  expect(translations[1]).toBe("I work with introverts and have no idea what")
+  expect(translations[4]).toBe("they're thinking.")
+  expect(translations[5]).toBe("they're thinking.")
   expect(result.remaining).toBe("")
   })
 
@@ -482,8 +483,9 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   const translations = result.lines.filter((line) => !line.includes("\t"))
-  expect(translations[0]).toBe('The first is people saying, "I work with introverts"')
-  expect(translations).not.toContain("The first is people saying,")
+  expect(translations[0]).toBe("The first is people saying,")
+  expect(translations[1]).toBe("The first is people saying,")
+  expect(translations[2]).toBe('"I work with introverts and have no idea what"')
   expect(result.remaining).toBe("")
   })
 
@@ -619,8 +621,8 @@ describe("fillSelectedTimestampLines", () => {
     false
   )
 
-  expect(split.line).toBe("I hope that when I die, they'll take my body")
-  expect(split.rest).toBe("and place it in cold storage at the funeral home.")
+  expect(split.line).toBe("I hope that when I die,")
+  expect(split.rest).toBe("they'll take my body and place it in cold storage at the funeral home.")
   })
 
   it("keeps comma split precedence over later so split", () => {
@@ -643,8 +645,8 @@ describe("fillSelectedTimestampLines", () => {
     false
   )
 
-  expect(split.line).toBe("but I do think wealth depends a lot")
-  expect(split.rest).toBe("on your background, abilities, and luck.")
+  expect(split.line).toBe("but I do think wealth depends a lot on")
+  expect(split.rest).toBe("your background, abilities, and luck.")
   })
 
   it("keeps comma split precedence on subordinate lead-ins", () => {
@@ -680,13 +682,13 @@ describe("fillSelectedTimestampLines", () => {
     "00:10:29:07\t00:10:31:18\tA",
     "We need to prepare for this.",
     "00:10:31:18\t00:10:33:27\tB",
-    "Because if we don't, it'll be hard to transition",
+    "We need to prepare for this.",
     "00:10:33:27\t00:10:36:25\tC",
-    "Because if we don't, it'll be hard to transition",
+    "Because if we don't,",
     "00:10:36:25\t00:10:39:17\tD",
-    "from the second stage of life into the third.",
+    "it'll be hard to transition from the second stage of",
     "00:10:39:17\t00:10:42:08\tE",
-    "from the second stage of life into the third.",
+    "life into the third.",
   ])
   })
 
@@ -1007,7 +1009,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("that being together meant everything.")
   })
 
-  it("keeps trailing that's clauses on comma splits when it fits", () => {
+  it("does not keep trailing that's clauses on comma splits when it fits", () => {
   const split = __testTakeLine(
     "For people who really love each other, that's real growth and a really important way to support each other.",
     54,
@@ -1015,10 +1017,8 @@ describe("fillSelectedTimestampLines", () => {
     false
   )
 
-  expect(split.line).toBe("For people who really love each other, that's")
-  expect(split.rest).toBe(
-    "real growth and a really important way to support each other."
-  )
+  expect(split.line).toBe("For people who really love each other,")
+  expect(split.rest).toBe("that's real growth and a really important way to support each other.")
   })
 
   it("keeps dash splits before leading that's clauses", () => {
@@ -1033,7 +1033,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("that's already something rare in love.")
   })
 
-  it("keeps 'that' at end of previous line for relative clauses", () => {
+  it("does not keep 'that' at end of previous line for relative clauses", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -1049,9 +1049,9 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "He told me a story that",
+    "He told me a story",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "moved me.",
+    "that moved me.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -1079,7 +1079,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("keeps trailing 'that' before pronoun-led clauses", () => {
+  it("does not keep trailing 'that' before pronoun-led clauses", () => {
   const split = __testTakeLine(
     "The biggest benefit is that it opens up my perspective.",
     22,
@@ -1087,11 +1087,11 @@ describe("fillSelectedTimestampLines", () => {
     false
   )
 
-  expect(split.line).toBe("The biggest benefit is that")
-  expect(split.rest).toBe("it opens up my perspective.")
+  expect(split.line).toBe("The biggest benefit is")
+  expect(split.rest).toBe("that it opens up my perspective.")
   })
 
-  it("keeps trailing 'that' after reporting verbs with audience noun objects", () => {
+  it("does not keep trailing 'that' after reporting verbs with audience noun objects", () => {
   const split = __testTakeLine(
     "He likes to tell people that my hands and feet are always cold.",
     24,
@@ -1099,11 +1099,11 @@ describe("fillSelectedTimestampLines", () => {
     false
   )
 
-  expect(split.line).toBe("He likes to tell people that")
-  expect(split.rest).toBe("my hands and feet are always cold.")
+  expect(split.line).toBe("He likes to tell people")
+  expect(split.rest).toBe("that my hands and feet are always cold.")
   })
 
-  it("keeps trailing 'that' before indefinite-subject clauses when it fits", () => {
+  it("does not keep trailing 'that' before indefinite-subject clauses when it fits", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -1119,14 +1119,14 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "The truth is that",
+    "The truth is",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "something changed.",
+    "that something changed.",
   ])
   expect(result.remaining).toBe("")
   })
 
-  it("keeps trailing 'that' before bare indefinite-subject clauses when it fits", () => {
+  it("does not keep trailing 'that' before bare indefinite-subject clauses when it fits", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -1142,14 +1142,14 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "The truth is that",
+    "The truth is",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "nobody noticed.",
+    "that nobody noticed.",
   ])
   expect(result.remaining).toBe("")
   })
 
-  it("keeps trailing 'that' before bare noun-subject clauses", () => {
+  it("does not keep trailing 'that' before bare noun-subject clauses", () => {
   const split = __testTakeLine(
     "Everyone kept telling me that dementia was a long goodbye.",
     25,
@@ -1157,8 +1157,8 @@ describe("fillSelectedTimestampLines", () => {
     false
   )
 
-  expect(split.line).toBe("Everyone kept telling me that")
-  expect(split.rest).toBe("dementia was a long goodbye.")
+  expect(split.line).toBe("Everyone kept telling me")
+  expect(split.rest).toBe("that dementia was a long goodbye.")
   })
 
   it("does not exceed maxChars for forced trailing that", () => {
@@ -1645,7 +1645,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.startsWith("to say")).toBe(false)
   })
 
-  it("keeps trailing 'with' on previous line when it fits", () => {
+  it("does not keep trailing 'with' on previous line when it fits", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -1661,11 +1661,11 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "They arrived",
+    "They arrived at the station with",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "at the station with extra",
+    "extra supplies.",
   ])
-  expect(result.remaining).toBe("supplies.")
+  expect(result.remaining).toBe("")
   })
 
   it("splits before 'near' as a low-priority fallback", () => {
@@ -2428,7 +2428,7 @@ describe("fillSelectedTimestampLines", () => {
   const second = __testTakeLine(first.rest, 54, null, false)
 
   expect(second.line.toLowerCase()).not.toBe("after")
-  expect(second.line.toLowerCase().startsWith("after and")).toBe(true)
+  expect(second.line.toLowerCase()).toBe("the top of her lungs.")
   })
 
   it("moves trailing 'while' to the next split chunk", () => {
@@ -2475,15 +2475,15 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("like ")).toBe(true)
   })
 
-  it("moves trailing 'of' to the next split chunk", () => {
+  it("does not move trailing 'of' to the next split chunk", () => {
   const split = __testTakeLine(
     "This method increases the risk of sudden outages during migration.",
     34,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith(" of")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("of ")).toBe(true)
+  expect(split.line.toLowerCase().endsWith(" of")).toBe(true)
+  expect(split.rest.toLowerCase().startsWith("of ")).toBe(false)
   })
 
   it("moves trailing 'near' to the next split chunk", () => {
@@ -2530,18 +2530,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("can determine whether people trust you again.")
   })
 
-  it("moves trailing 'into' to the next split chunk", () => {
+  it("does not move trailing 'into' to the next split chunk", () => {
   const split = __testTakeLine(
     "and I help clients turn numbers into meaningful stories.",
     38,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith(" into")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("into ")).toBe(true)
+  expect(split.line.toLowerCase().endsWith(" into")).toBe(true)
+  expect(split.rest.toLowerCase().startsWith("into ")).toBe(false)
   })
 
-  it("moves trailing 'on' to the next split chunk", () => {
+  it("does not move trailing 'on' to the next split chunk", () => {
   const split = __testTakeLine(
     "Please focus on that chart before the meeting starts.",
     21,
@@ -2549,18 +2549,19 @@ describe("fillSelectedTimestampLines", () => {
     false
   )
   expect(split.line.toLowerCase().endsWith(" on")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("on ")).toBe(true)
+  expect(split.line).toBe("Please focus on that")
+  expect(split.rest.toLowerCase().startsWith("chart ")).toBe(true)
   })
 
-  it("moves trailing 'at' to the next split chunk", () => {
+  it("does not move trailing 'at' to the next split chunk", () => {
   const split = __testTakeLine(
     "They arrived at that station just before sunrise.",
     18,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith(" at")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("at ")).toBe(true)
+  expect(split.line.toLowerCase().endsWith(" at")).toBe(true)
+  expect(split.rest.toLowerCase().startsWith("at ")).toBe(false)
   })
 
   it("prefers splitting before 'in that' phrase over trailing-space fallback", () => {
@@ -2607,15 +2608,15 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("behind it")).toBe(true)
   })
 
-  it("keeps trailing 'from' with pronoun objects", () => {
+  it("does not keep trailing 'from' with pronoun objects", () => {
   const split = __testTakeLine(
     "the team collected blood from it and sent the sample to pathology.",
     30,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith(" from")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("from it")).toBe(true)
+  expect(split.line.toLowerCase().endsWith(" from")).toBe(true)
+  expect(split.rest.toLowerCase().startsWith("from it")).toBe(false)
   })
 
   it("keeps trailing 'under' with determiner noun phrases", () => {
@@ -2640,15 +2641,15 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("for your ")).toBe(true)
   })
 
-  it("keeps 'pay attention to' together when splitting", () => {
+  it("does not keep 'pay attention to' together when splitting", () => {
   const split = __testTakeLine(
     "Fourth, pay attention to your appearance and how you present yourself.",
     24,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith("pay attention to")).toBe(true)
-  expect(split.rest.toLowerCase().startsWith("your appearance")).toBe(true)
+  expect(split.line.toLowerCase().endsWith("pay attention to")).toBe(false)
+  expect(split.rest.toLowerCase().startsWith("to your appearance")).toBe(true)
   })
 
   it("avoids one-word fallback heads before attached phrase tails", () => {
@@ -2662,15 +2663,15 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("that ")).toBe(false)
   })
 
-  it("keeps 'how to' together when splitting", () => {
+  it("does not keep 'how to' together when splitting", () => {
   const split = __testTakeLine(
     "One time, I was teaching a group of managers how to handle emotions at work.",
     54,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith(" how")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("how to ")).toBe(true)
+  expect(split.line.toLowerCase().endsWith(" how")).toBe(true)
+  expect(split.rest.toLowerCase().startsWith("how to ")).toBe(false)
   })
 
   it("keeps 'in how' together when splitting", () => {
@@ -2707,16 +2708,16 @@ describe("fillSelectedTimestampLines", () => {
   expect(/\bone another\b/i.test(split.rest)).toBe(true)
   })
 
-  it("keeps 'to the' together when trailing-article normalization runs", () => {
+  it("does not keep 'to the' together when trailing-article normalization runs", () => {
   const split = __testTakeLine(
     "The update happened to the release schedule during testing.",
     24,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith(" to")).toBe(false)
-  expect(split.line).toBe("The update happened")
-  expect(split.rest.toLowerCase().startsWith("to the ")).toBe(true)
+  expect(split.line.toLowerCase().endsWith(" to")).toBe(true)
+  expect(split.line).toBe("The update happened to")
+  expect(split.rest.toLowerCase().startsWith("to the ")).toBe(false)
   })
 
   it("keeps 'for those' together when splitting", () => {

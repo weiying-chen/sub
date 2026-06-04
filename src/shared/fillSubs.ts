@@ -37,7 +37,6 @@ const MIN_WITH_SPLIT_LEFT_WORDS = 2
 const CONJ_RE = /\b(and|but|or|so|yet|nor)\b/i
 const CLAUSE_START_RE =
   /^\s*(?:I|you|we|they|he|she|it|this|that|there)\b/i
-const THAT_RE = /\b(that)\b/i
 const WHO_RE = /\b(who|whom|whose|who's)\b/i
 const THAT_SPLIT_VERB_RE =
   /\b(?:say|says|said|tell|tells|told|ask|asks|asked|think|thinks|thought|know|knows|knew|realize|realizes|realized|feel|feels|felt|hope|hopes|hoped|decide|decides|decided|learn|learns|learned|hear|hears|heard|believe|believes|believed|suspect|suspects|suspected|guess|guesses|guessed|remember|remembers|remembered|notice|notices|noticed|find|finds|found)\b/i
@@ -52,8 +51,6 @@ const DET_RE =
 const PRONOUN_RE = /^(?:me|you|him|her|us|them|it|this|that|there)\b/i
 const CLAUSE_STARTER_RE =
   /^(?:because|since|as|although|though|while|if|when)\b/i
-const THAT_CLAUSE_STARTER_RE =
-  /^that\s+(?:because|since|as|although|though|while|if|when|whether)\b/i
 const CLAUSE_STARTER_ANY_RE =
   /\b(?:because|since|as|although|though|while|if|when)\b/i
 const PREPOSITION_PHRASE_HEAD_RE =
@@ -538,6 +535,9 @@ function findRightmostConjunctionStart(window: string, nextText: string): number
     ) {
       continue
     }
+    if (m[0].toLowerCase() === 'and' || m[0].toLowerCase() === 'or') {
+      continue
+    }
 
     const left = window.slice(0, start).trimEnd()
     const right = (window.slice(start) + nextText).trimStart()
@@ -576,27 +576,6 @@ function findRightmostInHowBreak(window: string): number {
     const left = window.slice(0, start).trimEnd()
     const right = window.slice(start).trimStart()
     if (left && right) best = start
-  }
-  return best
-}
-
-function findRightmostCommaThatStart(window: string): number {
-  let best = -1
-  const re = new RegExp(THAT_RE.source, 'gi')
-  let m: RegExpExecArray | null
-  while ((m = re.exec(window)) !== null) {
-    const start = m.index
-    const end = start + m[0].length
-
-    const prev = window[start - 1] ?? ''
-    const next = window[end] ?? ''
-    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
-
-    const left = window.slice(0, start).trimEnd()
-    const right = window.slice(start).trimStart()
-    if (!left || !right) continue
-    if (!left.endsWith(',')) continue
-    best = start
   }
   return best
 }
@@ -692,12 +671,6 @@ function startsWithCopularClause(text: string): boolean {
   return COPULAR_CLAUSE_START_RE.test(trimmed) || CLAUSE_START_RE.test(trimmed)
 }
 
-function endsWithClauseStarter(text: string): boolean {
-  return /\b(?:because|since|as|although|though|while|if|when)$/i.test(
-    text.trimEnd()
-  )
-}
-
 function findRightmostCopularLead(window: string, nextText: string): number {
   let best = -1
   const re = new RegExp(COPULAR_RE.source, 'gi')
@@ -742,7 +715,7 @@ function findRightmostSpace(window: string, nextText: string): number {
     const left = window.slice(0, cut).trimEnd()
     const right = (window.slice(cut) + nextText).trimStart()
     if (!left || !right) continue
-    const rightConjunction = right.match(/^(and|or|nor)\b/i)?.[0] ?? ''
+    const rightConjunction = right.match(/^(nor)\b/i)?.[0] ?? ''
     if (rightConjunction && isLikelyCoordinatedPhraseSplit(left, right, rightConjunction)) {
       continue
     }
@@ -750,7 +723,6 @@ function findRightmostSpace(window: string, nextText: string): number {
     if (isToVerbSplit(left, right)) continue
     if (isMeridiemTimeSplit(left, right)) continue
     if (startsWithMeridiemTimePhrase(right)) continue
-    if (/\bto$/i.test(left) && DET_RE.test(right)) continue
     return cut
   }
   return -1
@@ -874,7 +846,7 @@ function isToVerbSplit(left: string, right: string): boolean {
 }
 
 function findRightmostClauseStarterLead(window: string, nextText: string): number {
-  const re = /\b(?:because|since|as|although|though|while|if|when)\b/gi
+  const re = /\b(?:because|since|although|though|while|if)\b/gi
   let best = -1
   let m: RegExpExecArray | null
   while ((m = re.exec(window)) !== null) {
@@ -929,7 +901,7 @@ function findRightmostNearStart(window: string, nextText: string): number {
 
 function findRightmostPrepositionLead(window: string, nextText: string): number {
   let best = -1
-  const re = /\b(?:in|into|on|at|behind|from|under)\b/gi
+  const re = /\b(?:in|behind|under)\b/gi
   let m: RegExpExecArray | null
   while ((m = re.exec(window)) !== null) {
     const start = m.index
@@ -1026,7 +998,7 @@ function findBestCut(
     if (!/^\s*"/.test(afterComma)) return -1
 
     let best = -1
-    const re = /\b(and|but)\b/gi
+    const re = /\b(but)\b/gi
     let match = re.exec(window)
     while (match) {
       const idx = match.index
@@ -1045,7 +1017,7 @@ function findBestCut(
     for (let i = window.length - 1; i > commaCut; i -= 1) {
       if (window[i] !== ' ') continue
       const right = (window.slice(i) + nextText).trimStart().toLowerCase()
-      if (/^(and|but|or|so|yet|nor)\b/.test(right)) {
+      if (/^(but|so|yet|nor)\b/.test(right)) {
         return i + 1
       }
     }
@@ -1095,6 +1067,7 @@ function findBestCut(
     if (conjunctionCut > commaCut) {
       if (
         conjunction &&
+        conjunction !== 'and' &&
         conjunction !== 'or' &&
         conjunction !== 'nor' &&
         conjunction !== 'so'
@@ -1119,9 +1092,6 @@ function findBestCut(
 
   const whoCut = findRightmostWhoStart(window)
   if (whoCut >= 0) return { cut: whoCut, reason: 'who' }
-
-  const commaThatCut = findRightmostCommaThatStart(window)
-  if (commaThatCut >= 0) return { cut: commaThatCut, reason: 'commaThat' }
 
   const clauseLeadCut = findRightmostClauseStarterLead(window, nextText)
   if (clauseLeadCut >= 0) return { cut: clauseLeadCut, reason: 'clauseStarter' }
@@ -1402,7 +1372,7 @@ function normalizeTrailingConjunctionHead(
   rest: string
 ): { line: string; rest: string } {
   const trimmed = line.trimEnd()
-  const match = trimmed.match(/^(.*)\s+(and|but|or|so|yet|nor)$/i)
+  const match = trimmed.match(/^(.*)\s+(but|so|yet|nor)$/i)
   if (!match) return { line, rest }
 
   const left = (match[1] ?? '').trimEnd()
@@ -1514,7 +1484,7 @@ function normalizeTrailingCopularHead(
   if (!left) return { line, rest }
 
   const trimmedRest = rest.trimStart()
-  if (!/^(where|when|why|how)\b/i.test(trimmedRest)) return { line, rest }
+  if (!/^(where|why|how)\b/i.test(trimmedRest)) return { line, rest }
 
   if (!rest) return { line: left, rest: verb }
   if (trimmedRest.toLowerCase().startsWith(`${verb} `)) {
@@ -1527,15 +1497,7 @@ function normalizeTrailingHowToHead(
   line: string,
   rest: string
 ): { line: string; rest: string } {
-  const trimmed = line.trimEnd()
-  const match = trimmed.match(/^(.*)\s+(how)$/i)
-  if (!match) return { line, rest }
-
-  const left = (match[1] ?? '').trimEnd()
-  if (!left) return { line, rest }
-  if (!/^to\b/i.test(rest.trimStart())) return { line, rest }
-
-  return { line: left, rest: `how ${rest.trimStart()}` }
+  return { line, rest }
 }
 
 function normalizeTrailingInHowHead(
@@ -1611,9 +1573,7 @@ function normalizeTrailingPrepositionHead(
   rest: string
 ): { line: string; rest: string } {
   const trimmed = line.trimEnd()
-  const match = trimmed.match(
-    /^(.*)\s+(of|near|in|into|on|at|behind|from|under|for|with)$/i
-  )
+  const match = trimmed.match(/^(.*)\s+(near|in|behind|under|for)$/i)
   if (!match) return { line, rest }
 
   const left = (match[1] ?? '').trimEnd()
@@ -1687,25 +1647,14 @@ function normalizeTrailingCommaThat(
   line: string,
   rest: string
 ): { line: string; rest: string } {
-  const trimmedLine = line.trimEnd()
-  if (!/,\s+that$/i.test(trimmedLine) || !rest.trimStart()) return { line, rest }
-
-  const nextLine = trimmedLine.replace(/\s+that$/i, '')
-  return { line: nextLine, rest: `that ${rest.trimStart()}` }
+  return { line, rest }
 }
 
 function normalizeLeadingToAfterPayAttention(
   line: string,
   rest: string
 ): { line: string; rest: string } {
-  const trimmedLine = line.trimEnd()
-  const trimmedRest = rest.trimStart()
-  if (!/\bpay attention$/i.test(trimmedLine)) return { line, rest }
-  if (!/^to\b/i.test(trimmedRest)) return { line, rest }
-
-  const nextRest = trimmedRest.replace(/^to\b\s*/i, "").trimStart()
-  if (!nextRest) return { line: `${trimmedLine} to`, rest: "" }
-  return { line: `${trimmedLine} to`, rest: nextRest }
+  return { line, rest }
 }
 
 function normalizeSplit(line: string, rest: string): { line: string; rest: string } {
@@ -1770,43 +1719,6 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     commaLeadingNormalized.line,
     commaLeadingNormalized.rest
   )
-}
-
-function moveLeadingOfToPreviousLine(
-  previousLine: string,
-  currentLine: string
-): { previousLine: string; currentLine: string } | null {
-  const trimmedCurrent = currentLine.trimStart()
-  const match = trimmedCurrent.match(/^(of)\b\s+(.+)$/i)
-  if (!match) return null
-
-  const word = match[1] ?? 'of'
-  const rest = (match[2] ?? '').trim()
-  if (!rest) return null
-
-  return {
-    previousLine: `${previousLine.trimEnd()} ${word}`,
-    currentLine: rest,
-  }
-}
-
-function normalizeLeadingOfTranslations(
-  translations: Map<number, string>,
-  orderedIndices: number[]
-): void {
-  for (let i = 1; i < orderedIndices.length; i += 1) {
-    const previousIndex = orderedIndices[i - 1]
-    const currentIndex = orderedIndices[i]
-    const previousLine = translations.get(previousIndex)
-    const currentLine = translations.get(currentIndex)
-    if (!previousLine || !currentLine) continue
-
-    const adjusted = moveLeadingOfToPreviousLine(previousLine, currentLine)
-    if (!adjusted) continue
-
-    translations.set(previousIndex, adjusted.previousLine)
-    translations.set(currentIndex, adjusted.currentLine)
-  }
 }
 
 function mergeJoinableTranslations(
@@ -2051,10 +1963,6 @@ function mergeNoSplitPhrases(
     return appendToken(base, token).length <= maxLineLength
   }
 
-  const endsWithSentence =
-    /[.!?]["']?\s*$/.test(trimmedLine) || /[.!?]["']?\s*$/.test(line)
-  const lineWordCount = trimmedLine.split(/\s+/).filter(Boolean).length
-
   if (endsWithPronounContraction(trimmedLine)) {
     const wordMatch = trimmedRest.match(/^[^\s]+/)
     if (wordMatch) {
@@ -2099,53 +2007,6 @@ function mergeNoSplitPhrases(
     }
   }
 
-  const withMatch = trimmedRest.match(/^with\b/i)
-  if (
-    withMatch &&
-    lineWordCount >= 2 &&
-    !endsWithSentence &&
-    (options.forceTrailingThatWith || canMergeToken(trimmedLine, withMatch[0]))
-  ) {
-    const token = withMatch[0]
-    const nextRest = trimmedRest.slice(token.length).trimStart()
-    return { line: appendToken(trimmedLine, token), rest: nextRest }
-  }
-
-  const thatMatch = trimmedRest.match(/^that(?:'s)?\b/i)
-  if (
-    thatMatch &&
-    (options.forceTrailingThatWith || !options.preserveLeadingThat) &&
-    !endsWithSentence &&
-    THAT_CLAUSE_STARTER_RE.test(trimmedRest) &&
-    (options.forceTrailingThatWith || canMergeToken(trimmedLine, thatMatch[0]))
-  ) {
-    const token = thatMatch[0]
-    const nextRest = trimmedRest.slice(token.length).trimStart()
-    return { line: appendToken(trimmedLine, token), rest: nextRest }
-  }
-
-  if (
-    thatMatch &&
-    (options.forceTrailingThatWith || !options.preserveLeadingThat) &&
-    !endsWithSentence &&
-    lineWordCount >= 2 &&
-    !endsWithClauseStarter(trimmedLine) &&
-    (options.forceTrailingThatWith || canMergeToken(trimmedLine, thatMatch[0]))
-  ) {
-    const token = thatMatch[0]
-    const nextRest = trimmedRest.slice(token.length).trimStart()
-    return { line: appendToken(trimmedLine, token), rest: nextRest }
-  }
-
-  if (/\blike$/i.test(trimmedLine)) {
-    const thatMatch = trimmedRest.match(/^that\b/i)
-    if (thatMatch) {
-      const token = thatMatch[0]
-      const nextRest = trimmedRest.slice(token.length).trimStart()
-      return { line: appendToken(trimmedLine, token), rest: nextRest }
-    }
-  }
-
   if (/\beven$/i.test(trimmedLine)) {
     const soMatch = trimmedRest.match(/^so\b,?/i)
     if (soMatch) {
@@ -2162,7 +2023,7 @@ function mergeNoSplitPhrases(
     }
   }
 
-  if (/^(?:and|but|or|so|yet|nor)$/i.test(trimmedLine)) {
+  if (/^(?:but|so|yet|nor)$/i.test(trimmedLine)) {
     const thatMatch = trimmedRest.match(/^that(?:'s)?\b/i)
     if (thatMatch) {
       const token = thatMatch[0]
@@ -2522,10 +2383,6 @@ function runInlineFill(
     }
   }
 
-  if (!dryRun && options.altBreak) {
-    const orderedIndices = [...translations.keys()].sort((a, b) => a - b)
-    normalizeLeadingOfTranslations(translations, orderedIndices)
-  }
   if (!dryRun) {
     const orderedIndices = [...translations.keys()].sort((a, b) => a - b)
     mergeJoinableTranslations(translations, orderedIndices, limit)

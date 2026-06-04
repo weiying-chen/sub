@@ -14,10 +14,27 @@ const DEFAULT_MAX_GAP_FRAMES = 30
 const COMMA_END_RE = /[,，]\s*$/
 const SENTENCE_END_RE = /[.!?]["')\]]*\s*$/
 
+function isSingleWordTerminalSentence(text: string): boolean {
+  const trimmed = text.trim()
+  if (!trimmed || !SENTENCE_END_RE.test(trimmed)) return false
+
+  const words = trimmed
+    .replace(/^["'([{]+|["')\]}]+$/g, "")
+    .split(/\s+/)
+    .map((word) => word.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, ""))
+    .filter(Boolean)
+
+  if (words.length !== 1) return false
+  const first = words[0] ?? ""
+  if (first === "") return false
+  return first[0] === first[0].toUpperCase()
+}
+
 function isFullSentence(text: string): boolean {
   const trimmed = text.trim()
   if (!trimmed) return false
   if (!SENTENCE_END_RE.test(trimmed)) return false
+  if (isSingleWordTerminalSentence(trimmed)) return true
   if (looksLikeSentenceFragment(trimmed)) return false
   return true
 }

@@ -156,6 +156,28 @@ describe("joinableBreakRule (segments)", () => {
     })
   })
 
+  it("flags a duplicated span boundary before a one-word full question", () => {
+    const text = [
+      "00:10:20:14\t00:10:21:15\t各位",
+      "It's invalid.",
+      "00:10:21:15\t00:10:22:11\t無效",
+      "It's invalid.",
+      "00:10:22:11\t00:10:23:05\t為什麼",
+      "Why?",
+      "00:10:23:05\t00:10:24:29\t沒有親自簽名",
+      "Because it wasn't signed,",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+
+    expect(metrics).toHaveLength(1)
+    expect(metrics[0]).toMatchObject({
+      type: "JOINABLE_BREAK",
+      text: "It's invalid.",
+      nextText: "Why?",
+    })
+  })
+
   it("does not flag when left side is a complete sentence before a comma-ended continuation", () => {
     const text = [
       "00:17:59:13\t00:18:00:17\t概念上大概是這樣",

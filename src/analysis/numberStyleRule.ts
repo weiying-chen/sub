@@ -69,21 +69,9 @@ const WORD_LIST = [
 ].join('|')
 
 const DECADE_WORD_RE = new RegExp(`\\b(?:${Object.keys(DECADE_WORDS).join('|')})\\b`, 'gi')
-const WORD_NUMBER_RE = new RegExp(
-  `\\b(?:${WORD_LIST})(?:[\\s-]+(?:${WORD_LIST}))*\\b`,
-  'gi'
-)
 const DIGIT_TOKEN_RE_SOURCE = '\\b\\d{1,3}(?:,\\d{3})+(?:\\.\\d+)?\\b|\\b\\d+(?:\\.\\d+)?\\b'
 const NUMBER_TOKEN_RE_SOURCE =
   `(?:${DIGIT_TOKEN_RE_SOURCE}|(?:${WORD_LIST})(?:[\\s-]+(?:${WORD_LIST}))*)`
-const APPROXIMATE_RANGE_PREFIX_RE = new RegExp(
-  `\\b(?:${WORD_LIST})(?:[\\s-]+(?:${WORD_LIST}))*\\s+or\\s+$`,
-  'i'
-)
-const APPROXIMATE_RANGE_SUFFIX_RE = new RegExp(
-  `^\\s+or\\s+(?:${WORD_LIST})(?:[\\s-]+(?:${WORD_LIST}))*\\b`,
-  'i'
-)
 const COORDINATED_NUMBER_LIST_RE = new RegExp(
   `\\b${NUMBER_TOKEN_RE_SOURCE}(?:\\s*,\\s*${NUMBER_TOKEN_RE_SOURCE})*(?:\\s*,?\\s+(?:and|or)\\s+${NUMBER_TOKEN_RE_SOURCE})\\s+[A-Za-z]+\\b`,
   'gi'
@@ -189,45 +177,6 @@ function isLevelNumberToken(text: string, index: number) {
   return /\blevel\s+$/i.test(prefix)
 }
 
-function isPrecededByDigitToken(text: string, index: number) {
-  let i = index - 1
-  while (i >= 0 && isSpace(text[i])) i -= 1
-  if (i < 0) return false
-
-  let sawDigit = false
-  while (i >= 0) {
-    const ch = text[i]
-    if (ch >= '0' && ch <= '9') {
-      sawDigit = true
-      i -= 1
-      continue
-    }
-    if (ch === ',') {
-      i -= 1
-      continue
-    }
-    break
-  }
-
-  return sawDigit
-}
-
-function isApproximateQuantityPhrase(text: string, index: number) {
-  const prefix = text.slice(0, index).toLowerCase()
-  return /(?:\balmost\s+a|\babout\s+a|\broughly\s+a|\bnearly\s+a|\ba\s+few|\bfew|\bseveral|\ba)\s+$/.test(
-    prefix
-  )
-}
-
-function isApproximateOrRange(text: string, index: number, length: number) {
-  const prefix = text.slice(0, index)
-  const suffix = text.slice(index + length)
-  return (
-    APPROXIMATE_RANGE_PREFIX_RE.test(prefix) ||
-    APPROXIMATE_RANGE_SUFFIX_RE.test(suffix)
-  )
-}
-
 function isDigitRangeToken(text: string, index: number, length: number) {
   const prefix = text.slice(0, index)
   const suffix = text.slice(index + length)
@@ -261,58 +210,6 @@ function isWithinAnySpan(
 ) {
   const end = index + length
   return spans.some((span) => index >= span.start && end <= span.end)
-}
-
-function parseNumberWords(words: string[]): number | null {
-  let total = 0
-  let current = 0
-  let seen = false
-
-  for (const raw of words) {
-    const w = raw.toLowerCase()
-    if (w === 'and') continue
-
-    if (w in SMALL) {
-      current += SMALL[w]
-      seen = true
-      continue
-    }
-
-    if (w in TENS) {
-      current += TENS[w]
-      seen = true
-      continue
-    }
-
-    if (w === 'hundred') {
-      if (current === 0) current = 1
-      current *= 100
-      seen = true
-      continue
-    }
-
-    if (w in SCALES) {
-      if (current === 0) current = 1
-      total += current * SCALES[w]
-      current = 0
-      seen = true
-      continue
-    }
-
-    return null
-  }
-
-  if (!seen) return null
-  return total + current
-}
-
-function isHyphenatedDigitSequence(raw: string, parts: string[]) {
-  if (!raw.includes('-')) return false
-  if (parts.length < 2) return false
-  return parts.every((part) => {
-    const value = SMALL[part.toLowerCase()]
-    return typeof value === 'number' && value >= 0 && value <= 9
-  })
 }
 
 type NumberStyleRule = Rule & SegmentRule
@@ -390,35 +287,6 @@ function collectMetrics(
         text: fullText,
       })
     }
-  }
-
-  while ((match = WORD_NUMBER_RE.exec(text))) {
-    const parts = match[0].split(/[\s-]+/).filter(Boolean)
-    if (isHyphenatedDigitSequence(match[0], parts)) continue
-    if (isPrecededByDigitToken(text, match.index)) continue
-    if (isApproximateQuantityPhrase(text, match.index)) continue
-    if (isApproximateOrRange(text, match.index, match[0].length)) continue
-    if (isWithinAnySpan(coordinatedListSpans, match.index, match[0].length)) continue
-    if (isStatisticalRatioToken(text, match.index, match[0].length)) continue
-    const value = parseNumberWords(parts)
-    if (value == null || value <= 10) continue
-    if (isAmPmToken(text, match.index, match[0].length)) continue
-    if (isAgeAdjective(text, match.index, match[0].length)) continue
-    if (isMeasurementUnitToken(text, match.index, match[0].length)) continue
-
-    if (isSentenceStart(text, match.index, allowLeadingDoubleQuote)) continue
-
-    metrics.push({
-      type: 'NUMBER_STYLE',
-      ruleCode: 'LARGE_NUMBER_AS_WORDS',
-      lineIndex: anchorIndex,
-      index: match.index,
-      value,
-      found: 'words',
-      expected: 'digits',
-      token: match[0],
-      text: fullText,
-    })
   }
 
   while ((match = DECADE_WORD_RE.exec(text))) {

@@ -84,7 +84,6 @@ export type NumberStyleMetric = {
 
 export type NumberStyleRuleCode =
   | 'SMALL_NUMBER_AS_DIGITS'
-  | 'LARGE_NUMBER_AS_WORDS'
   | 'DECADE_WORD_AS_TEXT'
 
 export type PercentStyleMetric = {

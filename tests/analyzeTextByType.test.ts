@@ -16,11 +16,11 @@ describe("analyzeTextByType", () => {
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
 
     const tokens = findings.map((f) => f.token).sort()
-    expect(tokens).toEqual(["5", "eleven"])
+    expect(tokens).toEqual(["5"])
 
     const byToken = new Map(findings.map((f) => [f.token, f]))
     expect(byToken.get("5")?.lineIndex).toBe(1)
-    expect(byToken.get("eleven")?.lineIndex).toBe(3)
+    expect(byToken.get("eleven")).toBeUndefined()
   })
 
   it("normalizes CRLF input text for subs parsing", () => {
@@ -35,11 +35,11 @@ describe("analyzeTextByType", () => {
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
 
     const tokens = findings.map((f) => f.token).sort()
-    expect(tokens).toEqual(["5", "eleven"])
+    expect(tokens).toEqual(["5"])
 
     const byToken = new Map(findings.map((f) => [f.token, f]))
     expect(byToken.get("5")?.lineIndex).toBe(1)
-    expect(byToken.get("eleven")?.lineIndex).toBe(3)
+    expect(byToken.get("eleven")).toBeUndefined()
   })
 
   it("uses news parsing (VO lines as candidates)", () => {
@@ -54,11 +54,11 @@ describe("analyzeTextByType", () => {
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
 
     const tokens = findings.map((f) => f.token).sort()
-    expect(tokens).toEqual(["5", "eleven"])
+    expect(tokens).toEqual(["5"])
 
     const byToken = new Map(findings.map((f) => [f.token, f]))
     expect(byToken.get("5")?.lineIndex).toBe(1)
-    expect(byToken.get("eleven")?.lineIndex).toBe(3)
+    expect(byToken.get("eleven")).toBeUndefined()
   })
 
   it("ignores free-text lines for subs parsing", () => {
@@ -88,7 +88,7 @@ describe("analyzeTextByType", () => {
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
 
     const tokens = findings.map((f) => f.token).sort()
-    expect(tokens).toEqual(["5", "eleven"])
+    expect(tokens).toEqual(["5"])
   })
 
   it("flags English lines inside mixed news paragraphs", () => {

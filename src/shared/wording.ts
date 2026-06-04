@@ -14,7 +14,8 @@ export const RULE_MODAL_EXPLANATIONS: Partial<Record<Finding["type"], string>> =
   TIMESTAMP_FORMAT: TIMESTAMP_FORMAT_MODAL_EXPLANATION,
   MAX_CPS:
     "Flags a translation line with reading speed above the maximum CPS limit. You can edit it in the input below.",
-  MAX_CHARS: "Flags a translation line with 55 or more characters.",
+  MAX_CHARS:
+    "Flags a translation line with more than the maximum character limit. You can edit it in the input below.",
   PUNCTUATION:
     "Checks sentence-ending punctuation, punctuation continuity between adjacent translation lines, and quote matching.",
   TERM_VARIANT:

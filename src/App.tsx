@@ -25,6 +25,7 @@ import { mergedRunTranslationIndices, parseBlockAt, type LineSource } from "./sh
 import { sampleSubtitles } from "./fixtures/subtitles"
 import { RULE_MODAL_EXPLANATIONS } from "./shared/wording"
 import { MAX_CPS, MIN_CPS } from "./shared/subtitles"
+import { DEFAULT_MAX_CHARS } from "./shared/maxChars"
 import capitalizationTermsText from "../capitalization-terms.txt?raw"
 import punctuationAbbreviationsText from "../punctuation-abbreviations.txt?raw"
 import properNounsText from "../punctuation-proper-nouns.txt?raw"
@@ -36,6 +37,7 @@ const MODE_STORAGE_KEY = "subs.analysisType"
 const EDITOR_TEXT_STORAGE_KEY = "subs.editorText"
 const MAX_CPS_STORAGE_KEY = "subs.maxCps"
 const MIN_CPS_STORAGE_KEY = "subs.minCps"
+const MAX_CHARS_STORAGE_KEY = "subs.maxChars"
 const THEME_STORAGE_KEY = "subs.theme"
 const FINDINGS_MOTION_SUPPRESS_MS = 220
 type AppAnalysisType = "subs" | "text"
@@ -544,8 +546,14 @@ export default function App({
   const [value, setValue] = useState(() => loadStoredEditorText())
   const [maxCps, setMaxCps] = useState(() => loadStoredCpsThreshold(MAX_CPS_STORAGE_KEY, MAX_CPS))
   const [minCps, setMinCps] = useState(() => loadStoredCpsThreshold(MIN_CPS_STORAGE_KEY, MIN_CPS))
+  const [maxChars, setMaxChars] = useState(() =>
+    loadStoredCpsThreshold(MAX_CHARS_STORAGE_KEY, DEFAULT_MAX_CHARS)
+  )
   const [maxCpsDraft, setMaxCpsDraft] = useState(() => String(loadStoredCpsThreshold(MAX_CPS_STORAGE_KEY, MAX_CPS)))
   const [minCpsDraft, setMinCpsDraft] = useState(() => String(loadStoredCpsThreshold(MIN_CPS_STORAGE_KEY, MIN_CPS)))
+  const [maxCharsDraft, setMaxCharsDraft] = useState(() =>
+    String(loadStoredCpsThreshold(MAX_CHARS_STORAGE_KEY, DEFAULT_MAX_CHARS))
+  )
   const [view, setView] = useState<EditorView | null>(null)
   const [activeFindingId, setActiveFindingId] = useState<string | null>(null)
   const [enabledRuleTypes, setEnabledRuleTypes] = useState<Set<Finding["type"]>>(
@@ -601,7 +609,8 @@ export default function App({
     if (typeof window === "undefined") return
     window.localStorage.setItem(MAX_CPS_STORAGE_KEY, String(maxCps))
     window.localStorage.setItem(MIN_CPS_STORAGE_KEY, String(minCps))
-  }, [maxCps, minCps])
+    window.localStorage.setItem(MAX_CHARS_STORAGE_KEY, String(maxChars))
+  }, [maxCps, minCps, maxChars])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -620,6 +629,10 @@ export default function App({
   useEffect(() => {
     setMinCpsDraft(String(minCps))
   }, [minCps])
+
+  useEffect(() => {
+    setMaxCharsDraft(String(maxChars))
+  }, [maxChars])
 
   const openRulesModal = useCallback(() => {
     if (rulesModalCloseTimerRef.current !== null) {
@@ -661,6 +674,10 @@ export default function App({
     setMinCpsDraft(raw)
   }, [])
 
+  const handleMaxCharsChange = useCallback((raw: string) => {
+    setMaxCharsDraft(raw)
+  }, [])
+
   const commitMaxCpsDraft = useCallback(() => {
     const parsed = Number(maxCpsDraft)
     if (!Number.isFinite(parsed) || parsed <= 0) {
@@ -687,6 +704,17 @@ export default function App({
     setMaxCps(nextMax)
   }, [minCpsDraft, minCps, maxCps, suppressFindingMotionForRuleChange])
 
+  const commitMaxCharsDraft = useCallback(() => {
+    const parsed = Number(maxCharsDraft)
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      setMaxCharsDraft(String(maxChars))
+      return
+    }
+
+    suppressFindingMotionForRuleChange()
+    setMaxChars(parsed)
+  }, [maxCharsDraft, maxChars, suppressFindingMotionForRuleChange])
+
   const analysisEnabledRuleTypes = useMemo(() => {
     const applicable = APPLICABLE_RULE_TYPES_BY_ANALYSIS_TYPE[analysisType]
     const filtered = Array.from(enabledRuleTypes).filter((type) => applicable.has(type))
@@ -704,12 +732,13 @@ export default function App({
       enabledRuleTypes: analysisEnabledRuleTypes,
       maxCps,
       minCps,
+      maxChars,
       capitalizationTerms,
       termVariants,
       properNouns,
       abbreviations: punctuationAbbreviations,
     }) as Metric[]
-  }, [value, analysisEnabledRuleTypes, maxCps, minCps, analysisType])
+  }, [value, analysisEnabledRuleTypes, maxCps, minCps, maxChars, analysisType])
 
   const findings = useMemo<Finding[]>(() => {
     return getFindings(rawRuleOutputs, { includeWarnings })
@@ -725,12 +754,13 @@ export default function App({
       enabledRuleTypes: analysisEnabledRuleTypes,
       maxCps,
       minCps,
+      maxChars,
       capitalizationTerms,
       termVariants,
       properNouns,
       abbreviations: punctuationAbbreviations,
     }) as Metric[]
-  }, [value, analysisEnabledRuleTypes, maxCps, minCps, analysisType])
+  }, [value, analysisEnabledRuleTypes, maxCps, minCps, maxChars, analysisType])
 
   useEffect(() => {
     console.log("[analysis] cps metrics", cpsMetrics)
@@ -991,6 +1021,28 @@ export default function App({
                             }}
                             className="rules-modal-threshold-input"
                           />
+                      </div>
+                    ) : null}
+                    {rule.type === "MAX_CHARS" ? (
+                      <div className="rules-modal-threshold">
+                        <input
+                          type="number"
+                          min={1}
+                          step={1}
+                          value={maxCharsDraft}
+                          aria-label="Max chars"
+                          placeholder="Max chars"
+                          disabled={
+                            !applicableRuleTypes.has("MAX_CHARS") ||
+                            !enabledRuleTypes.has("MAX_CHARS")
+                          }
+                          onChange={(e) => handleMaxCharsChange(e.target.value)}
+                          onBlur={commitMaxCharsDraft}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") e.currentTarget.blur()
+                          }}
+                          className="rules-modal-threshold-input"
+                        />
                       </div>
                     ) : null}
                   </div>

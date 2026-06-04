@@ -850,6 +850,18 @@ describe("Sidebar", () => {
     expect(minCpsInput.value).toBe("4.5")
   })
 
+  it("loads saved max chars input from localStorage", () => {
+    window.localStorage.setItem("subs.maxChars", "60")
+
+    const { container } = render(<App />)
+    const ui = within(container)
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+
+    const maxCharsInput = ui.getByLabelText("Max chars") as HTMLInputElement
+    expect(maxCharsInput.value).toBe("60")
+  })
+
   it("loads saved subtitle text from localStorage", () => {
     const saved = [
       "00:00:10:00\t00:00:12:00\tMarker",
@@ -882,6 +894,51 @@ describe("Sidebar", () => {
 
     expect(window.localStorage.getItem("subs.maxCps")).toBe("20")
     expect(window.localStorage.getItem("subs.minCps")).toBe("5")
+  })
+
+  it("saves max chars input to localStorage on blur", () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+    const maxCharsInput = ui.getByLabelText("Max chars") as HTMLInputElement
+    fireEvent.change(maxCharsInput, { target: { value: "60" } })
+
+    expect(window.localStorage.getItem("subs.maxChars")).toBe("54")
+
+    fireEvent.blur(maxCharsInput)
+
+    expect(window.localStorage.getItem("subs.maxChars")).toBe("60")
+  })
+
+  it("updates max chars findings when max chars changes in the rules modal", async () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+    const countFindingRowsWithText = (text: string) =>
+      Array.from(container.querySelectorAll(".finding-row-button")).filter((el) =>
+        el.textContent?.includes(text)
+      ).length
+
+    fireEvent.change(editor, {
+      target: {
+        value: [
+          "00:00:01:00\t00:00:02:00\tMarker",
+          "This translation is definitely too long for one second.",
+        ].join("\n"),
+      },
+    })
+
+    expect(countFindingRowsWithText("Translation line has too many characters")).toBeGreaterThan(0)
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+    const maxCharsInput = ui.getByLabelText("Max chars") as HTMLInputElement
+    fireEvent.change(maxCharsInput, { target: { value: "60" } })
+    fireEvent.blur(maxCharsInput)
+
+    await waitFor(() => {
+      expect(countFindingRowsWithText("Translation line has too many characters")).toBe(0)
+    })
   })
 
   it("saves subtitle text to localStorage when editor content changes", async () => {

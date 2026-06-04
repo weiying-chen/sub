@@ -124,6 +124,27 @@ describe("Sidebar", () => {
     gutterSpies.timestampLinkGutter.mockClear()
   })
 
+  it("keeps console cps metrics even when cps findings are unchecked", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {})
+    const { container } = render(<App />)
+    const ui = within(container)
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+    fireEvent.click(ui.getByRole("checkbox", { name: /Reading speed is too high/i }))
+    fireEvent.click(ui.getByRole("checkbox", { name: /Reading speed is too low/i }))
+
+    await waitFor(() => {
+      const cpsLog = logSpy.mock.calls
+        .filter((call) => call[0] === "[analysis] cps metrics")
+        .at(-1)?.[1] as Array<{ type: string }> | undefined
+
+      expect(cpsLog?.some((metric) => metric.type === "CPS")).toBe(true)
+      expect(cpsLog?.every((metric) => metric.type === "CPS")).toBe(true)
+    })
+
+    logSpy.mockRestore()
+  })
+
   it("renders a fixed findings sidebar with real findings", () => {
     const { container } = render(<App />)
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement

@@ -746,12 +746,14 @@ export default function App({
   const sortedFindings = useMemo(() => sortFindingsWithIndex(findings), [findings])
 
   const cpsMetrics = useMemo<Metric[]>(() => {
+    const enabledMetricTypes =
+      analysisType === "subs" ? (["CPS"] as Metric["type"][]) : []
     return buildAnalysisOutput({
       text: value,
       type: analysisType,
       ruleSet: "metrics",
       output: "metrics",
-      enabledRuleTypes: analysisEnabledRuleTypes,
+      enabledRuleTypes: enabledMetricTypes,
       maxCps,
       minCps,
       maxChars,
@@ -760,7 +762,7 @@ export default function App({
       properNouns,
       abbreviations: punctuationAbbreviations,
     }) as Metric[]
-  }, [value, analysisEnabledRuleTypes, maxCps, minCps, maxChars, analysisType])
+  }, [value, maxCps, minCps, maxChars, analysisType])
 
   useEffect(() => {
     console.log("[analysis] cps metrics", cpsMetrics)

@@ -1309,6 +1309,15 @@ function takeLine(
   cut = adjustCutForTripleHyphen(window, cut)
   cut = adjustCutForEdgeTripleHyphen(window, overflow, cut)
   if (
+    splitDecision.reason === 'space' &&
+    cut > 0 &&
+    cut < window.length &&
+    /\S$/.test(window) &&
+    /^\s/.test(overflow)
+  ) {
+    cut = window.length
+  }
+  if (
     needsMinimumLeftSplitGuard(splitDecision.reason) &&
     cut > 0 &&
     cut < window.length &&

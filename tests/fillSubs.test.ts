@@ -2111,6 +2111,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.rest).toBe("NDDs are common.")
   })
 
+  it("keeps the full line when the limit lands exactly at a word boundary", () => {
+  const result = __testTakeLine(
+    "The rest is divided among the heirs according to their inheritance shares.",
+    48,
+    null,
+    false
+  )
+
+  expect(result.line).toBe("The rest is divided among the heirs according to")
+  expect(result.rest).toBe("their inheritance shares.")
+  })
+
   it("does not split after middle initials before surnames", () => {
   const result = __testTakeLine(
     "According to Richard N. Wolman, spirituality is a human capacity.",

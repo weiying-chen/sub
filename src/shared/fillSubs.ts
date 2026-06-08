@@ -846,7 +846,7 @@ function isToVerbSplit(left: string, right: string): boolean {
 }
 
 function findRightmostClauseStarterLead(window: string, nextText: string): number {
-  const re = /\b(?:because|since|although|though|while|if)\b/gi
+  const re = /\b(?:since|although|though|while|if)\b/gi
   let best = -1
   let m: RegExpExecArray | null
   while ((m = re.exec(window)) !== null) {

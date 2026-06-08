@@ -875,6 +875,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.startsWith("when ")).toBe(false)
   })
 
+  it("does not split before because as a clause-starter heuristic", () => {
+  const split = __testTakeLine(
+    "A patient came to see me because he had a lot of gas.",
+    45,
+    null,
+    false,
+    { allowHeuristicSplitsWhenFits: true }
+  )
+
+  expect(split.rest.startsWith("because ")).toBe(false)
+  })
+
   it("does not split after short copular heads", () => {
   const split = __testTakeLine(
     "This is what I've learned from years of practice.",

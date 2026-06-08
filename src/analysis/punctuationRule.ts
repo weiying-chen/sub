@@ -170,6 +170,27 @@ function endsWithClosingParenthesis(s: string): boolean {
   return trimmed.endsWith(')') || trimmed.endsWith('）')
 }
 
+function hasBalancedParentheses(s: string): boolean {
+  let asciiDepth = 0
+  let fullWidthDepth = 0
+
+  for (const ch of s) {
+    if (ch === '(') {
+      asciiDepth += 1
+    } else if (ch === ')') {
+      asciiDepth -= 1
+      if (asciiDepth < 0) return false
+    } else if (ch === '（') {
+      fullWidthDepth += 1
+    } else if (ch === '）') {
+      fullWidthDepth -= 1
+      if (fullWidthDepth < 0) return false
+    }
+  }
+
+  return asciiDepth === 0 && fullWidthDepth === 0
+}
+
 function buildParentheticalCueExemptions(cues: Cue[]): Set<number> {
   const exempt = new Set<number>()
 
@@ -291,6 +312,7 @@ function collectParenthesisLineMetrics(
       const text = block.translationLines[idx] ?? ''
       const trimmed = text.trim()
       if (!trimmed) continue
+      if (hasBalancedParentheses(trimmed)) continue
 
       const startsOpen = startsWithOpeningParenthesis(trimmed)
       const endsClose = endsWithClosingParenthesis(trimmed)

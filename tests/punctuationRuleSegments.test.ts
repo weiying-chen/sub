@@ -616,6 +616,30 @@ describe("punctuationRule (segments)", () => {
     ).toBe(false)
   })
 
+  it("does not flag balanced inline parentheses across normal subtitle cues", () => {
+    const text = [
+      "00:00:31:23\t00:00:34:28\t那像這種就是說不出來的困擾",
+      "Problems like this can be hard to talk about.",
+      "00:00:34:28\t00:00:37:19\t那其實就會變成一種社交障礙",
+      "Find out how traditional Chinese medicine (TCM)",
+      "00:00:37:19\t00:00:39:05\t中醫有辦法可以解決嗎",
+      "Find out how traditional Chinese medicine (TCM)",
+      "00:00:39:05\t00:00:40:07\t我們來看一下這一集",
+      "can help.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_OPENING_PAREN" &&
+          f.text === "Find out how traditional Chinese medicine (TCM)"
+      )
+    ).toBe(false)
+  })
+
   it("flags wrapped parenthetical on-screen text when each line is not self-balanced", () => {
     const text = [
       "00:04:28:17\t00:04:31:25\t清熱燥濕 瀉火解毒",

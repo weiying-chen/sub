@@ -330,6 +330,19 @@ describe("punctuationRule", () => {
     ).toBe(true)
   })
 
+  it("does not flag complete multi-line parenthetical timestamp blocks", () => {
+    const text = [
+      "00:01:40:08\t00:01:43:21\t鬱在腸者 下矢氣也",
+      "(When Stagnation Is in the Intestines,",
+      "Gas Is Expelled Downward)",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("flags subtitle lines missing an opening parenthesis", () => {
     const text = [
       "00:00:20:00\t00:00:26:00\t黃崑祥72歲 許小鳳66歲 x 9歲黃靖媗",

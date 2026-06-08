@@ -640,6 +640,19 @@ describe("punctuationRule (segments)", () => {
     ).toBe(false)
   })
 
+  it("does not flag complete multi-line parenthetical timestamp blocks", () => {
+    const text = [
+      "00:01:40:08\t00:01:43:21\t鬱在腸者 下矢氣也",
+      "(When Stagnation Is in the Intestines,",
+      "Gas Is Expelled Downward)",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("flags wrapped parenthetical on-screen text when each line is not self-balanced", () => {
     const text = [
       "00:04:28:17\t00:04:31:25\t清熱燥濕 瀉火解毒",

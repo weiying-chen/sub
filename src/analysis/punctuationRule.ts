@@ -304,6 +304,14 @@ function collectParenthesisLineMetrics(
   for (let i = 0; i < src.lineCount; i += 1) {
     const block = parseBlockAt(src, i, options)
     if (!block) continue
+    const blockTranslation = block.translation.trim()
+    if (
+      startsWithOpeningParenthesis(blockTranslation) &&
+      endsWithClosingParenthesis(blockTranslation) &&
+      hasBalancedParentheses(blockTranslation)
+    ) {
+      continue
+    }
 
     for (const [idx, lineIndex] of block.translationIndices.entries()) {
       if (seen.has(lineIndex)) continue

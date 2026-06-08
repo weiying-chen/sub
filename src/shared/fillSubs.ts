@@ -45,10 +45,9 @@ const COPULAR_RE =
 const COPULAR_VERB_START_RE =
   /^(?:give|make|take|help|let|get|keep|try|need|want|have)\b/i
 const COPULAR_CLAUSE_START_RE =
-  /^(?:to|how|why|what|who|where|when|whether|that|if)\b/i
+  /^(?:how|why|what|who|where|when|whether|that|if)\b/i
 const DET_RE =
   /^(?:the|a|an|this|that|these|those|my|your|his|her|our|their)\b/i
-const PRONOUN_RE = /^(?:me|you|him|her|us|them|it|this|that|there)\b/i
 const CLAUSE_STARTER_RE =
   /^(?:because|since|as|although|though|while|if|when)\b/i
 const CLAUSE_STARTER_ANY_RE =
@@ -56,9 +55,7 @@ const CLAUSE_STARTER_ANY_RE =
 const PREPOSITION_PHRASE_HEAD_RE =
   /^(?:in|on|at|behind|from|under)\s+(?:the|a|an|this|that|these|those|it|them|him|her|us|you)\b/i
 const COORDINATED_PHRASE_STOP_RE =
-  /^(?:who|whom|whose|that|which|to|with|for|from|before|after|while|because|since|if|when|as|would|could|should|will|can|may|might|must|is|are|was|were|be|being|been|am|do|does|did|has|have|had)\b/i
-const TO_VERB_HELPER_RE =
-  /\b(?:have|has|had|need|needs|want|wants|wanted|going)\s+to\s+[A-Za-z]+$/i
+  /^(?:who|whom|whose|that|which|with|for|from|before|after|while|because|since|if|when|as|would|could|should|will|can|may|might|must|is|are|was|were|be|being|been|am|do|does|did|has|have|had)\b/i
 const SENTENCE_VERB_RE =
   /\b(am|is|are|was|were|be|being|been|have|has|had|do|does|did|can|will|would|should|must)\b/i
 const SENTENCE_END_RE = /[.!?]["')\]]*\s*$/
@@ -135,9 +132,7 @@ function isMiddleInitialNameSplit(left: string, right: string): boolean {
 function endsWithIncompleteLeadIn(text: string): boolean {
   const trimmed = text.trimEnd()
   return (
-    /\baccording to$/i.test(trimmed) ||
     /\bbecause of$/i.test(trimmed) ||
-    /\bdue to$/i.test(trimmed) ||
     /\binstead of$/i.test(trimmed) ||
     /\bsuch as$/i.test(trimmed) ||
     /\brather than$/i.test(trimmed) ||
@@ -314,7 +309,6 @@ function findRightmostStrongPunct(
     if (ch === '.' && isMiddleInitialNameSplit(left, right)) continue
     if (ch === '.' && isDecimalInnerSplit(left, right)) continue
     if (ch === '.' && isMeridiemInnerSplit(left, right)) continue
-    if (isToVerbSplit(left, right)) continue
     return cut
   }
   return -1
@@ -592,8 +586,7 @@ function canSplitBeforeWho(left: string): boolean {
   if (
     SENTENCE_VERB_RE.test(lastWord) ||
     THAT_SPLIT_VERB_RE.test(lastWord) ||
-    CONJ_RE.test(lastWord) ||
-    lastWord === 'to'
+    CONJ_RE.test(lastWord)
   ) {
     return false
   }
@@ -649,13 +642,6 @@ function findRightmostCopularBreak(window: string, nextText: string): number {
       !COPULAR_VERB_START_RE.test(tailAfterCopular) &&
       !COPULAR_CLAUSE_START_RE.test(tailAfterCopular)
     ) {
-      continue
-    }
-
-    // Prefer keeping copular with infinitive tails on the next line:
-    // "The goal" + "is to ..."
-    if (/^to\b/i.test(tailAfterCopular)) {
-      best = start
       continue
     }
 
@@ -720,7 +706,6 @@ function findRightmostSpace(window: string, nextText: string): number {
       continue
     }
     if (endsWithIncompleteLeadIn(left)) continue
-    if (isToVerbSplit(left, right)) continue
     if (isMeridiemTimeSplit(left, right)) continue
     if (startsWithMeridiemTimePhrase(right)) continue
     return cut
@@ -820,29 +805,6 @@ function findSentenceBoundaryCut(
     return cut
   }
   return -1
-}
-
-function findRightmostToVerbObjectBreak(window: string, nextText: string): number {
-  for (let i = window.length - 1; i >= 0; i--) {
-    if (window[i] !== ' ') continue
-    const left = window.slice(0, i).trimEnd()
-    const right = (window.slice(i) + nextText).trimStart()
-    if (!left || !right) continue
-    if (COPULAR_CLAUSE_START_RE.test(right)) continue
-    if (!DET_RE.test(right)) continue
-    if (!TO_VERB_HELPER_RE.test(left)) continue
-    return i + 1
-  }
-  return -1
-}
-
-function isToVerbSplit(left: string, right: string): boolean {
-  if (!/\bto$/i.test(left)) return false
-  const firstWord = right.split(/\s+/)[0] ?? ''
-  if (!/^[A-Za-z]+$/.test(firstWord)) return false
-  if (DET_RE.test(firstWord)) return false
-  if (PRONOUN_RE.test(firstWord)) return false
-  return true
 }
 
 function findRightmostClauseStarterLead(window: string, nextText: string): number {
@@ -1102,9 +1064,6 @@ function findBestCut(
   const copularLeadCut = findRightmostCopularLead(window, nextText)
   if (copularLeadCut >= 0) return { cut: copularLeadCut, reason: 'copularLead' }
 
-  const toVerbCut = findRightmostToVerbObjectBreak(window, nextText)
-  if (toVerbCut >= 0) return { cut: toVerbCut, reason: 'toVerb' }
-
   const listTailCut = findRightmostListTailLead(window, nextText)
   if (listTailCut >= 0) return { cut: listTailCut, reason: 'listTail' }
 
@@ -1233,22 +1192,6 @@ function takeLine(
 
     if (!allowHeuristicSplitsWhenFits) {
       return normalizeSplit(s.trimEnd(), '')
-    }
-
-    const toVerbCut = findRightmostToVerbObjectBreak(s, '')
-    if (toVerbCut > 0 && toVerbCut < s.length) {
-      const left = s.slice(0, toVerbCut).trimEnd()
-      const right = s.slice(toVerbCut).trimStart()
-      if (left && right) {
-        const adjusted = adjustSplitForNoSplitAbbrevAndQuotes(
-          left,
-          right,
-          noSplitAbbrevMatcher,
-          noSplitUsAbbreviation,
-          { maxLineLength: limit }
-        )
-        return normalizeSplit(adjusted.line, adjusted.rest)
-      }
     }
 
     const clauseLeadCut = findRightmostClauseStarterLead(s, '')
@@ -1464,20 +1407,7 @@ function normalizeTrailingJustHead(
   line: string,
   rest: string
 ): { line: string; rest: string } {
-  const trimmed = line.trimEnd()
-  const match = trimmed.match(/^(.*)\s+(just)$/i)
-  if (!match) return { line, rest }
-
-  const left = (match[1] ?? "").trimEnd()
-  const token = (match[2] ?? "").trim().toLowerCase()
-  if (!left) return { line, rest }
-  if (!/^to\b/i.test(rest.trimStart())) return { line, rest }
-
-  if (!rest) return { line: left, rest: token }
-  if (rest.trimStart().toLowerCase().startsWith(`${token} `)) {
-    return { line: left, rest }
-  }
-  return { line: left, rest: `${token} ${rest}` }
+  return { line, rest }
 }
 
 function normalizeTrailingCopularHead(
@@ -2121,7 +2051,6 @@ function needsMinimumLeftSplitGuard(reason: string): boolean {
     reason === 'clauseStarter' ||
     reason === 'copularBreak' ||
     reason === 'copularLead' ||
-    reason === 'toVerb' ||
     reason === 'listTail' ||
     reason === 'near' ||
     reason === 'preposition' ||

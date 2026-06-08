@@ -887,6 +887,19 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.startsWith("because ")).toBe(false)
   })
 
+  it("allows natural fallback splits after to", () => {
+  const split = __testTakeLine(
+    "I often use heat-clearing and detoxifying formulas to treat foul-smelling gas.",
+    54,
+    null,
+    false,
+    { allowHeuristicSplitsWhenFits: true }
+  )
+
+  expect(split.line).toBe("I often use heat-clearing and detoxifying formulas to")
+  expect(split.rest).toBe("treat foul-smelling gas.")
+  })
+
   it("does not split after short copular heads", () => {
   const split = __testTakeLine(
     "This is what I've learned from years of practice.",
@@ -1621,7 +1634,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("splits after to-verb phrase before object", () => {
+  it("does not use to-verb phrase splitting before object", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -1637,9 +1650,9 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "We don't believe they have to follow",
+    "We don't believe they have to follow the exact",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "the exact same path we did.",
+    "same path we did.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -1944,7 +1957,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(translations.some((line) => /^and-loss\b/.test(line))).toBe(false)
   })
 
-  it("keeps 'to' with the following verb", () => {
+  it("allows natural fallback splits after trailing to", () => {
   const lines = [
     "00:00:00:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:04:00\tMarker",
@@ -1959,8 +1972,8 @@ describe("fillSelectedTimestampLines", () => {
   })
   const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(translations.some((line) => line.includes("to keep"))).toBe(true)
-  expect(translations.some((line) => line.endsWith("to"))).toBe(false)
+  expect(translations).toContain("We will try to")
+  expect(translations.some((line) => line.includes("to keep"))).toBe(false)
   })
 
   it("does not split copular clauses when they fit", () => {
@@ -2466,15 +2479,15 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("while ")).toBe(true)
   })
 
-  it("moves trailing 'just' to the next split chunk before infinitive", () => {
+  it("does not protect trailing just before infinitive", () => {
   const split = __testTakeLine(
     "And don't become someone you're not just to build a persona.",
     40,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith(" just")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("just to ")).toBe(true)
+  expect(split.line.toLowerCase().endsWith(" just")).toBe(true)
+  expect(split.rest.toLowerCase().startsWith("to ")).toBe(true)
   })
 
   it("moves trailing copular before where-clause to the next split chunk", () => {
@@ -2687,15 +2700,15 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("that ")).toBe(false)
   })
 
-  it("does not keep 'how to' together when splitting", () => {
+  it("allows natural fallback splits after how to", () => {
   const split = __testTakeLine(
     "One time, I was teaching a group of managers how to handle emotions at work.",
     54,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith(" how")).toBe(true)
-  expect(split.rest.toLowerCase().startsWith("how to ")).toBe(false)
+  expect(split.line.toLowerCase().endsWith(" how to")).toBe(true)
+  expect(split.rest.toLowerCase().startsWith("handle ")).toBe(true)
   })
 
   it("keeps 'in how' together when splitting", () => {

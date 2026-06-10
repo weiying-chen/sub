@@ -1,6 +1,7 @@
 import type { Metric } from './types'
 
 import { type ParseBlockOptions, parseBlockAt } from '../shared/tsvRuns'
+import { TSV_RE } from '../shared/subtitles'
 
 export type CandidateLine = {
   lineIndex: number
@@ -199,6 +200,7 @@ export function parseText(text: string): Segment[] {
       continue
     }
 
+    if (TSV_RE.test(raw)) continue
     if (!isEnglishLikeLine(raw)) continue
 
     segments.push({
@@ -581,6 +583,7 @@ function isNewsSourceLine(text: string): boolean {
 export function isEnglishLikeLine(text: string): boolean {
   const trimmed = text.trim()
   if (trimmed === '') return false
+  if (TSV_RE.test(trimmed)) return false
   if (
     trimmed.startsWith('(') ||
     trimmed.startsWith('[') ||

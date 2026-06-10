@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 
-import { parseNews, parseSubs } from "../src/analysis/segments"
+import { parseNews, parseSubs, parseText } from "../src/analysis/segments"
 
 describe("parseSubs", () => {
   it("returns translation segments anchored to translation lines", () => {
@@ -367,6 +367,22 @@ describe("parseNews", () => {
         sourceText: "中文內文。",
         blockType: "vo",
       },
+    ])
+  })
+})
+
+describe("parseText", () => {
+  it("ignores timestamp rows with XXX prefixes", () => {
+    const text = [
+      "00:09:52:22\t00:09:53:15\t獅子跟老虎",
+      "XXX\t00:09:55:07\t00:09:56:11\tfight or flight",
+      "This is plain English.",
+    ].join("\n")
+
+    const segments = parseText(text)
+
+    expect(segments.map((segment) => segment.translation)).toEqual([
+      "This is plain English.",
     ])
   })
 })

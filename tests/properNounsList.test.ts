@@ -39,6 +39,7 @@ describe("loadCapitalizationTerms", () => {
     expect(capitalizationTerms).toContain("the Bodhisattva Path")
     expect(capitalizationTerms).toContain("Chinese")
     expect(capitalizationTerms).toContain("Japanese")
+    expect(capitalizationTerms).toContain("Harmony-Preserving Pill")
     expect(capitalizationTerms).not.toContain("Grandma")
     expect(capitalizationTerms).not.toContain("Grandpa")
   })

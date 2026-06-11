@@ -49,12 +49,8 @@ export function fillSelectedTimestampSubs(
       noSplitAbbreviations: options?.noSplitAbbreviations ?? noSplitAbbreviations,
     }
   )
-  const targetCps = result.targetCps ?? result.chosenCps
   if (typeof result.chosenCps === 'number') {
     console.log('[fillSubs] chosenCps', result.chosenCps.toFixed(2))
-  }
-  if (typeof targetCps === 'number') {
-    console.log('[fillSubs] targetCps', targetCps.toFixed(2))
   }
 
   let nextText = result.lines.join('\n')

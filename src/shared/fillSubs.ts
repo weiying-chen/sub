@@ -23,7 +23,6 @@ export type FillSubsResult = {
   lines: string[]
   remaining: string
   chosenCps?: number
-  targetCps?: number
 }
 
 const DEFAULT_NO_SPLIT_ABBREVIATIONS = ['Mr.', 'Mrs.', 'Ms.', 'Dr.', 'U.S.']
@@ -2506,10 +2505,5 @@ export function fillSelectedTimestampLines(
     noSplitUsAbbreviation,
     options
   )
-  return {
-    lines: run.lines,
-    remaining: run.remaining,
-    chosenCps: targetCps,
-    targetCps,
-  }
+  return { lines: run.lines, remaining: run.remaining, chosenCps: targetCps }
 }

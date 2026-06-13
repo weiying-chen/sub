@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import type { Metric } from "../src/analysis/types"
+import { getFindingTypeLabel } from "../src/shared/findingLabels"
 import { getFindings } from "../src/shared/findings"
 import {
   RULE_MODAL_EXPLANATIONS,
@@ -96,6 +97,26 @@ describe("wording copy", () => {
     )
     expect(findings[3]?.instruction).toBe(
       "This translation line disappears and reappears after a timing gap. Split or rewrite it instead of spanning across the timestamps."
+    )
+  })
+
+  it("uses the short repeated-word wording in getFindings and labels", () => {
+    const metrics: Metric[] = [
+      {
+        type: "REPEATED_WORD",
+        lineIndex: 2,
+        index: 6,
+        token: "with",
+        text: "with with",
+      },
+    ]
+
+    const findings = getFindings(metrics)
+
+    expect(findings[0]?.instruction).toBe("Remove one of the repeated words.")
+    expect(getFindingTypeLabel("REPEATED_WORD")).toBe("Repeated word is incorrect")
+    expect(RULE_MODAL_EXPLANATIONS.REPEATED_WORD).toBe(
+      "Checks repeated adjacent words like \"with with\"."
     )
   })
 

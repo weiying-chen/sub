@@ -16,6 +16,7 @@ const FINDING_LABELS: Partial<Record<Finding["type"], string>> = {
   PERCENT_STYLE: "Percent format is incorrect",
   CAPITALIZATION: "Capitalization is incorrect",
   TERM_VARIANT: "Preferred term is incorrect",
+  REPEATED_WORD: "Repeated word is incorrect",
   LEADING_WHITESPACE: "Translation line starts with extra spaces",
   PUNCTUATION: "Punctuation is incorrect",
   BASELINE: "Text does not match baseline",

@@ -122,6 +122,9 @@ const DEFAULT_UI_ENABLED_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Fi
     "QUOTE_STYLE",
   ],
 }
+const LEGACY_RULE_TYPE_ALIASES: Partial<Record<string, Finding["type"]>> = {
+  SUPER_END_PERIOD: "PERIOD_IN_CAPTION",
+}
 const WARNING_RULE_TYPES = RULE_OPTIONS.filter((rule) => rule.severity === "warn").map(
   (rule) => rule.type
 )
@@ -162,8 +165,8 @@ function loadEnabledRuleTypes(type: AppAnalysisType): Set<Finding["type"]> {
     const selected = parsed.filter(
       (entry): entry is Finding["type"] =>
         typeof entry === "string" &&
-        allowed.has(entry as Finding["type"]) &&
-        applicable.has(entry as Finding["type"])
+        allowed.has((LEGACY_RULE_TYPE_ALIASES[entry] ?? entry) as Finding["type"]) &&
+        applicable.has((LEGACY_RULE_TYPE_ALIASES[entry] ?? entry) as Finding["type"])
     )
     if (parsed.length > 0 && selected.length === 0) return fallback
     return new Set(selected)

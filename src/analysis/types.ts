@@ -130,7 +130,7 @@ export type RepeatedWordMetric = {
 }
 
 export type SuperFinalPeriodMetric = {
-  type: 'SUPER_END_PERIOD'
+  type: 'PERIOD_IN_CAPTION'
   lineIndex: number
   text: string
   severity?: 'error' | 'warn'

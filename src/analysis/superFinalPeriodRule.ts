@@ -1,8 +1,8 @@
 import type { SegmentCtx, SegmentRule } from "./segments"
 import type { Metric } from "./types"
 
-export type SuperFinalPeriodMetric = {
-  type: "SUPER_END_PERIOD"
+export type PeriodInCaptionMetric = {
+  type: "PERIOD_IN_CAPTION"
   lineIndex: number
   text: string
   severity?: "error" | "warn"
@@ -18,7 +18,7 @@ function hasTrailingPeriod(text: string): boolean {
   return !trimmed.slice(0, -1).endsWith(".")
 }
 
-export function superFinalPeriodRule(): SegmentRule {
+export function periodInCaptionRule(): SegmentRule {
   return ((ctx: SegmentCtx) => {
     const { segment } = ctx
     if (segment.blockType !== "super") return []
@@ -32,10 +32,10 @@ export function superFinalPeriodRule(): SegmentRule {
 
     return [
       {
-        type: "SUPER_END_PERIOD",
+        type: "PERIOD_IN_CAPTION",
         lineIndex: lastLine.lineIndex,
         text: lastLine.lineText,
-      } satisfies SuperFinalPeriodMetric,
+      } satisfies PeriodInCaptionMetric,
     ] satisfies Metric[]
   }) as SegmentRule
 }

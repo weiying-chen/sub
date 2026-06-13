@@ -24,7 +24,7 @@ describe("news super final period rule", () => {
     expect(findings).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          type: "SUPER_END_PERIOD",
+          type: "PERIOD_IN_CAPTION",
           lineIndex: 5,
           text: "Tzu Chi Foundation.",
         }),

@@ -9,7 +9,7 @@ import { newsMarkerRule } from './newsMarkerRule'
 import { numberStyleRule } from './numberStyleRule'
 import { punctuationRule } from './punctuationRule'
 import { repeatedWordRule } from './repeatedWordRule'
-import { superFinalPeriodRule } from './superFinalPeriodRule'
+import { periodInCaptionRule } from './superFinalPeriodRule'
 import { superPeopleRule } from './superPeopleRule'
 import { termVariantRule, type TermVariantEntry } from './termVariantRule'
 import type { SegmentCtx, SegmentRule } from './segments'
@@ -114,7 +114,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     if (!enabled || enabled.has('NUMBER_STYLE')) rules.push(numberStyleRule())
     if (!enabled || enabled.has('DASH_STYLE')) rules.push(dashStyleRule())
     if (!enabled || enabled.has('QUOTE_STYLE')) rules.push(quoteStyleRule())
-    if (!enabled || enabled.has('SUPER_END_PERIOD')) rules.push(superFinalPeriodRule())
+    if (!enabled || enabled.has('PERIOD_IN_CAPTION')) rules.push(periodInCaptionRule())
     if (!enabled || enabled.has('PUNCTUATION')) {
       rules.push(
         newsSuperPunctuationRule({

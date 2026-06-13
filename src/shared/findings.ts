@@ -192,11 +192,11 @@ export function getFindings(
       continue
     }
 
-    if (m.type === 'SUPER_END_PERIOD') {
+    if (m.type === 'PERIOD_IN_CAPTION') {
       out.push({
         ...m,
         severity: 'error',
-        instruction: 'Remove the period at the end of the last line of this SUPER block.',
+        instruction: 'Remove the period at the end of the last line of this caption.',
       })
       continue
     }

@@ -8,6 +8,8 @@ import { missingTranslationRule } from './missingTranslationRule'
 import { newsMarkerRule } from './newsMarkerRule'
 import { numberStyleRule } from './numberStyleRule'
 import { punctuationRule } from './punctuationRule'
+import { repeatedWordRule } from './repeatedWordRule'
+import { superFinalPeriodRule } from './superFinalPeriodRule'
 import { superPeopleRule } from './superPeopleRule'
 import { termVariantRule, type TermVariantEntry } from './termVariantRule'
 import type { SegmentCtx, SegmentRule } from './segments'
@@ -112,6 +114,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     if (!enabled || enabled.has('NUMBER_STYLE')) rules.push(numberStyleRule())
     if (!enabled || enabled.has('DASH_STYLE')) rules.push(dashStyleRule())
     if (!enabled || enabled.has('QUOTE_STYLE')) rules.push(quoteStyleRule())
+    if (!enabled || enabled.has('SUPER_END_PERIOD')) rules.push(superFinalPeriodRule())
     if (!enabled || enabled.has('PUNCTUATION')) {
       rules.push(
         newsSuperPunctuationRule({
@@ -131,6 +134,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     if (!enabled || enabled.has('TERM_VARIANT')) {
       rules.push(termVariantRule({ variants: termVariants }))
     }
+    if (!enabled || enabled.has('REPEATED_WORD')) rules.push(repeatedWordRule())
     return rules
   }
 
@@ -164,6 +168,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     if (!enabled || enabled.has('TERM_VARIANT')) {
       rules.push(termVariantRule({ variants: termVariants }))
     }
+    if (!enabled || enabled.has('REPEATED_WORD')) rules.push(repeatedWordRule())
 
     return rules
   }

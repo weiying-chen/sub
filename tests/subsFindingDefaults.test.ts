@@ -31,6 +31,7 @@ describe("subs finding defaults", () => {
       "NUMBER_STYLE",
       "QUOTE_STYLE",
       "PUNCTUATION",
+      "REPEATED_WORD",
       "MAX_CPS",
       "MIN_CPS",
       "BASELINE",

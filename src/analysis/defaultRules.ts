@@ -7,6 +7,7 @@ import { dashStyleRule } from './dashStyleRule'
 import { quoteStyleRule } from './quoteStyleRule'
 import { capitalizationRule } from './capitalizationRule'
 import { termVariantRule, type TermVariantEntry } from './termVariantRule'
+import { repeatedWordRule } from './repeatedWordRule'
 import { percentStyleRule } from './percentStyleRule'
 import { mergeCandidateRule } from './mergeCandidateRule'
 import { maxCpsRule } from './maxCpsRule'
@@ -32,6 +33,7 @@ export function defaultRules(options: DefaultRulesOptions = {}): Rule[] {
     }),
     capitalizationRule({ terms: options.capitalizationTerms }),
     termVariantRule({ variants: options.termVariants }),
+    repeatedWordRule(),
     percentStyleRule(),
   ]
 }
@@ -54,6 +56,7 @@ export function defaultSegmentRules(
     mergeCandidateRule({ ignoreEmptyLines: options.ignoreEmptyLines }),
     capitalizationRule({ terms: options.capitalizationTerms }),
     termVariantRule({ variants: options.termVariants }),
+    repeatedWordRule(),
     percentStyleRule(),
   ]
 }

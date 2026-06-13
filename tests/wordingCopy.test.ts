@@ -120,6 +120,28 @@ describe("wording copy", () => {
     )
   })
 
+  it("uses SUPER final-period wording in getFindings and labels", () => {
+    const metrics: Metric[] = [
+      {
+        type: "SUPER_END_PERIOD",
+        lineIndex: 5,
+        text: "Tzu Chi Foundation.",
+      },
+    ]
+
+    const findings = getFindings(metrics)
+
+    expect(findings[0]?.instruction).toBe(
+      "Remove the period at the end of the last line of this SUPER block."
+    )
+    expect(getFindingTypeLabel("SUPER_END_PERIOD")).toBe(
+      "Final period is incorrect"
+    )
+    expect(RULE_MODAL_EXPLANATIONS.SUPER_END_PERIOD).toBe(
+      "Checks whether the last line of a SUPER block ends with a period."
+    )
+  })
+
   it("builds baseline instructions from ruleCode in getFindings", () => {
     const metrics: Metric[] = [
       {

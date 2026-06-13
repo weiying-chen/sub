@@ -183,6 +183,24 @@ export function getFindings(
       continue
     }
 
+    if (m.type === 'REPEATED_WORD') {
+      out.push({
+        ...m,
+        severity: 'error',
+        instruction: 'Remove one of the repeated words.',
+      })
+      continue
+    }
+
+    if (m.type === 'SUPER_END_PERIOD') {
+      out.push({
+        ...m,
+        severity: 'error',
+        instruction: 'Remove the period at the end of the last line of this SUPER block.',
+      })
+      continue
+    }
+
     if (m.type === 'DASH_STYLE') {
       const expected =
         m.expected === 'em_dash' ? 'an em dash (—)' : 'triple hyphens (---)'

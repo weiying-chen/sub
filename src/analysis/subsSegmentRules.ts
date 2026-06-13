@@ -13,6 +13,7 @@ import { minCpsRule } from "./minCpsRule"
 import { numberStyleRule } from "./numberStyleRule"
 import { percentStyleRule } from "./percentStyleRule"
 import { punctuationRule } from "./punctuationRule"
+import { repeatedWordRule } from "./repeatedWordRule"
 import { spanGapRule } from "./spanGapRule"
 import { termVariantRule, type TermVariantEntry } from "./termVariantRule"
 import { timestampFormatRule } from "./timestampFormatRule"
@@ -83,6 +84,9 @@ function createSubsCommonRules(
   }
   if (isEnabled(enabled, "TERM_VARIANT")) {
     rules.push(termVariantRule({ variants: options.termVariants }))
+  }
+  if (isEnabled(enabled, "REPEATED_WORD")) {
+    rules.push(repeatedWordRule())
   }
   if (isEnabled(enabled, "DASH_STYLE")) {
     rules.push(dashStyleRule())

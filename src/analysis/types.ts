@@ -120,6 +120,22 @@ export type TermVariantMetric = {
   severity?: 'error' | 'warn'
 }
 
+export type RepeatedWordMetric = {
+  type: 'REPEATED_WORD'
+  lineIndex: number
+  index: number
+  token: string
+  text?: string
+  severity?: 'error' | 'warn'
+}
+
+export type SuperFinalPeriodMetric = {
+  type: 'SUPER_END_PERIOD'
+  lineIndex: number
+  text: string
+  severity?: 'error' | 'warn'
+}
+
 export type DashStyleMetric = {
   type: 'DASH_STYLE'
   lineIndex: number
@@ -260,6 +276,8 @@ export type Metric =
   | PercentStyleMetric
   | CapitalizationMetric
   | TermVariantMetric
+  | RepeatedWordMetric
+  | SuperFinalPeriodMetric
   | DashStyleMetric
   | QuoteStyleMetric
   | PunctuationMetric

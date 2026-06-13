@@ -10,6 +10,7 @@ export const DEFAULT_TEXT_FINDING_RULE_TYPES: Metric["type"][] = [
   "PUNCTUATION",
   "CAPITALIZATION",
   "TERM_VARIANT",
+  "REPEATED_WORD",
 ]
 
 export function resolveTextFindingRuleFilters(

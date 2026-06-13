@@ -11,6 +11,7 @@ export const DEFAULT_TEXT_FINDING_RULE_TYPES: Metric["type"][] = [
   "CAPITALIZATION",
   "TERM_VARIANT",
   "REPEATED_WORD",
+  "PERIOD_IN_CAPTION",
 ]
 
 export function resolveTextFindingRuleFilters(

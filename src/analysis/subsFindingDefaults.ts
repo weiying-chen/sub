@@ -16,6 +16,7 @@ export const DEFAULT_SUBS_FINDING_RULE_TYPES: Metric["type"][] = [
   "QUOTE_STYLE",
   "PUNCTUATION",
   "REPEATED_WORD",
+  "PERIOD_IN_CAPTION",
   "MAX_CPS",
   "MIN_CPS",
   "BASELINE",

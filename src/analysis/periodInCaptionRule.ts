@@ -21,12 +21,14 @@ function hasTrailingPeriod(text: string): boolean {
 export function periodInCaptionRule(): SegmentRule {
   return ((ctx: SegmentCtx) => {
     const { segment } = ctx
-    if (segment.blockType !== "super") return []
-
     const targetLines = segment.targetLines ?? []
-    if (targetLines.length === 0) return []
+    const fallbackText = segment.translation.trim()
 
-    const lastLine = targetLines[targetLines.length - 1]
+    const lastLine =
+      targetLines[targetLines.length - 1] ??
+      (fallbackText !== ""
+        ? { lineIndex: segment.lineIndex, lineText: segment.translation }
+        : null)
     if (!lastLine) return []
     if (!hasTrailingPeriod(lastLine.lineText)) return []
 

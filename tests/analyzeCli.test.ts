@@ -186,26 +186,28 @@ describe("analyze CLI output", () => {
       mode: "findings",
     })) as Metric[]
 
-    expect(output).toMatchObject([
-      {
-        type: "NEWS_MARKER",
-        lineIndex: 3,
-        markerRaw: "3_0008",
-        ruleCode: "NON_SEQUENTIAL_INDEX",
-      },
-      {
-        type: "NEWS_MARKER",
-        lineIndex: 3,
-        markerRaw: "3_0008",
-        ruleCode: "NON_INCREASING_TIME",
-      },
-      {
-        type: "NEWS_MARKER",
-        lineIndex: 6,
-        markerRaw: "bad_marker",
-        ruleCode: "INVALID_FORMAT",
-      },
-    ])
+    expect(output).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "NEWS_MARKER",
+          lineIndex: 3,
+          markerRaw: "3_0008",
+          ruleCode: "NON_SEQUENTIAL_INDEX",
+        }),
+        expect.objectContaining({
+          type: "NEWS_MARKER",
+          lineIndex: 3,
+          markerRaw: "3_0008",
+          ruleCode: "NON_INCREASING_TIME",
+        }),
+        expect.objectContaining({
+          type: "NEWS_MARKER",
+          lineIndex: 6,
+          markerRaw: "bad_marker",
+          ruleCode: "INVALID_FORMAT",
+        }),
+      ])
+    )
   })
 
   it("does not return news marker findings for markers before SUPER blocks", async () => {

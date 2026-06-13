@@ -129,7 +129,7 @@ export type RepeatedWordMetric = {
   severity?: 'error' | 'warn'
 }
 
-export type SuperFinalPeriodMetric = {
+export type PeriodInCaptionMetric = {
   type: 'PERIOD_IN_CAPTION'
   lineIndex: number
   text: string
@@ -277,7 +277,7 @@ export type Metric =
   | CapitalizationMetric
   | TermVariantMetric
   | RepeatedWordMetric
-  | SuperFinalPeriodMetric
+  | PeriodInCaptionMetric
   | DashStyleMetric
   | QuoteStyleMetric
   | PunctuationMetric

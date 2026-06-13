@@ -135,6 +135,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
       rules.push(termVariantRule({ variants: termVariants }))
     }
     if (!enabled || enabled.has('REPEATED_WORD')) rules.push(repeatedWordRule())
+    if (!enabled || enabled.has('PERIOD_IN_CAPTION')) rules.push(periodInCaptionRule())
     return rules
   }
 
@@ -169,8 +170,6 @@ function buildRules(options: BuildAnalysisOutputOptions) {
       rules.push(termVariantRule({ variants: termVariants }))
     }
     if (!enabled || enabled.has('REPEATED_WORD')) rules.push(repeatedWordRule())
-    if (!enabled || enabled.has('PERIOD_IN_CAPTION')) rules.push(periodInCaptionRule())
-
     return rules
   }
 

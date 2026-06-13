@@ -1,12 +1,10 @@
 import type { Metric } from './types'
 
+import { isCaptionBlock, type CaptionLine } from './caption'
 import { type ParseBlockOptions, parseBlockAt } from '../shared/tsvRuns'
 import { TSV_RE } from '../shared/subtitles'
 
-export type CandidateLine = {
-  lineIndex: number
-  lineText: string
-}
+export type CandidateLine = CaptionLine
 
 export type NewsMarker = {
   raw: string
@@ -118,17 +116,6 @@ function collectTranslationLinesForTimestamp(
   return out
 }
 
-function isParentheticalTranslationBlock(lines: CandidateLine[]): boolean {
-  if (lines.length === 0) return false
-  const trimmed = lines.map((line) => line.lineText.trim()).filter(Boolean)
-  if (trimmed.length === 0) return false
-  const first = trimmed[0] ?? ''
-  const last = trimmed[trimmed.length - 1] ?? ''
-  const opens = first.startsWith('(') || first.startsWith('（')
-  const closes = last.endsWith(')') || last.endsWith('）')
-  return opens && closes
-}
-
 export function parseSubs(
   text: string,
   options: ParseBlockOptions = {}
@@ -162,7 +149,7 @@ export function parseSubs(
       lineIndex,
       lineText: block.translationLines[idx] ?? '',
     }))
-    const skipAllRules = isParentheticalTranslationBlock(translationLines)
+    const skipAllRules = isCaptionBlock(translationLines)
     segments.push({
       lineIndex: block.translationIndex,
       lineIndexEnd: block.translationIndices[block.translationIndices.length - 1] ?? block.translationIndex,

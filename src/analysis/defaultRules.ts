@@ -35,7 +35,6 @@ export function defaultRules(options: DefaultRulesOptions = {}): Rule[] {
     capitalizationRule({ terms: options.capitalizationTerms }),
     termVariantRule({ variants: options.termVariants }),
     repeatedWordRule(),
-    periodInCaptionRule(),
     percentStyleRule(),
   ]
 }

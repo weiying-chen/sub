@@ -1,21 +1,15 @@
 import type { SegmentCtx, SegmentRule } from "./segments"
 import type { Metric } from "./types"
+import {
+  hasTrailingCaptionPeriod,
+  isCaptionLine,
+} from "./caption"
 
 export type PeriodInCaptionMetric = {
   type: "PERIOD_IN_CAPTION"
   lineIndex: number
   text: string
   severity?: "error" | "warn"
-}
-
-function stripTrailingClosers(text: string): string {
-  return text.replace(/["'\)\]\}）］】》]+$/g, "")
-}
-
-function hasTrailingPeriod(text: string): boolean {
-  const trimmed = stripTrailingClosers(text.trimEnd())
-  if (!trimmed.endsWith(".")) return false
-  return !trimmed.slice(0, -1).endsWith(".")
 }
 
 export function periodInCaptionRule(): SegmentRule {
@@ -30,7 +24,8 @@ export function periodInCaptionRule(): SegmentRule {
         ? { lineIndex: segment.lineIndex, lineText: segment.translation }
         : null)
     if (!lastLine) return []
-    if (!hasTrailingPeriod(lastLine.lineText)) return []
+    if (!isCaptionLine(lastLine.lineText)) return []
+    if (!hasTrailingCaptionPeriod(lastLine.lineText)) return []
 
     return [
       {

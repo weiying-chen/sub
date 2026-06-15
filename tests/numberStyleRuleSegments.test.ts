@@ -99,6 +99,22 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores temperature values with Celsius and Fahrenheit units", () => {
+    const segments = [
+      { lineIndex: 0, translation: "It was −3°C when we woke up." },
+      { lineIndex: 1, translation: "It felt like -5 degrees Celsius outside." },
+      { lineIndex: 2, translation: "The forecast called for 8°F overnight." },
+      { lineIndex: 3, translation: "The room held steady at 10 degrees Fahrenheit." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, lineText: segment.translation }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    expect(findings).toHaveLength(0)
+  })
+
   it("ignores AM/PM time notation", () => {
     const segments = [
       { lineIndex: 0, translation: "The meeting starts at 3 PM." },

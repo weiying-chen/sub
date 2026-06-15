@@ -152,6 +152,13 @@ function isAmPmToken(text: string, index: number, length: number) {
   return /^\s*(?:a\.m\.(?!\w)|p\.m\.(?!\w)|am\b|pm\b)/i.test(tail)
 }
 
+function isTemperatureUnitToken(text: string, index: number, length: number) {
+  const tail = text.slice(index + length)
+  return /^\s*(?:°\s*[cf]\b|degrees?\s+(?:celsius|fahrenheit)\b|celsius\b|fahrenheit\b)/i.test(
+    tail
+  )
+}
+
 function isMeasurementUnitToken(text: string, index: number, length: number) {
   const tail = text.slice(index + length)
   return /^\s*(?:kg|g|mg|lb|lbs|oz|mm|cm|m(?!illion\b)|km|meter(?:s)?|metre(?:s)?|centimeter(?:s)?|centimetre(?:s)?|millimeter(?:s)?|millimetre(?:s)?|kilometer(?:s)?|kilometre(?:s)?|inch(?:es)?|ft|foot|feet|yard(?:s)?|mile(?:s)?)\b/i.test(
@@ -264,6 +271,7 @@ function collectMetrics(
     if (isWithinAnySpan(coordinatedListSpans, match.index, rawToken.length)) continue
     if (isStatisticalRatioToken(text, match.index, rawToken.length)) continue
     if (isPercentToken(text, match.index, rawToken.length)) continue
+    if (isTemperatureUnitToken(text, match.index, rawToken.length)) continue
     if (isMeasurementUnitToken(text, match.index, rawToken.length)) continue
     if (isCurrencyToken(text, match.index)) continue
     if (isLevelNumberToken(text, match.index)) continue

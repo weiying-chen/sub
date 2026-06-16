@@ -122,6 +122,44 @@ describe("punctuationRule", () => {
     ).toBe(false)
   })
 
+  it("ignores configured title abbreviations ending the previous cue", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "Vice Supt.",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "Tu Shih-mien arrived with Vice Supt. Wang Yu-ming.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [
+      punctuationRule({ abbreviations: ["Supt."] }),
+    ])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some((f) => f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL")
+    ).toBe(false)
+  })
+
+  it("ignores configured abbreviated titles starting the next cue", () => {
+    const text = [
+      "00:00:00:00\t00:00:05:28\tMarker",
+      "As plans to build the hospital moved forward,",
+      "00:00:05:28\t00:00:10:10\tMarker",
+      "Vice Supt. Tu Shih-mien, Vice Supt. Tseng Wen-ping,",
+      "00:00:10:10\t00:00:13:23\tMarker",
+      "Vice Supt. Wang Yu-ming,",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [
+      punctuationRule({ properNouns: ["Vice Supt."] }),
+    ])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some((f) => f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL")
+    ).toBe(false)
+  })
+
   it("ignores configured proper nouns starting the next cue", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

@@ -75,6 +75,26 @@ describe("capitalizationRule", () => {
     expect(findings[0]?.expected).toBe("the Bodhisattva Path")
   })
 
+  it("flags capital letters after hyphens in configured terms", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "She gave him a Harmony-Preserving Pill.",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "She gave him a Harmony-preserving Pill.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [
+      capitalizationRule({ terms: ["Harmony-preserving Pill"] }),
+    ])
+    const findings = metrics.filter((m) => m.type === "CAPITALIZATION")
+
+    expect(findings).toHaveLength(1)
+    expect(findings[0]).toMatchObject({
+      found: "Harmony-Preserving Pill",
+      expected: "Harmony-preserving Pill",
+    })
+  })
+
   it("capitalizes kinship terms used as names", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

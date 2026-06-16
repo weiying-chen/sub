@@ -25,7 +25,7 @@ export type FillSubsResult = {
   chosenCps?: number
 }
 
-const DEFAULT_NO_SPLIT_ABBREVIATIONS = ['Mr.', 'Mrs.', 'Ms.', 'Dr.', 'U.S.']
+const DEFAULT_NO_SPLIT_ABBREVIATIONS = ['Mr.', 'Mrs.', 'Ms.', 'Dr.', 'Supt.', 'U.S.']
 const MIN_TARGET_CPS = 10
 const MAX_SPAN_PER_LINE = 3
 const MIN_COMMA_SPLIT_CHARS = 12

@@ -2070,6 +2070,25 @@ describe("fillSelectedTimestampLines", () => {
   expect(translations.some((line) => line.includes("Ms. Lin"))).toBe(true)
   })
 
+  it("keeps Supt. with the following name by default", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Vice Supt. Tu Shih-mien arrived.",
+    { maxChars: 11, inline: true }
+  )
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(translations).not.toContain("Vice Supt.")
+  expect(translations.some((line) => line.includes("Supt. Tu"))).toBe(true)
+  })
+
   it("keeps UI and CLI fill outputs in parity for default abbreviations", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

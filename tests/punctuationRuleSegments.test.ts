@@ -345,6 +345,28 @@ describe("punctuationRule (segments)", () => {
     ).toBe(false)
   })
 
+  it("does not flag missing punctuation before capital for surname-first hyphenated Chinese names", () => {
+    const text = [
+      "00:06:04:11\t00:06:07:04\t應該開車比他還早的",
+      "Before Layman Li,",
+      "00:06:07:04\t00:06:08:24\t是老三(胡玉珠)",
+      "Hu Yu-zhu was the one who first drove me around.",
+    ].join("\n")
+
+    const segments = parseSubs(text)
+    const metrics = analyzeSegments(segments, [punctuationRule()], {
+      lines: text.split("\n"),
+      sourceText: text,
+    })
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) => f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL"
+      )
+    ).toBe(false)
+  })
+
   it("does not require ':' when the next quoted line is a continuation", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

@@ -12,7 +12,7 @@ import { parseText, type SegmentCtx, type SegmentRule } from './segments'
 
 const I_PRONOUN_RE = /^\s*(?:["'\(\[\{]\s*)*I(\b|')/
 const HYPHENATED_ROMANIZED_NAME_RE =
-  /^\s*(?:["'\(\[\{]\s*)?[A-Z][a-z]+(?:-[a-z]+)+(?:\b|(?=\s))/
+  /^\s*(?:["'\(\[\{]\s*)?(?:[A-Z][a-z]+\s+)?[A-Z][a-z]+(?:-[a-z]+)+(?:\b|(?=\s))/
 const A_PREFIX_ROMANIZED_NAME_RE =
   /^\s*(?:["'\(\[\{]\s*)?A(?:h)?\s+[A-Z][a-z]+(?:\b|(?=\s|['"]))/
 const ACRONYM_RE =

@@ -192,6 +192,24 @@ describe("punctuationRule", () => {
     ).toBe(false)
   })
 
+  it("does not flag missing punctuation before capital for surname-first hyphenated Chinese names", () => {
+    const text = [
+      "00:06:04:11\t00:06:07:04\t應該開車比他還早的",
+      "Before Layman Li,",
+      "00:06:07:04\t00:06:08:24\t是老三(胡玉珠)",
+      "Hu Yu-zhu was the one who first drove me around.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) => f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL"
+      )
+    ).toBe(false)
+  })
+
   it("does not flag missing punctuation before capital for A-prefix romanized names", () => {
     const text = [
       "00:09:37:09\t00:09:39:22\t因為緣分不足",

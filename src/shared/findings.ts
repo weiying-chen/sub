@@ -53,6 +53,7 @@ export function getFindings(
     }
 
     if (m.type === 'CPS') {
+      if (m.suppressCps) continue
       if (m.cps > m.maxCps) {
         out.push({
           type: 'MAX_CPS',

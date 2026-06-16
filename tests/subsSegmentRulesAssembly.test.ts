@@ -95,6 +95,31 @@ describe("createSubsSegmentRules", () => {
     expect(maxOnlyFindings.some((finding) => finding.type === "CPS_BALANCE")).toBe(false)
   })
 
+  it("suppresses max and min CPS findings for marked lines", () => {
+    const text = [
+      "00:00:01:00\t00:00:03:00\tMarker",
+      "Hi #",
+      "",
+      "00:00:03:00\t00:00:04:00\tMarker",
+      "This translation is definitely too long for one second. #",
+    ].join("\n")
+
+    const findings = getFindings(
+      analyzeTextByType(
+        text,
+        "subs",
+        createSubsSegmentRules({
+          minCps: 10,
+          maxCps: 17,
+          enabledFindingTypes: ["MIN_CPS", "MAX_CPS"],
+        })
+      )
+    )
+
+    expect(findings.some((finding) => finding.type === "MIN_CPS")).toBe(false)
+    expect(findings.some((finding) => finding.type === "MAX_CPS")).toBe(false)
+  })
+
   it("does not include cps-balance findings in default subs assembly", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

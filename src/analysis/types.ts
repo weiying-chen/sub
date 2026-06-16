@@ -38,6 +38,7 @@ type CpsBaseMetric = {
   cps: number
   durationFrames: number
   charCount: number
+  suppressCps?: boolean
 }
 
 export type CPSMetric = CpsBaseMetric & {

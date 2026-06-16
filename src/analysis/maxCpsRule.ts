@@ -19,6 +19,7 @@ export function maxCpsRule(
         ? collect(ctx).filter((m) => m.type === "CPS")
         : collect(ctx).filter((m) => m.type === "CPS")
     return metrics.flatMap((metric) => {
+      if (metric.suppressCps) return []
       if (metric.cps <= metric.maxCps) return []
       const finding: MaxCpsMetric = {
         type: "MAX_CPS",

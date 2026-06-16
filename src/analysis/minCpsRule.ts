@@ -19,6 +19,7 @@ export function minCpsRule(
         ? collect(ctx).filter((m) => m.type === "CPS")
         : collect(ctx).filter((m) => m.type === "CPS")
     return metrics.flatMap((metric) => {
+      if (metric.suppressCps) return []
       if (metric.cps >= metric.minCps) return []
       const finding: MinCpsMetric = {
         type: "MIN_CPS",

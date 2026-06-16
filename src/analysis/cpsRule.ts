@@ -15,6 +15,16 @@ import type { Segment, SegmentCtx, SegmentRule } from './segments'
 type CpsRule = Rule & SegmentRule
 type CpsRuleOptions = ParseBlockOptions
 
+function stripCpsSuppressionMarker(text: string): {
+  text: string
+  suppressCps: boolean
+} {
+  if (!/(?:^|[ \t])#\s*$/.test(text)) {
+    return { text, suppressCps: false }
+  }
+  return { text: text.replace(/[ \t]*#\s*$/, ''), suppressCps: true }
+}
+
 function hasTiming(
   segment: Segment
 ): segment is Segment & { tsIndex: number; startFrames: number; endFrames: number } {
@@ -117,7 +127,8 @@ export function cpsRule(
       if (!run) return []
 
       const durationFrames = run.endFrames - run.startFrames
-      const charCount = run.translation.length
+      const cleaned = stripCpsSuppressionMarker(run.translation)
+      const charCount = cleaned.text.length
       const rawCps =
         durationFrames === 0 ? Infinity : (charCount * FPS) / durationFrames
       const cps = roundCpsToOneDecimal(rawCps)
@@ -126,12 +137,13 @@ export function cpsRule(
         type: 'CPS',
         lineIndex: run.lineIndex,
         tsLineIndex: run.tsIndex,
-        text: run.translation,
+        text: cleaned.text,
         cps,
         maxCps,
         minCps,
         durationFrames,
         charCount,
+        suppressCps: cleaned.suppressCps,
       }
 
       return [metric]
@@ -153,7 +165,8 @@ export function cpsRule(
     const run = mergeForward(src, cur, options)
 
     const durationFrames = run.endFrames - run.startFrames
-    const charCount = run.translation.length
+    const cleaned = stripCpsSuppressionMarker(run.translation)
+    const charCount = cleaned.text.length
     const rawCps =
       durationFrames === 0 ? Infinity : (charCount * FPS) / durationFrames
     const cps = roundCpsToOneDecimal(rawCps)
@@ -162,12 +175,13 @@ export function cpsRule(
       type: 'CPS',
       lineIndex: run.translationIndexStart,
       tsLineIndex: run.startTsIndex,
-      text: run.translation,
+      text: cleaned.text,
       cps,
       maxCps,
       minCps,
       durationFrames,
       charCount,
+      suppressCps: cleaned.suppressCps,
     }
 
     return [metric]

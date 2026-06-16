@@ -6,6 +6,7 @@ import { endsSentenceBoundary, startsWithOpenQuote } from './punctuationShared'
 import {
   type LineSource,
   type ParseBlockOptions,
+  isSubsCommentLine,
   parseBlockAt,
 } from '../shared/tsvRuns'
 import { parseText, type SegmentCtx, type SegmentRule } from './segments'
@@ -362,7 +363,9 @@ function hasInterveningNonEmptyLine(
   endIndex: number
 ): boolean {
   for (let i = startIndex + 1; i < endIndex; i += 1) {
-    if (src.getLine(i).trim() !== '') return true
+    const text = src.getLine(i)
+    if (isSubsCommentLine(text)) continue
+    if (text.trim() !== '') return true
   }
   return false
 }

@@ -34,6 +34,10 @@ export type MergedRun = {
   translationIndexEnd: number
 }
 
+export function isSubsCommentLine(text: string): boolean {
+  return text.trimStart().startsWith('//')
+}
+
 function findNextTimestampIndex(src: LineSource, fromTsIndex: number): number | null {
   for (let j = fromTsIndex + 1; j < src.lineCount; j++) {
     if (TSV_RE.test(src.getLine(j))) {
@@ -72,6 +76,10 @@ function findTranslationBelow(
   for (let i = tsIndex + 1; i < src.lineCount; i++) {
     const t = src.getLine(i)
     if (TSV_RE.test(t)) break
+    if (isSubsCommentLine(t)) {
+      if (translationLines.length === 0) continue
+      break
+    }
     if (t.trim() === '') {
       if (ignoreEmptyLines) continue
       break

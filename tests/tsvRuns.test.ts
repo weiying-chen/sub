@@ -33,6 +33,24 @@ describe("tsvRuns empty-line handling", () => {
     expect(block?.translationIndex).toBe(2)
   })
 
+  it("ignores comment lines before and after subtitle translations", () => {
+    const lines = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "// translator note",
+      "Hello after comment",
+      "// source note",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "Next line.",
+    ]
+
+    const block = parseBlockAt(makeSrc(lines), 0)
+
+    expect(block?.translation).toBe("Hello after comment")
+    expect(block?.translationIndex).toBe(2)
+    expect(block?.translationLines).toEqual(["Hello after comment"])
+    expect(block?.translationIndices).toEqual([2])
+  })
+
   it("breaks merged runs across empty lines by default", () => {
     const lines = [
       "00:00:01:00\t00:00:02:00\tMarker",

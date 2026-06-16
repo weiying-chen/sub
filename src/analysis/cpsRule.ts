@@ -1,5 +1,6 @@
 import type { Rule, CPSMetric, RuleCtx } from './types'
 
+import { stripCpsSuppressionMarker } from '../shared/cpsSuppression'
 import { FPS } from '../shared/subtitles'
 import { DEFAULT_MAX_CPS, DEFAULT_MIN_CPS, roundCpsToOneDecimal } from '../shared/cps'
 import {
@@ -14,16 +15,6 @@ import type { Segment, SegmentCtx, SegmentRule } from './segments'
 
 type CpsRule = Rule & SegmentRule
 type CpsRuleOptions = ParseBlockOptions
-
-function stripCpsSuppressionMarker(text: string): {
-  text: string
-  suppressCps: boolean
-} {
-  if (!/(?:^|[ \t])#\s*$/.test(text)) {
-    return { text, suppressCps: false }
-  }
-  return { text: text.replace(/[ \t]*#\s*$/, ''), suppressCps: true }
-}
 
 function hasTiming(
   segment: Segment

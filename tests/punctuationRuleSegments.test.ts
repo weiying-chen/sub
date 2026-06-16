@@ -639,6 +639,20 @@ describe("punctuationRule (segments)", () => {
     ).toBe(true)
   })
 
+  it("ignores trailing CPS suppression markers for punctuation checks", () => {
+    const text = [
+      "00:00:37:14\t00:00:42:00\t提起了這一位李實先",
+      "Lee Shih-hsien shared a deep affinity with me. #",
+      "00:00:42:00\t00:00:47:24\t對師父是情長緣深",
+      "Lee Shih-hsien shared a deep affinity with me. #",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("does not flag single-line parenthetical on-screen text in subs mode", () => {
     const text = [
       "00:04:28:17\t00:04:31:25\t清熱燥濕 瀉火解毒",

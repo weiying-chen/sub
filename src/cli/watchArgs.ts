@@ -10,16 +10,23 @@ type WatchArgs = {
   ignoreEmptyLines: boolean
   maxCps: number | null
   minCps: number | null
+  once: boolean
 }
 
 export function parseArgs(argv: string[]): WatchArgs {
   const positionals: string[] = []
   const shared = parseSharedCliFlags(argv)
   let baselinePath: string | null = null
+  let once = false
 
   for (let i = 0; i < argv.length; i += 1) {
     if (shared.consumedIndexes.has(i)) continue
     const arg = argv[i]
+
+    if (arg === '--once') {
+      once = true
+      continue
+    }
 
     if (arg === '--baseline') {
       const next = argv[i + 1]
@@ -48,5 +55,6 @@ export function parseArgs(argv: string[]): WatchArgs {
     ignoreEmptyLines: shared.ignoreEmptyLines,
     maxCps: shared.maxCps,
     minCps: shared.minCps,
+    once,
   }
 }

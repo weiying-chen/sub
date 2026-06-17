@@ -26,6 +26,7 @@ const {
   ignoreEmptyLines,
   maxCps,
   minCps,
+  once,
 } = parseArgs(args)
 
 function debounce<TArgs extends any[]>(
@@ -131,4 +132,14 @@ const reporter =
 const label =
   normalizedType === 'news' ? '(news)' : '(subs)'
 
-void watch(filePath, reporter, { label })
+if (once) {
+  try {
+    await reporter(filePath, { clearScreen: () => {} })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error(`ERROR ${msg}`)
+    process.exit(1)
+  }
+} else {
+  void watch(filePath, reporter, { label })
+}

@@ -44,4 +44,9 @@ describe("watch parseArgs", () => {
     const result = parseArgs(["--min-cps", "6", "file.txt"])
     expect(result.minCps).toBe(6)
   })
+
+  it("parses --once", () => {
+    const result = parseArgs(["--once", "file.txt"])
+    expect(result.once).toBe(true)
+  })
 })

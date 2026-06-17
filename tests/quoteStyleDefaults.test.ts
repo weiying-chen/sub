@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { buildAnalyzeOutput } from "../src/cli/analyzeOutput"
+import { runAnalysis } from "../src/cli/runAnalysis"
 import type { Metric } from "../src/analysis/types"
 
 describe("curly quotes defaults", () => {
@@ -15,15 +15,15 @@ describe("curly quotes defaults", () => {
     ].join("\n")
     const plainText = "That’s not plain ASCII quotes."
 
-    const subsOutput = (await buildAnalyzeOutput(subsText, {
+    const subsOutput = (await runAnalysis(subsText, {
       type: "subs",
       mode: "findings",
     })) as Metric[]
-    const newsOutput = (await buildAnalyzeOutput(newsText, {
+    const newsOutput = (await runAnalysis(newsText, {
       type: "news",
       mode: "findings",
     })) as Metric[]
-    const textOutput = (await buildAnalyzeOutput(plainText, {
+    const textOutput = (await runAnalysis(plainText, {
       type: "text",
       mode: "findings",
     })) as Metric[]

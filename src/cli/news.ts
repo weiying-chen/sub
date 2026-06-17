@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import type { Finding, Metric } from '../analysis/types'
 import { formatCliNumber } from './numberFormat'
 import type { Reporter } from './watch'
-import { buildAnalyzeOutput } from './analyzeOutput'
+import { runAnalysis } from './runAnalysis'
 
 const RESET = '\x1b[0m'
 const BOLD = '\x1b[1m'
@@ -118,7 +118,7 @@ export function formatFinding(f: Finding): string {
 export function createNewsReporter(options: NewsOptions): Reporter {
   return async (path, { clearScreen }) => {
     const text = await readFile(path, 'utf8')
-    const findings = (await buildAnalyzeOutput(text, {
+    const findings = (await runAnalysis(text, {
       type: 'news',
       mode: 'findings',
       ruleFilters: options.ruleFilters,

@@ -5,14 +5,14 @@ import { tmpdir } from "node:os"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
-  buildAnalyzeOutputMock: vi.fn(async () => []),
+  runAnalysisMock: vi.fn(async () => []),
   sortFindingsWithIndexMock: vi.fn((findings: any[]) =>
     findings.map((finding, index) => ({ finding, index }))
   ),
 }))
 
-vi.mock("../src/cli/analyzeOutput", () => ({
-  buildAnalyzeOutput: mocks.buildAnalyzeOutputMock,
+vi.mock("../src/cli/runAnalysis", () => ({
+  runAnalysis: mocks.runAnalysisMock,
 }))
 
 vi.mock("../src/shared/findingsSort", () => ({
@@ -23,12 +23,12 @@ import { createSubsReporter } from "../src/cli/subs"
 
 describe("createSubsReporter", () => {
   beforeEach(() => {
-    mocks.buildAnalyzeOutputMock.mockReset()
-    mocks.buildAnalyzeOutputMock.mockResolvedValue([])
+    mocks.runAnalysisMock.mockReset()
+    mocks.runAnalysisMock.mockResolvedValue([])
     mocks.sortFindingsWithIndexMock.mockClear()
   })
 
-  it("uses shared analyze output path for subs findings", async () => {
+  it("uses shared runAnalysis path for subs findings", async () => {
     const dir = await mkdtemp(join(tmpdir(), "subs-reporter-"))
     const filePath = join(dir, "sample.txt")
     await writeFile(
@@ -50,8 +50,8 @@ describe("createSubsReporter", () => {
       logSpy.mockRestore()
     }
 
-    expect(mocks.buildAnalyzeOutputMock).toHaveBeenCalledTimes(1)
-    expect(mocks.buildAnalyzeOutputMock).toHaveBeenCalledWith(
+    expect(mocks.runAnalysisMock).toHaveBeenCalledTimes(1)
+    expect(mocks.runAnalysisMock).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
         type: "subs",
@@ -63,7 +63,7 @@ describe("createSubsReporter", () => {
   })
 
   it("filters findings by marker scope after shared analysis", async () => {
-    mocks.buildAnalyzeOutputMock.mockResolvedValue([
+    mocks.runAnalysisMock.mockResolvedValue([
       { type: "MAX_CHARS", lineIndex: 0, severity: "error" },
       { type: "MAX_CHARS", lineIndex: 3, severity: "error" },
     ])
@@ -117,7 +117,7 @@ it("passes maxCps through to shared analyze output", async () => {
     logSpy.mockRestore()
   }
 
-  expect(mocks.buildAnalyzeOutputMock).toHaveBeenCalledWith(
+  expect(mocks.runAnalysisMock).toHaveBeenCalledWith(
     expect.any(String),
     expect.objectContaining({
       type: "subs",

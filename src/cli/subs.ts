@@ -4,7 +4,7 @@ import { sortFindingsWithIndex } from '../shared/findingsSort'
 import type { Finding, Metric } from '../analysis/types'
 import type { Reporter } from './watch'
 import { findMarkerScope } from './markerScope'
-import { buildAnalyzeOutput } from './analyzeOutput'
+import { runAnalysis } from './runAnalysis'
 import { formatCliNumber } from './numberFormat'
 
 // --- ANSI colors (use terminal theme palette) ---
@@ -237,7 +237,7 @@ async function printReport(
   const baselineText = options.baselinePath
     ? await readFile(options.baselinePath, 'utf8')
     : null
-  const findings = (await buildAnalyzeOutput(text, {
+  const findings = (await runAnalysis(text, {
     type: 'subs',
     mode: 'findings',
     ruleFilters: options.ruleFilters,

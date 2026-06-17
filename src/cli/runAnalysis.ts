@@ -9,7 +9,7 @@ import {
   loadTermVariants,
 } from './properNouns'
 
-export type AnalyzeOptions = {
+export type RunAnalysisOptions = {
   type: 'subs' | 'news' | 'text'
   mode?: 'metrics' | 'findings'
   ruleFilters?: string[]
@@ -20,9 +20,9 @@ export type AnalyzeOptions = {
   minCps?: number
 }
 
-export async function buildAnalyzeOutput(
+export async function runAnalysis(
   text: string,
-  options: AnalyzeOptions
+  options: RunAnalysisOptions
 ): Promise<Metric[] | Finding[]> {
   const enabledFindingTypes =
     options.type === 'subs'

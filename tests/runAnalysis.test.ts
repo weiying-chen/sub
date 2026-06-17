@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest"
 
 import type { Metric } from "../src/analysis/types"
-import { buildAnalyzeOutput } from "../src/cli/analyzeOutput"
+import { runAnalysis } from "../src/cli/runAnalysis"
 
 function expectNoStyleRuleFindings(metrics: Metric[]) {
   expect(metrics.some((metric) => metric.type === "PERCENT_STYLE")).toBe(false)
@@ -9,7 +9,7 @@ function expectNoStyleRuleFindings(metrics: Metric[]) {
   expect(metrics.some((metric) => metric.type === "QUOTE_STYLE")).toBe(false)
 }
 
-describe("analyze CLI output", () => {
+describe("runAnalysis output", () => {
   it("returns MAX_CHARS metrics for news SUPER lines", async () => {
     const text = [
       "Intro line.",
@@ -22,7 +22,7 @@ describe("analyze CLI output", () => {
       "VO line.",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "news",
     })) as Metric[]
 
@@ -42,7 +42,7 @@ describe("analyze CLI output", () => {
       "",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "news",
       mode: "findings",
     })) as Metric[]
@@ -71,7 +71,7 @@ describe("analyze CLI output", () => {
       "Back in 1996, Charles Rice made a key breakthrough in hepatitis C research.",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "news",
       mode: "findings",
     })) as Metric[]
@@ -86,7 +86,7 @@ describe("analyze CLI output", () => {
       "（字：規畫五層樓建築，預計兩年後完工，服務大馬尼拉南部一千萬人口。）",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "news",
       mode: "findings",
     })) as Metric[]
@@ -104,7 +104,7 @@ describe("analyze CLI output", () => {
       "Volunteers helped dress her up, and she filled the home with song in return.",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "news",
       mode: "findings",
     })) as Metric[]
@@ -124,7 +124,7 @@ describe("analyze CLI output", () => {
       "Back in 1996, Charles Rice made a key breakthrough in hepatitis C research that helped drive new treatments, turning it from an incurable disease into one that can be treated and benefiting millions worldwide. Even though this isn't his first time in Taiwan, he also praised its progress in hepatitis prevention and future research.",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "news",
       mode: "findings",
     })) as Metric[]
@@ -147,7 +147,7 @@ describe("analyze CLI output", () => {
       "",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "news",
       mode: "findings",
     })) as Metric[]
@@ -181,7 +181,7 @@ describe("analyze CLI output", () => {
       "Third sentence.",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "news",
       mode: "findings",
     })) as Metric[]
@@ -221,7 +221,7 @@ describe("analyze CLI output", () => {
       "VO line.",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "news",
       mode: "findings",
     })) as Metric[]
@@ -241,7 +241,7 @@ describe("analyze CLI output", () => {
       "Chief Physician",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "news",
       mode: "findings",
     })) as Metric[]
@@ -268,7 +268,7 @@ describe("analyze CLI output", () => {
       "Tzu Chi volunteer",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "news",
       mode: "findings",
     })) as Metric[]
@@ -289,7 +289,7 @@ describe("analyze CLI output", () => {
       "Vice President",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "news",
       mode: "findings",
     })) as Metric[]
@@ -313,7 +313,7 @@ describe("analyze CLI output", () => {
       "Dr. Lin",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "news",
       mode: "findings",
     })) as Metric[]
@@ -340,7 +340,7 @@ describe("analyze CLI output", () => {
       "Islam Naji",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "news",
       mode: "findings",
     })) as Metric[]
@@ -368,7 +368,7 @@ describe("analyze CLI output", () => {
       "Another line.",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "subs",
     })) as Metric[]
 
@@ -385,7 +385,7 @@ describe("analyze CLI output", () => {
       "Another line.",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "subs",
       ruleFilters: ["MAX_CPS"],
     })) as Metric[]
@@ -401,7 +401,7 @@ describe("analyze CLI output", () => {
       "Hi",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "subs",
       mode: "findings",
     })) as Metric[]
@@ -416,7 +416,7 @@ describe("analyze CLI output", () => {
       "Hi",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "subs",
       mode: "findings",
       minCps: 1,
@@ -432,7 +432,7 @@ describe("analyze CLI output", () => {
       "00:00:03:00\t00:00:04:00\tMarker",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "subs",
       mode: "findings",
     })) as Metric[]
@@ -451,7 +451,7 @@ describe("analyze CLI output", () => {
       "Gap text.",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "subs",
       mode: "findings",
     })) as Metric[]
@@ -470,7 +470,7 @@ describe("analyze CLI output", () => {
       "First line.",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(current, {
+    const output = (await runAnalysis(current, {
       type: "subs",
       mode: "findings",
       baselineText: baseline,
@@ -487,7 +487,7 @@ describe("analyze CLI output", () => {
       "  Another English line with leading spaces.",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "text" as any,
       mode: "findings",
     } as any)) as Metric[]
@@ -510,7 +510,7 @@ describe("analyze CLI output", () => {
       "Second Sentence starts with capital",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "text" as any,
       mode: "findings",
     } as any)) as Metric[]
@@ -526,7 +526,7 @@ describe("analyze CLI output", () => {
       "Another clean translation line.",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "subs",
       mode: "findings",
     })) as Metric[]
@@ -546,7 +546,7 @@ describe("analyze CLI output", () => {
       "This clean translation line should be checked.",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "text",
       mode: "findings",
     })) as Metric[]
@@ -565,7 +565,7 @@ describe("analyze CLI output", () => {
       "This clean translation line should be checked.",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "subs",
       mode: "findings",
     })) as Metric[]
@@ -582,7 +582,7 @@ describe("analyze CLI output", () => {
       "This clean translation line should be checked.",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "news",
       mode: "findings",
     })) as Metric[]
@@ -598,7 +598,7 @@ describe("analyze CLI output", () => {
       "A Guang's mother didn't like A Bu,",
     ].join("\n")
 
-    const output = (await buildAnalyzeOutput(text, {
+    const output = (await runAnalysis(text, {
       type: "subs",
       mode: "findings",
       ruleFilters: ["PUNCTUATION"],

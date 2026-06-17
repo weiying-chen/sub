@@ -8,6 +8,7 @@ import { quoteStyleRule } from './quoteStyleRule'
 import { capitalizationRule } from './capitalizationRule'
 import { termVariantRule, type TermVariantEntry } from './termVariantRule'
 import { repeatedWordRule } from './repeatedWordRule'
+import { repeatedPunctuationRule } from './repeatedPunctuationRule'
 import { periodInCaptionRule } from './periodInCaptionRule'
 import { percentStyleRule } from './percentStyleRule'
 import { mergeCandidateRule } from './mergeCandidateRule'
@@ -35,6 +36,7 @@ export function defaultRules(options: DefaultRulesOptions = {}): Rule[] {
     capitalizationRule({ terms: options.capitalizationTerms }),
     termVariantRule({ variants: options.termVariants }),
     repeatedWordRule(),
+    repeatedPunctuationRule(),
     percentStyleRule(),
   ]
 }
@@ -58,6 +60,7 @@ export function defaultSegmentRules(
     capitalizationRule({ terms: options.capitalizationTerms }),
     termVariantRule({ variants: options.termVariants }),
     repeatedWordRule(),
+    repeatedPunctuationRule(),
     periodInCaptionRule(),
     percentStyleRule(),
   ]

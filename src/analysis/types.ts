@@ -130,6 +130,15 @@ export type RepeatedWordMetric = {
   severity?: 'error' | 'warn'
 }
 
+export type RepeatedPunctuationMetric = {
+  type: 'REPEATED_PUNCTUATION'
+  lineIndex: number
+  index: number
+  token: string
+  text?: string
+  severity?: 'error' | 'warn'
+}
+
 export type PeriodInCaptionMetric = {
   type: 'PERIOD_IN_CAPTION'
   lineIndex: number
@@ -278,6 +287,7 @@ export type Metric =
   | CapitalizationMetric
   | TermVariantMetric
   | RepeatedWordMetric
+  | RepeatedPunctuationMetric
   | PeriodInCaptionMetric
   | DashStyleMetric
   | QuoteStyleMetric

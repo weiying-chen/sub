@@ -193,6 +193,15 @@ export function getFindings(
       continue
     }
 
+    if (m.type === 'REPEATED_PUNCTUATION') {
+      out.push({
+        ...m,
+        severity: 'error',
+        instruction: 'Remove the repeated punctuation.',
+      })
+      continue
+    }
+
     if (m.type === 'PERIOD_IN_CAPTION') {
       out.push({
         ...m,

@@ -9,6 +9,7 @@ import { newsMarkerRule } from './newsMarkerRule'
 import { numberStyleRule } from './numberStyleRule'
 import { punctuationRule } from './punctuationRule'
 import { repeatedWordRule } from './repeatedWordRule'
+import { repeatedPunctuationRule } from './repeatedPunctuationRule'
 import { periodInCaptionRule } from './periodInCaptionRule'
 import { superPeopleRule } from './superPeopleRule'
 import { termVariantRule, type TermVariantEntry } from './termVariantRule'
@@ -135,6 +136,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
       rules.push(termVariantRule({ variants: termVariants }))
     }
     if (!enabled || enabled.has('REPEATED_WORD')) rules.push(repeatedWordRule())
+    if (!enabled || enabled.has('REPEATED_PUNCTUATION')) rules.push(repeatedPunctuationRule())
     if (!enabled || enabled.has('PERIOD_IN_CAPTION')) rules.push(periodInCaptionRule())
     return rules
   }
@@ -170,6 +172,7 @@ function buildRules(options: BuildAnalysisOutputOptions) {
       rules.push(termVariantRule({ variants: termVariants }))
     }
     if (!enabled || enabled.has('REPEATED_WORD')) rules.push(repeatedWordRule())
+    if (!enabled || enabled.has('REPEATED_PUNCTUATION')) rules.push(repeatedPunctuationRule())
     return rules
   }
 

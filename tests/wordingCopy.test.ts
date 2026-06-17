@@ -120,6 +120,28 @@ describe("wording copy", () => {
     )
   })
 
+  it("uses repeated-punctuation wording in getFindings and labels", () => {
+    const metrics: Metric[] = [
+      {
+        type: "REPEATED_PUNCTUATION",
+        lineIndex: 2,
+        index: 10,
+        token: ",,",
+        text: "Before him,, Hu Yu-zhu was the one",
+      },
+    ]
+
+    const findings = getFindings(metrics)
+
+    expect(findings[0]?.instruction).toBe("Remove the repeated punctuation.")
+    expect(getFindingTypeLabel("REPEATED_PUNCTUATION")).toBe(
+      "Repeated punctuation is incorrect"
+    )
+    expect(RULE_MODAL_EXPLANATIONS.REPEATED_PUNCTUATION).toBe(
+      "Checks repeated punctuation like \",,\" while ignoring valid ellipses like \"...\"."
+    )
+  })
+
   it("uses caption period wording in getFindings and labels", () => {
     const metrics: Metric[] = [
       {

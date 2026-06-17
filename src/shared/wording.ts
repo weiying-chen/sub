@@ -25,6 +25,8 @@ export const RULE_MODAL_EXPLANATIONS: Partial<Record<Finding["type"], string>> =
   DASH_STYLE: "Checks dash style for this text type. Use --- or — as required by the text type.",
   QUOTE_STYLE: "Checks quote style. Use straight quotes (' or \") instead of curly quotes (’, ‘, “, ”).",
   REPEATED_WORD: "Checks repeated adjacent words like \"with with\".",
+  REPEATED_PUNCTUATION:
+    "Checks repeated punctuation like \",,\" while ignoring valid ellipses like \"...\".",
   PERIOD_IN_CAPTION: "Checks whether the last line of a caption ends with a period.",
   MIN_CPS:
     "Warns when a translation line has reading speed below the minimum CPS limit. You can edit it in the input below.",

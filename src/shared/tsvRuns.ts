@@ -63,10 +63,6 @@ function findTranslationBelow(
 } {
   const isReferenceUrlLine = (text: string): boolean =>
     /^(https?:\/\/|www\.)\S+$/i.test(text)
-  const endsTerminalPunctuation = (text: string): boolean =>
-    /[.!?…:](?:["'\)\]\}]+)?\s*$/.test(text)
-  const startsLikelyNewSentence = (text: string): boolean =>
-    /^[A-Z0-9]/.test(text.trimStart())
 
   const ignoreEmptyLines = options.ignoreEmptyLines ?? false
   const translationLines: string[] = []
@@ -91,15 +87,6 @@ function findTranslationBelow(
         translationIndices.push(i)
       }
       break
-    }
-    if (translationLines.length > 0) {
-      const prev = translationLines[translationLines.length - 1] ?? ''
-      if (
-        endsTerminalPunctuation(prev) &&
-        startsLikelyNewSentence(t)
-      ) {
-        break
-      }
     }
     if (translationIndex == null) translationIndex = i
     translationLines.push(t)

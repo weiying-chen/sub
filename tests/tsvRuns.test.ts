@@ -51,6 +51,28 @@ describe("tsvRuns empty-line handling", () => {
     expect(block?.translationIndices).toEqual([2])
   })
 
+  it("keeps wrapped subtitle lines together even when the first line ends a sentence", () => {
+    const lines = [
+      "00:00:10:00\t00:00:11:13\t而是一團星星",
+      "might actually be a galaxy?",
+      "Which galaxy is visible from Taiwan?",
+      "galaxy is visible from Taiwan?",
+      "visible from Taiwan?",
+    ]
+
+    const block = parseBlockAt(makeSrc(lines), 0)
+
+    expect(block?.translation).toBe(
+      "might actually be a galaxy?Which galaxy is visible from Taiwan?galaxy is visible from Taiwan?visible from Taiwan?"
+    )
+    expect(block?.translationLines).toEqual([
+      "might actually be a galaxy?",
+      "Which galaxy is visible from Taiwan?",
+      "galaxy is visible from Taiwan?",
+      "visible from Taiwan?",
+    ])
+  })
+
   it("breaks merged runs across empty lines by default", () => {
     const lines = [
       "00:00:01:00\t00:00:02:00\tMarker",

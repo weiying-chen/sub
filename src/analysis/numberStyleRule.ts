@@ -152,6 +152,10 @@ function isAmPmToken(text: string, index: number, length: number) {
   return /^\s*(?:a\.m\.(?!\w)|p\.m\.(?!\w)|am\b|pm\b)/i.test(tail)
 }
 
+function startsWithAmPmTime(text: string) {
+  return /^\s*\d+(?:\.\d+)?\s*(?:a\.m\.(?!\w)|p\.m\.(?!\w)|am\b|pm\b)/i.test(text)
+}
+
 function isTemperatureUnitToken(text: string, index: number, length: number) {
   const tail = text.slice(index + length)
   return /^\s*(?:°\s*[cf]\b|degrees?\s+(?:celsius|fahrenheit)\b|celsius\b|fahrenheit\b)/i.test(
@@ -219,6 +223,41 @@ function isWithinAnySpan(
   return spans.some((span) => index >= span.start && end <= span.end)
 }
 
+function isSplitCoordinatedAmPmToken(
+  text: string,
+  index: number,
+  length: number,
+  nextText?: string
+) {
+  if (!nextText) return false
+
+  const prefix = text.slice(0, index)
+  const suffix = text.slice(index + length)
+
+  if (!/\b(?:between|from)\s+$/i.test(prefix)) return false
+  if (!/^\s*(?:and|or)\s*$/i.test(suffix)) return false
+
+  return startsWithAmPmTime(nextText)
+}
+
+function getNextBlockTranslationText(
+  ctx: RuleCtx,
+  options: ParseBlockOptions
+) {
+  const src: LineSource = {
+    lineCount: ctx.lines.length,
+    getLine: (i) => ctx.lines[i] ?? '',
+  }
+
+  for (let i = ctx.lineIndex + 1; i < ctx.lines.length; i += 1) {
+    const block = parseBlockAt(src, i, options)
+    if (!block) continue
+    return block.translationLines[0] ?? ''
+  }
+
+  return undefined
+}
+
 type NumberStyleRule = Rule & SegmentRule
 
 function getTextAndAnchor(
@@ -250,7 +289,8 @@ function collectMetrics(
   text: string,
   anchorIndex: number,
   fullText?: string,
-  allowLeadingDoubleQuote = true
+  allowLeadingDoubleQuote = true,
+  nextText?: string
 ): NumberStyleMetric[] {
   const metrics: NumberStyleMetric[] = []
   const coordinatedListSpans = getCoordinatedNumberListSpans(text)
@@ -266,6 +306,16 @@ function collectMetrics(
     if (!Number.isFinite(value)) continue
     if (isTimeToken(text, match.index, rawToken.length)) continue
     if (isAmPmToken(text, match.index, rawToken.length)) continue
+    if (
+      isSplitCoordinatedAmPmToken(
+        text,
+        match.index,
+        rawToken.length,
+        nextText
+      )
+    ) {
+      continue
+    }
     if (isAgeAdjective(text, match.index, rawToken.length)) continue
     if (isDigitRangeToken(text, match.index, rawToken.length)) continue
     if (isWithinAnySpan(coordinatedListSpans, match.index, rawToken.length)) continue
@@ -327,13 +377,17 @@ export function numberStyleRule(
     if ('segment' in ctx && ctx.segment.targetLines) {
       const candidates = ctx.segment.targetLines
       if (candidates.length === 0) return []
-      return candidates.flatMap((candidate) => {
+      return candidates.flatMap((candidate, candidateIndex) => {
         const quoteInfo = quoteTracker.inspect(candidate.lineText)
+        const nextCandidateText =
+          candidates[candidateIndex + 1]?.lineText ??
+          ctx.segments[ctx.segmentIndex + 1]?.targetLines?.[0]?.lineText
         return collectMetrics(
           candidate.lineText,
           candidate.lineIndex,
           candidate.lineText,
-          !quoteInfo.leadingQuoteIsContinuation
+          !quoteInfo.leadingQuoteIsContinuation,
+          nextCandidateText
         )
       })
     }
@@ -342,11 +396,13 @@ export function numberStyleRule(
     if (!extracted) return []
 
     const quoteInfo = quoteTracker.inspect(extracted.text)
+    const nextText = 'segment' in ctx ? undefined : getNextBlockTranslationText(ctx, options)
     return collectMetrics(
       extracted.text,
       extracted.anchorIndex,
       extracted.text,
-      !quoteInfo.leadingQuoteIsContinuation
+      !quoteInfo.leadingQuoteIsContinuation,
+      nextText
     )
   }) as NumberStyleRule
 }

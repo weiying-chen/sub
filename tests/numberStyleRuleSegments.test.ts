@@ -229,6 +229,42 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores coordinated AM/PM times with a shared suffix", () => {
+    const segments = [
+      {
+        lineIndex: 0,
+        translation: "The top-performing students went to bed between 10 and 11 p.m.",
+      },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, lineText: segment.translation }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    expect(findings).toHaveLength(0)
+  })
+
+  it("ignores coordinated AM/PM times split across subtitle cues", () => {
+    const segments = [
+      {
+        lineIndex: 0,
+        translation: "the top-performing students went to bed between 10 and",
+      },
+      {
+        lineIndex: 1,
+        translation: "11 p.m. and slept seven to nine hours a night.",
+      },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, lineText: segment.translation }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    expect(findings).toHaveLength(0)
+  })
+
   it("flags sentence-start digits across line-start wrappers", () => {
     const segments = [
       { lineIndex: 0, translation: "20 birds arrived." },

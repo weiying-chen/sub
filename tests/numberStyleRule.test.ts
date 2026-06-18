@@ -92,6 +92,32 @@ describe("numberStyleRule", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores coordinated AM/PM times with a shared suffix", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "The top-performing students went to bed between 10 and 11 p.m.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
+
+  it("ignores coordinated AM/PM times split across subtitle cues", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "the top-performing students went to bed between 10 and",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "11 p.m. and slept seven to nine hours a night.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("ignores measurement ranges with decimal endpoints", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

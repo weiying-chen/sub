@@ -63,6 +63,7 @@ function findTranslationBelow(
 } {
   const isReferenceUrlLine = (text: string): boolean =>
     /^(https?:\/\/|www\.)\S+$/i.test(text)
+  const isStandaloneXxxLine = (text: string): boolean => text.trim() === 'XXX'
 
   const ignoreEmptyLines = options.ignoreEmptyLines ?? false
   const translationLines: string[] = []
@@ -72,6 +73,7 @@ function findTranslationBelow(
   for (let i = tsIndex + 1; i < src.lineCount; i++) {
     const t = src.getLine(i)
     if (TSV_RE.test(t)) break
+    if (isStandaloneXxxLine(t)) break
     if (isSubsCommentLine(t)) {
       if (translationLines.length === 0) continue
       break

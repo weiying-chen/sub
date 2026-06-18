@@ -73,6 +73,32 @@ describe("tsvRuns empty-line handling", () => {
     ])
   })
 
+  it("stops a translation block at a standalone XXX line", () => {
+    const lines = [
+      "00:00:10:00\t00:00:11:13\t而是一團星星",
+      "might actually be a galaxy?",
+      "XXX",
+      "Which galaxy is visible from Taiwan?",
+    ]
+
+    const block = parseBlockAt(makeSrc(lines), 0)
+
+    expect(block?.translation).toBe("might actually be a galaxy?")
+    expect(block?.translationLines).toEqual(["might actually be a galaxy?"])
+    expect(block?.translationIndices).toEqual([1])
+  })
+
+  it("does not treat untimestamped text after XXX as a subtitle block", () => {
+    const lines = [
+      "XXX",
+      "Which galaxy is visible from Taiwan?",
+    ]
+
+    const block = parseBlockAt(makeSrc(lines), 0)
+
+    expect(block).toBeNull()
+  })
+
   it("breaks merged runs across empty lines by default", () => {
     const lines = [
       "00:00:01:00\t00:00:02:00\tMarker",

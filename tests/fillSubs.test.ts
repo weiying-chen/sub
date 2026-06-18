@@ -6,7 +6,15 @@ import {
 } from "../src/shared/fillSubs"
 import { canJoinAdjacentText } from "../src/shared/joinableText"
 
-const NO_SPLIT_ABBREVIATIONS = ["Mr.", "Mrs.", "Ms.", "Dr.", "U.S.", "a.m.", "p.m."]
+const NO_SPLIT_ABBREVIATIONS = [
+  "Mr.",
+  "Mrs.",
+  "Ms.",
+  "Dr.",
+  "U.S.",
+  "a.m.",
+  "p.m.",
+]
 
 describe("fillSelectedTimestampLines", () => {
   it("fills selected timestamps and returns leftover", () => {
@@ -2087,6 +2095,27 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(translations).not.toContain("Vice Supt.")
   expect(translations.some((line) => line.includes("Supt. Tu"))).toBe(true)
+  })
+
+  it("keeps dotted initials with the following surname by default", () => {
+  const lines = [
+    "00:00:00:00\t00:00:01:00\tMarker",
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+    "00:00:03:00\t00:00:04:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    selected,
+    "Don't bother inviting Ted Hsu and T.H. Tung.",
+    { maxChars: 30, inline: true }
+  )
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(translations.some((line) => line.includes("T.H. Tung."))).toBe(true)
+  expect(translations.some((line) => line === "T.H.")).toBe(false)
   })
 
   it("keeps UI and CLI fill outputs in parity for default abbreviations", () => {

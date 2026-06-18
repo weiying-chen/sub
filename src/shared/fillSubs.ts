@@ -25,7 +25,14 @@ export type FillSubsResult = {
   chosenCps?: number
 }
 
-const DEFAULT_NO_SPLIT_ABBREVIATIONS = ['Mr.', 'Mrs.', 'Ms.', 'Dr.', 'Supt.', 'U.S.']
+const DEFAULT_NO_SPLIT_ABBREVIATIONS = [
+  'Mr.',
+  'Mrs.',
+  'Ms.',
+  'Dr.',
+  'Supt.',
+  'U.S.',
+]
 const MIN_TARGET_CPS = 10
 const MAX_SPAN_PER_LINE = 3
 const MIN_COMMA_SPLIT_CHARS = 12
@@ -126,6 +133,13 @@ function isMiddleInitialNameSplit(left: string, right: string): boolean {
   const leftTrimmed = left.trimEnd()
   const rightTrimmed = right.trimStart()
   return /(?:^|\s)[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+[A-Z]\.$/.test(leftTrimmed) &&
+    /^[A-Z][a-z]+(?:['-][A-Za-z]+)*(?:\b|,)/.test(rightTrimmed)
+}
+
+function isDottedInitialNameSplit(left: string, right: string): boolean {
+  const leftTrimmed = left.trimEnd()
+  const rightTrimmed = right.trimStart()
+  return /(?:^|\s)(?:[A-Z]\.){2,}$/.test(leftTrimmed) &&
     /^[A-Z][a-z]+(?:['-][A-Za-z]+)*(?:\b|,)/.test(rightTrimmed)
 }
 
@@ -307,6 +321,7 @@ function findRightmostStrongPunct(
     if (ch === '.' && isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher)) continue
     if (ch === '.' && isPartialDottedAcronymSplit(left, right)) continue
     if (ch === '.' && isMiddleInitialNameSplit(left, right)) continue
+    if (ch === '.' && isDottedInitialNameSplit(left, right)) continue
     if (ch === '.' && isDecimalInnerSplit(left, right)) continue
     if (ch === '.' && isMeridiemInnerSplit(left, right)) continue
     return cut
@@ -784,6 +799,7 @@ function findSentenceBoundaryCut(
     if (ch === '.' && isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher)) continue
     if (ch === '.' && isPartialDottedAcronymSplit(left, right)) continue
     if (ch === '.' && isMiddleInitialNameSplit(left, right)) continue
+    if (ch === '.' && isDottedInitialNameSplit(left, right)) continue
     if (ch === '.' && isDecimalInnerSplit(left, right)) continue
     if (ch === '.' && isMeridiemInnerSplit(left, right)) continue
     if (

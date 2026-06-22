@@ -85,7 +85,7 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
-  it("ignores measurement abbreviations like kg", () => {
+  it("flags small measurement abbreviations like kg", () => {
     const segments = [
       { lineIndex: 0, translation: "Each blanket weighed nearly 5 kg." },
       { lineIndex: 1, translation: "The load was 12 kg total." },
@@ -96,7 +96,8 @@ describe("numberStyleRule (segments)", () => {
 
     const metrics = analyzeSegments(segments, [numberStyleRule()])
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
-    expect(findings).toHaveLength(0)
+    expect(findings).toHaveLength(1)
+    expect(findings[0]?.token).toBe("5")
   })
 
   it("ignores temperature values with Celsius and Fahrenheit units", () => {
@@ -185,6 +186,33 @@ describe("numberStyleRule (segments)", () => {
     const metrics = analyzeSegments(segments, [numberStyleRule()])
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
     expect(findings).toHaveLength(0)
+  })
+
+  it("ignores sentence-start non-round comma numbers", () => {
+    const segments = [
+      { lineIndex: 0, translation: "36,500 square kilometers versus 41,400," },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, lineText: segment.translation }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    expect(findings).toHaveLength(0)
+  })
+
+  it("flags sentence-start round comma numbers", () => {
+    const segments = [
+      { lineIndex: 0, translation: "10,000 people attended." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, lineText: segment.translation }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    expect(findings).toHaveLength(1)
+    expect(findings[0]?.token).toBe("10,000")
   })
 
   it("ignores digit ranges in statistical age phrases", () => {

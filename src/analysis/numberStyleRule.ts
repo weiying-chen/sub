@@ -163,11 +163,20 @@ function isTemperatureUnitToken(text: string, index: number, length: number) {
   )
 }
 
-function isMeasurementUnitToken(text: string, index: number, length: number) {
-  const tail = text.slice(index + length)
-  return /^\s*(?:kg|g|mg|lb|lbs|oz|mm|cm|m(?!illion\b)|km|meter(?:s)?|metre(?:s)?|centimeter(?:s)?|centimetre(?:s)?|millimeter(?:s)?|millimetre(?:s)?|kilometer(?:s)?|kilometre(?:s)?|inch(?:es)?|ft|foot|feet|yard(?:s)?|mile(?:s)?)\b/i.test(
-    tail
-  )
+function isNonRoundCommaNumberAtSentenceStart(
+  text: string,
+  index: number,
+  rawToken: string,
+  allowLeadingDoubleQuote = true
+) {
+  if (!rawToken.includes(',')) return false
+  if (!isSentenceStart(text, index, allowLeadingDoubleQuote)) return false
+
+  const normalized = rawToken.replace(/,/g, '')
+  const value = Number.parseInt(normalized, 10)
+  if (!Number.isFinite(value)) return false
+
+  return value % 1000 !== 0
 }
 
 function isCurrencyToken(text: string, index: number) {
@@ -192,7 +201,9 @@ function isDigitRangeToken(text: string, index: number, length: number) {
   const prefix = text.slice(0, index)
   const suffix = text.slice(index + length)
   return (
-    /\b\d+\s*(?:to|[-–—])\s*$/i.test(prefix) ||
+    /\b\d+(?:\.\d+)?\s*(?:to|[-–—])\s*(?:about\s+|approximately\s+)?$/i.test(
+      prefix
+    ) ||
     /^\s*(?:to|[-–—])\s*\d+\b/i.test(suffix)
   )
 }
@@ -322,7 +333,6 @@ function collectMetrics(
     if (isStatisticalRatioToken(text, match.index, rawToken.length)) continue
     if (isPercentToken(text, match.index, rawToken.length)) continue
     if (isTemperatureUnitToken(text, match.index, rawToken.length)) continue
-    if (isMeasurementUnitToken(text, match.index, rawToken.length)) continue
     if (isCurrencyToken(text, match.index)) continue
     if (isLevelNumberToken(text, match.index)) continue
 
@@ -331,6 +341,17 @@ function collectMetrics(
       match.index,
       allowLeadingDoubleQuote
     )
+
+    if (
+      isNonRoundCommaNumberAtSentenceStart(
+        text,
+        match.index,
+        rawToken,
+        allowLeadingDoubleQuote
+      )
+    ) {
+      continue
+    }
 
     if (value <= 10 || sentenceStart) {
       metrics.push({

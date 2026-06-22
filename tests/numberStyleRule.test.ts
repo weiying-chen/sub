@@ -130,6 +130,31 @@ describe("numberStyleRule", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores sentence-start non-round comma numbers", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "36,500 square kilometers versus 41,400,",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
+
+  it("flags sentence-start round comma numbers", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "10,000 people attended.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(1)
+    expect(findings[0]?.token).toBe("10,000")
+  })
+
   it("ignores Level <number> clinical labels", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
@@ -140,5 +165,20 @@ describe("numberStyleRule", () => {
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
 
     expect(findings).toHaveLength(0)
+  })
+
+  it("flags small measurement abbreviations like kg", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "Each blanket weighed nearly 5 kg.",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "The load was 12 kg total.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(1)
+    expect(findings[0]?.token).toBe("5")
   })
 })

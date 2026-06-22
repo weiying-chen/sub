@@ -12,6 +12,7 @@ describe("loadProperNouns", () => {
     const properNouns = await loadProperNouns()
 
     expect(properNouns).not.toBeNull()
+    expect(properNouns).toContain("Switzerland")
     expect(properNouns).toContain("Taiwan")
     expect(properNouns).toContain("Tzu Chi")
     expect(properNouns).toContain("Guanyin Bodhisattva")

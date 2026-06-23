@@ -293,6 +293,26 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("does not flag line-start digits that continue the previous sentence", () => {
+    const segments = [
+      {
+        lineIndex: 0,
+        translation: "Back then, it was common to collect payment in",
+      },
+      {
+        lineIndex: 1,
+        translation: "60, 90, or even 180 days.",
+      },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, lineText: segment.translation }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    expect(findings).toHaveLength(0)
+  })
+
   it("flags sentence-start digits across line-start wrappers", () => {
     const segments = [
       { lineIndex: 0, translation: "20 birds arrived." },

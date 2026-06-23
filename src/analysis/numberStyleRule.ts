@@ -131,6 +131,12 @@ function isSentenceStart(
   return i >= 0 && isSentenceEnd(text[i])
 }
 
+function continuesPreviousSentence(text?: string) {
+  const trimmed = text?.trim()
+  if (!trimmed) return false
+  return !/[.!?]["')\]]*\s*$/.test(trimmed)
+}
+
 function isTimeToken(text: string, index: number, length: number) {
   const before = index - 1 >= 0 ? text[index - 1] : ''
   const after = index + length < text.length ? text[index + length] : ''
@@ -269,6 +275,24 @@ function getNextBlockTranslationText(
   return undefined
 }
 
+function getPreviousBlockTranslationText(
+  ctx: RuleCtx,
+  options: ParseBlockOptions
+) {
+  const src: LineSource = {
+    lineCount: ctx.lines.length,
+    getLine: (i) => ctx.lines[i] ?? '',
+  }
+
+  for (let i = ctx.lineIndex - 1; i >= 0; i -= 1) {
+    const block = parseBlockAt(src, i, options)
+    if (!block) continue
+    return block.translationLines[block.translationLines.length - 1] ?? ''
+  }
+
+  return undefined
+}
+
 type NumberStyleRule = Rule & SegmentRule
 
 function getTextAndAnchor(
@@ -301,7 +325,8 @@ function collectMetrics(
   anchorIndex: number,
   fullText?: string,
   allowLeadingDoubleQuote = true,
-  nextText?: string
+  nextText?: string,
+  previousText?: string
 ): NumberStyleMetric[] {
   const metrics: NumberStyleMetric[] = []
   const coordinatedListSpans = getCoordinatedNumberListSpans(text)
@@ -341,6 +366,7 @@ function collectMetrics(
       match.index,
       allowLeadingDoubleQuote
     )
+    const continuedFromPreviousLine = sentenceStart && continuesPreviousSentence(previousText)
 
     if (
       isNonRoundCommaNumberAtSentenceStart(
@@ -353,7 +379,7 @@ function collectMetrics(
       continue
     }
 
-    if (value <= 10 || sentenceStart) {
+    if (value <= 10 || (sentenceStart && !continuedFromPreviousLine)) {
       metrics.push({
         type: 'NUMBER_STYLE',
         ruleCode: 'SMALL_NUMBER_AS_DIGITS',
@@ -400,6 +426,11 @@ export function numberStyleRule(
       if (candidates.length === 0) return []
       return candidates.flatMap((candidate, candidateIndex) => {
         const quoteInfo = quoteTracker.inspect(candidate.lineText)
+        const previousSegmentTargetLines =
+          ctx.segments[ctx.segmentIndex - 1]?.targetLines
+        const previousCandidateText =
+          candidates[candidateIndex - 1]?.lineText ??
+          previousSegmentTargetLines?.[previousSegmentTargetLines.length - 1]?.lineText
         const nextCandidateText =
           candidates[candidateIndex + 1]?.lineText ??
           ctx.segments[ctx.segmentIndex + 1]?.targetLines?.[0]?.lineText
@@ -408,7 +439,8 @@ export function numberStyleRule(
           candidate.lineIndex,
           candidate.lineText,
           !quoteInfo.leadingQuoteIsContinuation,
-          nextCandidateText
+          nextCandidateText,
+          previousCandidateText
         )
       })
     }
@@ -418,12 +450,15 @@ export function numberStyleRule(
 
     const quoteInfo = quoteTracker.inspect(extracted.text)
     const nextText = 'segment' in ctx ? undefined : getNextBlockTranslationText(ctx, options)
+    const previousText =
+      'segment' in ctx ? undefined : getPreviousBlockTranslationText(ctx, options)
     return collectMetrics(
       extracted.text,
       extracted.anchorIndex,
       extracted.text,
       !quoteInfo.leadingQuoteIsContinuation,
-      nextText
+      nextText,
+      previousText
     )
   }) as NumberStyleRule
 }

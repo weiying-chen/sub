@@ -26,6 +26,7 @@ describe("loadProperNouns", () => {
     expect(properNouns).toContain("Vice Superintendent")
     expect(properNouns).toContain("Vice Supt.")
     expect(properNouns).toContain("Layman")
+    expect(properNouns).toContain("Marilyn Monroe")
   })
 })
 

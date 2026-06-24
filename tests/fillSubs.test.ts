@@ -756,6 +756,18 @@ describe("fillSelectedTimestampLines", () => {
   ])
   })
 
+  it("merge pass joins one-word full replies with following full sentences", () => {
+  const merged = __testMergeJoinableTranslations(
+    ["No.", "Some became presidents like Kennedy."],
+    54
+  )
+
+  expect(merged).toEqual([
+    "No. Some became presidents like Kennedy.",
+    "No. Some became presidents like Kennedy.",
+  ])
+  })
+
   it("prefers breaking before copular verb phrases", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

@@ -2,12 +2,19 @@ function firstAlphaChar(text: string): string {
   return text.match(/[A-Za-z]/)?.[0] ?? ''
 }
 
+function hasTerminalSentencePunctuation(text: string): boolean {
+  return /[.!?]["')\]]*\s*$/.test(text)
+}
+
 export function looksLikeSentenceFragment(text: string): boolean {
   const trimmed = text.trim()
   if (!trimmed) return true
 
   const firstAlpha = firstAlphaChar(trimmed)
   if (firstAlpha && firstAlpha === firstAlpha.toLowerCase()) return true
+  if (firstAlpha && firstAlpha === firstAlpha.toUpperCase() && hasTerminalSentencePunctuation(trimmed)) {
+    return false
+  }
 
   const words = trimmed
     .replace(/^["']+|["']+$/g, '')

@@ -104,16 +104,7 @@ const APPLICABLE_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Set<Findin
   ]),
 }
 const DEFAULT_UI_ENABLED_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Finding["type"][]> = {
-  subs: [
-    "MAX_CHARS",
-    "MERGE_CANDIDATE",
-    "JOINABLE_BREAK",
-    "TERM_VARIANT",
-    "NUMBER_STYLE",
-    "PUNCTUATION",
-    "MAX_CPS",
-    "PERIOD_IN_CAPTION",
-  ],
+  subs: [...RULE_OPTION_SPECS.map((rule) => rule.type)],
   text: [
     "MAX_CHARS",
     "TERM_VARIANT",
@@ -129,6 +120,7 @@ const DEFAULT_UI_ENABLED_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Fi
 const WARNING_RULE_TYPES = RULE_OPTIONS.filter((rule) => rule.severity === "warn").map(
   (rule) => rule.type
 )
+const SUBS_FINDING_ORDER = RULE_OPTION_SPECS.map((rule) => rule.type)
 
 function loadStoredAnalysisType(): AppAnalysisType {
   if (typeof window === "undefined") return "subs"
@@ -276,7 +268,9 @@ function getFindingRanges(view: EditorView, findings: Finding[]): FindingRange[]
     addRange(id, line.from, line.to)
   }
 
-  for (const { finding: f, index } of sortFindingsWithIndex(findings)) {
+  for (const { finding: f, index } of sortFindingsWithIndex(findings, {
+    typeOrder: SUBS_FINDING_ORDER,
+  })) {
     const id = getFindingId(f, index)
     if (f.lineIndex < 0 || f.lineIndex >= doc.lines) continue
 
@@ -747,7 +741,13 @@ export default function App({
   const findings = useMemo<Finding[]>(() => {
     return getFindings(rawRuleOutputs, { includeWarnings })
   }, [rawRuleOutputs, includeWarnings])
-  const sortedFindings = useMemo(() => sortFindingsWithIndex(findings), [findings])
+  const sortedFindings = useMemo(
+    () =>
+      sortFindingsWithIndex(findings, {
+        typeOrder: analysisType === "subs" ? SUBS_FINDING_ORDER : undefined,
+      }),
+    [findings, analysisType]
+  )
 
   const cpsMetrics = useMemo<Metric[]>(() => {
     const enabledMetricTypes =

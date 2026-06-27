@@ -164,11 +164,11 @@ describe("Sidebar", () => {
     expect(screen.getByRole("heading", { name: "Findings" })).toBeInTheDocument()
     expect(screen.queryByText("Dummy data for sidebar layout.")).not.toBeInTheDocument()
     expect(screen.getAllByText("Reading speed is too high").length).toBeGreaterThan(0)
-    expect(screen.queryByText("Reading speed is too low")).not.toBeInTheDocument()
+    expect(screen.getAllByText("Reading speed is too low").length).toBeGreaterThan(0)
     const errorIcon = container.querySelector(".la-times-circle")
     const warningIcon = container.querySelector(".la-exclamation-triangle")
     expect(errorIcon).not.toBeNull()
-    expect(warningIcon).toBeNull()
+    expect(warningIcon).not.toBeNull()
     expect(errorIcon).toHaveAttribute("data-severity", "error")
 
     const root = container.firstElementChild
@@ -176,11 +176,12 @@ describe("Sidebar", () => {
     expect(container.querySelectorAll(".finding-row-button.is-active").length).toBeGreaterThan(0)
   })
 
-  it("loads the demo sample with exactly two clear findings", () => {
+  it("loads the demo sample with a fuller set of representative findings", () => {
     const { container } = render(<App />)
 
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
-    expect(editor.value).toContain("Tzu Chi")
+    expect(editor.value).toContain("Please keep this whole caption together.")
+    expect(editor.value).toContain("There were 5 volunteers at the hall.")
 
     const findingDetails = Array.from(
       container.querySelectorAll(".finding-row-detail")
@@ -188,10 +189,57 @@ describe("Sidebar", () => {
       .map((el) => el.textContent?.trim() ?? "")
       .filter((text) => text !== "")
 
-    expect(findingDetails).toEqual([
+    expect(findingDetails.slice(0, 15)).toEqual([
+      "Translation line is missing",
+      "Timestamp format is incorrect",
+      "Reading speed is too high",
       "Translation line has too many characters",
+      "Punctuation is incorrect",
+      "Preferred term is incorrect",
+      "Number format is incorrect",
+      "Percent format is incorrect",
+      "Dash style is incorrect",
+      "Quote style is incorrect",
+      "Period in caption is incorrect",
+      "Reading speed is too low",
+      "Translation line spans across a timing gap",
       "Translation lines could be merged",
+      "Translation lines can be joined",
     ])
+
+    const modalFindingLabels = new Set([
+      "Translation line is missing",
+      "Timestamp format is incorrect",
+      "Reading speed is too high",
+      "Translation line has too many characters",
+      "Punctuation is incorrect",
+      "Preferred term is incorrect",
+      "Number format is incorrect",
+      "Percent format is incorrect",
+      "Dash style is incorrect",
+      "Quote style is incorrect",
+      "Period in caption is incorrect",
+      "Reading speed is too low",
+      "Translation line spans across a timing gap",
+      "Translation lines could be merged",
+      "Translation lines can be joined",
+    ])
+
+    expect(findingDetails.every((detail) => modalFindingLabels.has(detail))).toBe(true)
+  })
+
+  it("shows a restrained app title before the mode tabs", () => {
+    const { container } = render(<App />)
+
+    const title = screen.getByRole("heading", { name: "Subtitle Checker", level: 1 })
+    const topbar = container.querySelector(".app-topbar")
+
+    expect(title).toBeInTheDocument()
+    expect(topbar?.textContent).toContain("Subtitle Checker")
+    expect(topbar?.textContent).toContain("Timestamps")
+    expect(topbar?.textContent).toContain("No timestamps")
+    expect(indexCss).toMatch(/\.app-title\s*\{[\s\S]*font-size:\s*15px;/)
+    expect(indexCss).toMatch(/\.app-title\s*\{[\s\S]*font-weight:\s*600;/)
   })
 
   it("enables line wrapping in the editor", () => {
@@ -619,27 +667,33 @@ describe("Sidebar", () => {
     ).not.toBeInTheDocument()
   })
 
-  it("keeps dash and percent rules off by default in the rules modal", () => {
+  it("checks every modal-visible subtitle rule by default", () => {
     const { container } = render(<App />)
     const ui = within(container)
 
     fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
 
-    expect(ui.getByRole("checkbox", { name: /Dash style is incorrect/i })).not.toBeChecked()
-    expect(
-      ui.getByRole("checkbox", { name: /Percent format is incorrect/i })
-    ).not.toBeChecked()
-  })
+    const expectedRuleLabels = [
+      /Translation line is missing/i,
+      /Timestamp format is incorrect/i,
+      /Reading speed is too high/i,
+      /Translation line has too many characters/i,
+      /Punctuation is incorrect/i,
+      /Preferred term is incorrect/i,
+      /Number format is incorrect/i,
+      /Percent format is incorrect/i,
+      /Dash style is incorrect/i,
+      /Quote style is incorrect/i,
+      /Period in caption is incorrect/i,
+      /Reading speed is too low/i,
+      /Translation line spans across a timing gap/i,
+      /Translation lines could be merged/i,
+      /Translation lines can be joined/i,
+    ]
 
-  it("keeps low reading speed rule off by default in the rules modal", () => {
-    const { container } = render(<App />)
-    const ui = within(container)
-
-    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
-
-    expect(
-      ui.getByRole("checkbox", { name: /Reading speed is too low/i })
-    ).not.toBeChecked()
+    for (const label of expectedRuleLabels) {
+      expect(ui.getByRole("checkbox", { name: label })).toBeChecked()
+    }
   })
 
   it("persists non-default rule toggles across reload", () => {
@@ -648,12 +702,12 @@ describe("Sidebar", () => {
 
     fireEvent.click(firstUi.getByRole("button", { name: "Open rules modal" }))
     const dashToggle = firstUi.getByRole("checkbox", { name: /Dash style is incorrect/i })
-    expect(dashToggle).not.toBeChecked()
-    fireEvent.click(dashToggle)
     expect(dashToggle).toBeChecked()
+    fireEvent.click(dashToggle)
+    expect(dashToggle).not.toBeChecked()
 
     const saved = window.localStorage.getItem("subs.ruleFilters")
-    expect(saved).toContain("DASH_STYLE")
+    expect(saved).not.toContain("DASH_STYLE")
 
     first.unmount()
 
@@ -662,7 +716,7 @@ describe("Sidebar", () => {
     fireEvent.click(secondUi.getByRole("button", { name: "Open rules modal" }))
     expect(
       secondUi.getByRole("checkbox", { name: /Dash style is incorrect/i })
-    ).toBeChecked()
+    ).not.toBeChecked()
   })
 
   it("filters findings when a rule is unchecked in the modal", async () => {
@@ -795,13 +849,13 @@ describe("Sidebar", () => {
     const minCpsInput = within(minRuleRow).getByLabelText("Min CPS")
 
     expect(maxCpsInput).toBeEnabled()
-    expect(minCpsInput).toBeDisabled()
+    expect(minCpsInput).toBeEnabled()
 
     fireEvent.click(maxRule)
     fireEvent.click(minRule)
 
     expect(maxCpsInput).toBeDisabled()
-    expect(minCpsInput).toBeEnabled()
+    expect(minCpsInput).toBeDisabled()
   })
 
   it("updates cps findings when cps thresholds change in the rules modal", async () => {
@@ -826,10 +880,9 @@ describe("Sidebar", () => {
     })
 
     expect(countFindingRowsWithText("Reading speed is too high")).toBeGreaterThan(0)
-    expect(countFindingRowsWithText("Reading speed is too low")).toBe(0)
+    expect(countFindingRowsWithText("Reading speed is too low")).toBeGreaterThan(0)
 
     fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
-    fireEvent.click(ui.getByRole("checkbox", { name: /Reading speed is too low/i }))
     const maxInput = ui.getByLabelText("Max CPS") as HTMLInputElement
     const minInput = ui.getByLabelText("Min CPS") as HTMLInputElement
     fireEvent.change(maxInput, { target: { value: "60" } })

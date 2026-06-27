@@ -862,20 +862,23 @@ export default function App({
       className={`app-shell${suppressFindingMotion ? " findings-motion-paused" : ""}`}
     >
       <div className="app-topbar">
-        <div className="mode-switcher" role="group" aria-label="Analysis mode">
-          {ANALYSIS_TYPE_OPTIONS.map((option) => (
-            <button
-              key={option.type}
-              type="button"
-              className={`mode-switcher-button${
-                analysisType === option.type ? " is-active" : ""
-              }`}
-              aria-pressed={analysisType === option.type}
-              onClick={() => handleAnalysisTypeChange(option.type)}
-            >
-              {option.label}
-            </button>
-          ))}
+        <div className="app-topbar-main">
+          <h1 className="app-title">Subtitle Checker</h1>
+          <div className="mode-switcher" role="group" aria-label="Analysis mode">
+            {ANALYSIS_TYPE_OPTIONS.map((option) => (
+              <button
+                key={option.type}
+                type="button"
+                className={`mode-switcher-button${
+                  analysisType === option.type ? " is-active" : ""
+                }`}
+                aria-pressed={analysisType === option.type}
+                onClick={() => handleAnalysisTypeChange(option.type)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       <div className="app-editor-wrap">

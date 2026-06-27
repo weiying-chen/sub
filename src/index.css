@@ -217,6 +217,23 @@ body {
   background: var(--bg);
 }
 
+.app-topbar-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.1;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
 .mode-switcher {
   display: inline-flex;
   align-items: center;

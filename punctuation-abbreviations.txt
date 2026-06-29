@@ -3,6 +3,7 @@ Mr.
 Mrs.
 Ms.
 Dr.
+Ph.D.
 Supt.
 U.S.
 a.m.

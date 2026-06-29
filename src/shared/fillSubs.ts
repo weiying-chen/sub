@@ -30,6 +30,7 @@ const DEFAULT_NO_SPLIT_ABBREVIATIONS = [
   'Mrs.',
   'Ms.',
   'Dr.',
+  'Ph.D.',
   'Supt.',
   'U.S.',
 ]
@@ -92,6 +93,33 @@ function hasNoSplitUsAbbreviation(abbreviations: string[]): boolean {
 function isNoSplitAbbrevEnding(text: string, matcher: RegExp | null): boolean {
   if (!matcher) return false
   return matcher.test(text)
+}
+
+function findConfiguredDottedAbbreviationSuffix(
+  left: string,
+  right: string,
+  abbreviations: string[]
+): string | null {
+  const leftTrimmed = left.trimEnd()
+  const rightTrimmed = right.trimStart()
+
+  for (const abbreviation of abbreviations) {
+    const normalized = abbreviation.trim()
+    const parts = normalized.match(/[A-Za-z]+\./g)
+    if (!parts || parts.length < 2) continue
+
+    let prefix = ''
+    for (let i = 0; i < parts.length - 1; i += 1) {
+      prefix += parts[i]
+      const suffix = parts.slice(i + 1).join('')
+      const prefixMatcher = new RegExp(`(?:^|\\s)${escapeRegExp(prefix)}$`, 'i')
+      if (!prefixMatcher.test(leftTrimmed)) continue
+      if (!rightTrimmed.toLowerCase().startsWith(suffix.toLowerCase())) continue
+      return rightTrimmed.slice(0, suffix.length)
+    }
+  }
+
+  return null
 }
 
 function isMeridiemInnerSplit(left: string, right: string): boolean {
@@ -1104,6 +1132,7 @@ function takeLine(
   limit: number,
   noSplitAbbrevMatcher: RegExp | null,
   noSplitUsAbbreviation: boolean,
+  noSplitAbbreviations: string[] = [],
   options: {
     allowHeuristicSplitsWhenFits?: boolean
     keepWholeWhenFits?: boolean
@@ -1123,6 +1152,7 @@ function takeLine(
       Math.max(1, limit - 1),
       noSplitAbbrevMatcher,
       noSplitUsAbbreviation,
+      noSplitAbbreviations,
       options
     )
     if (inner.line) {
@@ -1151,6 +1181,7 @@ function takeLine(
           right,
           noSplitAbbrevMatcher,
           noSplitUsAbbreviation,
+          noSplitAbbreviations,
           { preserveLeadingThat: true, maxLineLength: limit }
         )
         return normalizeSplit(adjusted.line, adjusted.rest)
@@ -1196,6 +1227,7 @@ function takeLine(
           right,
           noSplitAbbrevMatcher,
           noSplitUsAbbreviation,
+          noSplitAbbreviations,
           { preserveLeadingThat: true, maxLineLength: limit }
         )
         return normalizeSplit(adjusted.line, adjusted.rest)
@@ -1220,6 +1252,7 @@ function takeLine(
           right,
           noSplitAbbrevMatcher,
           noSplitUsAbbreviation,
+          noSplitAbbreviations,
           { maxLineLength: limit }
         )
         return normalizeSplit(adjusted.line, adjusted.rest)
@@ -1236,6 +1269,7 @@ function takeLine(
           right,
           noSplitAbbrevMatcher,
           noSplitUsAbbreviation,
+          noSplitAbbreviations,
           { maxLineLength: limit }
         )
         return normalizeSplit(adjusted.line, adjusted.rest)
@@ -1252,6 +1286,7 @@ function takeLine(
           right,
           noSplitAbbrevMatcher,
           noSplitUsAbbreviation,
+          noSplitAbbreviations,
           { maxLineLength: limit }
         )
         return normalizeSplit(adjusted.line, adjusted.rest)
@@ -1313,6 +1348,7 @@ function takeLine(
       s.slice(limit).trimStart(),
       noSplitAbbrevMatcher,
       noSplitUsAbbreviation,
+      noSplitAbbreviations,
       { maxLineLength: limit }
     )
     return normalizeSplit(adjusted.line, adjusted.rest)
@@ -1323,6 +1359,7 @@ function takeLine(
     repairedClockSplit?.rest ?? rest,
     noSplitAbbrevMatcher,
     noSplitUsAbbreviation,
+    noSplitAbbreviations,
     { preserveLeadingThat, maxLineLength: limit, forceTrailingThatWith }
   )
   return normalizeSplit(adjusted.line, adjusted.rest)
@@ -1739,13 +1776,15 @@ export function __testTakeLine(
   limit: number,
   noSplitAbbrevMatcher: RegExp | null,
   noSplitUsAbbreviation: boolean,
-  options: { allowHeuristicSplitsWhenFits?: boolean } = {}
+  options: { allowHeuristicSplitsWhenFits?: boolean } = {},
+  noSplitAbbreviations: string[] = []
 ): { line: string; rest: string } {
   return takeLine(
     text,
     limit,
     noSplitAbbrevMatcher,
     noSplitUsAbbreviation,
+    noSplitAbbreviations,
     options
   )
 }
@@ -1857,19 +1896,23 @@ function adjustSplitForNoSplitAbbrev(
   line: string,
   rest: string,
   noSplitAbbrevMatcher: RegExp | null,
-  noSplitUsAbbreviation: boolean
+  noSplitUsAbbreviation: boolean,
+  noSplitAbbreviations: string[] = []
 ): { line: string; rest: string } {
   if (!line || !rest) return { line, rest }
 
   let nextLine = line.trimEnd()
   let nextRest = rest.trimStart()
 
-  const usMatch = noSplitUsAbbreviation && /(?:^|\s)U\.$/i.test(nextLine)
-  const sMatch = /^S\./i.test(nextRest)
-  if (usMatch && sMatch) {
-    const token = nextRest.match(/^S\./i)?.[0] ?? 'S.'
-    nextLine = `${nextLine}${token}`
-    nextRest = nextRest.slice(token.length).trimStart()
+  const dottedAbbreviationSuffix =
+    findConfiguredDottedAbbreviationSuffix(nextLine, nextRest, noSplitAbbreviations) ??
+    (noSplitUsAbbreviation && /(?:^|\s)U\.$/i.test(nextLine) && /^S\./i.test(nextRest)
+      ? nextRest.match(/^S\./i)?.[0] ?? 'S.'
+      : null)
+
+  if (dottedAbbreviationSuffix) {
+    nextLine = `${nextLine}${dottedAbbreviationSuffix}`
+    nextRest = nextRest.slice(dottedAbbreviationSuffix.length).trimStart()
   }
 
   if (!isNoSplitAbbrevEnding(nextLine, noSplitAbbrevMatcher)) {
@@ -2019,6 +2062,7 @@ function adjustSplitForNoSplitAbbrevAndQuotes(
   rest: string,
   noSplitAbbrevMatcher: RegExp | null,
   noSplitUsAbbreviation: boolean,
+  noSplitAbbreviations: string[] = [],
   options: {
     preserveLeadingThat?: boolean
     maxLineLength?: number
@@ -2031,7 +2075,8 @@ function adjustSplitForNoSplitAbbrevAndQuotes(
     phraseAdjusted.line,
     phraseAdjusted.rest,
     noSplitAbbrevMatcher,
-    noSplitUsAbbreviation
+    noSplitUsAbbreviation,
+    noSplitAbbreviations
   )
   return adjustSplitForQuotes(abbrevAdjusted.line, abbrevAdjusted.rest)
 }
@@ -2144,6 +2189,7 @@ function runInlineFill(
   dryRun: boolean,
   noSplitAbbrevMatcher: RegExp | null,
   noSplitUsAbbreviation: boolean,
+  noSplitAbbreviations: string[],
   options: FillSubsOptions = {}
 ): FillRunResult {
   let remaining = normalizeParagraph(paragraph)
@@ -2214,6 +2260,7 @@ function runInlineFill(
       splitLimit,
       noSplitAbbrevMatcher,
       noSplitUsAbbreviation,
+      noSplitAbbreviations,
       { keepWholeWhenFits: options.inline === true }
     )
 
@@ -2247,6 +2294,7 @@ function runInlineFill(
         splitLimit,
         noSplitAbbrevMatcher,
         noSplitUsAbbreviation,
+        noSplitAbbreviations,
         { keepWholeWhenFits: options.inline === true }
       )
     }
@@ -2292,6 +2340,7 @@ function runInlineFill(
         limit,
         noSplitAbbrevMatcher,
         noSplitUsAbbreviation,
+        noSplitAbbreviations,
         { keepWholeWhenFits: options.inline === true }
       )
       if (
@@ -2415,6 +2464,7 @@ function chooseTargetCps(
   limit: number,
   noSplitAbbrevMatcher: RegExp | null,
   noSplitUsAbbreviation: boolean,
+  noSplitAbbreviations: string[],
   preserveExisting: boolean,
   crossBlockFill: boolean
 ): number {
@@ -2447,6 +2497,7 @@ function chooseTargetCps(
       true,
       noSplitAbbrevMatcher,
       noSplitUsAbbreviation,
+      noSplitAbbreviations,
       { preserveExisting, crossBlockFill }
     )
     if (run.overflow) continue
@@ -2507,6 +2558,7 @@ export function fillSelectedTimestampLines(
     limit,
     noSplitAbbrevMatcher,
     noSplitUsAbbreviation,
+    noSplitAbbreviations,
     preserveExisting,
     crossBlockFill
   )
@@ -2519,6 +2571,7 @@ export function fillSelectedTimestampLines(
     false,
     noSplitAbbrevMatcher,
     noSplitUsAbbreviation,
+    noSplitAbbreviations,
     options
   )
   return { lines: run.lines, remaining: run.remaining, chosenCps: targetCps }

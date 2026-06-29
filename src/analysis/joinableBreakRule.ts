@@ -2,7 +2,7 @@ import type { JoinableBreakMetric } from "./types"
 import type { Segment, SegmentCtx, SegmentRule } from "./segments"
 import { hasEmptyLineBetween, type LineSource, type ParseBlockOptions } from "../shared/tsvRuns"
 import { DEFAULT_MAX_CHARS } from "../shared/maxChars"
-import { canJoinAdjacentText } from "../shared/joinableText"
+import { canJoinAdjacentText, normalizeJoinText } from "../shared/joinableText"
 import { looksLikeSentenceFragment } from "../shared/sentenceFragments"
 
 type JoinableBreakRuleOptions = ParseBlockOptions & {
@@ -13,6 +13,17 @@ type JoinableBreakRuleOptions = ParseBlockOptions & {
 const DEFAULT_MAX_GAP_FRAMES = 30
 const COMMA_END_RE = /[,，]\s*$/
 const SENTENCE_END_RE = /[.!?]["')\]]*\s*$/
+const TRAILING_ABBREV_FRAGMENT_RE = /([A-Za-z]{1,4}\.)["')\]]*\s*$/
+const LEADING_ABBREV_FRAGMENT_RE = /^["'([{]*([A-Za-z]{1,4}\.)/
+
+function hasSplitAbbreviationBoundary(left: string, right: string): boolean {
+  const leftMatch = left.trim().match(TRAILING_ABBREV_FRAGMENT_RE)
+  const rightMatch = right.trim().match(LEADING_ABBREV_FRAGMENT_RE)
+  if (!leftMatch || !rightMatch) return false
+
+  const combined = `${leftMatch[1]}${rightMatch[1]}`
+  return /^(?:[A-Za-z]{1,4}\.){2,}$/.test(combined)
+}
 
 function isSingleWordTerminalSentence(text: string): boolean {
   const trimmed = text.trim()
@@ -92,9 +103,13 @@ export function joinableBreakRule(
     const gapFrames = next.startFrames - cur.endFrames
     if (gapFrames < 0 || gapFrames > maxGapFrames) return []
 
+    const splitAbbreviationBoundary = hasSplitAbbreviationBoundary(
+      cur.translation,
+      next.translation
+    )
     const curFullSentence = isFullSentence(cur.translation)
     const nextFullSentence = isFullSentence(next.translation)
-    if (curFullSentence !== nextFullSentence) {
+    if (!splitAbbreviationBoundary && curFullSentence !== nextFullSentence) {
       return []
     }
 
@@ -116,9 +131,16 @@ export function joinableBreakRule(
       }
     }
 
-    const join = canJoinAdjacentText(cur.translation, next.translation, maxJoinedChars, {
-      allowSentenceEndJoin: true,
-    })
+    const join = splitAbbreviationBoundary
+      ? {
+          joined: `${normalizeJoinText(cur.translation)} ${normalizeJoinText(next.translation)}`.trim(),
+          joinedLength: `${normalizeJoinText(cur.translation)} ${normalizeJoinText(next.translation)}`
+            .trim()
+            .length,
+        }
+      : canJoinAdjacentText(cur.translation, next.translation, maxJoinedChars, {
+          allowSentenceEndJoin: true,
+        })
     if (!join) return []
 
     const metric: JoinableBreakMetric = {

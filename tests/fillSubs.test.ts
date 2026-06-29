@@ -11,6 +11,7 @@ const NO_SPLIT_ABBREVIATIONS = [
   "Mrs.",
   "Ms.",
   "Dr.",
+  "Ph.D.",
   "U.S.",
   "a.m.",
   "p.m.",
@@ -2170,6 +2171,20 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(translations).not.toContain("U.")
   expect(translations.some((line) => line.includes("U.S."))).toBe(true)
+  })
+
+  it("keeps Ph.D. together when split after Ph.", () => {
+  const result = __testTakeLine(
+    "Ph.D. But challenges remain.",
+    3,
+    /(?:^|\s)(?:Mr\.|Mrs\.|Ms\.|Dr\.|Ph\.D\.|U\.S\.|a\.m\.|p\.m\.)$/i,
+    true,
+    {},
+    NO_SPLIT_ABBREVIATIONS
+  )
+
+  expect(result.line).toBe("Ph.D.")
+  expect(result.rest).toBe("but challenges remain.")
   })
 
   it("keeps U.S. Supreme Court together as a phrase", () => {

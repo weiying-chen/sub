@@ -48,6 +48,7 @@ describe("loadAbbreviations", () => {
 
     expect(abbreviations).not.toBeNull()
     expect(abbreviations).toContain("Dr.")
+    expect(abbreviations).toContain("Ph.D.")
     expect(abbreviations).toContain("Mr.")
     expect(abbreviations).toContain("Supt.")
   })

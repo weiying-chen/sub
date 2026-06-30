@@ -5,6 +5,7 @@ import type { Finding, Metric } from '../analysis/types'
 import type { Reporter } from './watch'
 import { findMarkerScope } from './markerScope'
 import { runAnalysis } from './runAnalysis'
+import { formatCliFindingValue } from './findingValueFormat'
 import { formatCliNumber } from './numberFormat'
 
 // --- ANSI colors (use terminal theme palette) ---
@@ -150,7 +151,7 @@ function formatFinding(f: Finding): string {
     }
 
     if (typeof value === 'string') {
-      parts.push(`${key}: ${value}`)
+      parts.push(`${key}: ${formatCliFindingValue(value)}`)
       continue
     }
 
@@ -182,10 +183,10 @@ function formatFinding(f: Finding): string {
       }
     }
     if (typeof anyF.expected === 'string' && anyF.reason !== 'missing') {
-      baselineParts.push(`expected: ${anyF.expected}`)
+      baselineParts.push(`expected: ${formatCliFindingValue(anyF.expected)}`)
     }
     if (typeof anyF.actual === 'string') {
-      baselineParts.push(`actual: ${anyF.actual}`)
+      baselineParts.push(`actual: ${formatCliFindingValue(anyF.actual)}`)
     }
 
     const head = `${severityColor}${severity}${RESET}  ${type}${

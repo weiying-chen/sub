@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 
 import type { Finding, Metric } from '../analysis/types'
+import { formatCliFindingValue } from './findingValueFormat'
 import { formatCliNumber } from './numberFormat'
 import type { Reporter } from './watch'
 import { runAnalysis } from './runAnalysis'
@@ -74,7 +75,7 @@ export function formatFinding(f: Finding): string {
     }
 
     if (typeof value === 'string') {
-      parts.push(`${key}: ${value}`)
+      parts.push(`${key}: ${formatCliFindingValue(value)}`)
       continue
     }
 

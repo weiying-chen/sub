@@ -317,6 +317,16 @@ function shouldForceFragmentSentenceSplit(left: string, right: string): boolean 
   )
 }
 
+function shouldSplitQuotedSentenceFromNarration(left: string, right: string): boolean {
+  return /["']\s*$/.test(left) && !/^["']/.test(right) && startsWithUppercaseAlpha(right)
+}
+
+function findClosedQuoteSentenceBoundaryCut(text: string): number {
+  const match = /(?:[.!?]["'])\s+(?=[A-Z])/.exec(text)
+  if (!match || match.index == null) return -1
+  return match.index + match[0].length
+}
+
 function findRightmostStrongPunct(
   window: string,
   noSplitAbbrevMatcher: RegExp | null
@@ -1172,10 +1182,17 @@ function takeLine(
     countDoubleQuotes(s) % 2 === 0
   ) {
     const sentenceCut = findSentenceBoundaryCut(s, '', noSplitAbbrevMatcher)
-    if (sentenceCut > 0 && sentenceCut < s.length) {
-      const left = s.slice(0, sentenceCut).trimEnd()
-      const right = s.slice(sentenceCut).trimStart()
-      if (left && right && shouldForceFragmentSentenceSplit(left, right)) {
+    const quotedSentenceCut =
+      sentenceCut >= 0 ? sentenceCut : findClosedQuoteSentenceBoundaryCut(s)
+    if (quotedSentenceCut > 0 && quotedSentenceCut < s.length) {
+      const left = s.slice(0, quotedSentenceCut).trimEnd()
+      const right = s.slice(quotedSentenceCut).trimStart()
+      if (
+        left &&
+        right &&
+        (shouldForceFragmentSentenceSplit(left, right) ||
+          shouldSplitQuotedSentenceFromNarration(left, right))
+      ) {
         const adjusted = adjustSplitForNoSplitAbbrevAndQuotes(
           left,
           right,

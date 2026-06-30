@@ -1864,6 +1864,26 @@ describe("fillSelectedTimestampLines", () => {
   expect(translations.some((line) => line.trim() === '"')).toBe(false)
   })
 
+  it("splits a closed quoted sentence from following narration in inline fill", () => {
+  const lines = [
+    "00:00:01:00\t00:00:02:00\tMarker",
+    "00:00:02:00\t00:00:03:00\tMarker",
+  ]
+  const selected = new Set(lines.map((_, i) => i))
+  const paragraph = `"chemotherapy." The new lump left him really worried.`
+
+  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
+    inline: true,
+    maxChars: 54,
+  })
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(translations).toEqual([
+    `"chemotherapy."`,
+    `The new lump left him really worried.`,
+  ])
+  })
+
   it("always splits after periods when possible", () => {
   const lines = [
     "00:00:26:10\t00:00:31:06\tMarker",

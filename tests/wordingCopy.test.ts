@@ -4,7 +4,7 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import type { Metric } from "../src/analysis/types"
-import { getFindingTypeLabel } from "../src/shared/findingLabels"
+import { getFindingLabel, getFindingTypeLabel } from "../src/shared/findingLabels"
 import { getFindings } from "../src/shared/findings"
 import {
   RULE_MODAL_EXPLANATIONS,
@@ -114,6 +114,7 @@ describe("wording copy", () => {
     const findings = getFindings(metrics)
 
     expect(findings[0]?.instruction).toBe("Remove one of the repeated words.")
+    expect(getFindingLabel(findings[0])).toBe('Repeated word: "with"')
     expect(getFindingTypeLabel("REPEATED_WORD")).toBe("Repeated word is incorrect")
     expect(RULE_MODAL_EXPLANATIONS.REPEATED_WORD).toBe(
       "Checks repeated adjacent words like \"with with\"."

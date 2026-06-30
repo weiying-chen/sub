@@ -32,5 +32,9 @@ export function getFindingTypeLabel(type: Finding["type"]): string {
 }
 
 export function getFindingLabel(finding: Finding): string {
+  if (finding.type === "REPEATED_WORD" && finding.token.trim() !== "") {
+    return `Repeated word: "${finding.token}"`
+  }
+
   return getFindingTypeLabel(finding.type)
 }

@@ -18,7 +18,13 @@ const cmSpies = vi.hoisted(() => ({
   lastExtensions: null as unknown[] | null,
   lastView: null as {
     scrollDOM: { scrollTop: number }
-    state: { doc: { lines: number; line: (n: number) => { from: number; to: number; text: string } } }
+    state: {
+      doc: { lines: number; line: (n: number) => { from: number; to: number; text: string } }
+      selection: {
+        main: { from: number; to: number; head: number }
+        ranges: Array<{ from: number; to: number }>
+      }
+    }
   } | null,
 }))
 
@@ -70,6 +76,10 @@ vi.mock("@uiw/react-codemirror", () => ({
               const from = starts[i] ?? 0
               return { from, to: from + text.length, text }
             },
+          },
+          selection: {
+            main: { from: 0, to: 1, head: 1 },
+            ranges: [{ from: 0, to: 1 }],
           },
         },
         lineBlockAt: (pos: number) => {
@@ -356,6 +366,30 @@ describe("Sidebar", () => {
     expect(fillSubsSpies.fillSelectedTimestampSubs.mock.calls[0]?.[1]).toBe(
       "Copied translation text."
     )
+    expect(writeText).not.toHaveBeenCalled()
+  })
+
+  it("does nothing when there is only a caret and no explicit selection", async () => {
+    const readText = vi.fn().mockResolvedValue("Copied translation text.")
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(window.navigator, "clipboard", {
+      value: { readText, writeText },
+      configurable: true,
+    })
+
+    render(<App />)
+
+    if (cmSpies.lastView) {
+      cmSpies.lastView.state.selection.main = { from: 0, to: 0, head: 0 }
+      cmSpies.lastView.state.selection.ranges = [{ from: 0, to: 0 }]
+    }
+
+    fireEvent.click(screen.getByRole("button", { name: "Insert translation" }))
+
+    await waitFor(() => {
+      expect(readText).not.toHaveBeenCalled()
+    })
+    expect(fillSubsSpies.fillSelectedTimestampSubs).not.toHaveBeenCalled()
     expect(writeText).not.toHaveBeenCalled()
   })
 

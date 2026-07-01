@@ -851,6 +851,9 @@ export default function App({
     if (!view || typeof navigator === "undefined" || !navigator.clipboard?.readText) {
       return
     }
+    if (!view.state.selection.ranges.some((range) => range.from !== range.to)) {
+      return
+    }
 
     const clipboardText = await navigator.clipboard.readText()
     if (!clipboardText.trim()) return

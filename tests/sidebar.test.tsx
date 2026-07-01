@@ -285,8 +285,8 @@ describe("Sidebar", () => {
 
   it("keeps the floating theme toggle pinned to the bottom-right", () => {
     expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*position:\s*fixed;/)
-    expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*right:\s*28px;/)
-    expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*bottom:\s*12px;/)
+    expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*right:\s*16px;/)
+    expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*bottom:\s*16px;/)
   })
 
   it("uses roomier rules modal padding", () => {

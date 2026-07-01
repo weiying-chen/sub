@@ -602,14 +602,14 @@ body {
 
 .floating-theme-toggle {
   position: fixed;
-  right: 28px;
-  bottom: 12px;
+  right: 16px;
+  bottom: 16px;
   z-index: 20;
   font-size: 24px;
 }
 
 @media (max-width: 900px) {
   .floating-theme-toggle {
-    right: 12px;
+    right: 16px;
   }
 }

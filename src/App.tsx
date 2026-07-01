@@ -12,6 +12,7 @@ import { sortFindingsWithIndex } from "./shared/findingsSort"
 import { getFindingLabel, getFindingTypeLabel } from "./shared/findingLabels"
 
 import { findingsDecorations } from "./cm/findingsDecorations"
+import { fillSelectedTimestampSubs } from "./cm/fillSubs"
 import {
   resolveFindingIdAtPos,
   resolvePreferredFindingId,
@@ -846,6 +847,17 @@ export default function App({
     setTheme((t) => (t === "dark" ? "light" : "dark"))
   }, [])
 
+  const handleInsertTranslation = useCallback(async () => {
+    if (!view || typeof navigator === "undefined" || !navigator.clipboard?.readText) {
+      return
+    }
+
+    const clipboardText = await navigator.clipboard.readText()
+    if (!clipboardText.trim()) return
+
+    fillSelectedTimestampSubs(view, clipboardText)
+  }, [view])
+
   const handleAnalysisTypeChange = useCallback(
     (nextType: AppAnalysisType) => {
       if (nextType === analysisType) return
@@ -879,6 +891,17 @@ export default function App({
               </button>
             ))}
           </div>
+          <button
+            type="button"
+            className="topbar-fill-subs-button"
+            title="Insert translation into selected timestamps from clipboard"
+            onClick={() => {
+              void handleInsertTranslation()
+            }}
+          >
+            <i className="las la-magic" aria-hidden="true" />
+            <span>Insert translation</span>
+          </button>
         </div>
       </div>
       <div className="app-editor-wrap">

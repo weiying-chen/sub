@@ -26,8 +26,16 @@ const gutterSpies = vi.hoisted(() => ({
   timestampLinkGutter: vi.fn(() => ({ __mockTimestampLinkGutter: true })),
 }))
 
+const fillSubsSpies = vi.hoisted(() => ({
+  fillSelectedTimestampSubs: vi.fn(() => ({ remaining: "" })),
+}))
+
 vi.mock("../src/cm/timestampLinkGutter", () => ({
   timestampLinkGutter: gutterSpies.timestampLinkGutter,
+}))
+
+vi.mock("../src/cm/fillSubs", () => ({
+  fillSelectedTimestampSubs: fillSubsSpies.fillSelectedTimestampSubs,
 }))
 
 vi.mock("@uiw/react-codemirror", () => ({
@@ -122,6 +130,7 @@ describe("Sidebar", () => {
     cmSpies.lastExtensions = null
     cmSpies.lastView = null
     gutterSpies.timestampLinkGutter.mockClear()
+    fillSubsSpies.fillSelectedTimestampSubs.mockReset()
   })
 
   it("keeps console cps metrics even when cps findings are unchecked", async () => {
@@ -300,16 +309,52 @@ describe("Sidebar", () => {
     expect(indexCss).toMatch(/\.rules-modal-threshold-input\s*\{[\s\S]*font-size:\s*13px;/)
   })
 
-  it("hides the fill-subs panel controls", () => {
-    render(<App />)
+  it("shows a top-bar insert-translation button without the old panel controls", () => {
+    const { container } = render(<App />)
+
+    const insertTranslationButton = screen.getByRole("button", {
+      name: "Insert translation",
+    })
+    expect(insertTranslationButton).toBeInTheDocument()
+    expect(insertTranslationButton).toHaveClass("topbar-fill-subs-button")
+    expect(insertTranslationButton.querySelector(".la-magic")).not.toBeNull()
+    expect(insertTranslationButton.querySelector(".la-paste")).toBeNull()
+
+    const topbarMain = container.querySelector(".app-topbar-main")
+    const modeSwitcher = container.querySelector(".mode-switcher")
+    expect(topbarMain?.children[1]).toBe(modeSwitcher)
+    expect(topbarMain?.children[2]).toBe(insertTranslationButton)
 
     expect(screen.queryByRole("button", { name: "Extract selection" })).not.toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: "Fill subs" })).not.toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "Copy" })).not.toBeInTheDocument()
     expect(
       screen.queryByPlaceholderText("Selected source text will appear here...")
     ).not.toBeInTheDocument()
+    expect(indexCss).toMatch(/\.topbar-fill-subs-button\s*\{[\s\S]*display:\s*inline-flex;/)
+    expect(indexCss).toMatch(/\.topbar-fill-subs-button\s*\{[\s\S]*padding:\s*6px 12px;/)
     expect(indexCss).toMatch(/\.mode-switcher-button\s*\{[\s\S]*padding:\s*6px 12px;/)
+  })
+
+  it("reads clipboard text and fills the current selection when clicking insert translation", async () => {
+    const readText = vi.fn().mockResolvedValue("Copied translation text.")
+    Object.defineProperty(window.navigator, "clipboard", {
+      value: { readText },
+      configurable: true,
+    })
+
+    render(<App />)
+
+    fireEvent.click(screen.getByRole("button", { name: "Insert translation" }))
+
+    await waitFor(() => {
+      expect(readText).toHaveBeenCalledTimes(1)
+      expect(fillSubsSpies.fillSelectedTimestampSubs).toHaveBeenCalledTimes(1)
+    })
+
+    expect(fillSubsSpies.fillSelectedTimestampSubs.mock.calls[0]?.[0]).toBe(cmSpies.lastView)
+    expect(fillSubsSpies.fillSelectedTimestampSubs.mock.calls[0]?.[1]).toBe(
+      "Copied translation text."
+    )
   })
 
   it("keeps sidebar header spacing on the cleaner 8px step", () => {

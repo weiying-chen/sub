@@ -337,8 +337,9 @@ describe("Sidebar", () => {
 
   it("reads clipboard text and fills the current selection when clicking insert translation", async () => {
     const readText = vi.fn().mockResolvedValue("Copied translation text.")
+    const writeText = vi.fn().mockResolvedValue(undefined)
     Object.defineProperty(window.navigator, "clipboard", {
-      value: { readText },
+      value: { readText, writeText },
       configurable: true,
     })
 
@@ -355,6 +356,30 @@ describe("Sidebar", () => {
     expect(fillSubsSpies.fillSelectedTimestampSubs.mock.calls[0]?.[1]).toBe(
       "Copied translation text."
     )
+    expect(writeText).not.toHaveBeenCalled()
+  })
+
+  it("writes leftover translation back to clipboard after filling", async () => {
+    const readText = vi.fn().mockResolvedValue("Copied translation text.")
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    fillSubsSpies.fillSelectedTimestampSubs.mockReturnValueOnce({
+      remaining: "Leftover translation text.",
+    })
+    Object.defineProperty(window.navigator, "clipboard", {
+      value: { readText, writeText },
+      configurable: true,
+    })
+
+    render(<App />)
+
+    fireEvent.click(screen.getByRole("button", { name: "Insert translation" }))
+
+    await waitFor(() => {
+      expect(fillSubsSpies.fillSelectedTimestampSubs).toHaveBeenCalledTimes(1)
+      expect(writeText).toHaveBeenCalledTimes(1)
+    })
+
+    expect(writeText).toHaveBeenCalledWith("Leftover translation text.")
   })
 
   it("keeps sidebar header spacing on the cleaner 8px step", () => {

@@ -855,7 +855,10 @@ export default function App({
     const clipboardText = await navigator.clipboard.readText()
     if (!clipboardText.trim()) return
 
-    fillSelectedTimestampSubs(view, clipboardText)
+    const { remaining } = fillSelectedTimestampSubs(view, clipboardText)
+    if (remaining.trim() && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(remaining.trim())
+    }
   }, [view])
 
   const handleAnalysisTypeChange = useCallback(

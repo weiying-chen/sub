@@ -28,7 +28,7 @@ describe("createSubsReporter", () => {
     mocks.sortFindingsWithIndexMock.mockClear()
   })
 
-  it("uses shared runAnalysis path for subs findings", async () => {
+  it("uses shared runAnalysis path for subs findings with repo defaults", async () => {
     const dir = await mkdtemp(join(tmpdir(), "subs-reporter-"))
     const filePath = join(dir, "sample.txt")
     await writeFile(
@@ -57,7 +57,42 @@ describe("createSubsReporter", () => {
         type: "subs",
         mode: "findings",
         includeWarnings: true,
-        maxCps: undefined,
+        maxCps: 16,
+        minCps: 5,
+      })
+    )
+  })
+
+  it("loads a sibling baseline by default", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "subs-reporter-"))
+    const filePath = join(dir, "sample.txt")
+    const baselinePath = join(dir, "sample.baseline.txt")
+    await writeFile(
+      filePath,
+      [
+        "00:05:19:06\t00:05:21:20\t今年非常不幸地",
+        "Unfortunately, this year,",
+      ].join("\n"),
+      "utf8"
+    )
+    await writeFile(
+      baselinePath,
+      "00:05:19:06\t00:05:21:20\t今年非常不幸地",
+      "utf8"
+    )
+
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {})
+    try {
+      const reporter = createSubsReporter({ includeWarnings: true })
+      await reporter(filePath, { clearScreen: () => {} })
+    } finally {
+      logSpy.mockRestore()
+    }
+
+    expect(mocks.runAnalysisMock).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        baselineText: "00:05:19:06\t00:05:21:20\t今年非常不幸地",
       })
     )
   })

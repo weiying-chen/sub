@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises'
+import { basename, dirname, extname, join } from 'node:path'
 
 import { sortFindingsWithIndex } from '../shared/findingsSort'
 import type { Finding, Metric } from '../analysis/types'
@@ -26,8 +27,33 @@ type SubsOptions = {
   minCps?: number
 }
 
+const DEFAULT_SUBS_WATCH_MAX_CPS = 16
+const DEFAULT_SUBS_WATCH_MIN_CPS = 5
+
 function asNum(v: unknown): number | null {
   return typeof v === 'number' && Number.isFinite(v) ? v : null
+}
+
+function defaultBaselinePathFor(path: string): string {
+  const ext = extname(path)
+  const stem = basename(path, ext)
+  return join(dirname(path), `${stem}.baseline${ext}`)
+}
+
+async function readOptionalSiblingBaseline(path: string): Promise<string | null> {
+  try {
+    return await readFile(defaultBaselinePathFor(path), 'utf8')
+  } catch (err) {
+    if (
+      err &&
+      typeof err === 'object' &&
+      'code' in err &&
+      (err as { code?: unknown }).code === 'ENOENT'
+    ) {
+      return null
+    }
+    throw err
+  }
 }
 
 function formatFinding(f: Finding): string {
@@ -237,7 +263,7 @@ async function printReport(
   const lines = text.split('\n')
   const baselineText = options.baselinePath
     ? await readFile(options.baselinePath, 'utf8')
-    : null
+    : await readOptionalSiblingBaseline(path)
   const findings = (await runAnalysis(text, {
     type: 'subs',
     mode: 'findings',
@@ -245,8 +271,8 @@ async function printReport(
     baselineText: baselineText ?? undefined,
     ignoreEmptyLines: options.ignoreEmptyLines,
     includeWarnings: options.includeWarnings,
-    maxCps: options.maxCps,
-    minCps: options.minCps,
+    maxCps: options.maxCps ?? DEFAULT_SUBS_WATCH_MAX_CPS,
+    minCps: options.minCps ?? DEFAULT_SUBS_WATCH_MIN_CPS,
   })) as Finding[]
 
   const scope = findMarkerScope(lines)

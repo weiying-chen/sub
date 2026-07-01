@@ -240,6 +240,8 @@ describe("Sidebar", () => {
     expect(topbar?.textContent).toContain("No timestamps")
     expect(indexCss).toMatch(/\.app-title\s*\{[\s\S]*font-size:\s*15px;/)
     expect(indexCss).toMatch(/\.app-title\s*\{[\s\S]*font-weight:\s*600;/)
+    expect(indexCss).toMatch(/\.app-topbar\s*\{[\s\S]*gap:\s*8px;/)
+    expect(indexCss).toMatch(/\.app-topbar\s*\{[\s\S]*padding:\s*12px 12px;/)
   })
 
   it("enables line wrapping in the editor", () => {
@@ -285,8 +287,8 @@ describe("Sidebar", () => {
 
   it("keeps the floating theme toggle pinned to the bottom-right", () => {
     expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*position:\s*fixed;/)
-    expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*right:\s*16px;/)
-    expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*bottom:\s*16px;/)
+    expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*right:\s*12px;/)
+    expect(indexCss).toMatch(/\.floating-theme-toggle\s*\{[\s\S]*bottom:\s*12px;/)
   })
 
   it("uses roomier rules modal padding", () => {
@@ -307,6 +309,11 @@ describe("Sidebar", () => {
     expect(
       screen.queryByPlaceholderText("Selected source text will appear here...")
     ).not.toBeInTheDocument()
+    expect(indexCss).toMatch(/\.mode-switcher-button\s*\{[\s\S]*padding:\s*6px 12px;/)
+  })
+
+  it("keeps sidebar header spacing on the cleaner 8px step", () => {
+    expect(indexCss).toMatch(/\.sidebar-header\s*\{[\s\S]*margin-bottom:\s*8px;/)
   })
 
   it("shows a floating theme toggle with sun/moon icons", () => {

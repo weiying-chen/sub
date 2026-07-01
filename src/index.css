@@ -211,8 +211,8 @@ body {
 .app-topbar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 12px 12px;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
 }
@@ -250,7 +250,7 @@ body {
   font: inherit;
   font-size: 12px;
   line-height: 1;
-  padding: 7px 12px;
+  padding: 6px 12px;
   cursor: pointer;
 }
 
@@ -389,7 +389,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .sidebar-gear-button {
@@ -602,14 +602,14 @@ body {
 
 .floating-theme-toggle {
   position: fixed;
-  right: 16px;
-  bottom: 16px;
+  right: 12px;
+  bottom: 12px;
   z-index: 20;
   font-size: 24px;
 }
 
 @media (max-width: 900px) {
   .floating-theme-toggle {
-    right: 16px;
+    right: 12px;
   }
 }

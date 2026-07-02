@@ -1153,10 +1153,8 @@ function findBestCut(
 
   const spaceCut = findRightmostSpace(window, nextText)
   if (spaceCut >= 0) {
-    const spaceRest = (window.slice(spaceCut) + nextText).trimStart()
-    const spaceRestWordCount = spaceRest.split(/\s+/).filter(Boolean).length
     const copularFallbackCut = findRightmostCopularFallbackLead(window, nextText)
-    if (spaceRestWordCount <= 2 && copularFallbackCut >= 0) {
+    if (copularFallbackCut >= 0) {
       return { cut: copularFallbackCut, reason: 'copularFallback' }
     }
     return { cut: spaceCut, reason: 'space' }

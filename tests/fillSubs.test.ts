@@ -2231,7 +2231,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.rest).toBe("NDDs are common.")
   })
 
-  it("keeps the full line when the limit lands exactly at a word boundary", () => {
+  it("uses copular fallback even when the limit lands exactly at a word boundary", () => {
   const result = __testTakeLine(
     "The rest is divided among the heirs according to their inheritance shares.",
     48,
@@ -2239,8 +2239,8 @@ describe("fillSelectedTimestampLines", () => {
     false
   )
 
-  expect(result.line).toBe("The rest is divided among the heirs according to")
-  expect(result.rest).toBe("their inheritance shares.")
+  expect(result.line).toBe("The rest")
+  expect(result.rest).toBe("is divided among the heirs according to their inheritance shares.")
   })
 
   it("does not split after middle initials before surnames", () => {
@@ -2505,15 +2505,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.startsWith("and ")).toBe(true)
   })
 
-  it("moves trailing 'the' to the next split chunk", () => {
+  it("uses copular fallback before moving trailing 'the'", () => {
   const split = __testTakeLine(
     "This is a classic case of indigestion affecting the autonomic nervous system.",
     54,
     null,
     false
   )
-  expect(split.line.endsWith(" the")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("the ")).toBe(true)
+  expect(split.line).toBe("This")
+  expect(split.rest).toBe(
+    "is a classic case of indigestion affecting the autonomic nervous system."
+  )
   })
 
   it("moves trailing 'a' to the next split chunk", () => {
@@ -2795,15 +2797,15 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("that ")).toBe(false)
   })
 
-  it("allows natural fallback splits after how to", () => {
+  it("uses copular fallback before natural how-to space splits", () => {
   const split = __testTakeLine(
     "One time, I was teaching a group of managers how to handle emotions at work.",
     54,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith(" how to")).toBe(true)
-  expect(split.rest.toLowerCase().startsWith("handle ")).toBe(true)
+  expect(split.line).toBe("One time, I")
+  expect(split.rest).toBe("was teaching a group of managers how to handle emotions at work.")
   })
 
   it("keeps 'in how' together when splitting", () => {

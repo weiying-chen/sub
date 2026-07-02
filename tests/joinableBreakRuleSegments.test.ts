@@ -323,4 +323,18 @@ describe("joinableBreakRule (segments)", () => {
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
     expect(metrics).toHaveLength(0)
   })
+
+  it("does not flag duplicated span boundary before a standalone multi-word question", () => {
+    const text = [
+      "00:05:35:12\t00:05:36:22\t姚爸爸",
+      "Mr. Yao, they were influenced by you.",
+      "00:05:36:22\t00:05:38:10\t他們兩個有受您影響",
+      "Mr. Yao, they were influenced by you.",
+      "00:05:38:10\t00:05:40:16\t您受誰影響呢",
+      "Who influenced you?",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(0)
+  })
 })

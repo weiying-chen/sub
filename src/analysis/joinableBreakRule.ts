@@ -29,16 +29,26 @@ function isSingleWordTerminalSentence(text: string): boolean {
   const trimmed = text.trim()
   if (!trimmed || !SENTENCE_END_RE.test(trimmed)) return false
 
-  const words = trimmed
-    .replace(/^["'([{]+|["')\]}]+$/g, "")
-    .split(/\s+/)
-    .map((word) => word.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, ""))
-    .filter(Boolean)
+  const words = extractSentenceWords(trimmed)
 
   if (words.length !== 1) return false
   const first = words[0] ?? ""
   if (first === "") return false
   return first[0] === first[0].toUpperCase()
+}
+
+function extractSentenceWords(text: string): string[] {
+  return text
+    .replace(/^["'([{]+|["')\]}]+$/g, "")
+    .split(/\s+/)
+    .map((word) => word.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, ""))
+    .filter(Boolean)
+}
+
+function isMultiWordQuestion(text: string): boolean {
+  const trimmed = text.trim()
+  if (!/[?]["')\]]*\s*$/.test(trimmed)) return false
+  return extractSentenceWords(trimmed).length > 1
 }
 
 function isFullSentence(text: string): boolean {
@@ -109,6 +119,40 @@ export function joinableBreakRule(
     )
     const curFullSentence = isFullSentence(cur.translation)
     const nextFullSentence = isFullSentence(next.translation)
+
+    if (
+      next2 &&
+      cur.translation === next.translation &&
+      curFullSentence &&
+      nextFullSentence &&
+      isMultiWordQuestion(next2.translation)
+    ) {
+      return []
+    }
+
+    if (
+      prev &&
+      prev.translation === cur.translation &&
+      !(next2 && next.translation === next2.translation) &&
+      curFullSentence &&
+      nextFullSentence &&
+      isMultiWordQuestion(next.translation)
+    ) {
+      return []
+    }
+
+    const isDuplicatedSpanBoundary =
+      (prev != null && prev.translation === cur.translation) ||
+      (next2 != null && next.translation === next2.translation)
+    if (
+      !splitAbbreviationBoundary &&
+      curFullSentence &&
+      nextFullSentence &&
+      !isDuplicatedSpanBoundary
+    ) {
+      return []
+    }
+
     if (!splitAbbreviationBoundary && curFullSentence !== nextFullSentence) {
       return []
     }

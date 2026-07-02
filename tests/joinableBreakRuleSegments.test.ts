@@ -49,6 +49,24 @@ describe("joinableBreakRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
+  it("ignores trailing CPS suppression markers for sentence checks", () => {
+    const text = [
+      "00:03:21:08\t00:03:23:14\t然後到了初中那一段",
+      "In junior high, I attended Cheng Yuan High School,",
+      "00:03:23:14\t00:03:25:05\t我念的是成淵中學",
+      "In junior high, I attended Cheng Yuan High School,",
+      "00:03:25:05\t00:03:26:21\t比較嚴格一點",
+      "which was a bit stricter. #",
+      "00:03:26:21\t00:03:28:03\t不過三年很快過去",
+      "Three years later,",
+      "00:03:28:03\t00:03:31:16\t我就進了建中跟隨著仁祿",
+      "I followed Eric to Chien Kuo High.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(0)
+  })
+
   it("flags dash continuation when both sides are non-full", () => {
     const text = [
       "00:07:51:16\t00:07:53:03\t是這一點有問題",

@@ -4,6 +4,7 @@ import { hasEmptyLineBetween, type LineSource, type ParseBlockOptions } from "..
 import { DEFAULT_MAX_CHARS } from "../shared/maxChars"
 import { canJoinAdjacentText, normalizeJoinText } from "../shared/joinableText"
 import { looksLikeSentenceFragment } from "../shared/sentenceFragments"
+import { stripCpsSuppressionMarker } from "../shared/cpsSuppression"
 
 type JoinableBreakRuleOptions = ParseBlockOptions & {
   maxGapFrames?: number
@@ -91,15 +92,17 @@ function getBoundaryInfo(
   prev: Segment | undefined,
   cur: Segment,
   next: Segment,
-  next2: Segment | undefined
+  next2: Segment | undefined,
+  curText: string,
+  nextText: string
 ): BoundaryInfo {
   return {
     splitAbbreviationBoundary: hasSplitAbbreviationBoundary(
-      cur.translation,
-      next.translation
+      curText,
+      nextText
     ),
-    curFullSentence: isFullSentence(cur.translation),
-    nextFullSentence: isFullSentence(next.translation),
+    curFullSentence: isFullSentence(curText),
+    nextFullSentence: isFullSentence(nextText),
     prevMatchesCur: prev?.translation === cur.translation,
     curMatchesNext: cur.translation === next.translation,
     nextMatchesNext2: next2?.translation === next.translation,
@@ -191,7 +194,9 @@ export function joinableBreakRule(
     const gapFrames = next.startFrames - cur.endFrames
     if (gapFrames < 0 || gapFrames > maxGapFrames) return []
 
-    const boundaryInfo = getBoundaryInfo(prev, cur, next, next2)
+    const curText = stripCpsSuppressionMarker(cur.translation).text
+    const nextText = stripCpsSuppressionMarker(next.translation).text
+    const boundaryInfo = getBoundaryInfo(prev, cur, next, next2, curText, nextText)
     const boundaryClass = classifyBoundary(boundaryInfo, next, next2)
     if (boundaryClass !== "join_candidate") {
       return []
@@ -217,12 +222,12 @@ export function joinableBreakRule(
 
     const join = boundaryInfo.splitAbbreviationBoundary
       ? {
-          joined: `${normalizeJoinText(cur.translation)} ${normalizeJoinText(next.translation)}`.trim(),
-          joinedLength: `${normalizeJoinText(cur.translation)} ${normalizeJoinText(next.translation)}`
+          joined: `${normalizeJoinText(curText)} ${normalizeJoinText(nextText)}`.trim(),
+          joinedLength: `${normalizeJoinText(curText)} ${normalizeJoinText(nextText)}`
             .trim()
             .length,
         }
-      : canJoinAdjacentText(cur.translation, next.translation, maxJoinedChars, {
+      : canJoinAdjacentText(curText, nextText, maxJoinedChars, {
           allowSentenceEndJoin: true,
         })
     if (!join) return []

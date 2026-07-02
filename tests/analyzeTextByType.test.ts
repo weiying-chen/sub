@@ -65,6 +65,7 @@ describe("analyzeTextByType", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "Hello world.",
+      "",
       "Free text 4",
     ].join("\n")
 

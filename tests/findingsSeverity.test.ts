@@ -200,10 +200,10 @@ describe("getFindings severity", () => {
 
     const joinableBreakMetrics = analyzeTextByType(
       [
-        "00:03:19:29\t00:03:20:26\t我的孩子說",
-        "My kid spoke.",
-        "00:03:20:26\t00:03:22:12\t妳就讓我喝一口",
-        "Just let me have a sip.",
+        "00:21:39:12\t00:21:41:16\tMarker",
+        "The next morning,",
+        "00:21:41:16\t00:21:42:16\tMarker",
+        "my elderly friend said",
       ].join("\n"),
       "subs",
       [joinableBreakRule()]

@@ -1493,7 +1493,11 @@ function normalizeTrailingCopularHead(
   if (!left) return { line, rest }
 
   const trimmedRest = rest.trimStart()
-  if (!/^(where|why|how)\b/i.test(trimmedRest)) return { line, rest }
+  const preservesLeadingClause =
+    /\bthat$/i.test(left) && /^[a-z]/i.test(trimmedRest)
+  if (!preservesLeadingClause && !/^(where|why|how)\b/i.test(trimmedRest)) {
+    return { line, rest }
+  }
 
   if (!rest) return { line: left, rest: verb }
   if (trimmedRest.toLowerCase().startsWith(`${verb} `)) {
@@ -1582,12 +1586,15 @@ function normalizeTrailingPrepositionHead(
   rest: string
 ): { line: string; rest: string } {
   const trimmed = line.trimEnd()
-  const match = trimmed.match(/^(.*)\s+(near|in|behind|under|for)$/i)
+  const match = trimmed.match(/^(.*)\s+(near|in|behind|under|for|of)$/i)
   if (!match) return { line, rest }
 
   const left = (match[1] ?? '').trimEnd()
   const word = (match[2] ?? '').trim().toLowerCase()
   if (!left) return { line, rest }
+  if (word === "of" && !/^(now|today|tomorrow|tonight|here|there|then)\b/i.test(rest.trimStart())) {
+    return { line, rest }
+  }
   if (
     word === 'in' &&
     /^the\b/i.test(rest.trimStart()) &&
@@ -1622,6 +1629,33 @@ function normalizeTrailingPrepositionHead(
     return { line: left, rest }
   }
   return { line: left, rest: `${word} ${rest}` }
+}
+
+function normalizeTrailingPrepositionPhraseHead(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmed = line.trimEnd()
+  const trimmedRest = rest.trimStart()
+  const match = trimmed.match(/^(.*)\s+(like|in)\s+([A-Za-z][A-Za-z'-]*)$/i)
+  if (!match || !/^[a-z][a-z'-]*/i.test(trimmedRest)) return { line, rest }
+
+  const left = (match[1] ?? "").trimEnd()
+  const prep = (match[2] ?? "").trim().toLowerCase()
+  const word = (match[3] ?? "").trim()
+  if (!left) return { line, rest }
+  if (
+    prep === "like" &&
+    /^(that|this|these|those)$/i.test(word)
+  ) {
+    return { line, rest }
+  }
+
+  const phrase = `${prep} ${word}`
+  if (trimmedRest.toLowerCase().startsWith(`${phrase.toLowerCase()} `)) {
+    return { line: left, rest }
+  }
+  return { line: left, rest: `${phrase} ${rest}` }
 }
 
 function normalizeLeadingCommaRest(
@@ -1663,7 +1697,26 @@ function normalizeLeadingToAfterPayAttention(
   line: string,
   rest: string
 ): { line: string; rest: string } {
-  return { line, rest }
+  const trimmed = line.trimEnd()
+  const trimmedRest = rest.trimStart()
+
+  if (/^in check in how\b/i.test(trimmedRest) && line.trim() !== "") {
+    const phrase = trimmedRest.match(/^in check/i)?.[0] ?? "in check"
+    return {
+      line: `${trimmed} ${phrase}`.trim(),
+      rest: trimmedRest.slice(phrase.length).trimStart(),
+    }
+  }
+
+  if (!/\bpay attention to$/i.test(trimmed)) return { line, rest }
+
+  const left = trimmed.replace(/\s+to$/i, "")
+  if (!left) return { line, rest }
+  if (!rest) return { line: left, rest: "to" }
+  if (trimmedRest.toLowerCase().startsWith("to ")) {
+    return { line: left, rest }
+  }
+  return { line: left, rest: `to ${rest}` }
 }
 
 function normalizeSplit(line: string, rest: string): { line: string; rest: string } {
@@ -1712,9 +1765,13 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     prepositionDeterminerNormalized.line,
     prepositionDeterminerNormalized.rest
   )
-  const hyphenNormalized = normalizeTrailingHyphenCompound(
+  const prepositionPhraseNormalized = normalizeTrailingPrepositionPhraseHead(
     prepositionNormalized.line,
     prepositionNormalized.rest
+  )
+  const hyphenNormalized = normalizeTrailingHyphenCompound(
+    prepositionPhraseNormalized.line,
+    prepositionPhraseNormalized.rest
   )
   const commaThatNormalized = normalizeTrailingCommaThat(
     hyphenNormalized.line,

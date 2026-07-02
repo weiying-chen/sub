@@ -70,6 +70,96 @@ function hasTiming(
   )
 }
 
+type BoundaryClass =
+  | "paired_duplicate_non_full"
+  | "duplicate_pair_before_multi_word_question"
+  | "duplicate_span_before_multi_word_question"
+  | "full_sentence_pair"
+  | "mismatched_sentence_state"
+  | "join_candidate"
+
+type BoundaryInfo = {
+  splitAbbreviationBoundary: boolean
+  curFullSentence: boolean
+  nextFullSentence: boolean
+  prevMatchesCur: boolean
+  curMatchesNext: boolean
+  nextMatchesNext2: boolean
+}
+
+function getBoundaryInfo(
+  prev: Segment | undefined,
+  cur: Segment,
+  next: Segment,
+  next2: Segment | undefined
+): BoundaryInfo {
+  return {
+    splitAbbreviationBoundary: hasSplitAbbreviationBoundary(
+      cur.translation,
+      next.translation
+    ),
+    curFullSentence: isFullSentence(cur.translation),
+    nextFullSentence: isFullSentence(next.translation),
+    prevMatchesCur: prev?.translation === cur.translation,
+    curMatchesNext: cur.translation === next.translation,
+    nextMatchesNext2: next2?.translation === next.translation,
+  }
+}
+
+function classifyBoundary(
+  info: BoundaryInfo,
+  next: Segment,
+  next2: Segment | undefined
+): BoundaryClass {
+  if (
+    info.prevMatchesCur &&
+    info.nextMatchesNext2 &&
+    !info.curFullSentence &&
+    !info.nextFullSentence
+  ) {
+    return "paired_duplicate_non_full"
+  }
+
+  if (
+    info.curMatchesNext &&
+    info.curFullSentence &&
+    info.nextFullSentence &&
+    next2 &&
+    isMultiWordQuestion(next2.translation)
+  ) {
+    return "duplicate_pair_before_multi_word_question"
+  }
+
+  if (
+    info.prevMatchesCur &&
+    !info.nextMatchesNext2 &&
+    info.curFullSentence &&
+    info.nextFullSentence &&
+    isMultiWordQuestion(next.translation)
+  ) {
+    return "duplicate_span_before_multi_word_question"
+  }
+
+  const isDuplicatedSpanBoundary = info.prevMatchesCur || info.nextMatchesNext2
+  if (
+    !info.splitAbbreviationBoundary &&
+    info.curFullSentence &&
+    info.nextFullSentence &&
+    !isDuplicatedSpanBoundary
+  ) {
+    return "full_sentence_pair"
+  }
+
+  if (
+    !info.splitAbbreviationBoundary &&
+    info.curFullSentence !== info.nextFullSentence
+  ) {
+    return "mismatched_sentence_state"
+  }
+
+  return "join_candidate"
+}
+
 export function joinableBreakRule(
   options: JoinableBreakRuleOptions = {}
 ): SegmentRule {
@@ -84,18 +174,6 @@ export function joinableBreakRule(
     const next2 = ctx.segments[ctx.segmentIndex + 2]
     if (!next) return []
     if (!hasTiming(cur) || !hasTiming(next)) return []
-
-    // Skip A A / B B span boundaries produced by CPS-driven fill output.
-    if (
-      prev &&
-      next2 &&
-      prev.translation === cur.translation &&
-      next.translation === next2.translation &&
-      cur.translation !== next.translation &&
-      !(isFullSentence(cur.translation) && isFullSentence(next.translation))
-    ) {
-      return []
-    }
 
     if (!ignoreEmptyLines && ctx.lines) {
       if (typeof cur.translationIndex !== "number" || typeof next.tsIndex !== "number") {
@@ -113,47 +191,9 @@ export function joinableBreakRule(
     const gapFrames = next.startFrames - cur.endFrames
     if (gapFrames < 0 || gapFrames > maxGapFrames) return []
 
-    const splitAbbreviationBoundary = hasSplitAbbreviationBoundary(
-      cur.translation,
-      next.translation
-    )
-    const curFullSentence = isFullSentence(cur.translation)
-    const nextFullSentence = isFullSentence(next.translation)
-
-    if (
-      next2 &&
-      cur.translation === next.translation &&
-      curFullSentence &&
-      nextFullSentence &&
-      isMultiWordQuestion(next2.translation)
-    ) {
-      return []
-    }
-
-    if (
-      prev &&
-      prev.translation === cur.translation &&
-      !(next2 && next.translation === next2.translation) &&
-      curFullSentence &&
-      nextFullSentence &&
-      isMultiWordQuestion(next.translation)
-    ) {
-      return []
-    }
-
-    const isDuplicatedSpanBoundary =
-      (prev != null && prev.translation === cur.translation) ||
-      (next2 != null && next.translation === next2.translation)
-    if (
-      !splitAbbreviationBoundary &&
-      curFullSentence &&
-      nextFullSentence &&
-      !isDuplicatedSpanBoundary
-    ) {
-      return []
-    }
-
-    if (!splitAbbreviationBoundary && curFullSentence !== nextFullSentence) {
+    const boundaryInfo = getBoundaryInfo(prev, cur, next, next2)
+    const boundaryClass = classifyBoundary(boundaryInfo, next, next2)
+    if (boundaryClass !== "join_candidate") {
       return []
     }
 
@@ -175,7 +215,7 @@ export function joinableBreakRule(
       }
     }
 
-    const join = splitAbbreviationBoundary
+    const join = boundaryInfo.splitAbbreviationBoundary
       ? {
           joined: `${normalizeJoinText(cur.translation)} ${normalizeJoinText(next.translation)}`.trim(),
           joinedLength: `${normalizeJoinText(cur.translation)} ${normalizeJoinText(next.translation)}`

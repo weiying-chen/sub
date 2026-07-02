@@ -214,6 +214,8 @@ describe("Sidebar", () => {
       "Reading speed is too high",
       "Translation line has too many characters",
       "Punctuation is incorrect",
+      'Repeated word: "00"',
+      'Repeated word: "00"',
       "Preferred term is incorrect",
       "Number format is incorrect",
       "Percent format is incorrect",
@@ -222,8 +224,6 @@ describe("Sidebar", () => {
       "Period in caption is incorrect",
       "Reading speed is too low",
       "Translation line spans across a timing gap",
-      "Translation lines could be merged",
-      "Translation lines can be joined",
     ])
 
     const modalFindingLabels = new Set([
@@ -232,6 +232,8 @@ describe("Sidebar", () => {
       "Reading speed is too high",
       "Translation line has too many characters",
       "Punctuation is incorrect",
+      "Repeated word is incorrect",
+      "Repeated punctuation is incorrect",
       "Preferred term is incorrect",
       "Number format is incorrect",
       "Percent format is incorrect",
@@ -244,7 +246,14 @@ describe("Sidebar", () => {
       "Translation lines can be joined",
     ])
 
-    expect(findingDetails.every((detail) => modalFindingLabels.has(detail))).toBe(true)
+    expect(
+      findingDetails.every((detail) => {
+        if (detail.startsWith("Repeated word:")) {
+          return modalFindingLabels.has("Repeated word is incorrect")
+        }
+        return modalFindingLabels.has(detail)
+      })
+    ).toBe(true)
   })
 
   it("shows a restrained app title before the mode tabs", () => {
@@ -789,26 +798,66 @@ describe("Sidebar", () => {
     fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
 
     const expectedRuleLabels = [
-      /Translation line is missing/i,
-      /Timestamp format is incorrect/i,
-      /Reading speed is too high/i,
-      /Translation line has too many characters/i,
-      /Punctuation is incorrect/i,
-      /Preferred term is incorrect/i,
-      /Number format is incorrect/i,
-      /Percent format is incorrect/i,
-      /Dash style is incorrect/i,
-      /Quote style is incorrect/i,
-      /Period in caption is incorrect/i,
-      /Reading speed is too low/i,
-      /Translation line spans across a timing gap/i,
-      /Translation lines could be merged/i,
-      /Translation lines can be joined/i,
+      /^Translation line is missing/i,
+      /^Timestamp format is incorrect/i,
+      /^Reading speed is too high/i,
+      /^Translation line has too many characters/i,
+      /^Punctuation is incorrectChecks /i,
+      /^Repeated word is incorrect/i,
+      /^Repeated punctuation is incorrect/i,
+      /^Preferred term is incorrect/i,
+      /^Number format is incorrect/i,
+      /^Percent format is incorrect/i,
+      /^Dash style is incorrect/i,
+      /^Quote style is incorrect/i,
+      /^Period in caption is incorrect/i,
+      /^Reading speed is too low/i,
+      /^Translation line spans across a timing gap/i,
+      /^Translation lines could be merged/i,
+      /^Translation lines can be joined/i,
     ]
 
     for (const label of expectedRuleLabels) {
       expect(ui.getByRole("checkbox", { name: label })).toBeChecked()
     }
+  })
+
+  it("shows repeated punctuation findings by default", () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+
+    fireEvent.change(editor, {
+      target: {
+        value: [
+          "00:00:01:00\t00:00:02:00\tMarker",
+          "Before him,, Hu Yu-zhu was the one",
+        ].join("\n"),
+      },
+    })
+
+    expect(
+      ui.getByRole("button", { name: /Repeated punctuation is incorrect/i })
+    ).toBeInTheDocument()
+  })
+
+  it("shows repeated word findings by default", () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+
+    fireEvent.change(editor, {
+      target: {
+        value: [
+          "00:00:01:00\t00:00:02:00\tMarker",
+          "We went with with Master Lee",
+        ].join("\n"),
+      },
+    })
+
+    expect(
+      ui.getByRole("button", { name: /Repeated word/i })
+    ).toBeInTheDocument()
   })
 
   it("persists non-default rule toggles across reload", () => {
@@ -901,7 +950,9 @@ describe("Sidebar", () => {
     })
 
     fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
-    const punctuationToggle = ui.getByRole("checkbox", { name: /Punctuation is incorrect/i })
+    const punctuationToggle = ui.getByRole("checkbox", {
+      name: /^Punctuation is incorrectChecks /i,
+    })
     if (!punctuationToggle.matches(":checked")) {
       fireEvent.click(punctuationToggle)
     }

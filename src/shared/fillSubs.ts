@@ -746,6 +746,26 @@ function findRightmostCopularLead(window: string, nextText: string): number {
   return best
 }
 
+function findRightmostCopularFallbackLead(window: string, nextText: string): number {
+  let best = -1
+  const re = new RegExp(COPULAR_RE.source, 'gi')
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const end = start + m[0].length
+    const prev = window[start - 1] ?? ''
+    const next = window[end] ?? ''
+    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
+
+    const left = window.slice(0, start).trimEnd()
+    const right = (window.slice(start) + nextText).trimStart()
+    if (!left || !right) continue
+
+    best = start
+  }
+  return best
+}
+
 function findRightmostSpace(window: string, nextText: string): number {
   for (let i = window.length - 1; i >= 0; i--) {
     if (window[i] !== ' ') continue
@@ -1132,7 +1152,15 @@ function findBestCut(
   if (modalCut >= 0) return { cut: modalCut, reason: 'modal' }
 
   const spaceCut = findRightmostSpace(window, nextText)
-  if (spaceCut >= 0) return { cut: spaceCut, reason: 'space' }
+  if (spaceCut >= 0) {
+    const spaceRest = (window.slice(spaceCut) + nextText).trimStart()
+    const spaceRestWordCount = spaceRest.split(/\s+/).filter(Boolean).length
+    const copularFallbackCut = findRightmostCopularFallbackLead(window, nextText)
+    if (spaceRestWordCount <= 2 && copularFallbackCut >= 0) {
+      return { cut: copularFallbackCut, reason: 'copularFallback' }
+    }
+    return { cut: spaceCut, reason: 'space' }
+  }
 
   return { cut: window.length, reason: 'fallback' }
 }

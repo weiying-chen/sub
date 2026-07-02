@@ -2963,6 +2963,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("weren't looking good")).toBe(true)
   })
 
+  it("uses copular fallback before plain space splits", () => {
+  const split = __testTakeLine(
+    "I think freedom is one of the most precious things there is.",
+    54,
+    null,
+    false
+  )
+  expect(split.line).toBe("I think freedom")
+  expect(split.rest).toBe("is one of the most precious things there is.")
+  })
+
   it("keeps 'that' at the end of previous line before 'if' clauses", () => {
   const split = __testTakeLine(
     "And then they also told me that if the power went out or the machine broke down, we had to quickly get the beans out by hand.",

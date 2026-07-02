@@ -34,6 +34,21 @@ describe("joinableBreakRule (segments)", () => {
     })
   })
 
+  it("does not treat a word ending as a split abbreviation boundary", () => {
+    const text = [
+      "00:41:28:00\t00:41:28:24\t沒有",
+      "No. Some became presidents like Kennedy.",
+      "00:41:28:24\t00:41:31:12\t有的人變成甘迺迪去當總統了",
+      "No. Some became presidents like Kennedy.",
+      "00:41:31:12\t00:41:32:25\t有的人變瑪麗蓮夢露",
+      "Some became stars like Marilyn Monroe.",
+      "00:41:32:25\t00:41:35:16\t去當有名的明星",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(0)
+  })
+
   it("flags dash continuation when both sides are non-full", () => {
     const text = [
       "00:07:51:16\t00:07:53:03\t是這一點有問題",

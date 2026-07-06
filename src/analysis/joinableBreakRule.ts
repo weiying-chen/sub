@@ -75,7 +75,6 @@ type BoundaryClass =
   | "paired_duplicate_non_full"
   | "duplicate_pair_before_multi_word_question"
   | "duplicate_span_before_multi_word_question"
-  | "full_sentence_pair"
   | "mismatched_sentence_state"
   | "join_candidate"
 
@@ -141,16 +140,6 @@ function classifyBoundary(
     isMultiWordQuestion(next.translation)
   ) {
     return "duplicate_span_before_multi_word_question"
-  }
-
-  const isDuplicatedSpanBoundary = info.prevMatchesCur || info.nextMatchesNext2
-  if (
-    !info.splitAbbreviationBoundary &&
-    info.curFullSentence &&
-    info.nextFullSentence &&
-    !isDuplicatedSpanBoundary
-  ) {
-    return "full_sentence_pair"
   }
 
   if (

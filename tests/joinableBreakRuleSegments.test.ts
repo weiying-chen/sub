@@ -247,16 +247,21 @@ describe("joinableBreakRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
-  it("does not flag when both sides are full sentences", () => {
+  it("flags when both sides are short full sentences", () => {
     const text = [
-      "00:18:57:11\t00:18:59:05\tMarker",
-      "I'd do the opposite.",
-      "00:18:59:05\t00:19:00:29\tMarker",
-      "So there was a lot of tension.",
+      "00:41:14:23\t00:41:17:20\t他很喜歡那種滿足感",
+      "That's a real shame.",
+      "00:41:17:20\t00:41:20:07\t可是這限制了他的創造力",
+      "It limits their creativity.",
     ].join("\n")
 
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
-    expect(metrics).toHaveLength(0)
+    expect(metrics).toHaveLength(1)
+    expect(metrics[0]).toMatchObject({
+      type: "JOINABLE_BREAK",
+      text: "That's a real shame.",
+      nextText: "It limits their creativity.",
+    })
   })
 
   it("does not flag comma-continuation chain as joinable break", () => {

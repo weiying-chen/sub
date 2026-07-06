@@ -961,7 +961,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(translations.some((line) => line.endsWith("U.S.,"))).toBe(true)
   })
 
-  it("does not leave pronoun contractions stranded at line end", () => {
+  it("uses copular fallback before pronoun-contraction tails", () => {
   const split = __testTakeLine(
     "It was the strangest result he'd ever seen.",
     42,
@@ -969,8 +969,8 @@ describe("fillSelectedTimestampLines", () => {
     false
   )
 
-  expect(split.line.endsWith("he'd")).toBe(false)
-  expect(split.line.includes("he'd ever")).toBe(true)
+  expect(split.line).toBe("It")
+  expect(split.rest).toBe("was the strangest result he'd ever seen.")
   })
 
   it("keeps 'like that' together", () => {
@@ -1125,7 +1125,21 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("does not keep trailing 'that' before pronoun-led clauses", () => {
+  it("moves copular before that-clauses to the next line", () => {
+  const split = __testTakeLine(
+    "The main reason is that we've replaced art education in our schools with Chinese, English, and math.",
+    54,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("The main reason")
+  expect(split.rest).toBe(
+    "is that we've replaced art education in our schools with Chinese, English, and math."
+  )
+  })
+
+  it("moves trailing copular before pronoun-led that clauses", () => {
   const split = __testTakeLine(
     "The biggest benefit is that it opens up my perspective.",
     22,
@@ -1133,8 +1147,8 @@ describe("fillSelectedTimestampLines", () => {
     false
   )
 
-  expect(split.line).toBe("The biggest benefit is")
-  expect(split.rest).toBe("that it opens up my perspective.")
+  expect(split.line).toBe("The biggest benefit")
+  expect(split.rest).toBe("is that it opens up my perspective.")
   })
 
   it("does not keep trailing 'that' after reporting verbs with audience noun objects", () => {
@@ -1149,7 +1163,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("that my hands and feet are always cold.")
   })
 
-  it("does not keep trailing 'that' before indefinite-subject clauses when it fits", () => {
+  it("moves trailing copular before indefinite-subject that clauses", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -1160,19 +1174,19 @@ describe("fillSelectedTimestampLines", () => {
     lines,
     selected,
     "The truth is that something changed.",
-    { maxChars: 25, inline: false }
+    { maxChars: 30, inline: false }
   )
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "The truth is",
+    "The truth",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "that something changed.",
+    "is that something changed.",
   ])
   expect(result.remaining).toBe("")
   })
 
-  it("does not keep trailing 'that' before bare indefinite-subject clauses when it fits", () => {
+  it("moves trailing copular before bare indefinite-subject that clauses", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -1188,9 +1202,9 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "The truth is",
+    "The truth",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "that nobody noticed.",
+    "is that nobody noticed.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -2654,15 +2668,15 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("in ")).toBe(true)
   })
 
-  it("moves trailing 'in' before bare noun phrases", () => {
+  it("uses copular fallback before later preposition splits", () => {
   const split = __testTakeLine(
     "These are probably the three biggest risks in personal branding.",
     54,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith(" in")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("in personal ")).toBe(true)
+  expect(split.line).toBe("These")
+  expect(split.rest).toBe("are probably the three biggest risks in personal branding.")
   })
 
   it("avoids preposition split when a near modal break is better", () => {

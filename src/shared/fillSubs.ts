@@ -713,10 +713,7 @@ function findRightmostCopularBreak(window: string, nextText: string): number {
     }
     const tailAfterCopular = (window.slice(end) + nextText).trimStart()
     if (!tailAfterCopular) continue
-    if (
-      !COPULAR_VERB_START_RE.test(tailAfterCopular) &&
-      !COPULAR_CLAUSE_START_RE.test(tailAfterCopular)
-    ) {
+    if (!COPULAR_VERB_START_RE.test(tailAfterCopular)) {
       continue
     }
 

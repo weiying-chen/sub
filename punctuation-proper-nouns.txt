@@ -1,5 +1,6 @@
 # One proper noun per line.
 English
+Apple
 Christmas
 Tzu Chi
 Guanyin Bodhisattva

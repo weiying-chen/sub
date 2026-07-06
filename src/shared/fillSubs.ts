@@ -95,6 +95,12 @@ function isNoSplitAbbrevEnding(text: string, matcher: RegExp | null): boolean {
   return matcher.test(text)
 }
 
+function startsSentenceAfterNoSplitAbbrev(text: string): boolean {
+  return /^(?:I|It|This|That|These|Those|He|She|They|We|You|There|Here|But|So|And)\b/.test(
+    text.trimStart()
+  )
+}
+
 function findConfiguredDottedAbbreviationSuffix(
   left: string,
   right: string,
@@ -169,6 +175,18 @@ function isDottedInitialNameSplit(left: string, right: string): boolean {
   const rightTrimmed = right.trimStart()
   return /(?:^|\s)(?:[A-Z]\.){2,}$/.test(leftTrimmed) &&
     /^[A-Z][a-z]+(?:['-][A-Za-z]+)*(?:\b|,)/.test(rightTrimmed)
+}
+
+function shouldProtectDottedInitialNameSplit(
+  left: string,
+  right: string,
+  noSplitAbbrevMatcher: RegExp | null
+): boolean {
+  if (!isDottedInitialNameSplit(left, right)) return false
+  return !(
+    isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher) &&
+    startsSentenceAfterNoSplitAbbrev(right)
+  )
 }
 
 function endsWithIncompleteLeadIn(text: string): boolean {
@@ -356,10 +374,14 @@ function findRightmostStrongPunct(
     const right = window.slice(cut).trimStart()
     if (!left || !right) continue
     if (ch === ':' && isClockTimeInnerSplit(left, right)) continue
-    if (ch === '.' && isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher)) continue
+    if (
+      ch === '.' &&
+      isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher) &&
+      !startsSentenceAfterNoSplitAbbrev(right)
+    ) continue
     if (ch === '.' && isPartialDottedAcronymSplit(left, right)) continue
     if (ch === '.' && isMiddleInitialNameSplit(left, right)) continue
-    if (ch === '.' && isDottedInitialNameSplit(left, right)) continue
+    if (ch === '.' && shouldProtectDottedInitialNameSplit(left, right, noSplitAbbrevMatcher)) continue
     if (ch === '.' && isDecimalInnerSplit(left, right)) continue
     if (ch === '.' && isMeridiemInnerSplit(left, right)) continue
     return cut
@@ -854,10 +876,14 @@ function findSentenceBoundaryCut(
     const left = window.slice(0, cut).trimEnd()
     const right = (window.slice(cut) + nextText).trimStart()
     if (!left || !right) continue
-    if (ch === '.' && isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher)) continue
+    if (
+      ch === '.' &&
+      isNoSplitAbbrevEnding(left, noSplitAbbrevMatcher) &&
+      !startsSentenceAfterNoSplitAbbrev(right)
+    ) continue
     if (ch === '.' && isPartialDottedAcronymSplit(left, right)) continue
     if (ch === '.' && isMiddleInitialNameSplit(left, right)) continue
-    if (ch === '.' && isDottedInitialNameSplit(left, right)) continue
+    if (ch === '.' && shouldProtectDottedInitialNameSplit(left, right, noSplitAbbrevMatcher)) continue
     if (ch === '.' && isDecimalInnerSplit(left, right)) continue
     if (ch === '.' && isMeridiemInnerSplit(left, right)) continue
     if (
@@ -2019,6 +2045,9 @@ function adjustSplitForNoSplitAbbrev(
     return { line, rest }
   }
   if (!/^[A-Za-z]/.test(nextRest)) return { line: nextLine, rest: nextRest }
+  if (startsSentenceAfterNoSplitAbbrev(nextRest)) {
+    return { line: nextLine, rest: nextRest }
+  }
   if (endsWithMeridiemAbbrev(nextLine)) return { line: nextLine, rest: nextRest }
 
   const lastSpace = nextLine.lastIndexOf(' ')

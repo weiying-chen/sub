@@ -2204,7 +2204,7 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(result.line).toBe("Ph.D.")
-  expect(result.rest).toBe("but challenges remain.")
+  expect(result.rest).toBe("But challenges remain.")
   })
 
   it("keeps U.S. Supreme Court together as a phrase", () => {
@@ -2217,6 +2217,18 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.line).not.toMatch(/U\.S\.$/)
   expect(result.rest).toContain("U.S. Supreme Court.")
+  })
+
+  it("splits after U.S. when a new sentence starts", () => {
+  const result = __testTakeLine(
+    "I liked the U.S. It was chaotic.",
+    24,
+    /(?:^|\s)(?:Mr\.|Mrs\.|Ms\.|Dr\.|U\.S\.|a\.m\.|p\.m\.)$/i,
+    true
+  )
+
+  expect(result.line).toBe("I liked the U.S.")
+  expect(result.rest).toBe("It was chaotic.")
   })
 
   it("keeps 'according to' with its full phrase", () => {

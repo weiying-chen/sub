@@ -15,7 +15,6 @@ import { percentStyleRule } from "./percentStyleRule"
 import { punctuationRule } from "./punctuationRule"
 import { repeatedWordRule } from "./repeatedWordRule"
 import { repeatedPunctuationRule } from "./repeatedPunctuationRule"
-import { periodInCaptionRule } from "./periodInCaptionRule"
 import { spanGapRule } from "./spanGapRule"
 import { termVariantRule, type TermVariantEntry } from "./termVariantRule"
 import { timestampFormatRule } from "./timestampFormatRule"
@@ -92,9 +91,6 @@ function createSubsCommonRules(
   }
   if (isEnabled(enabled, "REPEATED_PUNCTUATION")) {
     rules.push(repeatedPunctuationRule())
-  }
-  if (isEnabled(enabled, "PERIOD_IN_CAPTION")) {
-    rules.push(periodInCaptionRule())
   }
   if (isEnabled(enabled, "DASH_STYLE")) {
     rules.push(dashStyleRule())

@@ -66,7 +66,6 @@ const RULE_OPTION_SPECS: Array<{
   { type: "PERCENT_STYLE", severity: "error" },
   { type: "DASH_STYLE", severity: "error" },
   { type: "QUOTE_STYLE", severity: "error" },
-  { type: "PERIOD_IN_CAPTION", severity: "error" },
   { type: "MIN_CPS", severity: "warn" },
   { type: "SPAN_GAP", severity: "warn" },
   { type: "MERGE_CANDIDATE", severity: "warn" },
@@ -105,7 +104,6 @@ const APPLICABLE_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Set<Findin
     "REPEATED_PUNCTUATION",
     "CAPITALIZATION",
     "TERM_VARIANT",
-    "PERIOD_IN_CAPTION",
   ]),
 }
 const DEFAULT_UI_ENABLED_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Finding["type"][]> = {
@@ -121,7 +119,6 @@ const DEFAULT_UI_ENABLED_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Fi
     "DASH_STYLE",
     "PERCENT_STYLE",
     "QUOTE_STYLE",
-    "PERIOD_IN_CAPTION",
   ],
 }
 const WARNING_RULE_TYPES = RULE_OPTIONS.filter((rule) => rule.severity === "warn").map(

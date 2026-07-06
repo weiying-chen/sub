@@ -221,9 +221,9 @@ describe("Sidebar", () => {
       "Percent format is incorrect",
       "Dash style is incorrect",
       "Quote style is incorrect",
-      "Period in caption is incorrect",
       "Reading speed is too low",
       "Translation line spans across a timing gap",
+      "Translation lines could be merged",
     ])
 
     const modalFindingLabels = new Set([
@@ -239,7 +239,6 @@ describe("Sidebar", () => {
       "Percent format is incorrect",
       "Dash style is incorrect",
       "Quote style is incorrect",
-      "Period in caption is incorrect",
       "Reading speed is too low",
       "Translation line spans across a timing gap",
       "Translation lines could be merged",
@@ -810,7 +809,6 @@ describe("Sidebar", () => {
       /^Percent format is incorrect/i,
       /^Dash style is incorrect/i,
       /^Quote style is incorrect/i,
-      /^Period in caption is incorrect/i,
       /^Reading speed is too low/i,
       /^Translation line spans across a timing gap/i,
       /^Translation lines could be merged/i,

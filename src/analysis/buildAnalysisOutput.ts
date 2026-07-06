@@ -10,7 +10,6 @@ import { numberStyleRule } from './numberStyleRule'
 import { punctuationRule } from './punctuationRule'
 import { repeatedWordRule } from './repeatedWordRule'
 import { repeatedPunctuationRule } from './repeatedPunctuationRule'
-import { periodInCaptionRule } from './periodInCaptionRule'
 import { superPeopleRule } from './superPeopleRule'
 import { termVariantRule, type TermVariantEntry } from './termVariantRule'
 import type { SegmentCtx, SegmentRule } from './segments'
@@ -115,7 +114,6 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     if (!enabled || enabled.has('NUMBER_STYLE')) rules.push(numberStyleRule())
     if (!enabled || enabled.has('DASH_STYLE')) rules.push(dashStyleRule())
     if (!enabled || enabled.has('QUOTE_STYLE')) rules.push(quoteStyleRule())
-    if (!enabled || enabled.has('PERIOD_IN_CAPTION')) rules.push(periodInCaptionRule())
     if (!enabled || enabled.has('PUNCTUATION')) {
       rules.push(
         newsSuperPunctuationRule({
@@ -137,7 +135,6 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     }
     if (!enabled || enabled.has('REPEATED_WORD')) rules.push(repeatedWordRule())
     if (!enabled || enabled.has('REPEATED_PUNCTUATION')) rules.push(repeatedPunctuationRule())
-    if (!enabled || enabled.has('PERIOD_IN_CAPTION')) rules.push(periodInCaptionRule())
     return rules
   }
 

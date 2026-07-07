@@ -68,12 +68,14 @@ function mergeForwardSegments(
 
   let endIndex = startIndex
   let endFrames = first.endFrames
+  let suppressCps = first.suppressCps ?? false
 
   while (endIndex + 1 < segments.length) {
     const next = segments[endIndex + 1]
     if (!hasTiming(next) || next.translation !== first.translation) break
     if (hasSegmentGap(lines, segments[endIndex], next, ignoreEmptyLines)) break
     endFrames = next.endFrames
+    suppressCps = suppressCps || (next.suppressCps ?? false)
     endIndex += 1
   }
 
@@ -85,6 +87,7 @@ function mergeForwardSegments(
     translation: first.translation,
     tsIndex: first.tsIndex,
     lineIndex: first.lineIndex,
+    suppressCps,
   }
 }
 
@@ -118,8 +121,7 @@ export function cpsRule(
       if (!run) return []
 
       const durationFrames = run.endFrames - run.startFrames
-      const cleaned = stripCpsSuppressionMarker(run.translation)
-      const charCount = cleaned.text.length
+      const charCount = run.translation.length
       const rawCps =
         durationFrames === 0 ? Infinity : (charCount * FPS) / durationFrames
       const cps = roundCpsToOneDecimal(rawCps)
@@ -128,13 +130,13 @@ export function cpsRule(
         type: 'CPS',
         lineIndex: run.lineIndex,
         tsLineIndex: run.tsIndex,
-        text: cleaned.text,
+        text: run.translation,
         cps,
         maxCps,
         minCps,
         durationFrames,
         charCount,
-        suppressCps: cleaned.suppressCps,
+        suppressCps: run.suppressCps,
       }
 
       return [metric]

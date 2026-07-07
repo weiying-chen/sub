@@ -1,9 +1,9 @@
+import { stripSuppressionMarker } from './suppressionMarker'
+
 export function stripCpsSuppressionMarker(text: string): {
   text: string
   suppressCps: boolean
 } {
-  if (!/(?:^|[ \t])#\s*$/.test(text)) {
-    return { text, suppressCps: false }
-  }
-  return { text: text.replace(/[ \t]*#\s*$/, ''), suppressCps: true }
+  const stripped = stripSuppressionMarker(text)
+  return { text: stripped.text, suppressCps: stripped.hasMarker }
 }

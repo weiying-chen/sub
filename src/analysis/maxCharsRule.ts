@@ -5,7 +5,7 @@ import {
   type ParseBlockOptions,
   parseBlockAt,
 } from '../shared/tsvRuns'
-import { stripCpsSuppressionMarker } from '../shared/cpsSuppression'
+import { stripSuppressionMarker } from '../shared/suppressionMarker'
 import type { CandidateLine, Segment, SegmentCtx, SegmentRule } from './segments'
 
 type MaxCharsRule = Rule & SegmentRule
@@ -15,7 +15,7 @@ function toMaxCharsMetric(
   lineText: string,
   maxChars: number
 ): MaxCharsMetric {
-  const cleaned = stripCpsSuppressionMarker(lineText)
+  const cleaned = stripSuppressionMarker(lineText)
   return {
     type: 'MAX_CHARS',
     lineIndex,

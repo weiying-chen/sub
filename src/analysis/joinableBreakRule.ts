@@ -4,7 +4,6 @@ import { hasEmptyLineBetween, type LineSource, type ParseBlockOptions } from "..
 import { DEFAULT_MAX_CHARS } from "../shared/maxChars"
 import { canJoinAdjacentText, normalizeJoinText } from "../shared/joinableText"
 import { looksLikeSentenceFragment } from "../shared/sentenceFragments"
-import { stripCpsSuppressionMarker } from "../shared/cpsSuppression"
 
 type JoinableBreakRuleOptions = ParseBlockOptions & {
   maxGapFrames?: number
@@ -183,8 +182,8 @@ export function joinableBreakRule(
     const gapFrames = next.startFrames - cur.endFrames
     if (gapFrames < 0 || gapFrames > maxGapFrames) return []
 
-    const curText = stripCpsSuppressionMarker(cur.translation).text
-    const nextText = stripCpsSuppressionMarker(next.translation).text
+    const curText = cur.translation
+    const nextText = next.translation
     const boundaryInfo = getBoundaryInfo(prev, cur, next, next2, curText, nextText)
     const boundaryClass = classifyBoundary(boundaryInfo, next, next2)
     if (boundaryClass !== "join_candidate") {

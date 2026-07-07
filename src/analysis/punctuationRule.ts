@@ -1,6 +1,6 @@
 import type { Rule, PunctuationMetric, RuleCtx } from './types'
 
-import { stripCpsSuppressionMarker } from '../shared/cpsSuppression'
+import { stripSuppressionMarker } from '../shared/suppressionMarker'
 import { createDoubleQuoteSpanTracker } from '../shared/doubleQuoteSpan'
 import { TSV_RE } from '../shared/subtitles'
 import { endsSentenceBoundary, startsWithOpenQuote } from './punctuationShared'
@@ -286,7 +286,7 @@ function collectCues(
     cues.push({
       start: m.groups.start,
       end: m.groups.end,
-      text: stripCpsSuppressionMarker(block.translation).text.trim(),
+      text: stripSuppressionMarker(block.translation).text.trim(),
       lineIndex: block.translationIndex,
       tsIndex: block.tsIndex,
       translationIndex: block.translationIndex,
@@ -306,7 +306,7 @@ function collectParenthesisLineMetrics(
   for (let i = 0; i < src.lineCount; i += 1) {
     const block = parseBlockAt(src, i, options)
     if (!block) continue
-    const blockTranslation = stripCpsSuppressionMarker(block.translation).text.trim()
+    const blockTranslation = stripSuppressionMarker(block.translation).text.trim()
     if (
       startsWithOpeningParenthesis(blockTranslation) &&
       endsWithClosingParenthesis(blockTranslation) &&
@@ -319,7 +319,7 @@ function collectParenthesisLineMetrics(
       if (seen.has(lineIndex)) continue
       seen.add(lineIndex)
 
-      const text = stripCpsSuppressionMarker(block.translationLines[idx] ?? '').text
+      const text = stripSuppressionMarker(block.translationLines[idx] ?? '').text
       const trimmed = text.trim()
       if (!trimmed) continue
       if (hasBalancedParentheses(trimmed)) continue

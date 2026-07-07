@@ -67,9 +67,16 @@ const WORD_LIST = [
   ...Object.keys(SCALES),
   'and',
 ].join('|')
+const NUMBER_WORD_LIST = [
+  ...Object.keys(SMALL),
+  ...Object.keys(TENS),
+  ...Object.keys(SCALES),
+].join('|')
 
 const DECADE_WORD_RE = new RegExp(`\\b(?:${Object.keys(DECADE_WORDS).join('|')})\\b`, 'gi')
 const DIGIT_TOKEN_RE_SOURCE = '\\b\\d{1,3}(?:,\\d{3})+(?:\\.\\d+)?\\b|\\b\\d+(?:\\.\\d+)?\\b'
+const WORD_NUMBER_TOKEN_RE_SOURCE =
+  `\\b(?:${NUMBER_WORD_LIST})(?:[\\s-]+(?:${WORD_LIST}))*\\b`
 const NUMBER_TOKEN_RE_SOURCE =
   `(?:${DIGIT_TOKEN_RE_SOURCE}|(?:${WORD_LIST})(?:[\\s-]+(?:${WORD_LIST}))*)`
 const COORDINATED_NUMBER_LIST_RE = new RegExp(
@@ -218,6 +225,55 @@ function isStatisticalRatioToken(text: string, index: number, length: number) {
   const prefix = text.slice(0, index)
   const suffix = text.slice(index + length)
   return /\bin(?:\s+a)?\s+$/i.test(prefix) || /^\s+in\b/i.test(suffix)
+}
+
+function parseNumberWords(rawToken: string): number | null {
+  const parts = rawToken
+    .toLowerCase()
+    .split(/[\s-]+/)
+    .filter((part) => part !== '' && part !== 'and')
+  if (parts.length === 0) return null
+
+  let total = 0
+  let current = 0
+  let sawNumericWord = false
+  let sawTensOrScale = false
+
+  for (const part of parts) {
+    const small = SMALL[part]
+    if (small != null) {
+      current += small
+      sawNumericWord = true
+      continue
+    }
+
+    const tens = TENS[part]
+    if (tens != null) {
+      current += tens
+      sawNumericWord = true
+      sawTensOrScale = true
+      continue
+    }
+
+    const scale = SCALES[part]
+    if (scale != null) {
+      if (current === 0) return null
+      current *= scale
+      if (scale >= 1000) {
+        total += current
+        current = 0
+      }
+      sawNumericWord = true
+      sawTensOrScale = true
+      continue
+    }
+
+    return null
+  }
+
+  if (!sawNumericWord) return null
+  if (parts.length > 1 && !sawTensOrScale) return null
+  return total + current
 }
 
 function getCoordinatedNumberListSpans(text: string): Array<{ start: number; end: number }> {
@@ -408,6 +464,31 @@ function collectMetrics(
       found: 'words',
       expected: 'digits',
       token: match[0],
+      text: fullText,
+    })
+  }
+
+  const wordNumberRe = new RegExp(WORD_NUMBER_TOKEN_RE_SOURCE, 'gi')
+  while ((match = wordNumberRe.exec(text))) {
+    const rawToken = match[0]
+    const value = parseNumberWords(rawToken)
+    if (value == null || value <= 10) continue
+    if (isAgeAdjective(text, match.index, rawToken.length)) continue
+    if (isWithinAnySpan(coordinatedListSpans, match.index, rawToken.length)) continue
+    if (isStatisticalRatioToken(text, match.index, rawToken.length)) continue
+    if (isPercentToken(text, match.index, rawToken.length)) continue
+    if (isTemperatureUnitToken(text, match.index, rawToken.length)) continue
+    if (isSentenceStart(text, match.index, allowLeadingDoubleQuote)) continue
+
+    metrics.push({
+      type: 'NUMBER_STYLE',
+      ruleCode: 'LARGE_NUMBER_AS_WORDS',
+      lineIndex: anchorIndex,
+      index: match.index,
+      value,
+      found: 'words',
+      expected: 'digits',
+      token: rawToken,
       text: fullText,
     })
   }

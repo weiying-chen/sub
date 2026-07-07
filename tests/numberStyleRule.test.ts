@@ -35,19 +35,26 @@ describe("numberStyleRule", () => {
       "It was 80 million dollars.",
       "00:00:14:00\t00:00:15:00\tMarker",
       "It was eight million dollars.",
+      "00:00:15:00\t00:00:16:00\tMarker",
+      "the past twenty years.",
     ].join("\n")
 
     const metrics = analyzeLines(text, [numberStyleRule()])
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
     const tokens = findings.map((f) => f.token).sort()
-    expect(tokens).toEqual(["12", "5"])
+    expect(tokens).toEqual(["12", "5", "eight million", "eleven", "twenty"])
 
     const byToken = new Map(findings.map((f) => [f.token, f]))
     expect(byToken.get("5")?.expected).toBe("words")
     expect(byToken.get("5")?.found).toBe("digits")
-    expect(byToken.get("eleven")).toBeUndefined()
+    expect(byToken.get("eleven")?.expected).toBe("digits")
+    expect(byToken.get("eleven")?.found).toBe("words")
     expect(byToken.get("12")?.expected).toBe("words")
     expect(byToken.get("12")?.found).toBe("digits")
+    expect(byToken.get("twenty")?.expected).toBe("digits")
+    expect(byToken.get("twenty")?.found).toBe("words")
+    expect(byToken.get("Twenty two")).toBeUndefined()
+    expect(byToken.get("eight million")?.expected).toBe("digits")
   })
 
   it("ignores digit ranges in statistical age phrases", () => {

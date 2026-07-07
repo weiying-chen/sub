@@ -16,11 +16,12 @@ describe("analyzeTextByType", () => {
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
 
     const tokens = findings.map((f) => f.token).sort()
-    expect(tokens).toEqual(["5"])
+    expect(tokens).toEqual(["5", "eleven"])
 
     const byToken = new Map(findings.map((f) => [f.token, f]))
     expect(byToken.get("5")?.lineIndex).toBe(1)
-    expect(byToken.get("eleven")).toBeUndefined()
+    expect(byToken.get("eleven")?.expected).toBe("digits")
+    expect(byToken.get("eleven")?.found).toBe("words")
   })
 
   it("normalizes CRLF input text for subs parsing", () => {
@@ -35,11 +36,12 @@ describe("analyzeTextByType", () => {
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
 
     const tokens = findings.map((f) => f.token).sort()
-    expect(tokens).toEqual(["5"])
+    expect(tokens).toEqual(["5", "eleven"])
 
     const byToken = new Map(findings.map((f) => [f.token, f]))
     expect(byToken.get("5")?.lineIndex).toBe(1)
-    expect(byToken.get("eleven")).toBeUndefined()
+    expect(byToken.get("eleven")?.expected).toBe("digits")
+    expect(byToken.get("eleven")?.found).toBe("words")
   })
 
   it("uses news parsing (VO lines as candidates)", () => {
@@ -54,11 +56,12 @@ describe("analyzeTextByType", () => {
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
 
     const tokens = findings.map((f) => f.token).sort()
-    expect(tokens).toEqual(["5"])
+    expect(tokens).toEqual(["5", "eleven"])
 
     const byToken = new Map(findings.map((f) => [f.token, f]))
     expect(byToken.get("5")?.lineIndex).toBe(1)
-    expect(byToken.get("eleven")).toBeUndefined()
+    expect(byToken.get("eleven")?.expected).toBe("digits")
+    expect(byToken.get("eleven")?.found).toBe("words")
   })
 
   it("ignores free-text lines for subs parsing", () => {
@@ -89,7 +92,7 @@ describe("analyzeTextByType", () => {
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
 
     const tokens = findings.map((f) => f.token).sort()
-    expect(tokens).toEqual(["5"])
+    expect(tokens).toEqual(["5", "eleven"])
   })
 
   it("flags English lines inside mixed news paragraphs", () => {

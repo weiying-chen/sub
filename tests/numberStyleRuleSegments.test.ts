@@ -16,6 +16,8 @@ describe("numberStyleRule (segments)", () => {
       { lineIndex: 15, translation: "We raised 1,000 dollars." },
       { lineIndex: 16, translation: "If we can make it five-two-seven." },
       { lineIndex: 17, translation: "About 10,000 people attended." },
+      { lineIndex: 18, translation: "the past twenty years." },
+      { lineIndex: 19, translation: "It was eight million dollars." },
     ].map((segment) => ({
       ...segment,
       targetLines: [
@@ -26,18 +28,25 @@ describe("numberStyleRule (segments)", () => {
     const metrics = analyzeSegments(segments, [numberStyleRule()])
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
     const tokens = findings.map((f) => f.token).sort()
-    expect(tokens).toEqual(["12", "5"])
+    expect(tokens).toEqual(["12", "5", "eight million", "eleven", "twenty"])
 
     const byToken = new Map(findings.map((f) => [f.token, f]))
     expect(byToken.get("5")?.expected).toBe("words")
     expect(byToken.get("5")?.found).toBe("digits")
     expect(byToken.get("5")?.ruleCode).toBe("SMALL_NUMBER_AS_DIGITS")
     expect(byToken.get("5")?.text).toBe("This is 5 examples.")
-    expect(byToken.get("eleven")).toBeUndefined()
+    expect(byToken.get("eleven")?.expected).toBe("digits")
+    expect(byToken.get("eleven")?.found).toBe("words")
+    expect(byToken.get("eleven")?.ruleCode).toBe("LARGE_NUMBER_AS_WORDS")
     expect(byToken.get("12")?.expected).toBe("words")
     expect(byToken.get("12")?.found).toBe("digits")
     expect(byToken.get("12")?.ruleCode).toBe("SMALL_NUMBER_AS_DIGITS")
     expect(byToken.get("12")?.text).toBe("12 birds landed.")
+    expect(byToken.get("twenty")?.expected).toBe("digits")
+    expect(byToken.get("twenty")?.found).toBe("words")
+    expect(byToken.get("twenty")?.ruleCode).toBe("LARGE_NUMBER_AS_WORDS")
+    expect(byToken.get("Twenty two")).toBeUndefined()
+    expect(byToken.get("eight million")?.expected).toBe("digits")
   })
 
   it("ignores non-English text blocks", () => {

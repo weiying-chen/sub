@@ -5,9 +5,25 @@ import {
   type ParseBlockOptions,
   parseBlockAt,
 } from '../shared/tsvRuns'
+import { stripCpsSuppressionMarker } from '../shared/cpsSuppression'
 import type { CandidateLine, Segment, SegmentCtx, SegmentRule } from './segments'
 
 type MaxCharsRule = Rule & SegmentRule
+
+function toMaxCharsMetric(
+  lineIndex: number,
+  lineText: string,
+  maxChars: number
+): MaxCharsMetric {
+  const cleaned = stripCpsSuppressionMarker(lineText)
+  return {
+    type: 'MAX_CHARS',
+    lineIndex,
+    text: cleaned.text,
+    maxAllowed: maxChars,
+    actual: cleaned.text.length,
+  }
+}
 
 function getTextAndAnchor(
   ctx: RuleCtx | SegmentCtx,
@@ -74,27 +90,13 @@ export const maxCharsRule = (
         : [{ lineIndex: extracted.anchorIndex, lineText: extracted.text }]
       return candidates
         .filter((candidate) => candidate.lineText.trim() !== '')
-        .map(
-          (candidate): MaxCharsMetric => ({
-            type: 'MAX_CHARS',
-            lineIndex: candidate.lineIndex,
-            text: candidate.lineText,
-            maxAllowed: maxChars,
-            actual: candidate.lineText.length,
-          })
+        .map((candidate) =>
+          toMaxCharsMetric(candidate.lineIndex, candidate.lineText, maxChars)
         )
     }
 
     return extracted.lines
       .filter((line) => line.lineText.trim() !== '')
-      .map(
-        (line): MaxCharsMetric => ({
-          type: 'MAX_CHARS',
-          lineIndex: line.lineIndex,
-          text: line.lineText,
-          maxAllowed: maxChars,
-          actual: line.lineText.length,
-        })
-      )
+      .map((line) => toMaxCharsMetric(line.lineIndex, line.lineText, maxChars))
   }) as MaxCharsRule
 }

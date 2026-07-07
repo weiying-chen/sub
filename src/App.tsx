@@ -867,6 +867,22 @@ export default function App({
     }
   }, [view])
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Enter" || !event.shiftKey || (!event.ctrlKey && !event.metaKey)) {
+        return
+      }
+
+      event.preventDefault()
+      void handleInsertTranslation()
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [handleInsertTranslation])
+
   const handleAnalysisTypeChange = useCallback(
     (nextType: AppAnalysisType) => {
       if (nextType === analysisType) return
@@ -903,7 +919,7 @@ export default function App({
           <button
             type="button"
             className="topbar-fill-subs-button"
-            title="Insert translation into selected timestamps from clipboard"
+            title="Insert translation into selected timestamps from clipboard (Ctrl+Shift+Enter)"
             onClick={() => {
               void handleInsertTranslation()
             }}

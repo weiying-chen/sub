@@ -337,7 +337,7 @@ describe("Sidebar", () => {
     expect(insertTranslationButton).toHaveClass("topbar-fill-subs-button")
     expect(insertTranslationButton).toHaveAttribute(
       "title",
-      "Insert translation into selected timestamps from clipboard"
+      "Insert translation into selected timestamps from clipboard (Ctrl+Shift+Enter)"
     )
     expect(insertTranslationButton.querySelector(".la-magic")).not.toBeNull()
     expect(insertTranslationButton.querySelector(".la-paste")).toBeNull()
@@ -368,6 +368,35 @@ describe("Sidebar", () => {
     render(<App />)
 
     fireEvent.click(screen.getByRole("button", { name: "Insert translation" }))
+
+    await waitFor(() => {
+      expect(readText).toHaveBeenCalledTimes(1)
+      expect(fillSubsSpies.fillSelectedTimestampSubs).toHaveBeenCalledTimes(1)
+    })
+
+    expect(fillSubsSpies.fillSelectedTimestampSubs.mock.calls[0]?.[0]).toBe(cmSpies.lastView)
+    expect(fillSubsSpies.fillSelectedTimestampSubs.mock.calls[0]?.[1]).toBe(
+      "Copied translation text."
+    )
+    expect(writeText).not.toHaveBeenCalled()
+  })
+
+  it("reads clipboard text and fills the current selection with the keyboard shortcut", async () => {
+    const readText = vi.fn().mockResolvedValue("Copied translation text.")
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(window.navigator, "clipboard", {
+      value: { readText, writeText },
+      configurable: true,
+    })
+
+    render(<App />)
+
+    fireEvent.keyDown(window, {
+      key: "Enter",
+      code: "Enter",
+      ctrlKey: true,
+      shiftKey: true,
+    })
 
     await waitFor(() => {
       expect(readText).toHaveBeenCalledTimes(1)

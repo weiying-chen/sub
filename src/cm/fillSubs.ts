@@ -1,8 +1,10 @@
 import type { EditorView } from '@codemirror/view'
+import { EditorSelection } from '@codemirror/state'
 import {
   fillSelectedTimestampLines,
   type FillSubsOptions,
 } from '../shared/fillSubs'
+import { TSV_RE } from '../shared/subtitles'
 import abbreviationsText from '../../punctuation-abbreviations.txt?raw'
 
 function parseTextList(raw: string): string[] {
@@ -28,6 +30,45 @@ function getSelectedLineIndices(view: EditorView): Set<number> {
   }
 
   return selected
+}
+
+function getOffsetAtLineEnd(lines: string[], lineIndex: number): number {
+  let offset = 0
+  for (let i = 0; i < lineIndex; i += 1) {
+    offset += (lines[i]?.length ?? 0) + 1
+  }
+  return offset + (lines[lineIndex]?.length ?? 0)
+}
+
+function getFilledBlockEndOffset(
+  originalLines: string[],
+  selectedLineIndices: Set<number>,
+  filledLines: string[],
+  fallback: number
+): number {
+  const selectedTimestampLines = originalLines.filter((line, index) => {
+    return selectedLineIndices.has(index) && TSV_RE.test(line)
+  })
+  if (selectedTimestampLines.length === 0) return fallback
+
+  let selectedTimestampIndex = 0
+  let lastMatchedLineIndex = -1
+  for (let i = 0; i < filledLines.length; i += 1) {
+    if (filledLines[i] !== selectedTimestampLines[selectedTimestampIndex]) continue
+    lastMatchedLineIndex = i
+    selectedTimestampIndex += 1
+    if (selectedTimestampIndex >= selectedTimestampLines.length) break
+  }
+  if (lastMatchedLineIndex < 0) return fallback
+
+  let endLineIndex = lastMatchedLineIndex
+  for (let i = lastMatchedLineIndex + 1; i < filledLines.length; i += 1) {
+    const line = filledLines[i] ?? ''
+    if (line.trim() === '' || TSV_RE.test(line)) break
+    endLineIndex = i
+  }
+
+  return getOffsetAtLineEnd(filledLines, endLineIndex)
 }
 
 export function fillSelectedTimestampSubs(
@@ -59,8 +100,18 @@ export function fillSelectedTimestampSubs(
   }
 
   if (nextText !== docText) {
+    const cursor = Math.min(
+      getFilledBlockEndOffset(
+        lines,
+        selectedLineIndices,
+        nextText.split('\n'),
+        view.state.selection.main.from
+      ),
+      nextText.length
+    )
     view.dispatch({
       changes: { from: 0, to: view.state.doc.length, insert: nextText },
+      selection: EditorSelection.cursor(cursor),
     })
   }
 

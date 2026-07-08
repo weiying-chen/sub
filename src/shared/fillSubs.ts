@@ -1,3 +1,4 @@
+import { isSubsCommentLine } from './tsvRuns'
 import { FPS, MAX_CPS, TSV_RE, parseTimecodeToFrames } from './subtitles'
 import { DEFAULT_MAX_CHARS } from './maxChars'
 import {
@@ -1947,6 +1948,7 @@ function isOverwrittenSubtitleLine(
 ): boolean {
   if (preserveExisting) return false
   if ((lines[index] ?? '').trim() === '') return false
+  if (isSubsCommentLine(lines[index] ?? '')) return false
   if (isTimestampRow(lines[index] ?? '')) return false
   for (let i = index - 1; i >= 0; i -= 1) {
     const line = lines[i] ?? ''

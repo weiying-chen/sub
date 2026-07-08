@@ -83,6 +83,29 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("preserves subtitle comments when overwriting selected timestamps", () => {
+  const lines = [
+    "00:00:01:00\t00:00:03:00\tMarker",
+    "// A slide of a finger pressing a phone",
+    "00:00:03:00\t00:00:05:00\tMarker",
+    "Old translated line",
+  ]
+  const selected = new Set([0, 2])
+
+  const result = fillSelectedTimestampLines(lines, selected, "Hello world", {
+    inline: false,
+  })
+
+  expect(result.lines).toEqual([
+    "00:00:01:00\t00:00:03:00\tMarker",
+    "Hello world",
+    "// A slide of a finger pressing a phone",
+    "00:00:03:00\t00:00:05:00\tMarker",
+    "Hello world",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
   it("skips timestamps with existing subtitle text when preserveExisting is enabled", () => {
   const lines = [
     "00:00:01:00\t00:00:03:00\tMarker",

@@ -1,6 +1,7 @@
 import type { BlockStructureMetric } from './types'
 import type { SegmentCtx, SegmentRule } from './segments'
 
+import { isSubsCommentLine } from '../shared/tsvRuns'
 import { TSV_RE } from '../shared/subtitles'
 
 type BlockStructureRuleOptions = {
@@ -33,10 +34,17 @@ function findTranslationIndex(
   ignoreEmptyLines: boolean
 ): number | null {
   let translationIndex = tsIndex + 1
-  if (ignoreEmptyLines) {
-    while (translationIndex < lines.length && (lines[translationIndex] ?? '').trim() === '') {
+  while (translationIndex < lines.length) {
+    const line = lines[translationIndex] ?? ''
+    if (isSubsCommentLine(line)) {
       translationIndex += 1
+      continue
     }
+    if (ignoreEmptyLines && line.trim() === '') {
+      translationIndex += 1
+      continue
+    }
+    break
   }
 
   const translationLine = lines[translationIndex] ?? ''

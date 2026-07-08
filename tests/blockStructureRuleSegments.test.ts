@@ -109,4 +109,30 @@ describe("blockStructureRule (segments)", () => {
 
     expect(findings).toHaveLength(0)
   })
+
+  it("does not count subtitle comments as translations", () => {
+    const text = [
+      "00:01:14:21\t00:01:16:16\t你拿起手機",
+      "00:01:16:16\t00:01:18:07\t想要拍一張照片",
+      "00:01:18:07\t00:01:20:07\t上傳到臉書上面",
+      "// A slide of a finger pressing a phone",
+      "00:01:20:07\t00:01:22:14\t可是突然沉默了兩秒鐘",
+      "00:01:22:14\t00:01:23:22\t你心想",
+      "",
+      "00:01:32:07\t00:01:33:10\t隔天醒來",
+      "The next translated section starts here.",
+    ].join("\n")
+
+    const findings = getFindings(
+      analyzeTextByType(
+        text,
+        "subs",
+        createSubsSegmentRules({
+          enabledFindingTypes: ["BLOCK_STRUCTURE"],
+        })
+      )
+    )
+
+    expect(findings).toHaveLength(0)
+  })
 })

@@ -86,6 +86,10 @@ type BoundaryInfo = {
   nextMatchesNext2: boolean
 }
 
+function isSameTranslationText(left: string, right: string): boolean {
+  return normalizeJoinText(left) === normalizeJoinText(right)
+}
+
 function getBoundaryInfo(
   prev: Segment | undefined,
   cur: Segment,
@@ -184,6 +188,8 @@ export function joinableBreakRule(
 
     const curText = cur.translation
     const nextText = next.translation
+    if (isSameTranslationText(curText, nextText)) return []
+
     const boundaryInfo = getBoundaryInfo(prev, cur, next, next2, curText, nextText)
     const boundaryClass = classifyBoundary(boundaryInfo, next, next2)
     if (boundaryClass !== "join_candidate") {

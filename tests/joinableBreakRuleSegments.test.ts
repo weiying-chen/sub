@@ -49,6 +49,18 @@ describe("joinableBreakRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
+  it("does not flag adjacent identical full-sentence translations", () => {
+    const text = [
+      "00:03:20:13\t00:03:21:05\t沒有",
+      "No. Reading is easy.",
+      "00:03:21:05\t00:03:22:14\t閱讀很簡單",
+      "No. Reading is easy.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(0)
+  })
+
   it("ignores trailing CPS suppression markers for sentence checks", () => {
     const text = [
       "00:03:21:08\t00:03:23:14\t然後到了初中那一段",

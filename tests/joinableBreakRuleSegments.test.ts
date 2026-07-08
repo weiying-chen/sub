@@ -61,6 +61,18 @@ describe("joinableBreakRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
+  it("does not flag manually suppressed countdown cues", () => {
+    const text = [
+      "00:05:06:14\t00:05:07:16\t五",
+      "Five. #",
+      "00:05:07:16\t00:05:08:24\t四",
+      "Four. #",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(0)
+  })
+
   it("ignores trailing CPS suppression markers for sentence checks", () => {
     const text = [
       "00:03:21:08\t00:03:23:14\t然後到了初中那一段",

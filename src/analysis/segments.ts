@@ -31,6 +31,7 @@ export type Segment = {
   translation: string
   rawTranslation?: string
   suppressCps?: boolean
+  suppressSuggestions?: boolean
   blockType?: 'vo' | 'super' | 'people'
   skipTranslation?: boolean
   marker?: NewsMarker
@@ -78,6 +79,10 @@ function cleanTranslationLines(lines: CandidateLine[]): CandidateLine[] {
 
 function hasSuppressionMarker(text: string): boolean {
   return stripSuppressionMarker(text).hasMarker
+}
+
+export function suppressesBoundarySuggestions(segment: Segment | undefined): boolean {
+  return segment?.suppressSuggestions === true
 }
 
 export function analyzeSegments(
@@ -175,12 +180,14 @@ export function parseSubs(
     }))
     const targetLines = cleanTranslationLines(rawTargetLines)
     const skipAllRules = isCaptionBlock(translationLines)
+    const suppressSuggestions = hasSuppressionMarker(block.translation)
     segments.push({
       lineIndex: block.translationIndex,
       lineIndexEnd: block.translationIndices[block.translationIndices.length - 1] ?? block.translationIndex,
       translation: targetLines.map((line) => line.lineText).join(''),
       rawTranslation: block.translation,
-      suppressCps: hasSuppressionMarker(block.translation),
+      suppressCps: suppressSuggestions,
+      suppressSuggestions,
       tsIndex: block.tsIndex,
       translationIndex: block.translationIndex,
       startFrames: block.startFrames,
@@ -225,6 +232,7 @@ export function parseText(text: string): Segment[] {
       translation: cleaned.text,
       rawTranslation: raw,
       suppressCps: cleaned.hasMarker,
+      suppressSuggestions: cleaned.hasMarker,
       targetLines: [{ lineIndex: i, lineText: cleaned.text, rawLineText: raw }],
       rawTargetLines: [{ lineIndex: i, lineText: raw }],
     })
@@ -263,13 +271,15 @@ export function parseNews(text: string): Segment[] {
     const lineIndexEnd = anchorLines[anchorLines.length - 1].lineIndex
     const cleanedTargetBuffer = cleanTranslationLines(targetBuffer)
     const rawTranslation = targetBuffer.map((line) => line.lineText.trim()).join(' ')
+    const suppressSuggestions = hasSuppressionMarker(rawTranslation)
     segments.push({
       lineIndex,
       lineIndexEnd,
       marker: currentMarker,
       translation: cleanedTargetBuffer.map((line) => line.lineText.trim()).join(' '),
       rawTranslation,
-      suppressCps: hasSuppressionMarker(rawTranslation),
+      suppressCps: suppressSuggestions,
+      suppressSuggestions,
       sourceText: sourceBuffer.map((line) => line.lineText.trim()).join(' '),
       sourceLines: sourceBuffer,
       targetLines: cleanedTargetBuffer,
@@ -292,13 +302,15 @@ export function parseNews(text: string): Segment[] {
     const entry = parseSuperPersonEntry(superPeopleBuffer)
     const cleanedSuperPeopleBuffer = cleanTranslationLines(superPeopleBuffer)
     const rawTranslation = superPeopleBuffer.map((line) => line.lineText.trim()).join(' ')
+    const suppressSuggestions = hasSuppressionMarker(rawTranslation)
 
     segments.push({
       lineIndex: first.lineIndex,
       lineIndexEnd: last.lineIndex,
       translation: cleanedSuperPeopleBuffer.map((line) => line.lineText.trim()).join(' '),
       rawTranslation,
-      suppressCps: hasSuppressionMarker(rawTranslation),
+      suppressCps: suppressSuggestions,
+      suppressSuggestions,
       blockType: 'people',
       targetLines: cleanedSuperPeopleBuffer,
       rawTargetLines: [...superPeopleBuffer],

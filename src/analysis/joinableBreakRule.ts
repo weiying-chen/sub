@@ -1,5 +1,6 @@
 import type { JoinableBreakMetric } from "./types"
 import type { Segment, SegmentCtx, SegmentRule } from "./segments"
+import { suppressesBoundarySuggestions } from "./segments"
 import { hasEmptyLineBetween, type LineSource, type ParseBlockOptions } from "../shared/tsvRuns"
 import { DEFAULT_MAX_CHARS } from "../shared/maxChars"
 import { canJoinAdjacentText, normalizeJoinText } from "../shared/joinableText"
@@ -169,6 +170,7 @@ export function joinableBreakRule(
     const next2 = ctx.segments[ctx.segmentIndex + 2]
     if (!next) return []
     if (!hasTiming(cur) || !hasTiming(next)) return []
+    if (suppressesBoundarySuggestions(cur) || suppressesBoundarySuggestions(next)) return []
 
     if (!ignoreEmptyLines && ctx.lines) {
       if (typeof cur.translationIndex !== "number" || typeof next.tsIndex !== "number") {

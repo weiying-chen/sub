@@ -24,6 +24,18 @@ describe("mergeCandidateRule (segments)", () => {
     expect(finding.gapFrames).toBe(30)
   })
 
+  it("does not flag manually suppressed countdown cues", () => {
+    const text = [
+      "00:05:06:14\t00:05:07:16\t五",
+      "Five. #",
+      "00:05:07:16\t00:05:08:24\t四",
+      "Four. #",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [mergeCandidateRule()])
+    expect(metrics).toHaveLength(0)
+  })
+
   it("does not flag when text difference is above threshold", () => {
     const text = [
       "00:00:08:00\t00:00:09:00\tMarker",

@@ -1,5 +1,6 @@
 import type { MergeCandidateMetric } from "./types"
 import type { Segment, SegmentCtx, SegmentRule } from "./segments"
+import { suppressesBoundarySuggestions } from "./segments"
 import { hasEmptyLineBetween, type LineSource, type ParseBlockOptions } from "../shared/tsvRuns"
 
 type MergeCandidateRuleOptions = ParseBlockOptions & {
@@ -68,6 +69,7 @@ export function mergeCandidateRule(
     const next = ctx.segments[ctx.segmentIndex + 1]
     if (!next) return []
     if (!hasTiming(cur) || !hasTiming(next)) return []
+    if (suppressesBoundarySuggestions(cur) || suppressesBoundarySuggestions(next)) return []
 
     if (!ignoreEmptyLines && ctx.lines) {
       if (typeof cur.translationIndex !== "number" || typeof next.tsIndex !== "number") {

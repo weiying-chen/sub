@@ -1,5 +1,5 @@
 import { isSubsCommentLine } from './tsvRuns'
-import { FPS, MAX_CPS, TSV_RE, parseTimecodeToFrames } from './subtitles'
+import { FPS, TSV_RE, parseTimecodeToFrames } from './subtitles'
 import { DEFAULT_MAX_CHARS } from './maxChars'
 import {
   analyzeDoubleQuoteSpan,
@@ -35,7 +35,8 @@ const DEFAULT_NO_SPLIT_ABBREVIATIONS = [
   'Supt.',
   'U.S.',
 ]
-const MIN_TARGET_CPS = 10
+export const DEFAULT_FILL_MAX_TARGET_CPS = 16
+export const DEFAULT_FILL_MIN_TARGET_CPS = 10
 const MAX_SPAN_PER_LINE = 3
 const MIN_COMMA_SPLIT_CHARS = 12
 const MIN_COMMA_SPLIT_WORDS = 2
@@ -2477,8 +2478,8 @@ function chooseTargetCps(
   preserveExisting: boolean,
   crossBlockFill: boolean
 ): number {
-  const maxCps = MAX_CPS
-  const minCps = MIN_TARGET_CPS
+  const maxCps = DEFAULT_FILL_MAX_TARGET_CPS
+  const minCps = DEFAULT_FILL_MIN_TARGET_CPS
   const totalSlots = countFillableSlots(
     lines,
     selectedLineIndices,
@@ -2547,8 +2548,8 @@ export function fillSelectedTimestampLines(
 ): FillSubsResult {
   // Inline fill rules:
   // - Normalize input, split lines with list-aware punctuation.
-  // - Choose target CPS (<= MAX_CPS) via dry-run to fill max slots without overflow.
-  // - Enforce MIN_TARGET_CPS floor and MAX_SPAN_PER_LINE cap.
+  // - Choose target CPS (<= DEFAULT_FILL_MAX_TARGET_CPS) via dry-run to fill max slots without overflow.
+  // - Enforce DEFAULT_FILL_MIN_TARGET_CPS floor and MAX_SPAN_PER_LINE cap.
   // - Repeat line spans across consecutive slots; tail-fill repeats last line into trailing slots.
   // - Carry quotes by fully wrapping each repeated line inside quoted spans.
   const maxChars = Math.max(1, options.maxChars ?? DEFAULT_MAX_CHARS)

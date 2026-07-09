@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest"
 import {
+  DEFAULT_FILL_MAX_TARGET_CPS,
+  DEFAULT_FILL_MIN_TARGET_CPS,
   __testMergeJoinableTranslations,
   __testTakeLine,
   fillSelectedTimestampLines,
@@ -18,6 +20,11 @@ const NO_SPLIT_ABBREVIATIONS = [
 ]
 
 describe("fillSelectedTimestampLines", () => {
+  it("uses explicit fill target cps defaults", () => {
+    expect(DEFAULT_FILL_MAX_TARGET_CPS).toBe(16)
+    expect(DEFAULT_FILL_MIN_TARGET_CPS).toBe(10)
+  })
+
   it("fills selected timestamps and returns leftover", () => {
   const lines = [
     "00:00:11:00\t00:00:12:00\tNo blank",

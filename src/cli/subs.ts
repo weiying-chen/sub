@@ -8,6 +8,7 @@ import { findMarkerScope } from './markerScope'
 import { runAnalysis } from './runAnalysis'
 import { formatCliFindingValue } from './findingValueFormat'
 import { formatCliNumber } from './numberFormat'
+import { DEFAULT_MAX_CPS, DEFAULT_MIN_CPS } from '../shared/cps'
 
 // --- ANSI colors (use terminal theme palette) ---
 
@@ -26,9 +27,6 @@ type SubsOptions = {
   maxCps?: number
   minCps?: number
 }
-
-const DEFAULT_SUBS_WATCH_MAX_CPS = 16
-const DEFAULT_SUBS_WATCH_MIN_CPS = 5
 
 function asNum(v: unknown): number | null {
   return typeof v === 'number' && Number.isFinite(v) ? v : null
@@ -271,8 +269,8 @@ async function printReport(
     baselineText: baselineText ?? undefined,
     ignoreEmptyLines: options.ignoreEmptyLines,
     includeWarnings: options.includeWarnings,
-    maxCps: options.maxCps ?? DEFAULT_SUBS_WATCH_MAX_CPS,
-    minCps: options.minCps ?? DEFAULT_SUBS_WATCH_MIN_CPS,
+    maxCps: options.maxCps ?? DEFAULT_MAX_CPS,
+    minCps: options.minCps ?? DEFAULT_MIN_CPS,
   })) as Finding[]
 
   const scope = findMarkerScope(lines)

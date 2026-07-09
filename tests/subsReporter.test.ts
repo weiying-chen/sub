@@ -4,6 +4,8 @@ import { tmpdir } from "node:os"
 
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { DEFAULT_MAX_CPS, DEFAULT_MIN_CPS } from "../src/shared/cps"
+
 const mocks = vi.hoisted(() => ({
   runAnalysisMock: vi.fn(async () => []),
   sortFindingsWithIndexMock: vi.fn((findings: any[]) =>
@@ -57,8 +59,8 @@ describe("createSubsReporter", () => {
         type: "subs",
         mode: "findings",
         includeWarnings: true,
-        maxCps: 16,
-        minCps: 5,
+        maxCps: DEFAULT_MAX_CPS,
+        minCps: DEFAULT_MIN_CPS,
       })
     )
   })

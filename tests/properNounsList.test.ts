@@ -33,6 +33,7 @@ describe("loadProperNouns", () => {
     expect(properNouns).toContain("Keith Jarrett")
     expect(properNouns).toContain("Kidney yang")
     expect(properNouns).toContain("What's Your Next Book?")
+    expect(properNouns).toContain("Contextual Intelligence")
   })
 })
 

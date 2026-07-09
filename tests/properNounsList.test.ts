@@ -32,6 +32,7 @@ describe("loadProperNouns", () => {
     expect(properNouns).toContain("Marilyn Monroe")
     expect(properNouns).toContain("Keith Jarrett")
     expect(properNouns).toContain("Kidney yang")
+    expect(properNouns).toContain("What's Your Next Book?")
   })
 })
 

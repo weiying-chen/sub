@@ -792,50 +792,27 @@ describe("fillSelectedTimestampLines", () => {
   ])
   })
 
-  it("prefers breaking before copular verb phrases", () => {
+  it("does not leave subject pronouns before be-verbs", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
+    "00:00:03:00\t00:00:04:00\tMarker",
   ]
-  const selected = new Set([0, 1])
+  const selected = new Set([0, 1, 2])
 
   const result = fillSelectedTimestampLines(
     lines,
     selected,
-    "And one last thing you can do is give your partner the right kind of support.",
-    { maxChars: 60, inline: false }
+    "I always wanted to prove I was right and everyone else was wrong.",
+    { maxChars: 27, inline: false }
   )
+  const translations = result.lines.filter((line) => !line.includes("\t"))
 
-  expect(result.lines).toEqual([
-    "00:00:01:00\t00:00:02:00\tMarker",
-    "And one last thing you can do is",
-    "00:00:02:00\t00:00:03:00\tMarker",
-    "give your partner the right kind of support.",
-  ])
-  expect(result.remaining).toBe("")
+  expect(translations).not.toContain("I always wanted to prove I")
+  expect(translations.some((line) => line.startsWith("I was right"))).toBe(true)
   })
 
-  it("splits before copular when the tail starts with an infinitive", () => {
-  const lines = [
-    "00:00:01:00\t00:00:02:00\tMarker",
-    "00:00:02:00\t00:00:03:00\tMarker",
-  ]
-  const selected = new Set([0, 1])
 
-  const result = fillSelectedTimestampLines(
-    lines,
-    selected,
-    "But the goal is to get through it without burning bridges---",
-    { maxChars: 25, inline: false }
-  )
-
-  expect(result.lines).toEqual([
-    "00:00:01:00\t00:00:02:00\tMarker",
-    "But the goal",
-    "00:00:02:00\t00:00:03:00\tMarker",
-    "is to get through it",
-  ])
-  })
 
   it("avoids splitting 'even so'", () => {
   const lines = [
@@ -944,18 +921,6 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("treat foul-smelling gas.")
   })
 
-  it("does not split after short copular heads", () => {
-  const split = __testTakeLine(
-    "This is what I've learned from years of practice.",
-    80,
-    null,
-    false,
-    { allowHeuristicSplitsWhenFits: true }
-  )
-
-  expect(split.line).not.toBe("This is")
-  expect(split.rest.startsWith("what ")).toBe(false)
-  })
 
   it("does not start the next chunk with a comma", () => {
   const lines = [
@@ -984,17 +949,6 @@ describe("fillSelectedTimestampLines", () => {
   expect(translations.some((line) => line.endsWith("U.S.,"))).toBe(true)
   })
 
-  it("uses copular fallback before pronoun-contraction tails", () => {
-  const split = __testTakeLine(
-    "It was the strangest result he'd ever seen.",
-    42,
-    null,
-    false
-  )
-
-  expect(split.line).toBe("It")
-  expect(split.rest).toBe("was the strangest result he'd ever seen.")
-  })
 
   it("keeps 'like that' together", () => {
   const lines = [
@@ -1042,7 +996,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("keeps trailing 'that' after reporting verbs when it fits", () => {
+  it("keeps subject pronouns with following be-verbs", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -1058,9 +1012,9 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "He told me that it",
+    "He told me that",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "was over.",
+    "it was over.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -1125,7 +1079,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("keeps conjunction with following 'that' clause", () => {
+  it("does not start the next cue with a be-verb after conjunction that", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -1139,40 +1093,11 @@ describe("fillSelectedTimestampLines", () => {
     { maxChars: 12, inline: false }
   )
 
-  expect(result.lines).toEqual([
-    "00:00:01:00\t00:00:02:00\tMarker",
-    "and that",
-    "00:00:02:00\t00:00:03:00\tMarker",
-    "was enough.",
-  ])
-  expect(result.remaining).toBe("")
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+  expect(translations).not.toContain("was enough.")
   })
 
-  it("moves copular before that-clauses to the next line", () => {
-  const split = __testTakeLine(
-    "The main reason is that we've replaced art education in our schools with Chinese, English, and math.",
-    54,
-    null,
-    false
-  )
 
-  expect(split.line).toBe("The main reason")
-  expect(split.rest).toBe(
-    "is that we've replaced art education in our schools with Chinese, English, and math."
-  )
-  })
-
-  it("moves trailing copular before pronoun-led that clauses", () => {
-  const split = __testTakeLine(
-    "The biggest benefit is that it opens up my perspective.",
-    22,
-    null,
-    false
-  )
-
-  expect(split.line).toBe("The biggest benefit")
-  expect(split.rest).toBe("is that it opens up my perspective.")
-  })
 
   it("does not keep trailing 'that' after reporting verbs with audience noun objects", () => {
   const split = __testTakeLine(
@@ -1186,51 +1111,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("that my hands and feet are always cold.")
   })
 
-  it("moves trailing copular before indefinite-subject that clauses", () => {
-  const lines = [
-    "00:00:01:00\t00:00:02:00\tMarker",
-    "00:00:02:00\t00:00:03:00\tMarker",
-  ]
-  const selected = new Set([0, 1])
 
-  const result = fillSelectedTimestampLines(
-    lines,
-    selected,
-    "The truth is that something changed.",
-    { maxChars: 30, inline: false }
-  )
-
-  expect(result.lines).toEqual([
-    "00:00:01:00\t00:00:02:00\tMarker",
-    "The truth",
-    "00:00:02:00\t00:00:03:00\tMarker",
-    "is that something changed.",
-  ])
-  expect(result.remaining).toBe("")
-  })
-
-  it("moves trailing copular before bare indefinite-subject that clauses", () => {
-  const lines = [
-    "00:00:01:00\t00:00:02:00\tMarker",
-    "00:00:02:00\t00:00:03:00\tMarker",
-  ]
-  const selected = new Set([0, 1])
-
-  const result = fillSelectedTimestampLines(
-    lines,
-    selected,
-    "The truth is that nobody noticed.",
-    { maxChars: 25, inline: false }
-  )
-
-  expect(result.lines).toEqual([
-    "00:00:01:00\t00:00:02:00\tMarker",
-    "The truth",
-    "00:00:02:00\t00:00:03:00\tMarker",
-    "is that nobody noticed.",
-  ])
-  expect(result.remaining).toBe("")
-  })
 
   it("does not keep trailing 'that' before bare noun-subject clauses", () => {
   const split = __testTakeLine(
@@ -1623,74 +1504,8 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("splits after copular before clause starter", () => {
-  const lines = [
-    "00:00:01:00\t00:00:02:00\tMarker",
-    "00:00:02:00\t00:00:03:00\tMarker",
-  ]
-  const selected = new Set([0, 1])
 
-  const result = fillSelectedTimestampLines(
-    lines,
-    selected,
-    "The issue now is how to solve this quickly",
-    { maxChars: 60, inline: false }
-  )
 
-  expect(result.lines).toEqual([
-    "00:00:01:00\t00:00:02:00\tMarker",
-    "The issue now is how to solve this quickly",
-    "00:00:02:00\t00:00:03:00\tMarker",
-    "The issue now is how to solve this quickly",
-  ])
-  expect(result.remaining).toBe("")
-  })
-
-  it("splits before copular when tail is not a clause", () => {
-  const lines = [
-    "00:00:01:00\t00:00:02:00\tMarker",
-    "00:00:02:00\t00:00:03:00\tMarker",
-  ]
-  const selected = new Set([0, 1])
-
-  const result = fillSelectedTimestampLines(
-    lines,
-    selected,
-    "The best exercise for older adults is simply walking",
-    { maxChars: 60, inline: false }
-  )
-
-  expect(result.lines).toEqual([
-    "00:00:01:00\t00:00:02:00\tMarker",
-    "The best exercise for older adults is simply walking",
-    "00:00:02:00\t00:00:03:00\tMarker",
-    "The best exercise for older adults is simply walking",
-  ])
-  expect(result.remaining).toBe("")
-  })
-
-  it("keeps copular with clause subject tail", () => {
-  const lines = [
-    "00:00:01:00\t00:00:02:00\tMarker",
-    "00:00:02:00\t00:00:03:00\tMarker",
-  ]
-  const selected = new Set([0, 1])
-
-  const result = fillSelectedTimestampLines(
-    lines,
-    selected,
-    "The truth is we need to leave",
-    { maxChars: 60, inline: false }
-  )
-
-  expect(result.lines).toEqual([
-    "00:00:01:00\t00:00:02:00\tMarker",
-    "The truth is we need to leave",
-    "00:00:02:00\t00:00:03:00\tMarker",
-    "The truth is we need to leave",
-  ])
-  expect(result.remaining).toBe("")
-  })
 
   it("does not use to-verb phrase splitting before object", () => {
   const lines = [
@@ -2054,25 +1869,6 @@ describe("fillSelectedTimestampLines", () => {
   expect(translations.some((line) => line.includes("to keep"))).toBe(false)
   })
 
-  it("does not split copular clauses when they fit", () => {
-  const lines = [
-    "00:00:00:00\t00:00:01:00\tMarker",
-    "00:00:01:00\t00:00:02:00\tMarker",
-  ]
-  const selected = new Set(lines.map((_, i) => i))
-  const paragraph = "and he truly understood what I was trying to do."
-
-  const result = fillSelectedTimestampLines(lines, selected, paragraph, {
-    inline: true,
-    maxChars: 54,
-  })
-  const translations = result.lines.filter((line) => !line.includes("\t"))
-
-  expect(translations.some((line) => line.includes("what I was trying to do."))).toBe(
-    true
-  )
-  expect(translations.some((line) => line.endsWith("what I"))).toBe(false)
-  })
 
   it("keeps dialogue tags with preceding question when it fits", () => {
   const lines = [
@@ -2280,17 +2076,6 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.rest).toBe("NDDs are common.")
   })
 
-  it("uses copular fallback even when the limit lands exactly at a word boundary", () => {
-  const result = __testTakeLine(
-    "The rest is divided among the heirs according to their inheritance shares.",
-    48,
-    null,
-    false
-  )
-
-  expect(result.line).toBe("The rest")
-  expect(result.rest).toBe("is divided among the heirs according to their inheritance shares.")
-  })
 
   it("does not split after middle initials before surnames", () => {
   const result = __testTakeLine(
@@ -2554,18 +2339,6 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.startsWith("and ")).toBe(true)
   })
 
-  it("uses copular fallback before moving trailing 'the'", () => {
-  const split = __testTakeLine(
-    "This is a classic case of indigestion affecting the autonomic nervous system.",
-    54,
-    null,
-    false
-  )
-  expect(split.line).toBe("This")
-  expect(split.rest).toBe(
-    "is a classic case of indigestion affecting the autonomic nervous system."
-  )
-  })
 
   it("moves trailing 'a' to the next split chunk", () => {
   const split = __testTakeLine(
@@ -2636,16 +2409,6 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("to ")).toBe(true)
   })
 
-  it("moves trailing copular before where-clause to the next split chunk", () => {
-  const split = __testTakeLine(
-    "Sharing your own ideas and perspective is where personal branding begins.",
-    40,
-    null,
-    false
-  )
-  expect(split.line.toLowerCase().endsWith(" is")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("is where ")).toBe(true)
-  })
 
   it("moves trailing 'like' to the next split chunk", () => {
   const split = __testTakeLine(
@@ -2691,16 +2454,6 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("in ")).toBe(true)
   })
 
-  it("uses copular fallback before later preposition splits", () => {
-  const split = __testTakeLine(
-    "These are probably the three biggest risks in personal branding.",
-    54,
-    null,
-    false
-  )
-  expect(split.line).toBe("These")
-  expect(split.rest).toBe("are probably the three biggest risks in personal branding.")
-  })
 
   it("avoids preposition split when a near modal break is better", () => {
   const split = __testTakeLine(
@@ -2846,16 +2599,6 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("that ")).toBe(false)
   })
 
-  it("uses copular fallback before natural how-to space splits", () => {
-  const split = __testTakeLine(
-    "One time, I was teaching a group of managers how to handle emotions at work.",
-    54,
-    null,
-    false
-  )
-  expect(split.line).toBe("One time, I")
-  expect(split.rest).toBe("was teaching a group of managers how to handle emotions at work.")
-  })
 
   it("keeps 'in how' together when splitting", () => {
   const split = __testTakeLine(
@@ -2992,38 +2735,8 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.line.toLowerCase().includes("father and his five-year-old daughter")).toBe(true)
   })
 
-  it("prefers splitting before copular verb when no higher-priority cut exists", () => {
-  const split = __testTakeLine(
-    "Actually, staying quiet and letting himself pause was far more effective than anything he could say.",
-    54,
-    null,
-    false
-  )
-  expect(split.line).toBe("Actually, staying quiet and letting himself pause")
-  expect(split.rest).toBe("was far more effective than anything he could say.")
-  })
 
-  it("supports contracted copular negatives in copular fallback splits", () => {
-  const split = __testTakeLine(
-    "One day, a doctor told him his test results weren't looking good, and that if he didn't make changes, he could face serious health problems later in life.",
-    54,
-    null,
-    false
-  )
-  expect(split.line.toLowerCase().includes("weren't")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("weren't looking good")).toBe(true)
-  })
 
-  it("uses copular fallback before plain space splits", () => {
-  const split = __testTakeLine(
-    "I think freedom is one of the most precious things there is.",
-    54,
-    null,
-    false
-  )
-  expect(split.line).toBe("I think freedom")
-  expect(split.rest).toBe("is one of the most precious things there is.")
-  })
 
   it("keeps 'that' at the end of previous line before 'if' clauses", () => {
   const split = __testTakeLine(

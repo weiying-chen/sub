@@ -49,12 +49,6 @@ const CLAUSE_START_RE =
 const WHO_RE = /\b(who|whom|whose|who's)\b/i
 const THAT_SPLIT_VERB_RE =
   /\b(?:say|says|said|tell|tells|told|ask|asks|asked|think|thinks|thought|know|knows|knew|realize|realizes|realized|feel|feels|felt|hope|hopes|hoped|decide|decides|decided|learn|learns|learned|hear|hears|heard|believe|believes|believed|suspect|suspects|suspected|guess|guesses|guessed|remember|remembers|remembered|notice|notices|noticed|find|finds|found)\b/i
-const COPULAR_RE =
-  /\b(am|is|are|was|were|isn['’]?t|aren['’]?t|wasn['’]?t|weren['’]?t)\b/i
-const COPULAR_VERB_START_RE =
-  /^(?:give|make|take|help|let|get|keep|try|need|want|have)\b/i
-const COPULAR_CLAUSE_START_RE =
-  /^(?:how|why|what|who|where|when|whether|that|if)\b/i
 const DET_RE =
   /^(?:the|a|an|this|that|these|those|my|your|his|her|our|their)\b/i
 const CLAUSE_STARTER_RE =
@@ -67,6 +61,10 @@ const COORDINATED_PHRASE_STOP_RE =
   /^(?:who|whom|whose|that|which|with|for|from|before|after|while|because|since|if|when|as|would|could|should|will|can|may|might|must|is|are|was|were|be|being|been|am|do|does|did|has|have|had)\b/i
 const SENTENCE_VERB_RE =
   /\b(am|is|are|was|were|be|being|been|have|has|had|do|does|did|can|will|would|should|must)\b/i
+const BE_VERB_TOKEN_RE =
+  /^(?:am|is|are|was|were|be|been|being|isn['’]?t|aren['’]?t|wasn['’]?t|weren['’]?t)$/i
+const BE_VERB_START_RE =
+  /^(?:am|is|are|was|were|be|been|being|isn['’]?t|aren['’]?t|wasn['’]?t|weren['’]?t)\b/i
 const SENTENCE_END_RE = /[.!?]["')\]]*\s*$/
 const STRONG_PUNCT = new Set(['.', '?', '!', ':', EM_DASH])
 const SEMICOLON_PUNCT = new Set([';'])
@@ -692,100 +690,6 @@ function findRightmostWhoStart(window: string): number {
   return best
 }
 
-function findRightmostCopularBreak(window: string, nextText: string): number {
-  let best = -1
-  const re = new RegExp(COPULAR_RE.source, 'gi')
-  let m: RegExpExecArray | null
-  while ((m = re.exec(window)) !== null) {
-    const start = m.index
-    const end = start + m[0].length
-    const prev = window[start - 1] ?? ''
-    const next = window[end] ?? ''
-    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
-
-    const left = window.slice(0, end).trimEnd()
-    if (!left) continue
-    const leftWordCount = left.split(/\s+/).filter(Boolean).length
-    if (
-      left.length < MIN_CLAUSE_START_SPLIT_CHARS ||
-      leftWordCount < MIN_CLAUSE_START_SPLIT_WORDS + 1
-    ) {
-      continue
-    }
-    const tailAfterCopular = (window.slice(end) + nextText).trimStart()
-    if (!tailAfterCopular) continue
-    if (!COPULAR_VERB_START_RE.test(tailAfterCopular)) {
-      continue
-    }
-
-    best = end
-  }
-
-  return best
-}
-
-function startsWithCopularClause(text: string): boolean {
-  const trimmed = text.trimStart()
-  if (!trimmed) return false
-  return COPULAR_CLAUSE_START_RE.test(trimmed) || CLAUSE_START_RE.test(trimmed)
-}
-
-function findRightmostCopularLead(window: string, nextText: string): number {
-  let best = -1
-  const re = new RegExp(COPULAR_RE.source, 'gi')
-  let m: RegExpExecArray | null
-  while ((m = re.exec(window)) !== null) {
-    const start = m.index
-    const end = start + m[0].length
-    const prev = window[start - 1] ?? ''
-    const next = window[end] ?? ''
-    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
-
-    const left = window.slice(0, start).trimEnd()
-    if (!left) continue
-    if (CLAUSE_STARTER_ANY_RE.test(left)) continue
-    const lastComma = left.lastIndexOf(',')
-    if (lastComma >= 0) {
-      const postComma = left.slice(lastComma + 1).trim()
-      const postCommaWordCount = postComma.split(/\s+/).filter(Boolean).length
-      if (postCommaWordCount < 3) continue
-    }
-    const wordCount = left.split(/\s+/).filter(Boolean).length
-    if (wordCount < 3) continue
-    const tail = (window.slice(end) + nextText).trimStart()
-    if (!tail) continue
-    if (startsWithCopularClause(tail)) continue
-    const tailWords = tail.split(/\s+/).filter(Boolean).slice(0, 3)
-    if (tailWords.length > 0) {
-      const candidate = `${left} ${tailWords.join(' ')}`
-      if (candidate.length <= window.length) continue
-    }
-
-    best = start
-  }
-  return best
-}
-
-function findRightmostCopularFallbackLead(window: string, nextText: string): number {
-  let best = -1
-  const re = new RegExp(COPULAR_RE.source, 'gi')
-  let m: RegExpExecArray | null
-  while ((m = re.exec(window)) !== null) {
-    const start = m.index
-    const end = start + m[0].length
-    const prev = window[start - 1] ?? ''
-    const next = window[end] ?? ''
-    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
-
-    const left = window.slice(0, start).trimEnd()
-    const right = (window.slice(start) + nextText).trimStart()
-    if (!left || !right) continue
-
-    best = start
-  }
-  return best
-}
-
 function findRightmostSpace(window: string, nextText: string): number {
   for (let i = window.length - 1; i >= 0; i--) {
     if (window[i] !== ' ') continue
@@ -1156,12 +1060,6 @@ function findBestCut(
   const clauseLeadCut = findRightmostClauseStarterLead(window, nextText)
   if (clauseLeadCut >= 0) return { cut: clauseLeadCut, reason: 'clauseStarter' }
 
-  const copularCut = findRightmostCopularBreak(window, nextText)
-  if (copularCut >= 0) return { cut: copularCut, reason: 'copularBreak' }
-
-  const copularLeadCut = findRightmostCopularLead(window, nextText)
-  if (copularLeadCut >= 0) return { cut: copularLeadCut, reason: 'copularLead' }
-
   const listTailCut = findRightmostListTailLead(window, nextText)
   if (listTailCut >= 0) return { cut: listTailCut, reason: 'listTail' }
 
@@ -1177,10 +1075,6 @@ function findBestCut(
 
   const spaceCut = findRightmostSpace(window, nextText)
   if (spaceCut >= 0) {
-    const copularFallbackCut = findRightmostCopularFallbackLead(window, nextText)
-    if (copularFallbackCut >= 0) {
-      return { cut: copularFallbackCut, reason: 'copularFallback' }
-    }
     return { cut: spaceCut, reason: 'space' }
   }
 
@@ -1313,40 +1207,6 @@ function takeLine(
     if (clauseLeadCut > 0 && clauseLeadCut < s.length) {
       const left = s.slice(0, clauseLeadCut).trimEnd()
       const right = s.slice(clauseLeadCut).trimStart()
-      if (left && right) {
-        const adjusted = adjustSplitForNoSplitAbbrevAndQuotes(
-          left,
-          right,
-          noSplitAbbrevMatcher,
-          noSplitUsAbbreviation,
-          noSplitAbbreviations,
-          { maxLineLength: limit }
-        )
-        return normalizeSplit(adjusted.line, adjusted.rest)
-      }
-    }
-
-    const copularCut = findRightmostCopularBreak(s, '')
-    if (copularCut > 0 && copularCut < s.length) {
-      const left = s.slice(0, copularCut).trimEnd()
-      const right = s.slice(copularCut).trimStart()
-      if (left && right) {
-        const adjusted = adjustSplitForNoSplitAbbrevAndQuotes(
-          left,
-          right,
-          noSplitAbbrevMatcher,
-          noSplitUsAbbreviation,
-          noSplitAbbreviations,
-          { maxLineLength: limit }
-        )
-        return normalizeSplit(adjusted.line, adjusted.rest)
-      }
-    }
-
-    const copularLeadCut = findRightmostCopularLead(s, '')
-    if (copularLeadCut > 0 && copularLeadCut < s.length) {
-      const left = s.slice(0, copularLeadCut).trimEnd()
-      const right = s.slice(copularLeadCut).trimStart()
       if (left && right) {
         const adjusted = adjustSplitForNoSplitAbbrevAndQuotes(
           left,
@@ -1530,30 +1390,49 @@ function normalizeTrailingJustHead(
   return { line, rest }
 }
 
-function normalizeTrailingCopularHead(
+function normalizeTrailingBeVerbHead(
   line: string,
   rest: string
 ): { line: string; rest: string } {
   const trimmed = line.trimEnd()
-  const match = trimmed.match(/^(.*)\s+(am|is|are|was|were|be|been|being)$/i)
+  const match = trimmed.match(/^(.*)\s+([A-Za-z]+(?:['’]t)?)$/)
   if (!match) return { line, rest }
 
   const left = (match[1] ?? "").trimEnd()
-  const verb = (match[2] ?? "").trim().toLowerCase()
-  if (!left) return { line, rest }
+  const verb = (match[2] ?? "").trim()
+  if (!left || !BE_VERB_TOKEN_RE.test(verb)) return { line, rest }
 
   const trimmedRest = rest.trimStart()
-  const preservesLeadingClause =
-    /\bthat$/i.test(left) && /^[a-z]/i.test(trimmedRest)
-  if (!preservesLeadingClause && !/^(where|why|how)\b/i.test(trimmedRest)) {
-    return { line, rest }
-  }
-
   if (!rest) return { line: left, rest: verb }
-  if (trimmedRest.toLowerCase().startsWith(`${verb} `)) {
+  if (trimmedRest.toLowerCase().startsWith(`${verb.toLowerCase()} `)) {
     return { line: left, rest }
   }
   return { line: left, rest: `${verb} ${rest}` }
+}
+
+function normalizeSubjectBeforeBeVerb(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmedRest = rest.trimStart()
+  if (!BE_VERB_START_RE.test(trimmedRest)) return { line, rest }
+
+  const trimmed = line.trimEnd()
+  const phraseMatch = trimmed.match(
+    /^(.*)\s+((?:every|some|any|no)(?:one|body)\s+else)$/i
+  )
+  const wordMatch =
+    phraseMatch ??
+    trimmed.match(
+      /^(.*)\s+(I|you|he|she|it|we|they|this|that|these|those|everyone|everybody|someone|somebody|anyone|anybody|nobody)$/i
+    )
+  if (!wordMatch) return { line, rest }
+
+  const left = (wordMatch[1] ?? "").trimEnd()
+  const subject = (wordMatch[2] ?? "").trim()
+  if (!left || !subject) return { line, rest }
+
+  return { line: left, rest: `${subject} ${trimmedRest}` }
 }
 
 function normalizeTrailingHowToHead(
@@ -1791,13 +1670,17 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     subordinatorNormalized.line,
     subordinatorNormalized.rest
   )
-  const copularNormalized = normalizeTrailingCopularHead(
+  const beVerbHeadNormalized = normalizeTrailingBeVerbHead(
     justNormalized.line,
     justNormalized.rest
   )
+  const subjectBeforeBeVerbNormalized = normalizeSubjectBeforeBeVerb(
+    beVerbHeadNormalized.line,
+    beVerbHeadNormalized.rest
+  )
   const howToNormalized = normalizeTrailingHowToHead(
-    copularNormalized.line,
-    copularNormalized.rest
+    subjectBeforeBeVerbNormalized.line,
+    subjectBeforeBeVerbNormalized.rest
   )
   const inHowNormalized = normalizeTrailingInHowHead(
     howToNormalized.line,
@@ -2238,8 +2121,6 @@ function needsMinimumLeftSplitGuard(reason: string): boolean {
     reason === 'commaThat' ||
     reason === 'infinitive' ||
     reason === 'clauseStarter' ||
-    reason === 'copularBreak' ||
-    reason === 'copularLead' ||
     reason === 'listTail' ||
     reason === 'near' ||
     reason === 'preposition' ||

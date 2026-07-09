@@ -337,7 +337,7 @@ describe("Sidebar", () => {
     expect(insertTranslationButton).toHaveClass("topbar-fill-subs-button")
     expect(insertTranslationButton).toHaveAttribute(
       "title",
-      "Insert translation into selected timestamps from clipboard (Ctrl+Shift+Enter)"
+      "Insert translation into selected timestamps from clipboard (Ctrl + Shift + Enter)"
     )
     expect(insertTranslationButton.querySelector(".la-magic")).not.toBeNull()
     expect(insertTranslationButton.querySelector(".la-paste")).toBeNull()

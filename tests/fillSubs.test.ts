@@ -446,6 +446,7 @@ describe("fillSelectedTimestampLines", () => {
     "00:00:15:00\t00:00:17:00\tMarker",
     "00:00:17:00\t00:00:20:00\tMarker",
     "00:00:20:00\t00:00:22:00\tMarker",
+    "00:00:22:00\t00:00:24:00\tMarker",
   ]
   const selected = new Set(lines.map((_, index) => index))
 

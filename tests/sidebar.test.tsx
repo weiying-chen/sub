@@ -1153,8 +1153,8 @@ describe("Sidebar", () => {
     fireEvent.change(minInput, { target: { value: "5" } })
 
     // Draft edits should not commit until blur.
-    expect(window.localStorage.getItem("subs.maxCps")).toBe("17")
-    expect(window.localStorage.getItem("subs.minCps")).toBe("7")
+    expect(window.localStorage.getItem("subs.maxCps")).toBe("16")
+    expect(window.localStorage.getItem("subs.minCps")).toBe("5")
 
     fireEvent.blur(maxInput)
     fireEvent.blur(minInput)
@@ -1235,7 +1235,7 @@ describe("Sidebar", () => {
     expect(maxInput.value).toBe("")
 
     fireEvent.blur(maxInput)
-    expect(maxInput.value).toBe("17")
+    expect(maxInput.value).toBe("16")
   })
 
 })

@@ -920,6 +920,9 @@ export default function App({
             type="button"
             className="topbar-fill-subs-button"
             title="Insert translation into selected timestamps from clipboard (Ctrl+Shift+Enter)"
+            onMouseDown={(event) => {
+              event.preventDefault()
+            }}
             onClick={() => {
               void handleInsertTranslation()
             }}

@@ -381,6 +381,16 @@ describe("Sidebar", () => {
     expect(writeText).not.toHaveBeenCalled()
   })
 
+  it("keeps editor focus when pressing the insert translation button", () => {
+    render(<App />)
+
+    const button = screen.getByRole("button", { name: "Insert translation" })
+    const event = new MouseEvent("mousedown", { bubbles: true, cancelable: true })
+
+    expect(button.dispatchEvent(event)).toBe(false)
+    expect(event.defaultPrevented).toBe(true)
+  })
+
   it("reads clipboard text and fills the current selection with the keyboard shortcut", async () => {
     const readText = vi.fn().mockResolvedValue("Copied translation text.")
     const writeText = vi.fn().mockResolvedValue(undefined)

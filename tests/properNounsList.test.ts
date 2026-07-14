@@ -35,6 +35,7 @@ describe("loadProperNouns", () => {
     expect(properNouns).toContain("What's Your Next Book?")
     expect(properNouns).toContain("Contextual Intelligence")
     expect(properNouns).toContain("YouTube")
+    expect(properNouns).toContain("Standardisation")
   })
 })
 

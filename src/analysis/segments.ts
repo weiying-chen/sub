@@ -1,7 +1,7 @@
 import type { Metric } from './types'
 
 import { isCaptionBlock, type CaptionLine } from './caption'
-import { type ParseBlockOptions, parseBlockAt } from '../shared/tsvRuns'
+import { type ParseBlockOptions, isSubsCommentLine, parseBlockAt } from '../shared/tsvRuns'
 import { TSV_RE } from '../shared/subtitles'
 import { stripSuppressionMarker } from '../shared/suppressionMarker'
 
@@ -214,6 +214,7 @@ export function parseText(text: string): Segment[] {
       skipReferenceBlockAfterUrl = true
       continue
     }
+    if (isSubsCommentLine(raw)) continue
 
     if (skipReferenceBlockAfterUrl) {
       if (trimmed === '') {

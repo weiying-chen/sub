@@ -372,6 +372,20 @@ describe("parseNews", () => {
 })
 
 describe("parseText", () => {
+  it("ignores subtitle comment lines", () => {
+    const text = [
+      "// speaker",
+      "This is plain English.",
+      "// narrator",
+    ].join("\n")
+
+    const segments = parseText(text)
+
+    expect(segments.map((segment) => segment.translation)).toEqual([
+      "This is plain English.",
+    ])
+  })
+
   it("ignores timestamp rows with XXX prefixes", () => {
     const text = [
       "00:09:52:22\t00:09:53:15\t獅子跟老虎",

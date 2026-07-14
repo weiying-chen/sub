@@ -248,6 +248,31 @@ describe("punctuationRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores standalone subtitle comment markers without timestamps", () => {
+    const text = [
+      "YT_TITLE_SUGGESTED:",
+      "",
+      "BODY:",
+      "",
+      "// speaker",
+      "00:01:35:18 00:01:38:11 我現在做質地花生",
+      "",
+      "// narrator",
+      "00:02:07:10 00:02:11:07 葛童成將燉熟的花生仁搗成泥狀",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_END_PUNCTUATION" &&
+          (f.text === "// speaker" || f.text === "// narrator")
+      )
+    ).toBe(false)
+  })
+
   it("flags dangling closing quote", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

@@ -10,7 +10,7 @@ export const TIME_RE =
   /^(?<h>\d{2}):(?<m>\d{2}):(?<s>\d{2}):(?<f>\d{2})$/
 
 export const TSV_RE =
-  /^(?<prefix>.*?)(?<start>\d{2}:\d{2}:\d{2}:\d{2})\t+(?<end>\d{2}:\d{2}:\d{2}:\d{2})\t+.*$/
+  /^(?<prefix>.*?)(?<start>\d{2}:\d{2}:\d{2}:\d{2})\t+(?<end>\d{2}:\d{2}:\d{2}:\d{2})(?:\t+.*)?$/
 
 export function parseTimecodeToFrames(tc: string): number | null {
   const m = tc.trim().match(TIME_RE)

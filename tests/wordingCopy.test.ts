@@ -44,7 +44,7 @@ describe("wording copy", () => {
     expect(findings[1]?.instruction).toBe(
       "Add the missing translation line below this timestamp."
     )
-    expect(findings[2]?.instruction).toBe("Use a row with timestamps in this format: HH:MM:SS:FF<TAB>HH:MM:SS:FF<TAB>original text. You can optionally add XXX before the first timestamp.")
+    expect(findings[2]?.instruction).toBe("Use a row with timestamps in this format: HH:MM:SS:FF<TAB>HH:MM:SS:FF, optionally followed by <TAB>original text. You can optionally add XXX before the first timestamp.")
   })
 
   it("builds punctuation and timing-gap instructions in getFindings", () => {

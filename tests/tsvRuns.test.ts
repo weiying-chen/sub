@@ -33,6 +33,20 @@ describe("tsvRuns empty-line handling", () => {
     expect(block?.translationIndex).toBe(2)
   })
 
+  it("parses timestamp rows without source text", () => {
+    const lines = [
+      "XXX 00:11:04:27\t00:11:05:10",
+      "Short translation.",
+    ]
+
+    const block = parseBlockAt(makeSrc(lines), 0)
+
+    expect(block?.translation).toBe("Short translation.")
+    expect(block?.translationIndex).toBe(1)
+    expect(block?.startFrames).toBe(11 * 1800 + 4 * 30 + 27)
+    expect(block?.endFrames).toBe(11 * 1800 + 5 * 30 + 10)
+  })
+
   it("ignores comment lines before and after subtitle translations", () => {
     const lines = [
       "00:00:01:00\t00:00:02:00\tMarker",

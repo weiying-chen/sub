@@ -46,6 +46,21 @@ describe("timestampFormatRule (segments)", () => {
     ).toBe(false)
   })
 
+  it("allows timestamp rows without source text", () => {
+    const text = [
+      "XXX 00:11:04:27\t00:11:05:10",
+      "\"Short translation.\"",
+    ].join("\n")
+
+    const findings = getFindings(
+      analyzeTextByType(text, "subs", createSubsSegmentRules())
+    )
+
+    expect(
+      findings.some((finding) => String(finding.type) === "TIMESTAMP_FORMAT")
+    ).toBe(false)
+  })
+
   it("flags timestamp rows with missing leading zero", () => {
     const text = [
       "0:00:01:00\t00:00:02:00\tSource text",

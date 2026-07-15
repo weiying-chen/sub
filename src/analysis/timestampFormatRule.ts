@@ -2,10 +2,10 @@ import type { SegmentCtx, SegmentRule } from "./segments"
 import type { TimestampFormatMetric } from "./types"
 
 const STRICT_TSV_RE =
-  /^(?:(?:XXX)\s+)?\d{2}:\d{2}:\d{2}:\d{2}\t+\d{2}:\d{2}:\d{2}:\d{2}\t+.*$/
+  /^(?:(?:XXX)\s+)?\d{2}:\d{2}:\d{2}:\d{2}\t+\d{2}:\d{2}:\d{2}:\d{2}(?:\t+.*)?$/
 
 const LOOSE_TSV_RE =
-  /^(?<prefix>.*?)(?<start>\d{1,2}:\d{2}:\d{2}:\d{2})\t+(?<end>\d{1,2}:\d{2}:\d{2}:\d{2})\t+.*$/
+  /^(?<prefix>.*?)(?<start>\d{1,2}:\d{2}:\d{2}:\d{2})\t+(?<end>\d{1,2}:\d{2}:\d{2}:\d{2})(?:\t+.*)?$/
 
 function looksLikeTimestampRow(line: string): boolean {
   if (!line.includes("\t")) return false

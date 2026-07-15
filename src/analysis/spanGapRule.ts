@@ -21,6 +21,7 @@ export function spanGapRule(): SegmentRule {
     const cur = ctx.segment
     const next = ctx.segments[ctx.segmentIndex + 1]
     if (!next) return []
+    if (cur.suppressSuggestions || next.suppressSuggestions) return []
     if (!hasTiming(cur) || !hasTiming(next)) return []
 
     const gapFrames = next.startFrames - cur.endFrames

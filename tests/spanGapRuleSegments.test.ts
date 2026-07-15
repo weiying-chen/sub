@@ -23,7 +23,7 @@ describe("spanGapRule (segments)", () => {
     expect(finding.gapFrames).toBe(30)
   })
 
-  it("ignores trailing suppression markers when comparing repeated cues", () => {
+  it("suppresses repeated cues across a gap when either side has a suppression marker", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "Hello there. #",
@@ -33,14 +33,7 @@ describe("spanGapRule (segments)", () => {
 
     const metrics = analyzeTextByType(text, "subs", [spanGapRule()])
 
-    expect(metrics).toHaveLength(1)
-    expect(metrics[0]).toMatchObject({
-      type: "SPAN_GAP",
-      lineIndex: 1,
-      nextLineIndex: 3,
-      text: "Hello there.",
-      nextText: "Hello there.",
-    })
+    expect(metrics).toHaveLength(0)
   })
 
   it("does not flag when the repeated text is continuous with no timing gap", () => {

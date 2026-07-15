@@ -371,6 +371,23 @@ function hasInterveningNonEmptyLine(
   return false
 }
 
+function hasInterveningSpeakerBreak(
+  src: LineSource,
+  startIndex: number,
+  endIndex: number
+): boolean {
+  let sawEmptyLine = false
+  for (let i = startIndex + 1; i < endIndex; i += 1) {
+    const text = src.getLine(i)
+    if (text.trim() === '') {
+      sawEmptyLine = true
+      continue
+    }
+    if (sawEmptyLine && isSubsCommentLine(text)) return true
+  }
+  return false
+}
+
 function cueTimestamp(cue: Cue): string {
   if (!cue.start || !cue.end) return ''
   return `${cue.start} -> ${cue.end}`
@@ -476,8 +493,13 @@ function collectMetrics(
       prev.translationIndex,
       next.tsIndex
     )
+    const hasSpeakerBreak = hasInterveningSpeakerBreak(
+      src,
+      prev.translationIndex,
+      next.tsIndex
+    )
 
-    if (hasMetadataBreak) {
+    if (hasMetadataBreak || hasSpeakerBreak) {
       if (!usesTimestampCues) {
         const nextCase = firstAlphaCase(next.text)
         if (nextCase === 'lower' && !prevIsParentheticalExempt) {

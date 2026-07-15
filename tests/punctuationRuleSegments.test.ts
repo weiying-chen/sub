@@ -664,6 +664,34 @@ describe("punctuationRule (segments)", () => {
     ).toBe(true)
   })
 
+  it("flags missing end punctuation before an empty-line speaker break", () => {
+    const text = [
+      "00:13:10:26\t00:13:12:15\t那假設他現在餐吃得不夠",
+      "If older adults aren't eating enough,",
+      "00:13:12:15\t00:13:13:25\t甚至體重下降",
+      "If older adults aren't eating enough,",
+      "00:13:13:25\t00:13:15:23\t或是咳得頻繁的時候",
+      "lose weight, or cough frequently,",
+      "00:13:15:23\t00:13:18:08\t那就應該要趕快去就醫",
+      "lose weight, or cough frequently,",
+      "",
+      "// narrator",
+      "00:13:18:29\t00:13:22:19\t王雪珮走出診間 走進社區",
+      "Wang Hsueh-pei extends her work beyond the clinic to",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_END_PUNCTUATION" &&
+          f.text === "lose weight, or cough frequently,"
+      )
+    ).toBe(true)
+  })
+
   it("ignores trailing CPS suppression markers for punctuation checks", () => {
     const text = [
       "00:00:37:14\t00:00:42:00\t提起了這一位李實先",

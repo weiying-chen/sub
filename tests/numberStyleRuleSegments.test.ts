@@ -4,6 +4,22 @@ import { analyzeSegments } from "../src/analysis/segments"
 import { numberStyleRule } from "../src/analysis/numberStyleRule"
 
 describe("numberStyleRule (segments)", () => {
+  it("suppresses number style when the translation line has a suppression marker", () => {
+    const segments = [
+      {
+        lineIndex: 1,
+        translation: "39.",
+        suppressSuggestions: true,
+        targetLines: [{ lineIndex: 1, lineText: "39." }],
+      },
+    ]
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("flags digit/word violations and ignores sentence starts + time", () => {
     const segments = [
       { lineIndex: 1, translation: "This is 5 examples." },

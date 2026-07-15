@@ -503,6 +503,7 @@ export function numberStyleRule(
 
   return ((ctx: RuleCtx | SegmentCtx) => {
     if ('segment' in ctx && ctx.segment.targetLines) {
+      if (ctx.segment.suppressSuggestions) return []
       const candidates = ctx.segment.targetLines
       if (candidates.length === 0) return []
       return candidates.flatMap((candidate, candidateIndex) => {

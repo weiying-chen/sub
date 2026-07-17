@@ -69,6 +69,8 @@ export function repeatedWordRule(
   options: RepeatedWordRuleOptions = {}
 ): RepeatedWordRule {
   return ((ctx: RuleCtx | SegmentCtx) => {
+    if ("segment" in ctx && ctx.segment.suppressSuggestions) return []
+
     if ("segment" in ctx && ctx.segment.targetLines) {
       const candidates = ctx.segment.targetLines
       if (candidates.length === 0) return []

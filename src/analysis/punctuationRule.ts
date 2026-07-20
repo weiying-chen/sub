@@ -81,7 +81,8 @@ function startsWithProperNoun(
   return properNounMatchers.some((matcher) => matcher.test(text))
 }
 
-function firstAlphaCase(s: string): 'lower' | 'upper' | null {
+function firstAlphaCase(s: string): 'lower' | 'upper' | 'numeric' | null {
+  if (/^\s*\d/.test(s)) return 'numeric'
   for (const ch of s.trimStart()) {
     if (/[A-Za-z]/.test(ch)) {
       return ch === ch.toLowerCase() ? 'lower' : 'upper'

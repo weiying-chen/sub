@@ -5,6 +5,29 @@ import { analyzeSegments, parseSubs } from "../src/analysis/segments"
 import { punctuationRule } from "../src/analysis/punctuationRule"
 
 describe("punctuationRule (segments)", () => {
+  it("does not require capitalization after a sentence before numeric-leading text", () => {
+    const text = [
+      "00:16:29:12\t00:16:30:19\tMarker",
+      "Just a moment.",
+      "00:16:32:00\t00:16:33:21\tMarker",
+      "70.5 kg.",
+    ].join("\n")
+
+    const segments = parseSubs(text)
+    const metrics = analyzeSegments(segments, [punctuationRule()], {
+      lines: text.split("\n"),
+      sourceText: text,
+    })
+
+    expect(
+      metrics.some(
+        (metric) =>
+          metric.type === "PUNCTUATION" &&
+          metric.ruleCode === "LOWERCASE_AFTER_PERIOD"
+      )
+    ).toBe(false)
+  })
+
   it("flags punctuation/capitalization issues across parsed cues", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

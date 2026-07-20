@@ -91,12 +91,12 @@ function firstAlphaCase(s: string): 'lower' | 'upper' | 'numeric' | null {
   return null
 }
 
-function startsWithIPronoun(s: string): boolean {
-  return I_PRONOUN_RE.test(s)
-}
-
 function startsWithHyphenatedRomanizedName(s: string): boolean {
   return HYPHENATED_ROMANIZED_NAME_RE.test(s)
+}
+
+function startsWithIPronoun(s: string): boolean {
+  return I_PRONOUN_RE.test(s)
 }
 
 function startsWithAPrefixRomanizedName(s: string): boolean {

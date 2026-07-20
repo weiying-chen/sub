@@ -72,7 +72,6 @@ function hasTiming(
 }
 
 type BoundaryClass =
-  | "paired_duplicate_non_full"
   | "duplicate_pair_before_multi_word_question"
   | "duplicate_span_before_multi_word_question"
   | "mismatched_sentence_state"
@@ -117,15 +116,6 @@ function classifyBoundary(
   next: Segment,
   next2: Segment | undefined
 ): BoundaryClass {
-  if (
-    info.prevMatchesCur &&
-    info.nextMatchesNext2 &&
-    !info.curFullSentence &&
-    !info.nextFullSentence
-  ) {
-    return "paired_duplicate_non_full"
-  }
-
   if (
     info.curMatchesNext &&
     info.curFullSentence &&

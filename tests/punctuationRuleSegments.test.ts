@@ -28,6 +28,35 @@ describe("punctuationRule (segments)", () => {
     ).toBe(false)
   })
 
+  it("does not flag comma continuations starting with I", () => {
+    const text = [
+      "00:07:27:21\t00:07:29:08\t那跟記者不太像",
+      "Unlike journalism, people tell me their real problems,",
+      "00:07:29:08\t00:07:30:16\t他要告訴我真的問題",
+      "Unlike journalism, people tell me their real problems,",
+      "00:07:30:16\t00:07:31:29\t我才知道怎麼解決",
+      "Unlike journalism, people tell me their real problems,",
+      "00:07:31:29\t00:07:32:22\t我就發現",
+      "I realized my experience in",
+      "00:07:32:22\t00:07:34:07\t經歷過企業的訓練",
+    ].join("\n")
+
+    const segments = parseSubs(text)
+    const metrics = analyzeSegments(segments, [punctuationRule()], {
+      lines: text.split("\n"),
+      sourceText: text,
+    })
+
+    expect(
+      metrics.some(
+        (metric) =>
+          metric.type === "PUNCTUATION" &&
+          metric.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL" &&
+          metric.text === "Unlike journalism, people tell me their real problems,"
+      )
+    ).toBe(false)
+  })
+
   it("flags punctuation/capitalization issues across parsed cues", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

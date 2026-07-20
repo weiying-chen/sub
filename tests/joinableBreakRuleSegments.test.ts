@@ -172,7 +172,32 @@ describe("joinableBreakRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
-  it("does not flag boundaries between duplicated span chunks", () => {
+  it("flags fitting joins inside repeated span chunks", () => {
+    const text = [
+      "00:07:36:00\t00:07:37:23\t培訓跟規畫",
+      "could bridge those two completely",
+      "00:07:37:23\t00:07:38:27\t我發現",
+      "could bridge those two completely",
+      "00:07:38:27\t00:07:41:12\t我好像是臺灣少數可以",
+      "could bridge those two completely",
+      "00:07:41:12\t00:07:42:18\t整合兩邊",
+      "different fields.",
+      "00:07:42:18\t00:07:44:21\t完全不相干領域的",
+      "different fields.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+
+    expect(metrics).toContainEqual(
+      expect.objectContaining({
+        type: "JOINABLE_BREAK",
+        text: "could bridge those two completely",
+        nextText: "different fields.",
+      })
+    )
+  })
+
+  it("flags fitting boundaries between duplicated span chunks", () => {
     const text = [
       "00:20:52:17\t00:20:54:06\t都這麼努力了",
       "After all that effort,",
@@ -189,7 +214,13 @@ describe("joinableBreakRule (segments)", () => {
     ].join("\n")
 
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
-    expect(metrics).toHaveLength(0)
+    expect(metrics).toContainEqual(
+      expect.objectContaining({
+        type: "JOINABLE_BREAK",
+        text: "After all that effort,",
+        nextText: "wouldn't you be disappointed",
+      })
+    )
   })
 
   it("does not flag duplicated span boundaries for workplace/professional wording", () => {

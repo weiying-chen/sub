@@ -53,13 +53,13 @@ const THAT_SPLIT_VERB_RE =
 const DET_RE =
   /^(?:the|a|an|this|that|these|those|my|your|his|her|our|their)\b/i
 const CLAUSE_STARTER_RE =
-  /^(?:because|since|as|although|though|while|if|when)\b/i
+  /^(?:because|since|as|although|though|while|if|when|whether)\b/i
 const CLAUSE_STARTER_ANY_RE =
-  /\b(?:because|since|as|although|though|while|if|when)\b/i
+  /\b(?:because|since|as|although|though|while|if|when|whether)\b/i
 const PREPOSITION_PHRASE_HEAD_RE =
   /^(?:in|on|at|behind|from|under)\s+(?:the|a|an|this|that|these|those|it|them|him|her|us|you)\b/i
 const COORDINATED_PHRASE_STOP_RE =
-  /^(?:who|whom|whose|that|which|with|for|from|before|after|while|because|since|if|when|as|would|could|should|will|can|may|might|must|is|are|was|were|be|being|been|am|do|does|did|has|have|had)\b/i
+  /^(?:who|whom|whose|that|which|with|for|from|before|after|while|because|since|if|when|whether|as|would|could|should|will|can|may|might|must|is|are|was|were|be|being|been|am|do|does|did|has|have|had)\b/i
 const SENTENCE_VERB_RE =
   /\b(am|is|are|was|were|be|being|been|have|has|had|do|does|did|can|will|would|should|must)\b/i
 const BE_VERB_TOKEN_RE =
@@ -811,7 +811,7 @@ function findSentenceBoundaryCut(
 }
 
 function findRightmostClauseStarterLead(window: string, nextText: string): number {
-  const re = /\b(?:since|although|though|while|if)\b/gi
+  const re = /\b(?:since|although|though|while|if|whether)\b/gi
   let best = -1
   let m: RegExpExecArray | null
   while ((m = re.exec(window)) !== null) {

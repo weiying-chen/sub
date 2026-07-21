@@ -2760,6 +2760,20 @@ describe("fillSelectedTimestampLines", () => {
   )
   })
 
+  it("keeps 'that' at the end of previous line before 'whether' clauses", () => {
+  const split = __testTakeLine(
+    "And then they also told me that whether the power went out or the machine broke down, we had to quickly get the beans out by hand.",
+    54,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("And then they also told me that")
+  expect(split.rest).toBe(
+    "whether the power went out or the machine broke down, we had to quickly get the beans out by hand."
+  )
+  })
+
   it("keeps possessive determiners with following noun phrases", () => {
   const cases = [
     { determiner: "my", noun: "notes" },

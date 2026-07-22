@@ -65,6 +65,28 @@ function collectMetrics(
   return metrics
 }
 
+function collectBoundaryMetric(
+  leftText: string,
+  rightText: string,
+  rightAnchorIndex: number
+): RepeatedWordMetric[] {
+  const leftWords = Array.from(leftText.matchAll(WORD_RE))
+  const rightWord = Array.from(rightText.matchAll(WORD_RE))[0]
+  const leftWord = leftWords[leftWords.length - 1]
+  if (!leftWord || !rightWord) return []
+  if (leftWord[0].toLowerCase() !== rightWord[0].toLowerCase()) return []
+
+  return [
+    {
+      type: "REPEATED_WORD",
+      lineIndex: rightAnchorIndex,
+      index: rightWord.index,
+      token: rightWord[0],
+      text: rightText,
+    },
+  ]
+}
+
 export function repeatedWordRule(
   options: RepeatedWordRuleOptions = {}
 ): RepeatedWordRule {
@@ -74,9 +96,27 @@ export function repeatedWordRule(
     if ("segment" in ctx && ctx.segment.targetLines) {
       const candidates = ctx.segment.targetLines
       if (candidates.length === 0) return []
-      return candidates.flatMap((candidate) =>
+      const metrics = candidates.flatMap((candidate) =>
         collectMetrics(candidate.lineText, candidate.lineIndex, candidate.lineText)
       )
+
+      for (let i = 1; i < candidates.length; i += 1) {
+        const left = candidates[i - 1]
+        const right = candidates[i]
+        metrics.push(...collectBoundaryMetric(left.lineText, right.lineText, right.lineIndex))
+      }
+
+      const previousSegment = ctx.segments[ctx.segmentIndex - 1]
+      if (previousSegment && !previousSegment.suppressSuggestions) {
+        const previousText = previousSegment.targetLines?.at(-1)?.lineText
+          ?? previousSegment.translation
+        const first = candidates[0]
+        metrics.push(
+          ...collectBoundaryMetric(previousText, first.lineText, first.lineIndex)
+        )
+      }
+
+      return metrics
     }
 
     const extracted = getTextAndAnchor(ctx, options)

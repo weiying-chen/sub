@@ -4,6 +4,29 @@ import { runAnalysis } from "../src/cli/runAnalysis"
 import type { Metric } from "../src/analysis/types"
 
 describe("repeated word defaults", () => {
+  it("finds a repeated word across adjacent subtitle cues", async () => {
+    const subsText = [
+      "00:26:56:16\t00:26:58:22\t想辦法去注射去破壞掉",
+      "we located the affected nerve and injected it to",
+      "00:26:58:22\t00:27:00:12\t讓他可以止痛",
+      "to relieve the pain.",
+    ].join("\n")
+
+    const output = (await runAnalysis(subsText, {
+      type: "subs",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(output).toContainEqual(
+      expect.objectContaining({
+        type: "REPEATED_WORD",
+        lineIndex: 3,
+        index: 0,
+        token: "to",
+      })
+    )
+  })
+
   it("includes repeated-word findings by default in subs, news, and text", async () => {
     const subsText = [
       "00:00:01:00\t00:00:02:00\tMarker",

@@ -27,6 +27,22 @@ describe("repeated word defaults", () => {
     )
   })
 
+  it("does not repeat a word across a punctuated cue boundary", async () => {
+    const subsText = [
+      "00:29:35:00\t00:29:36:29\t前一句",
+      "I.",
+      "00:29:36:29\t00:29:38:20\t我說你怎麼樣 會痛嗎",
+      'I asked, "Does it hurt?"',
+    ].join("\n")
+
+    const output = (await runAnalysis(subsText, {
+      type: "subs",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(output.map((metric) => metric.type)).not.toContain("REPEATED_WORD")
+  })
+
   it("includes repeated-word findings by default in subs, news, and text", async () => {
     const subsText = [
       "00:00:01:00\t00:00:02:00\tMarker",

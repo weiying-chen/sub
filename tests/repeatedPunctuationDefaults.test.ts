@@ -4,6 +4,29 @@ import { runAnalysis } from "../src/cli/runAnalysis"
 import type { Metric } from "../src/analysis/types"
 
 describe("repeated punctuation defaults", () => {
+  it("finds repeated punctuation across adjacent subtitle cues", async () => {
+    const subsText = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "What happened?",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "? I couldn't tell.",
+    ].join("\n")
+
+    const output = (await runAnalysis(subsText, {
+      type: "subs",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(output).toContainEqual(
+      expect.objectContaining({
+        type: "REPEATED_PUNCTUATION",
+        lineIndex: 3,
+        index: 0,
+        token: "??",
+      })
+    )
+  })
+
   it("includes repeated-punctuation findings by default in subs, news, and text", async () => {
     const subsText = [
       "00:00:01:00\t00:00:02:00\tMarker",

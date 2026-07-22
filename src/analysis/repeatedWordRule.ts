@@ -70,6 +70,9 @@ function collectBoundaryMetric(
   rightText: string,
   rightAnchorIndex: number
 ): RepeatedWordMetric[] {
+  if (!/[\p{L}\p{N}]$/u.test(leftText.trimEnd())) return []
+  if (!/^[\p{L}\p{N}]/u.test(rightText.trimStart())) return []
+
   const leftWords = Array.from(leftText.matchAll(WORD_RE))
   const rightWord = Array.from(rightText.matchAll(WORD_RE))[0]
   const leftWord = leftWords[leftWords.length - 1]

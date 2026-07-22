@@ -57,16 +57,59 @@ function collectMetrics(
   return metrics
 }
 
+function collectBoundaryMetric(
+  leftText: string,
+  rightText: string,
+  rightAnchorIndex: number
+): RepeatedPunctuationMetric[] {
+  const left = leftText.trimEnd()
+  const right = rightText.trimStart()
+  const leftToken = left.at(-1)
+  const rightToken = right[0]
+  if (!leftToken || leftToken !== rightToken) return []
+  if (!/[,!?;:.]/.test(leftToken)) return []
+
+  return [
+    {
+      type: "REPEATED_PUNCTUATION",
+      lineIndex: rightAnchorIndex,
+      index: rightText.search(/\S/),
+      token: `${leftToken}${rightToken}`,
+      text: rightText,
+    },
+  ]
+}
+
 export function repeatedPunctuationRule(
   options: RepeatedPunctuationRuleOptions = {}
 ): RepeatedPunctuationRule {
   return ((ctx: RuleCtx | SegmentCtx) => {
+    if ("segment" in ctx && ctx.segment.suppressSuggestions) return []
+
     if ("segment" in ctx && ctx.segment.targetLines) {
       const candidates = ctx.segment.targetLines
       if (candidates.length === 0) return []
-      return candidates.flatMap((candidate) =>
+      const metrics = candidates.flatMap((candidate) =>
         collectMetrics(candidate.lineText, candidate.lineIndex, candidate.lineText)
       )
+
+      for (let i = 1; i < candidates.length; i += 1) {
+        const left = candidates[i - 1]
+        const right = candidates[i]
+        metrics.push(...collectBoundaryMetric(left.lineText, right.lineText, right.lineIndex))
+      }
+
+      const previousSegment = ctx.segments[ctx.segmentIndex - 1]
+      if (previousSegment && !previousSegment.suppressSuggestions) {
+        const previousText = previousSegment.targetLines?.at(-1)?.lineText
+          ?? previousSegment.translation
+        const first = candidates[0]
+        metrics.push(
+          ...collectBoundaryMetric(previousText, first.lineText, first.lineIndex)
+        )
+      }
+
+      return metrics
     }
 
     const extracted = getTextAndAnchor(ctx, options)

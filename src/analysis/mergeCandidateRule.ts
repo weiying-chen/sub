@@ -89,7 +89,7 @@ export function mergeCandidateRule(
 
     const left = normalizeTextForCompare(cur.translation)
     const right = normalizeTextForCompare(next.translation)
-    if (!left || !right || left === right) return []
+    if (!left || !right) return []
 
     const editDistance = boundedLevenshtein(left, right, maxEditDistance)
     if (editDistance == null) return []

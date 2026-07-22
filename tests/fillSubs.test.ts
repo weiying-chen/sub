@@ -776,6 +776,18 @@ describe("fillSelectedTimestampLines", () => {
   ])
   })
 
+  it("re-joins a full sentence with a fitting comma-ended continuation", () => {
+    const merged = __testMergeJoinableTranslations(
+      ["Because they clearly weren't.", "They looked pale,"],
+      54
+    )
+
+    expect(merged).toEqual([
+      "Because they clearly weren't. They looked pale,",
+      "Because they clearly weren't. They looked pale,",
+    ])
+  })
+
   it("merge pass joins sentence-end adjacent lines when they fit max chars", () => {
   const merged = __testMergeJoinableTranslations(
     ["What matters to them?", "Even their personal lives."],

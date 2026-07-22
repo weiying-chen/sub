@@ -9,7 +9,7 @@ import {
 } from './doubleQuoteSpan'
 import { DASH_VARIANTS_RE, EM_DASH } from './dashes'
 import { looksLikeSentenceFragment } from './sentenceFragments'
-import { canJoinAdjacentText } from './joinableText'
+import { canJoinAdjacentText, normalizeJoinText } from './joinableText'
 
 export type FillSubsOptions = {
   maxChars?: number
@@ -1747,11 +1747,24 @@ function mergeJoinableTranslations(
 
     const leftFullSentence = isMergeFullSentence(leftRaw)
     const rightFullSentence = isMergeFullSentence(rightRaw)
-    if (leftFullSentence !== rightFullSentence) continue
+    const rightIsCommaEndedContinuation =
+      leftFullSentence &&
+      !rightFullSentence &&
+      startsWithUppercaseAlpha(rightRaw) &&
+      /[,，]\s*$/.test(rightRaw)
+    if (leftFullSentence !== rightFullSentence && !rightIsCommaEndedContinuation) {
+      continue
+    }
 
-    const join = canJoinAdjacentText(leftRaw, rightRaw, maxChars, {
-      allowSentenceEndJoin: true,
-    })
+    const commaContinuationJoin = `${normalizeJoinText(leftRaw)} ${normalizeJoinText(rightRaw)}`
+      .trim()
+    const join = rightIsCommaEndedContinuation
+      ? commaContinuationJoin.length <= maxChars
+        ? { joined: commaContinuationJoin, joinedLength: commaContinuationJoin.length }
+        : null
+      : canJoinAdjacentText(leftRaw, rightRaw, maxChars, {
+          allowSentenceEndJoin: true,
+        })
     if (!join) continue
     translations.set(leftIndex, join.joined)
     translations.set(rightIndex, join.joined)

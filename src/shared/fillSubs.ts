@@ -1766,8 +1766,14 @@ function mergeJoinableTranslations(
           allowSentenceEndJoin: true,
         })
     if (!join) continue
-    translations.set(leftIndex, join.joined)
-    translations.set(rightIndex, join.joined)
+    const normalizedLeft = normalizeJoinText(leftRaw)
+    const normalizedRight = normalizeJoinText(rightRaw)
+    const joined =
+      /^".*"$/.test(normalizedLeft) && /^".*"$/.test(normalizedRight)
+        ? `${normalizedLeft.slice(0, -1)} ${normalizedRight.slice(1)}`
+        : join.joined
+    translations.set(leftIndex, joined)
+    translations.set(rightIndex, joined)
   }
 }
 

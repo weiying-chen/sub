@@ -788,6 +788,18 @@ describe("fillSelectedTimestampLines", () => {
     ])
   })
 
+  it("uses one quote pair when merging adjacent quoted sentences", () => {
+    const merged = __testMergeJoinableTranslations(
+      ['"Keep fighting."', '"There\'s still hope."'],
+      54
+    )
+
+    expect(merged).toEqual([
+      '"Keep fighting. There\'s still hope."',
+      '"Keep fighting. There\'s still hope."',
+    ])
+  })
+
   it("merge pass joins sentence-end adjacent lines when they fit max chars", () => {
   const merged = __testMergeJoinableTranslations(
     ["What matters to them?", "Even their personal lives."],

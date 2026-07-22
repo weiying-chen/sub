@@ -4,7 +4,7 @@ import { analyzeTextByType } from "../src/analysis/analyzeTextByType"
 import { mergeCandidateRule } from "../src/analysis/mergeCandidateRule"
 
 describe("mergeCandidateRule (segments)", () => {
-  it("flags exact duplicate translations across adjacent cues", () => {
+  it("does not flag exact duplicate translations used for spanning", () => {
     const text = [
       "00:26:54:00\t00:26:56:16\t我們找到了受影響的神經",
       "we located the affected nerve and injected it to",
@@ -16,14 +16,7 @@ describe("mergeCandidateRule (segments)", () => {
 
     const metrics = analyzeTextByType(text, "subs", [mergeCandidateRule()])
 
-    expect(metrics).toContainEqual(
-      expect.objectContaining({
-        type: "MERGE_CANDIDATE",
-        text: "we located the affected nerve and injected it to",
-        nextText: "we located the affected nerve and injected it to",
-        editDistance: 0,
-      })
-    )
+    expect(metrics).toHaveLength(0)
   })
 
   it("flags near-identical adjacent cues with small gap", () => {

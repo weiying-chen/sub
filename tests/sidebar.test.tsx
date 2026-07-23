@@ -215,7 +215,6 @@ describe("Sidebar", () => {
       "Translation line has too many characters",
       "Punctuation is incorrect",
       'Repeated word: "00"',
-      'Repeated word: "00"',
       "Preferred term is incorrect",
       "Number format is incorrect",
       "Percent format is incorrect",
@@ -224,6 +223,7 @@ describe("Sidebar", () => {
       "Reading speed is too low",
       "Translation line spans across a timing gap",
       "Translation lines could be merged",
+      "Translation lines can be joined",
     ])
 
     const modalFindingLabels = new Set([

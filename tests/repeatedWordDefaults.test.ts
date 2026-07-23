@@ -43,6 +43,24 @@ describe("repeated word defaults", () => {
     expect(output.map((metric) => metric.type)).not.toContain("REPEATED_WORD")
   })
 
+  it("does not flag matching words separated by punctuation", async () => {
+    const subsText = [
+      "00:40:44:09\t00:40:45:07\t但是我大概念到",
+      "But by junior high, high school, and college,",
+      "00:40:45:07\t00:40:46:14\t國中 高中 大學以後",
+      "But by junior high, high school, and college,",
+      "00:40:46:14\t00:40:49:04\t我就開始很厭倦這些事情",
+      "But by junior high, high school, and college,",
+    ].join("\n")
+
+    const output = (await runAnalysis(subsText, {
+      type: "subs",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(output.map((metric) => metric.type)).not.toContain("REPEATED_WORD")
+  })
+
   it("includes repeated-word findings by default in subs, news, and text", async () => {
     const subsText = [
       "00:00:01:00\t00:00:02:00\tMarker",

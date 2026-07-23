@@ -40,7 +40,7 @@ function collectMetrics(
 ): RepeatedWordMetric[] {
   const metrics: RepeatedWordMetric[] = []
   let previousToken: string | null = null
-  let previousWordIndex = -1
+  let previousWordEnd = -1
 
   WORD_RE.lastIndex = 0
   let match: RegExpExecArray | null = null
@@ -48,7 +48,10 @@ function collectMetrics(
     const token = match[0]
     const normalized = token.toLowerCase()
 
-    if (previousToken === normalized && previousWordIndex >= 0) {
+    const separator = previousWordEnd >= 0
+      ? text.slice(previousWordEnd, match.index)
+      : ""
+    if (previousToken === normalized && /^\s+$/.test(separator)) {
       metrics.push({
         type: "REPEATED_WORD",
         lineIndex: anchorIndex,
@@ -59,7 +62,7 @@ function collectMetrics(
     }
 
     previousToken = normalized
-    previousWordIndex = match.index
+    previousWordEnd = match.index + token.length
   }
 
   return metrics

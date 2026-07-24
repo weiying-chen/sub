@@ -2498,6 +2498,17 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("can determine whether people trust you again.")
   })
 
+  it("keeps a preposition phrase before an if clause", () => {
+  const split = __testTakeLine(
+    "What absolutely belonged in it if I was ever going to get everything done?",
+    54,
+    null,
+    false
+  )
+  expect(split.line).toBe("What absolutely belonged in it")
+  expect(split.rest).toBe("if I was ever going to get everything done?")
+  })
+
   it("does not move trailing 'into' to the next split chunk", () => {
   const split = __testTakeLine(
     "and I help clients turn numbers into meaningful stories.",

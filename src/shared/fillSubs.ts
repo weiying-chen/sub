@@ -1567,6 +1567,8 @@ function normalizeTrailingPrepositionPhraseHead(
 ): { line: string; rest: string } {
   const trimmed = line.trimEnd()
   const trimmedRest = rest.trimStart()
+  if (CLAUSE_STARTER_RE.test(trimmedRest)) return { line, rest }
+
   const match = trimmed.match(/^(.*)\s+(like|in)\s+([A-Za-z][A-Za-z'-]*)$/i)
   if (!match || !/^[a-z][a-z'-]*/i.test(trimmedRest)) return { line, rest }
 

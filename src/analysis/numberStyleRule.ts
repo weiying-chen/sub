@@ -276,12 +276,49 @@ function parseNumberWords(rawToken: string): number | null {
   return total + current
 }
 
+function coordinatedListHasCompliantNumber(
+  text: string,
+  start: number,
+  end: number
+) {
+  const numberRe = new RegExp(
+    `(?:${DIGIT_TOKEN_RE_SOURCE}|${WORD_NUMBER_TOKEN_RE_SOURCE})`,
+    'gi'
+  )
+  const spanText = text.slice(start, end)
+  let match: RegExpExecArray | null = null
+
+  while ((match = numberRe.exec(spanText))) {
+    const rawToken = match[0]
+    const index = start + match.index
+    const sentenceStart = isSentenceStart(text, index)
+
+    if (isAmPmToken(text, index, rawToken.length)) return true
+
+    if (/^\d/.test(rawToken)) {
+      if (rawToken.includes('.')) return true
+      const value = Number.parseInt(rawToken.replace(/,/g, ''), 10)
+      if (Number.isFinite(value) && value > 10 && !sentenceStart) return true
+      continue
+    }
+
+    const value = parseNumberWords(rawToken)
+    if (value != null && (value <= 10 || sentenceStart)) return true
+  }
+
+  return false
+}
+
 function getCoordinatedNumberListSpans(text: string): Array<{ start: number; end: number }> {
   const spans: Array<{ start: number; end: number }> = []
   let match: RegExpExecArray | null = null
 
   while ((match = COORDINATED_NUMBER_LIST_RE.exec(text))) {
-    spans.push({ start: match.index, end: match.index + match[0].length })
+    const start = match.index
+    const end = match.index + match[0].length
+    if (coordinatedListHasCompliantNumber(text, start, end)) {
+      spans.push({ start, end })
+    }
   }
 
   return spans

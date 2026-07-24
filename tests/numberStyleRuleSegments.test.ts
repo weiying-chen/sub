@@ -171,11 +171,10 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
-  it("ignores approximate number ranges like one or two hundred", () => {
+  it("ignores coordinated ranges when at least one number follows style", () => {
     const segments = [
       { lineIndex: 0, translation: "I must have one or two hundred outfits." },
       { lineIndex: 1, translation: "They waited one or two thousand hours." },
-      { lineIndex: 2, translation: "We need twenty or thirty chairs." },
     ].map((segment) => ({
       ...segment,
       targetLines: [{ lineIndex: segment.lineIndex, lineText: segment.translation }],
@@ -184,6 +183,26 @@ describe("numberStyleRule (segments)", () => {
     const metrics = analyzeSegments(segments, [numberStyleRule()])
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
     expect(findings).toHaveLength(0)
+  })
+
+  it("flags coordinated ranges when every number violates style", () => {
+    const segments = [
+      { lineIndex: 0, translation: "We waited twenty or thirty years." },
+      { lineIndex: 1, translation: "They found 1 or 2 errors." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, lineText: segment.translation }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings.map((finding) => finding.token)).toEqual([
+      "twenty",
+      "thirty",
+      "1",
+      "2",
+    ])
   })
 
   it("ignores decimal quantities like 8.47 years", () => {
@@ -287,6 +306,10 @@ describe("numberStyleRule (segments)", () => {
       {
         lineIndex: 0,
         translation: "The top-performing students went to bed between 10 and 11 p.m.",
+      },
+      {
+        lineIndex: 1,
+        translation: "Rounds lasted from 4 or 5 p.m. until 11.",
       },
     ].map((segment) => ({
       ...segment,

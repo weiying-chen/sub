@@ -570,6 +570,7 @@ function isNewsLabel(text: string): boolean {
 function isNewsStructureLine(text: string): boolean {
   if (isNewsLabel(text)) return true
   if (/^[<>]+$/.test(text)) return true
+  if (/^\d+\s*\([^)]*[A-Za-z][^)]*\)(?:\s*\([^)]*\))*$/.test(text)) return true
   return false
 }
 

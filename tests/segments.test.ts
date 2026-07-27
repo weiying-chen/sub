@@ -283,6 +283,32 @@ describe("parseNews", () => {
     expect(segments[1]?.marker).toBeUndefined()
   })
 
+  it("ignores numbered speaker cues before SUPER blocks", () => {
+    const text = [
+      "11(Paulina) (Consecrated Sisters of the Most Holy Savior)",
+      "(11秒，2324)",
+      "/*SUPER:",
+      "聖救世會修女｜寶琳娜//",
+      "知道這些食物將會送到那麼多人的手中//",
+      "*/",
+      "Knowing this food will reach so many people.",
+    ].join("\n")
+
+    const segments = parseNews(text)
+
+    expect(
+      segments.some((segment) =>
+        segment.targetLines?.some((line) => line.lineIndex === 0)
+      )
+    ).toBe(false)
+    expect(segments).toMatchObject([
+      {
+        blockType: "super",
+        translation: "Knowing this food will reach so many people.",
+      },
+    ])
+  })
+
   it("parses PEOPLE entries as dedicated news segments", () => {
     const text = [
       "PEOPLE:",

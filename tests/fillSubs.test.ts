@@ -572,6 +572,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("preserves a dash split after a prepositional phrase", () => {
+    const split = __testTakeLine(
+      "they became united in purpose---to purify people's hearts, reach out to people",
+      54,
+      null,
+      true
+    )
+
+    expect(split.line).toBe("they became united in purpose---")
+    expect(split.rest).toBe("to purify people's hearts, reach out to people")
+  })
+
   it("keeps triple hyphen atomic at split boundaries", () => {
   const split = __testTakeLine(
     "Do what you can, and do your best to show your value--- because no one else can show it for you.",

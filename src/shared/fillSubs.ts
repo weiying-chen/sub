@@ -59,7 +59,7 @@ const CLAUSE_STARTER_ANY_RE =
 const PREPOSITION_PHRASE_HEAD_RE =
   /^(?:in|on|at|behind|from|under)\s+(?:the|a|an|this|that|these|those|it|them|him|her|us|you)\b/i
 const COORDINATED_PHRASE_STOP_RE =
-  /^(?:who|whom|whose|that|which|with|for|from|before|after|while|because|since|if|when|whether|as|would|could|should|will|can|may|might|must|is|are|was|were|be|being|been|am|do|does|did|has|have|had)\b/i
+  /^(?:who|whom|whose|that|which|with|for|from|before|after|while|because|since|if|when|whether|as|would|could|should|will|can|may|might|must|is|are|was|were|be|being|been|am|do|does|did|has|have|had|take|takes|took|taken)\b/i
 const SENTENCE_VERB_RE =
   /\b(am|is|are|was|were|be|being|been|have|has|had|do|does|did|can|will|would|should|must)\b/i
 const BE_VERB_TOKEN_RE =
@@ -447,11 +447,18 @@ function findRightmostListTailLead(window: string, nextText: string): number {
     if (window[i] !== ',') continue
 
     const left = window.slice(0, i + 1).trimEnd()
-    const right = (window.slice(i + 1) + nextText).trimStart()
+    const rightWithWhitespace = window.slice(i + 1) + nextText
+    const right = rightWithWhitespace.trimStart()
     if (!left || !right) continue
     if (!/^(and|or|nor)\b/i.test(right)) continue
     if (/^(and|or|nor)\s+\S+\s+(before|after|while|like)\b/i.test(right)) {
       continue
+    }
+    const stopIndex = findCoordinationStopIndex(right)
+    if (stopIndex > 0) {
+      const leadingWhitespace = rightWithWhitespace.length - right.length
+      const completedListCut = i + 1 + leadingWhitespace + stopIndex
+      if (completedListCut < window.length) return completedListCut
     }
     return i + 1
   }

@@ -618,6 +618,28 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("or staffing constraints before launch.")
   })
 
+  it("keeps a final named list item with the preceding names", () => {
+    const lines = [
+      "00:02:31:12\t00:02:36:04\t有靜暘 有靜潔 有靜睿",
+      "00:02:36:04\t00:02:40:19\t三位他們輪流上電臺",
+    ]
+
+    const result = fillSelectedTimestampLines(
+      lines,
+      new Set([0, 1]),
+      "Jing Yang, Jing Jie, and Jing Rui took turns hosting the radio program.",
+      { maxChars: 54, inline: true }
+    )
+
+    expect(result.lines).toEqual([
+      "00:02:31:12\t00:02:36:04\t有靜暘 有靜潔 有靜睿",
+      "Jing Yang, Jing Jie, and Jing Rui",
+      "00:02:36:04\t00:02:40:19\t三位他們輪流上電臺",
+      "took turns hosting the radio program.",
+    ])
+    expect(result.remaining).toBe("")
+  })
+
   it("splits before clause-style 'or how to' after a comma", () => {
   const split = __testTakeLine(
     "behind, like their assets and belongings, or how to sort things out without causing regret.",

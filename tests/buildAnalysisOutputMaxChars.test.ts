@@ -58,6 +58,24 @@ describe("buildAnalysisOutput maxChars override", () => {
     expect(subsFindings.some((f) => f.type === "MAX_CHARS")).toBe(false)
     expect(newsFindings.some((f) => f.type === "MAX_CHARS")).toBe(true)
   })
+
+  it("limits news SUPER text to 42 characters", () => {
+    const text = [
+      "/*SUPER:",
+      "*/",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    ].join("\n")
+
+    const findings = buildAnalysisOutput({
+      text,
+      type: "news",
+      ruleSet: "findings",
+      output: "findings",
+      enabledRuleTypes: ["MAX_CHARS"],
+    }) as Finding[]
+
+    expect(findings.some((f) => f.type === "MAX_CHARS")).toBe(true)
+  })
 })
 
 describe("buildAnalysisOutput CPS overrides", () => {

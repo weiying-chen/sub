@@ -23,6 +23,7 @@ describe("loadProperNouns", () => {
     expect(properNouns).toContain("Tzu Chi")
     expect(properNouns).toContain("Guanyin Bodhisattva")
     expect(properNouns).toContain("Bodhisattva")
+    expect(properNouns).toContain("Buddhist")
     expect(properNouns).toContain("Buddhism")
     expect(properNouns).toContain("Dharma")
     expect(properNouns).toContain("God")

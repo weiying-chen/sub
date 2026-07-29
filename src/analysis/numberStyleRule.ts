@@ -210,6 +210,11 @@ function isLevelNumberToken(text: string, index: number) {
   return /\blevel\s+$/i.test(prefix)
 }
 
+function isEarthquakeMagnitudeToken(text: string, index: number) {
+  const prefix = text.slice(0, index)
+  return /\bmagnitude(?:\s+of)?\s+$/i.test(prefix)
+}
+
 function isDigitRangeToken(text: string, index: number, length: number) {
   const prefix = text.slice(0, index)
   const suffix = text.slice(index + length)
@@ -453,6 +458,7 @@ function collectMetrics(
     if (isTemperatureUnitToken(text, match.index, rawToken.length)) continue
     if (isCurrencyToken(text, match.index)) continue
     if (isLevelNumberToken(text, match.index)) continue
+    if (isEarthquakeMagnitudeToken(text, match.index)) continue
 
     const sentenceStart = isSentenceStart(
       text,

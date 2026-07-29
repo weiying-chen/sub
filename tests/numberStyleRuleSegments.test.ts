@@ -141,6 +141,24 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("allows digits for earthquake magnitude measurements", () => {
+    const segments = [
+      { lineIndex: 0, translation: "It was a magnitude 8 earthquake." },
+      { lineIndex: 1, translation: "The earthquake had a magnitude of 9." },
+      { lineIndex: 2, translation: "We recorded 8 earthquakes." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, lineText: segment.translation }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(1)
+    expect(findings[0]?.lineIndex).toBe(2)
+    expect(findings[0]?.token).toBe("8")
+  })
+
   it("ignores AM/PM time notation", () => {
     const segments = [
       { lineIndex: 0, translation: "The meeting starts at 3 PM." },

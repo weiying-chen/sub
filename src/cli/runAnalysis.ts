@@ -18,6 +18,7 @@ export type RunAnalysisOptions = {
   includeWarnings?: boolean
   maxCps?: number
   minCps?: number
+  maxChars?: number
 }
 
 export async function runAnalysis(
@@ -62,5 +63,6 @@ export async function runAnalysis(
     includeWarnings: options.includeWarnings,
     maxCps: options.maxCps,
     minCps: options.minCps,
+    maxChars: options.maxChars,
   })
 }

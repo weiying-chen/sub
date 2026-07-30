@@ -4,6 +4,7 @@ import { createNewsReporter } from './news'
 import { createSubsReporter } from './subs'
 import { parseArgs } from './watchArgs'
 import { normalizeRuleFilters } from './watchRuleFilters'
+import { resolveWatchProfile } from './watchProfiles'
 
 export type Reporter = (
   path: string,
@@ -15,7 +16,9 @@ type WatchOptions = {
 }
 
 // Parse CLI args once
-// Usage: watch <file> [--type subs|news] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines] [--max-cps number] [--min-cps number]
+const USAGE = 'Usage: watch <file> [--type subs|news|dramas] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines] [--max-cps number] [--min-cps number]'
+
+// Usage: watch <file> [--type subs|news|dramas] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines] [--max-cps number] [--min-cps number]
 const args = process.argv.slice(2)
 const {
   filePath,
@@ -100,25 +103,25 @@ export async function watch(
 // --- CLI entry ---
 
 if (!filePath) {
-  console.error('Usage: watch <file> [--type subs|news] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines] [--max-cps number] [--min-cps number]')
+  console.error(USAGE)
   process.exit(1)
 }
 
-const normalizedType = type.trim().toLowerCase()
+const profile = resolveWatchProfile(type)
 
-if (normalizedType !== 'subs' && normalizedType !== 'news') {
-  console.error('Usage: watch <file> [--type subs|news] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines] [--max-cps number] [--min-cps number]')
+if (!profile) {
+  console.error(USAGE)
   process.exit(1)
 }
 
-if (normalizedType === 'news' && baselinePath) {
-  console.warn('WARN --baseline is only supported with --type subs; ignoring.')
+if (!profile.supportsBaseline && baselinePath) {
+  console.warn('WARN --baseline is only supported with subtitle types; ignoring.')
 }
 
 const ruleFiltersOrUndefined = normalizeRuleFilters(ruleFilters)
 
 const reporter =
-  normalizedType === 'news'
+  profile.reporter === 'news'
     ? createNewsReporter({ includeWarnings, ruleFilters: ruleFiltersOrUndefined })
     : createSubsReporter({
         includeWarnings,
@@ -127,10 +130,10 @@ const reporter =
         ignoreEmptyLines,
         maxCps: maxCps ?? undefined,
         minCps: minCps ?? undefined,
+        maxChars: profile.maxChars,
       })
 
-const label =
-  normalizedType === 'news' ? '(news)' : '(subs)'
+const label = profile.label
 
 if (once) {
   try {

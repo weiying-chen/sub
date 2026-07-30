@@ -7,6 +7,7 @@ This template provides a minimal setup to get React working in Vite with HMR and
 The `watch` CLI supports two reporters:
 
 - `subs` (default): subtitle checks; use `--balance` to include `CPS_BALANCE`
+- `dramas`: subtitle checks with a 50-character limit
 - `news`: number style checks (limited for now)
 
 Example:

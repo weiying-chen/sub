@@ -26,6 +26,7 @@ type SubsOptions = {
   ignoreEmptyLines?: boolean
   maxCps?: number
   minCps?: number
+  maxChars?: number
 }
 
 function asNum(v: unknown): number | null {
@@ -271,6 +272,7 @@ async function printReport(
     includeWarnings: options.includeWarnings,
     maxCps: options.maxCps ?? DEFAULT_MAX_CPS,
     minCps: options.minCps ?? DEFAULT_MIN_CPS,
+    maxChars: options.maxChars,
   })) as Finding[]
 
   const scope = findMarkerScope(lines)

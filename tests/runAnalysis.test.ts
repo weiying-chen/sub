@@ -10,6 +10,28 @@ function expectNoStyleRuleFindings(metrics: Metric[]) {
 }
 
 describe("runAnalysis output", () => {
+  it("applies a subtitle max-character override", async () => {
+    const text = [
+      "00:00:01:00\t00:00:05:00\t來源",
+      "A".repeat(51),
+    ].join("\n")
+
+    const output = (await runAnalysis(text, {
+      type: "subs",
+      mode: "findings",
+      ruleFilters: ["MAX_CHARS"],
+      maxChars: 50,
+    })) as Metric[]
+
+    expect(output).toContainEqual(
+      expect.objectContaining({
+        type: "MAX_CHARS",
+        actual: 51,
+        maxAllowed: 50,
+      })
+    )
+  })
+
   it("returns MAX_CHARS metrics for news SUPER lines", async () => {
     const text = [
       "Intro line.",

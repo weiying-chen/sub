@@ -1,4 +1,3 @@
-import { readFile } from 'node:fs/promises'
 import { basename, dirname, extname, join } from 'node:path'
 
 import { sortFindingsWithIndex } from '../shared/findingsSort'
@@ -9,6 +8,7 @@ import { runAnalysis } from './runAnalysis'
 import { formatCliFindingValue } from './findingValueFormat'
 import { formatCliNumber } from './numberFormat'
 import { DEFAULT_MAX_CPS, DEFAULT_MIN_CPS } from '../shared/cps'
+import { readTextFile } from './readTextFile'
 
 // --- ANSI colors (use terminal theme palette) ---
 
@@ -41,7 +41,7 @@ function defaultBaselinePathFor(path: string): string {
 
 async function readOptionalSiblingBaseline(path: string): Promise<string | null> {
   try {
-    return await readFile(defaultBaselinePathFor(path), 'utf8')
+    return await readTextFile(defaultBaselinePathFor(path))
   } catch (err) {
     if (
       err &&
@@ -258,10 +258,10 @@ async function printReport(
   options: SubsOptions,
   clearScreen: () => void
 ) {
-  const text = await readFile(path, 'utf8')
+  const text = await readTextFile(path)
   const lines = text.split('\n')
   const baselineText = options.baselinePath
-    ? await readFile(options.baselinePath, 'utf8')
+    ? await readTextFile(options.baselinePath)
     : await readOptionalSiblingBaseline(path)
   const findings = (await runAnalysis(text, {
     type: 'subs',

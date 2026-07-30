@@ -1,8 +1,9 @@
 #!/usr/bin/env -S sh -c 'script=$(readlink -f "$1" 2>/dev/null || printf "%s" "$1"); shift; exec "$(dirname "$script")/../../node_modules/.bin/tsx" "$script" "$@"' sh
 import { appendFileSync } from 'node:fs'
-import { readFile, writeFile } from 'node:fs/promises'
+import { writeFile } from 'node:fs/promises'
 import { spawnSync } from 'node:child_process'
 import { fillSelectedTimestampLines } from '../shared/fillSubs'
+import { readTextFile } from './readTextFile'
 import { parseFillSubsArgs } from './fillSubsCore'
 import { loadAbbreviations } from './properNouns'
 
@@ -127,7 +128,7 @@ const CLIPBOARD_CMD_TIMEOUT_MS = Math.max(1, clipboardTimeoutMs ?? DEFAULT_CLIPB
 const SHOW_OVERFLOW = showOverflow ?? false
 const OVERFLOW_TO_CLIPBOARD = overflowToClipboard ?? false
 
-const inputTsv = inputFile ? await readFile(inputFile, 'utf8') : await readStdin()
+const inputTsv = inputFile ? await readTextFile(inputFile) : await readStdin()
 const hadTrailingNewline = /\r?\n$/.test(inputTsv)
 const lines = inputTsv.split(/\r?\n/)
 if (hadTrailingNewline) {
@@ -139,7 +140,7 @@ if (hadTrailingNewline) {
 let paragraph = paragraphArg
 if (!paragraph.trim()) {
   if (paragraphFile) {
-    paragraph = await readFile(paragraphFile, 'utf8')
+    paragraph = await readTextFile(paragraphFile)
   } else {
     paragraph = getClipboardText()
   }

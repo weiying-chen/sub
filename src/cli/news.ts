@@ -1,6 +1,5 @@
-import { readFile } from 'node:fs/promises'
-
 import type { Finding, Metric } from '../analysis/types'
+import { readTextFile } from './readTextFile'
 import { formatCliFindingValue } from './findingValueFormat'
 import { formatCliNumber } from './numberFormat'
 import type { Reporter } from './watch'
@@ -118,7 +117,7 @@ export function formatFinding(f: Finding): string {
 
 export function createNewsReporter(options: NewsOptions): Reporter {
   return async (path, { clearScreen }) => {
-    const text = await readFile(path, 'utf8')
+    const text = await readTextFile(path)
     const findings = (await runAnalysis(text, {
       type: 'news',
       mode: 'findings',

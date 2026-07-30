@@ -1,8 +1,7 @@
 #!/usr/bin/env node
-import { readFile } from 'node:fs/promises'
-
 import { parseInspectArgs } from './inspectArgs'
 import { buildInspectOutput } from './inspectOutput'
+import { readTextFile } from './readTextFile'
 
 function printUsage() {
   console.error(
@@ -39,7 +38,7 @@ if (!args.filePath && !args.textArg && process.stdin.isTTY) {
 const text = args.textArg
   ? args.textArg
   : args.filePath
-  ? await readFile(args.filePath, 'utf8')
+  ? await readTextFile(args.filePath)
   : await readStdin()
 
 if (!text.trim() && !args.filePath && !args.textArg) {

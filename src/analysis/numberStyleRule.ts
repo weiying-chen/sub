@@ -150,6 +150,10 @@ function isTimeToken(text: string, index: number, length: number) {
   return before === ':' || after === ':'
 }
 
+function isCalendarYearToken(rawToken: string, value: number) {
+  return /^\d{4}$/.test(rawToken) && value >= 1000 && value <= 2999
+}
+
 function isAgeAdjective(text: string, index: number, length: number) {
   const tail = text.slice(index + length).toLowerCase()
   return /^(?:\s*-|\s+)year(?:-|\s+)old\b/.test(tail)
@@ -438,6 +442,7 @@ function collectMetrics(
     const normalized = rawToken.replace(/,/g, '')
     const value = Number.parseInt(normalized, 10)
     if (!Number.isFinite(value)) continue
+    if (isCalendarYearToken(rawToken, value)) continue
     if (isTimeToken(text, match.index, rawToken.length)) continue
     if (isAmPmToken(text, match.index, rawToken.length)) continue
     if (

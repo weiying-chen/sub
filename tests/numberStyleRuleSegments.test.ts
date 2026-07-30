@@ -93,6 +93,23 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores four-digit calendar years", () => {
+    const segments = [
+      { lineIndex: 0, translation: "1948 was the year she was born." },
+      { lineIndex: 1, translation: "The hospital opened in 1986." },
+      { lineIndex: 2, translation: "She became a lay practitioner in 2019." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [
+        { lineIndex: segment.lineIndex, lineText: segment.translation },
+      ],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+    expect(findings).toHaveLength(0)
+  })
+
   it("ignores currency amounts with symbols", () => {
     const segments = [
       { lineIndex: 0, translation: "It's about NT$1 million per bed." },

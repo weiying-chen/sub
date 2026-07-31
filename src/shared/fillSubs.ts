@@ -843,6 +843,29 @@ function findRightmostClauseStarterLead(window: string, nextText: string): numbe
   return best
 }
 
+function findRightmostTemporalPronounClauseStart(
+  window: string,
+  nextText: string
+): number {
+  let best = -1
+  const re = /\b(?:I|we)\b/g
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const left = window.slice(0, start).trimEnd()
+    const right = (window.slice(start) + nextText).trimStart()
+    if (!left || !right) continue
+    if (left.length < MIN_CLAUSE_START_SPLIT_CHARS) continue
+    if (left.split(/\s+/).filter(Boolean).length < MIN_CLAUSE_START_SPLIT_WORDS) {
+      continue
+    }
+    if (!/\b(?:first|last|next)?\s*time$/i.test(left)) continue
+    if (!/^(?:I|we)\s+\S+/i.test(right)) continue
+    best = start
+  }
+  return best
+}
+
 // Low-priority fallback: split before "near", but avoid tiny heads.
 function findRightmostNearStart(window: string, nextText: string): number {
   let best = -1
@@ -1067,6 +1090,11 @@ function findBestCut(
 
   const clauseLeadCut = findRightmostClauseStarterLead(window, nextText)
   if (clauseLeadCut >= 0) return { cut: clauseLeadCut, reason: 'clauseStarter' }
+
+  const temporalPronounCut = findRightmostTemporalPronounClauseStart(window, nextText)
+  if (temporalPronounCut >= 0) {
+    return { cut: temporalPronounCut, reason: 'temporalPronounClause' }
+  }
 
   const listTailCut = findRightmostListTailLead(window, nextText)
   if (listTailCut >= 0) return { cut: listTailCut, reason: 'listTail' }

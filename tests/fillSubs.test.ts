@@ -962,6 +962,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.startsWith("when ")).toBe(false)
   })
 
+  it("prefers splitting before a pronoun clause after a time phrase", () => {
+  const split = __testTakeLine(
+    "That's what happened the first time I taught a public workshop.",
+    45,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("That's what happened the first time")
+  expect(split.rest).toBe("I taught a public workshop.")
+  })
+
   it("does not split before because as a clause-starter heuristic", () => {
   const split = __testTakeLine(
     "A patient came to see me because he had a lot of gas.",

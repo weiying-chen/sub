@@ -2384,6 +2384,52 @@ describe("fillSelectedTimestampLines", () => {
   expect(translations.some((line) => line.trim() === '"')).toBe(false)
   })
 
+  it("does not leave an opening quote after a trailing conjunction", () => {
+  const lines = [
+    "00:08:50:11\t00:08:51:27\t譬如說我看過有人寫說",
+    "00:08:51:27\t00:08:55:05\t我希望每天要散步",
+    "00:08:55:05\t00:08:55:20\t或是我希望",
+    "00:08:55:20\t00:08:58:09\t我每個禮拜要讀一本書",
+  ]
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    new Set([0, 1, 2, 3]),
+    `For example, I've seen people write, "I want to take a walk every day," or "I want to read a book every week."`,
+    { maxChars: 54, inline: true }
+  )
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(translations).toEqual([
+    "For example, I've seen people write,",
+    "For example, I've seen people write,",
+    `"I want to take a walk every day," or`,
+    `"I want to read a book every week."`,
+  ])
+  })
+
+  it("keeps an opening parenthesis with the text it introduces", () => {
+  const lines = [
+    "00:09:22:16\t00:09:24:04\t我為了怕大家不會",
+    "00:09:24:04\t00:09:25:18\t我還成立了一個社群",
+    "00:09:25:18\t00:09:27:20\t叫人生的五十個夢想社群",
+  ]
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    new Set([0, 1, 2]),
+    "I created a community called (50 Dreams for Life Community).",
+    { maxChars: 54, inline: true }
+  )
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(translations).toEqual([
+    "I created a community called",
+    "I created a community called",
+    "(50 Dreams for Life Community).",
+  ])
+  })
+
   it("attaches trailing orphan closing quote to the last emitted line", () => {
   const lines = [
     "00:14:35:13\t00:14:36:26\tSource 1",

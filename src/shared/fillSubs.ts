@@ -1385,6 +1385,37 @@ function normalizeQuoteOnlyHead(line: string, rest: string): { line: string; res
   return { line: '', rest: `"${rest}` }
 }
 
+function normalizeTrailingOpeningDelimiter(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const match = line.trimEnd().match(/^(.*?)([([{])$/)
+  if (!match) return { line, rest }
+
+  const left = (match[1] ?? '').trimEnd()
+  const delimiter = match[2] ?? ''
+  const trimmedRest = rest.trimStart()
+  if (!left || !delimiter || !trimmedRest) return { line, rest }
+  if (trimmedRest.startsWith(delimiter)) {
+    return { line: left, rest: trimmedRest }
+  }
+  return { line: left, rest: `${delimiter}${trimmedRest}` }
+}
+
+function normalizeTrailingOpeningQuote(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const match = line.trimEnd().match(/^(.*\b(?:and|but|or|so|yet|nor))\s+"$/i)
+  if (!match) return { line, rest }
+
+  const left = (match[1] ?? '').trimEnd()
+  const trimmedRest = rest.trimStart()
+  if (!left || !trimmedRest) return { line, rest }
+  if (trimmedRest.startsWith('"')) return { line: left, rest: trimmedRest }
+  return { line: left, rest: `"${trimmedRest}` }
+}
+
 function normalizeTrailingConjunctionHead(
   line: string,
   rest: string
@@ -1738,7 +1769,15 @@ function normalizeLeadingToAfterPayAttention(
 }
 
 function normalizeSplit(line: string, rest: string): { line: string; rest: string } {
-  const quoteNormalized = normalizeQuoteOnlyHead(line, rest)
+  const openingDelimiterNormalized = normalizeTrailingOpeningDelimiter(line, rest)
+  const openingQuoteNormalized = normalizeTrailingOpeningQuote(
+    openingDelimiterNormalized.line,
+    openingDelimiterNormalized.rest
+  )
+  const quoteNormalized = normalizeQuoteOnlyHead(
+    openingQuoteNormalized.line,
+    openingQuoteNormalized.rest
+  )
   const conjunctionNormalized = normalizeTrailingConjunctionHead(
     quoteNormalized.line,
     quoteNormalized.rest

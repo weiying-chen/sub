@@ -630,6 +630,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("and my dog had died.")
   })
 
+  it("prefers a balanced quantified object over a short introduction", () => {
+  const split = __testTakeLine(
+    "In 2015, I carefully wrote down 50 dreams I wanted to achieve.",
+    54,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("In 2015, I carefully wrote down")
+  expect(split.rest).toBe("50 dreams I wanted to achieve.")
+  })
+
   it("moves the full final list item to the next line when it doesn't fit", () => {
   const split = __testTakeLine(
     "We reviewed budgets, timelines, or staffing constraints before launch.",
@@ -984,6 +996,18 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(split.line).toBe("That's what happened the first time")
   expect(split.rest).toBe("I taught a public workshop.")
+  })
+
+  it("prefers splitting before a pronoun in an embedded question", () => {
+  const split = __testTakeLine(
+    "You might wonder why I wrote down my 50 dreams at that moment.",
+    54,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("You might wonder why")
+  expect(split.rest).toBe("I wrote down my 50 dreams at that moment.")
   })
 
   it("does not split before because as a clause-starter heuristic", () => {

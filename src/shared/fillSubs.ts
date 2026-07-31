@@ -862,7 +862,28 @@ function findRightmostClauseStarterLead(window: string, nextText: string): numbe
   return best
 }
 
-function findRightmostTemporalPronounClauseStart(
+function findRightmostQuantifiedNounStart(
+  window: string,
+  nextText: string
+): number {
+  let best = -1
+  const re = /\b\d+(?:[,.]\d+)?\s+(?!percent\b)[A-Za-z][\w'-]*/gi
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const left = window.slice(0, start).trimEnd()
+    const right = (window.slice(start) + nextText).trimStart()
+    if (!left || !right) continue
+    if (/\b(?:my|your|his|her|our|their|its)$/i.test(left)) continue
+    if (left.length < MIN_CLAUSE_START_SPLIT_CHARS) continue
+    if (left.split(/\s+/).filter(Boolean).length < 3) continue
+    if (right.split(/\s+/).filter(Boolean).length < 2) continue
+    best = start
+  }
+  return best
+}
+
+function findRightmostEmbeddedPronounClauseStart(
   window: string,
   nextText: string
 ): number {
@@ -878,7 +899,12 @@ function findRightmostTemporalPronounClauseStart(
     if (left.split(/\s+/).filter(Boolean).length < MIN_CLAUSE_START_SPLIT_WORDS) {
       continue
     }
-    if (!/\b(?:first|last|next)?\s*time$/i.test(left)) continue
+    const followsTemporalPhrase = /\b(?:first|last|next)?\s*time$/i.test(left)
+    const followsClauseMarker =
+      /\b(?:why|how|when|where|what|whether|if|because|although|though|while|since|that)$/i.test(
+        left
+      )
+    if (!followsTemporalPhrase && !followsClauseMarker) continue
     if (!/^(?:I|we)\s+\S+/i.test(right)) continue
     best = start
   }
@@ -1110,9 +1136,14 @@ function findBestCut(
   const clauseLeadCut = findRightmostClauseStarterLead(window, nextText)
   if (clauseLeadCut >= 0) return { cut: clauseLeadCut, reason: 'clauseStarter' }
 
-  const temporalPronounCut = findRightmostTemporalPronounClauseStart(window, nextText)
-  if (temporalPronounCut >= 0) {
-    return { cut: temporalPronounCut, reason: 'temporalPronounClause' }
+  const quantifiedNounCut = findRightmostQuantifiedNounStart(window, nextText)
+  if (quantifiedNounCut >= 0) {
+    return { cut: quantifiedNounCut, reason: 'quantifiedNoun' }
+  }
+
+  const embeddedPronounCut = findRightmostEmbeddedPronounClauseStart(window, nextText)
+  if (embeddedPronounCut >= 0) {
+    return { cut: embeddedPronounCut, reason: 'embeddedPronounClause' }
   }
 
   const listTailCut = findRightmostListTailLead(window, nextText)

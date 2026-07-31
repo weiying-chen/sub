@@ -405,6 +405,24 @@ function findRightmostPunct(
   return -1
 }
 
+function startsWithCoordinatedIndependentClause(text: string): boolean {
+  const coordinated = text.match(/^\s*(?:and|but|or|nor)\s+(.+)$/i)
+  if (!coordinated) return false
+
+  const words = getPhraseWords(coordinated[1] ?? '')
+  if (words.length < 2) return false
+
+  const verbIndex = words.findIndex((word) => SENTENCE_VERB_RE.test(word))
+  if (verbIndex < 1 || verbIndex > 4) return false
+
+  const subject = words[0] ?? ''
+  if (/^(?:i|you|we|they|he|she|it|this|that|there)$/i.test(subject)) {
+    return true
+  }
+
+  return DET_RE.test(subject) && verbIndex >= 2
+}
+
 // List-aware comma handling.
 function isListComma(window: string, index: number): boolean {
   const before = window.slice(0, index)
@@ -412,6 +430,7 @@ function isListComma(window: string, index: number): boolean {
 
   // ", or how ..." typically starts an alternative clause, not a list item.
   if (/^\s*(and|or|nor)\s+how\b/i.test(after)) return false
+  if (startsWithCoordinatedIndependentClause(after)) return false
 
   if (/^\s*(and|or|nor)\b/i.test(after) && before.includes(',')) return true
   if (/,\s*(and|or|nor)\b/i.test(after)) return true

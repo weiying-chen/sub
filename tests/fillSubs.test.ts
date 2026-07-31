@@ -618,6 +618,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("splits at a comma before a coordinated independent clause", () => {
+  const split = __testTakeLine(
+    "In this photo, my car had been stolen, and my dog had died.",
+    54,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("In this photo, my car had been stolen,")
+  expect(split.rest).toBe("and my dog had died.")
+  })
+
   it("moves the full final list item to the next line when it doesn't fit", () => {
   const split = __testTakeLine(
     "We reviewed budgets, timelines, or staffing constraints before launch.",

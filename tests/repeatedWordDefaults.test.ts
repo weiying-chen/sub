@@ -61,6 +61,30 @@ describe("repeated word defaults", () => {
     expect(output.map((metric) => metric.type)).not.toContain("REPEATED_WORD")
   })
 
+  it("does not flag cue boundaries inside duplicate spans", async () => {
+    const subsText = [
+      "00:19:08:01\t00:19:09:00\t我真的可以",
+      "I was able to use my ideas, research,",
+      "00:19:09:00\t00:19:11:06\t把我的想法 學術",
+      "I was able to use my ideas, research,",
+      "00:19:11:06\t00:19:12:11\t實務跟研究",
+      "and experience to reach more teachers and",
+      "00:19:12:11\t00:19:15:19\t去影響更多的老師",
+      "and experience to reach more teachers and",
+      "00:19:15:19\t00:19:17:22\t全世界更多的人",
+      "people around the world.",
+      "00:19:17:22\t00:19:19:19\t這是我當初沒有想過的",
+      "I never imagined that.",
+    ].join("\n")
+
+    const output = (await runAnalysis(subsText, {
+      type: "subs",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(output.map((metric) => metric.type)).not.toContain("REPEATED_WORD")
+  })
+
   it("includes repeated-word findings by default in subs, news, and text", async () => {
     const subsText = [
       "00:00:01:00\t00:00:02:00\tMarker",

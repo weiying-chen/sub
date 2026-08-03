@@ -113,7 +113,13 @@ export function repeatedWordRule(
       }
 
       const previousSegment = ctx.segments[ctx.segmentIndex - 1]
-      if (previousSegment && !previousSegment.suppressSuggestions) {
+      const repeatsPreviousSpan = previousSegment?.translation.trim()
+        === ctx.segment.translation.trim()
+      if (
+        previousSegment
+        && !previousSegment.suppressSuggestions
+        && !repeatsPreviousSpan
+      ) {
         const previousText = previousSegment.targetLines?.at(-1)?.lineText
           ?? previousSegment.translation
         const first = candidates[0]

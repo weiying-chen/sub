@@ -42,8 +42,6 @@ const MIN_COMMA_SPLIT_CHARS = 12
 const MIN_COMMA_SPLIT_WORDS = 2
 const MIN_CLAUSE_START_SPLIT_CHARS = 12
 const MIN_CLAUSE_START_SPLIT_WORDS = 2
-const MIN_WITH_SPLIT_LEFT_CHARS = 12
-const MIN_WITH_SPLIT_LEFT_WORDS = 2
 const CONJ_RE = /\b(and|but|or|so|yet|nor)\b/i
 const CLAUSE_START_RE =
   /^\s*(?:I|you|we|they|he|she|it|this|that|there)\b/i
@@ -56,8 +54,6 @@ const CLAUSE_STARTER_RE =
   /^(?:because|since|as|although|though|while|if|when|whether)\b/i
 const CLAUSE_STARTER_ANY_RE =
   /\b(?:because|since|as|although|though|while|if|when|whether)\b/i
-const PREPOSITION_PHRASE_HEAD_RE =
-  /^(?:in|on|at|behind|from|under)\s+(?:the|a|an|this|that|these|those|it|them|him|her|us|you)\b/i
 const COORDINATED_PHRASE_STOP_RE =
   /^(?:who|whom|whose|that|which|with|for|from|before|after|while|because|since|if|when|whether|as|would|could|should|will|can|may|might|must|is|are|was|were|be|being|been|am|do|does|did|has|have|had|take|takes|took|taken)\b/i
 const SENTENCE_VERB_RE =
@@ -911,59 +907,6 @@ function findRightmostEmbeddedPronounClauseStart(
   return best
 }
 
-// Low-priority fallback: split before "near", but avoid tiny heads.
-function findRightmostNearStart(window: string, nextText: string): number {
-  let best = -1
-  const re = /\bnear\b/gi
-  let m: RegExpExecArray | null
-  while ((m = re.exec(window)) !== null) {
-    const start = m.index
-    const end = start + m[0].length
-    const prev = window[start - 1] ?? ''
-    const next = window[end] ?? ''
-    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
-
-    const left = window.slice(0, start).trimEnd()
-    const right = (window.slice(start) + nextText).trimStart()
-    if (!left || !right) continue
-    if (left.length < MIN_WITH_SPLIT_LEFT_CHARS) continue
-    if (left.split(/\s+/).filter(Boolean).length < MIN_WITH_SPLIT_LEFT_WORDS) {
-      continue
-    }
-    const tokenStart = /^near\b/i
-    const tokenOnly = /^near\b\s*$/i
-    if (!tokenStart.test(right)) continue
-    if (tokenOnly.test(right)) continue
-    best = start
-  }
-  return best
-}
-
-function findRightmostPrepositionLead(window: string, nextText: string): number {
-  let best = -1
-  const re = /\b(?:in|behind|under)\b/gi
-  let m: RegExpExecArray | null
-  while ((m = re.exec(window)) !== null) {
-    const start = m.index
-    const end = start + m[0].length
-    const prev = window[start - 1] ?? ''
-    const next = window[end] ?? ''
-    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
-
-    const left = window.slice(0, start).trimEnd()
-    const right = (window.slice(start) + nextText).trimStart()
-    if (!left || !right) continue
-    if (left.split(/\s+/).filter(Boolean).length < 2) continue
-    if (hasNearModalAfterPrepositionPhrase(right)) continue
-    const isPossessiveOnPhrase = /^on\s+(?:my|your|his|her|our|their|its)\b/i.test(right)
-    const allowsPossessiveOn = isPossessiveOnPhrase && /\ba lot$/i.test(left)
-    if (!allowsPossessiveOn && !isSplittablePrepositionPhrase(right)) continue
-    if (/^(?:in|into|on|at|behind|from|under)\b\s*$/i.test(right)) continue
-    best = start
-  }
-  return best
-}
-
 function findRightmostModalLead(window: string, nextText: string): number {
   if (countDoubleQuotes(window) > 0) return -1
 
@@ -990,28 +933,6 @@ function findRightmostModalLead(window: string, nextText: string): number {
     best = start
   }
   return best
-}
-
-function startsWithAcronymAfterThe(text: string): boolean {
-  const afterThe = text.replace(/^in\s+the\s+/i, '').trimStart()
-  if (!afterThe) return false
-  if (/^(?:[A-Z]\.){2,}[A-Z]?(?:\b|$)/.test(afterThe)) return true
-  if (/^[A-Z]{2,}\b/.test(afterThe)) return true
-  return false
-}
-
-function isSplittablePrepositionPhrase(right: string): boolean {
-  if (!PREPOSITION_PHRASE_HEAD_RE.test(right)) return false
-  if (!/^in\s+the\b/i.test(right)) return true
-  if (startsWithAcronymAfterThe(right)) return false
-  return true
-}
-
-function hasNearModalAfterPrepositionPhrase(right: string): boolean {
-  const trimmed = right.trimStart().toLowerCase()
-  return /^(?:in|on|at|for)\s+(?:\S+\s+){0,5}(?:can|could|will|would|should|may|might|must|shall)\b/.test(
-    trimmed
-  )
 }
 
 function findBestCut(
@@ -1150,12 +1071,6 @@ function findBestCut(
   if (listTailCut >= 0) return { cut: listTailCut, reason: 'listTail' }
 
   // 3) Last-resort lexical/space fallback boundaries.
-  const nearCut = findRightmostNearStart(window, nextText)
-  if (nearCut >= 0) return { cut: nearCut, reason: 'near' }
-
-  const prepositionCut = findRightmostPrepositionLead(window, nextText)
-  if (prepositionCut >= 0) return { cut: prepositionCut, reason: 'preposition' }
-
   const modalCut = findRightmostModalLead(window, nextText)
   if (modalCut >= 0) return { cut: modalCut, reason: 'modal' }
 
@@ -1486,7 +1401,7 @@ function normalizeTrailingSubordinatorHead(
   rest: string
 ): { line: string; rest: string } {
   const trimmed = line.trimEnd()
-  const match = trimmed.match(/^(.*)\s+(before|after|while|like)$/i)
+  const match = trimmed.match(/^(.*)\s+(before|after|while)$/i)
   if (!match) return { line, rest }
 
   const left = (match[1] ?? '').trimEnd()
@@ -1604,109 +1519,6 @@ function normalizeTrailingProtectedPhraseHead(
   return { line, rest }
 }
 
-function normalizeTrailingPrepositionDeterminerHead(
-  line: string,
-  rest: string
-): { line: string; rest: string } {
-  const trimmed = line.trimEnd()
-  const match = trimmed.match(
-    /^(.*)\s+(for)\s+(the|a|an|this|that|these|those|it|them|him|her|us|you)$/i
-  )
-  if (!match) return { line, rest }
-
-  const left = (match[1] ?? "").trimEnd()
-  const prep = (match[2] ?? "").trim().toLowerCase()
-  const determiner = (match[3] ?? "").trim().toLowerCase()
-  if (!left) return { line, rest }
-
-  const phrase = `${prep} ${determiner}`
-  if (!rest) return { line: left, rest: phrase }
-  if (rest.trimStart().toLowerCase().startsWith(`${phrase} `)) {
-    return { line: left, rest }
-  }
-  return { line: left, rest: `${phrase} ${rest}` }
-}
-
-function normalizeTrailingPrepositionHead(
-  line: string,
-  rest: string
-): { line: string; rest: string } {
-  const trimmed = line.trimEnd()
-  const match = trimmed.match(/^(.*)\s+(near|in|behind|under|for|of)$/i)
-  if (!match) return { line, rest }
-
-  const left = (match[1] ?? '').trimEnd()
-  const word = (match[2] ?? '').trim().toLowerCase()
-  if (!left) return { line, rest }
-  if (word === "of" && !/^(now|today|tomorrow|tonight|here|there|then)\b/i.test(rest.trimStart())) {
-    return { line, rest }
-  }
-  if (
-    word === 'in' &&
-    /^the\b/i.test(rest.trimStart()) &&
-    startsWithAcronymAfterThe(`in ${rest.trimStart()}`)
-  ) {
-    return { line, rest }
-  }
-
-  const allowInHow = word === "in" && /^how\b/i.test(rest.trimStart())
-  const allowInNounPhrase = word === "in" && /^[a-z][a-z'-]*/i.test(rest.trimStart())
-  const determinerHeadRe =
-    word === "for"
-      ? /^(?:the|a|an|this|that|these|those|it|them|him|her|us|you|my|your|his|our|their|its)\b/i
-      : /^(?:the|a|an|this|that|these|those|it|them|him|her|us|you)\b/i
-
-  if (
-    (word === 'in' ||
-      word === 'on' ||
-      word === 'at' ||
-      word === 'behind' ||
-      word === 'from' ||
-      word === 'under' ||
-      word === 'for' ||
-      word === 'with') &&
-    !allowInHow &&
-    !allowInNounPhrase &&
-    !determinerHeadRe.test(rest.trimStart())
-  ) return { line, rest }
-
-  if (!rest) return { line: left, rest: word }
-  if (rest.trimStart().toLowerCase().startsWith(`${word} `)) {
-    return { line: left, rest }
-  }
-  return { line: left, rest: `${word} ${rest}` }
-}
-
-function normalizeTrailingPrepositionPhraseHead(
-  line: string,
-  rest: string
-): { line: string; rest: string } {
-  const trimmed = line.trimEnd()
-  const trimmedRest = rest.trimStart()
-  if (/(?:---|—)$/.test(trimmed)) return { line, rest }
-  if (CLAUSE_STARTER_RE.test(trimmedRest)) return { line, rest }
-
-  const match = trimmed.match(/^(.*)\s+(like|in)\s+([A-Za-z][A-Za-z'-]*)$/i)
-  if (!match || !/^[a-z][a-z'-]*/i.test(trimmedRest)) return { line, rest }
-
-  const left = (match[1] ?? "").trimEnd()
-  const prep = (match[2] ?? "").trim().toLowerCase()
-  const word = (match[3] ?? "").trim()
-  if (!left) return { line, rest }
-  if (
-    prep === "like" &&
-    /^(that|this|these|those)$/i.test(word)
-  ) {
-    return { line, rest }
-  }
-
-  const phrase = `${prep} ${word}`
-  if (trimmedRest.toLowerCase().startsWith(`${phrase.toLowerCase()} `)) {
-    return { line: left, rest }
-  }
-  return { line: left, rest: `${phrase} ${rest}` }
-}
-
 function normalizeLeadingCommaRest(
   line: string,
   rest: string
@@ -1818,21 +1630,9 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     inHowNormalized.line,
     inHowNormalized.rest
   )
-  const prepositionDeterminerNormalized = normalizeTrailingPrepositionDeterminerHead(
+  const hyphenNormalized = normalizeTrailingHyphenCompound(
     protectedPhraseNormalized.line,
     protectedPhraseNormalized.rest
-  )
-  const prepositionNormalized = normalizeTrailingPrepositionHead(
-    prepositionDeterminerNormalized.line,
-    prepositionDeterminerNormalized.rest
-  )
-  const prepositionPhraseNormalized = normalizeTrailingPrepositionPhraseHead(
-    prepositionNormalized.line,
-    prepositionNormalized.rest
-  )
-  const hyphenNormalized = normalizeTrailingHyphenCompound(
-    prepositionPhraseNormalized.line,
-    prepositionPhraseNormalized.rest
   )
   const commaThatNormalized = normalizeTrailingCommaThat(
     hyphenNormalized.line,

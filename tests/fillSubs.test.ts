@@ -269,9 +269,9 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "The power",
+    "The power of",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "of now",
+    "now",
   ])
   expect(result.remaining).toBe("")
   })
@@ -292,9 +292,9 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "The power",
+    "The power of",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "of now",
+    "now",
   ])
   expect(result.remaining).toBe("")
   })
@@ -1680,7 +1680,7 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
-  it("splits before 'near' as a low-priority fallback", () => {
+  it("leaves 'near' to the generic space fallback", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",
     "00:00:02:00\t00:00:03:00\tMarker",
@@ -1696,9 +1696,9 @@ describe("fillSelectedTimestampLines", () => {
 
   expect(result.lines).toEqual([
     "00:00:01:00\t00:00:02:00\tMarker",
-    "He suddenly heard knocking outside",
+    "He suddenly heard knocking outside near where",
     "00:00:02:00\t00:00:03:00\tMarker",
-    "near where the truck was parked.",
+    "the truck was parked.",
   ])
   expect(result.remaining).toBe("")
   })
@@ -2570,15 +2570,15 @@ describe("fillSelectedTimestampLines", () => {
   })
 
 
-  it("moves trailing 'like' to the next split chunk", () => {
+  it("does not reposition trailing 'like'", () => {
   const split = __testTakeLine(
     "It also raises your risk of chronic diseases like high blood pressure and diabetes.",
     54,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith(" like")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("like ")).toBe(true)
+  expect(split.line).toBe("It also raises your risk of chronic diseases like high")
+  expect(split.rest).toBe("blood pressure and diabetes.")
   })
 
   it("does not move trailing 'of' to the next split chunk", () => {
@@ -2592,26 +2592,24 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("of ")).toBe(false)
   })
 
-  it("moves trailing 'near' to the next split chunk", () => {
+  it("does not reposition trailing 'near'", () => {
   const split = __testTakeLine(
     "They waited near the entrance until dawn.",
     16,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith(" near")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("near ")).toBe(true)
+  expect(split.line.toLowerCase().endsWith(" near")).toBe(true)
   })
 
-  it("moves trailing 'in' to the next split chunk", () => {
+  it("does not reposition 'in' after a generic space split", () => {
   const split = __testTakeLine(
     "The team checked in that report before submission.",
     20,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith(" in")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("in ")).toBe(true)
+  expect(split.line.toLowerCase().endsWith(" in")).toBe(true)
   })
 
 
@@ -2624,6 +2622,17 @@ describe("fillSelectedTimestampLines", () => {
   )
   expect(split.line).toBe("how you respond in those first few minutes")
   expect(split.rest).toBe("can determine whether people trust you again.")
+  })
+
+  it("prefers a modal break over a later preposition break", () => {
+  const split = __testTakeLine(
+    "Over time, the fusion can cause problems in the vertebrae above.",
+    54,
+    null,
+    false
+  )
+  expect(split.line).toBe("Over time, the fusion")
+  expect(split.rest).toBe("can cause problems in the vertebrae above.")
   })
 
   it("keeps a preposition phrase before an if clause", () => {
@@ -2671,26 +2680,24 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("at ")).toBe(false)
   })
 
-  it("prefers splitting before 'in that' phrase over trailing-space fallback", () => {
+  it("does not split before an 'in that' phrase", () => {
   const split = __testTakeLine(
     "This man in his 60s had several polyps like these in that spot.",
     54,
     null,
     false
   )
-  expect(split.line).toBe("This man in his 60s had several polyps like these")
-  expect(split.rest).toBe("in that spot.")
+  expect(split.rest.toLowerCase().startsWith("in ")).toBe(false)
   })
 
-  it("prefers splitting before 'in the' noun phrase for natural flow", () => {
+  it("allows the generic space fallback before an 'in the' phrase", () => {
   const split = __testTakeLine(
     "since these symptoms all pointed to compression in the cervical spine.",
     48,
     null,
     false
   )
-  expect(split.line).toBe("since these symptoms all pointed to compression")
-  expect(split.rest).toBe("in the cervical spine.")
+  expect(split.rest.toLowerCase().startsWith("in ")).toBe(true)
   })
 
   it("does not split 'After that' into orphaned head + clause", () => {
@@ -2704,15 +2711,14 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("that,")).toBe(false)
   })
 
-  it("moves trailing 'behind' before pronoun to the next split chunk", () => {
+  it("does not reposition trailing 'behind'", () => {
   const split = __testTakeLine(
     "the white part they saw was the spinal nerve behind it.",
     54,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith(" behind")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("behind it")).toBe(true)
+  expect(split.line.toLowerCase().endsWith(" behind")).toBe(true)
   })
 
   it("does not keep trailing 'from' with pronoun objects", () => {
@@ -2726,26 +2732,24 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("from it")).toBe(false)
   })
 
-  it("keeps trailing 'under' with determiner noun phrases", () => {
+  it("does not reposition trailing 'under'", () => {
   const split = __testTakeLine(
     "they found pressure under the cervical segment on imaging.",
     30,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith(" under")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("under the ")).toBe(true)
+  expect(split.line.toLowerCase().endsWith(" under")).toBe(true)
   })
 
-  it("moves trailing 'for' before possessive noun phrases", () => {
+  it("does not reposition trailing 'for'", () => {
   const split = __testTakeLine(
     "Otherwise, you're just setting a trap for your personal brand.",
     54,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith(" for")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("for your ")).toBe(true)
+  expect(split.line.toLowerCase().endsWith(" for")).toBe(true)
   })
 
   it("does not keep 'pay attention to' together when splitting", () => {
@@ -2817,15 +2821,15 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("to the ")).toBe(false)
   })
 
-  it("keeps 'for those' together when splitting", () => {
+  it("does not reposition 'for those'", () => {
   const split = __testTakeLine(
     "I'm not trying to make you feel sorry for those people, or just feel sympathy---",
     45,
     null,
     false
   )
-  expect(split.line.toLowerCase().endsWith(" for those")).toBe(false)
-  expect(split.rest.toLowerCase().startsWith("for those ")).toBe(true)
+  expect(split.line.toLowerCase().endsWith(" for")).toBe(true)
+  expect(split.rest.toLowerCase().startsWith("those ")).toBe(true)
   })
 
   it("moves trailing 'the' with acronym phrases", () => {

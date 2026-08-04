@@ -157,9 +157,11 @@ function isStandaloneDoubleQuotedCue(s: string): boolean {
 function isSingleLineParentheticalCue(s: string): boolean {
   const trimmed = s.trim()
   if (trimmed === '' || /[\r\n]/.test(trimmed)) return false
-  const isAsciiParenthetical = trimmed.startsWith('(') && trimmed.endsWith(')')
+  const withoutTrailingTerminal = trimmed.replace(/[.!?…]\s*$/, '').trimEnd()
+  const isAsciiParenthetical =
+    withoutTrailingTerminal.startsWith('(') && withoutTrailingTerminal.endsWith(')')
   const isFullWidthParenthetical =
-    trimmed.startsWith('（') && trimmed.endsWith('）')
+    withoutTrailingTerminal.startsWith('（') && withoutTrailingTerminal.endsWith('）')
   return isAsciiParenthetical || isFullWidthParenthetical
 }
 
@@ -552,6 +554,7 @@ function collectMetrics(
 
     if (
       !prevIsParentheticalExempt &&
+      !nextIsParentheticalExempt &&
       !endsCapitalizationBoundary(prevTrim) &&
       (!nextQuoteStart || allowCapitalCheckWithQuotedNext) &&
       !startsWithIPronoun(next.text) &&

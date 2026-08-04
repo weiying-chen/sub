@@ -777,6 +777,26 @@ describe("punctuationRule (segments)", () => {
     ).toBe(false)
   })
 
+  it("allows a capitalized standalone parenthetical after a continuation", () => {
+    const text = [
+      "00:06:43:16\t00:06:46:00\t出版商業書籍",
+      "The next year, I published my first business book,",
+      "00:06:46:00\t00:06:47:26\t書名",
+      "(The Art of Taking the Stage).",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (finding) =>
+          finding.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL" &&
+          finding.text === "The next year, I published my first business book,"
+      )
+    ).toBe(false)
+  })
+
   it("does not flag balanced inline parentheses across normal subtitle cues", () => {
     const text = [
       "00:00:31:23\t00:00:34:28\t那像這種就是說不出來的困擾",

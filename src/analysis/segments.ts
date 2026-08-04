@@ -428,9 +428,28 @@ export function parseNews(text: string): Segment[] {
       continue
     }
 
+    if (
+      trimmed.startsWith('*/') &&
+      currentBlock === 'super' &&
+      sourceBuffer.length > 0 &&
+      targetBuffer.length === 0
+    ) {
+      superActive = true
+      continue
+    }
+
     if (isNewsStructureLine(trimmed)) {
       flush()
       superActive = false
+      continue
+    }
+
+    if (looksLikeNamedSuperLabel(trimmed)) {
+      if (currentBlock && currentBlock !== 'super') flush()
+      currentBlock = 'super'
+      superActive = true
+      pendingVoMarker = undefined
+      sourceBuffer.push({ lineIndex: i, lineText: trimmed })
       continue
     }
 
@@ -510,6 +529,14 @@ function isNewsTranslationLine(text: string, allowParenthesized: boolean): boole
   const inner = trimmed.slice(1, -1).trim()
   if (inner === '') return false
   return isEnglishLikeLine(inner)
+}
+
+function looksLikeNamedSuperLabel(text: string): boolean {
+  if (!text.endsWith('//')) return false
+  const label = text.slice(0, -2).trim().replace('│', '｜')
+  const separatorIndex = Math.max(label.indexOf('｜'), label.indexOf('|'))
+  if (separatorIndex < 1) return false
+  return label.slice(separatorIndex + 1).trim() !== ''
 }
 
 function isParentheticalNoteLine(trimmedText: string): boolean {

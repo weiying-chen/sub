@@ -233,6 +233,41 @@ describe("parseNews", () => {
     ])
   })
 
+  it("recognizes SUPER blocks from named labels without a header", () => {
+    const text = [
+      "(NS 3秒)",
+      "大愛電視節目資深企畫｜吳志怡//",
+      "在畢業典禮現場//",
+      "最令人感動的 不光是//",
+      "拿到這張畢業證書//",
+      "而是26年來 未曾離開的陪伴//",
+      "當有越來越多人 因為教育//",
+      "而擁有不同的人生選擇//",
+      "改變的 就不光是個人//",
+      "而是整個社會",
+      "*/",
+      "What moves me most at this graduation",
+      "isn't just seeing students earn a diploma,",
+      "but the support that's never wavered",
+      "over the past 26 years.",
+      "As education gives more people",
+      "new choices in life,",
+      "the change goes beyond individuals",
+      "and transforms the whole community.",
+    ].join("\n")
+
+    const segments = parseNews(text)
+
+    expect(segments).toMatchObject([
+      {
+        blockType: "super",
+        sourceText: expect.stringContaining("大愛電視節目資深企畫｜吳志怡//"),
+        translation:
+          "What moves me most at this graduation isn't just seeing students earn a diploma, but the support that's never wavered over the past 26 years. As education gives more people new choices in life, the change goes beyond individuals and transforms the whole community.",
+      },
+    ])
+  })
+
   it("preserves marker metadata on following news blocks", () => {
     const text = [
       "1_0001",

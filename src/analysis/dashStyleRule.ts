@@ -1,6 +1,6 @@
 import type { SegmentCtx, SegmentRule } from "./segments"
 import type { DashStyleMetric } from "./types"
-import { EM_DASH, EN_DASH, TRIPLE_HYPHEN } from "../shared/dashes"
+import { EM_DASH, TRIPLE_HYPHEN } from "../shared/dashes"
 
 type DashStyle = "em_dash" | "en_dash" | "triple_hyphen"
 type ExpectedDashStyle = "em_dash" | "triple_hyphen"
@@ -30,11 +30,9 @@ function findUnexpectedDash(
     expected === "em_dash"
       ? [
           { style: "triple_hyphen", token: TRIPLE_HYPHEN },
-          { style: "en_dash", token: EN_DASH },
         ]
       : [
           { style: "em_dash", token: EM_DASH },
-          { style: "en_dash", token: EN_DASH },
         ]
 
   let best: { found: DashStyle; index: number; token: string } | null = null

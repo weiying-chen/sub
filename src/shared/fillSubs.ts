@@ -7,7 +7,7 @@ import {
   hasLeadingDoubleQuote,
   hasTrailingDoubleQuote,
 } from './doubleQuoteSpan'
-import { DASH_VARIANTS_RE, EM_DASH } from './dashes'
+import { EM_DASH } from './dashes'
 import { looksLikeSentenceFragment } from './sentenceFragments'
 import { canJoinAdjacentText, normalizeJoinText } from './joinableText'
 
@@ -203,7 +203,7 @@ function startsWithAcronymPhrase(text: string): boolean {
 
 export function normalizeParagraph(text: string): string {
   return text
-    .replace(DASH_VARIANTS_RE, '---')
+    .replaceAll(EM_DASH, '---')
     .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
     .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
     .replace(/\r?\n+/g, ' ')

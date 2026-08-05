@@ -525,10 +525,14 @@ function isNewsTranslationLine(text: string, allowParenthesized: boolean): boole
   if (isEnglishLikeLine(text)) return true
   if (!allowParenthesized) return false
   const trimmed = text.trim()
-  if (!(trimmed.startsWith('(') && trimmed.endsWith(')'))) return false
+  const leadingNote = trimmed.match(/^(?:\([^)]*\)|（[^）]*）)\s*(.+)$/)
+  if (leadingNote) return isEnglishLikeLine(leadingNote[1] ?? '')
+
+  const asciiWrapped = trimmed.startsWith('(') && trimmed.endsWith(')')
+  const fullWidthWrapped = trimmed.startsWith('（') && trimmed.endsWith('）')
+  if (!asciiWrapped && !fullWidthWrapped) return false
   const inner = trimmed.slice(1, -1).trim()
-  if (inner === '') return false
-  return isEnglishLikeLine(inner)
+  return inner !== '' && isEnglishLikeLine(inner)
 }
 
 function looksLikeNamedSuperLabel(text: string): boolean {

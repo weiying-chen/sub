@@ -233,6 +233,27 @@ describe("parseNews", () => {
     ])
   })
 
+  it("treats leading parenthetical notes followed by English as SUPER translations", () => {
+    const text = [
+      "(NS)(6秒)",
+      "/*SUPER:",
+      "墨西哥慈濟志工    洪良岱//",
+      "開始 嗚啦 是這樣嗎",
+      "*/",
+      "(Vocalizing) Like this?",
+    ].join("\n")
+
+    const segments = parseNews(text)
+
+    expect(segments).toMatchObject([
+      {
+        blockType: "super",
+        sourceText: "墨西哥慈濟志工    洪良岱// 開始 嗚啦 是這樣嗎",
+        translation: "(Vocalizing) Like this?",
+      },
+    ])
+  })
+
   it("recognizes SUPER blocks from named labels without a header", () => {
     const text = [
       "(NS 3秒)",

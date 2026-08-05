@@ -254,6 +254,31 @@ describe("parseNews", () => {
     ])
   })
 
+  it("ignores all contiguous content in REPORT blocks", () => {
+    const text = [
+      "/*REPORT:",
+      "宏都拉斯報導｜王以謙 周子歆 製作//",
+      "真善美志工",
+      "*/",
+      "(Choluteca-秋露地佳",
+      "Marcovia馬可比亞",
+      "Monjaras 夢哈娜村)",
+      "This remains report metadata.",
+      "",
+      "1_0001",
+      "接續旁白",
+      "Following narration.",
+    ].join("\n")
+
+    expect(parseNews(text)).toMatchObject([
+      {
+        blockType: "vo",
+        sourceText: "接續旁白",
+        translation: "Following narration.",
+      },
+    ])
+  })
+
   it("recognizes SUPER blocks from named labels without a header", () => {
     const text = [
       "(NS 3秒)",

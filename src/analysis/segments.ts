@@ -254,6 +254,8 @@ export function parseNews(text: string): Segment[] {
   let pendingVoMarker: NewsMarker | undefined
   let inComment = false
   let inSuperComment = false
+  let inReportComment = false
+  let skipReportTail = false
   let inSuperPeopleSection = false
   let superPeopleBuffer: CandidateLine[] = []
   let superActive = false
@@ -360,7 +362,13 @@ export function parseNews(text: string): Segment[] {
       continue
     }
 
+    if (skipReportTail) {
+      if (trimmed === '') skipReportTail = false
+      continue
+    }
+
     const isSuperStart = trimmed.startsWith('/*SUPER')
+    const isReportStart = trimmed.startsWith('/*REPORT')
     const isCommentStart = trimmed.startsWith('/*')
     const isCommentEnd = trimmed.includes('*/')
 
@@ -371,10 +379,13 @@ export function parseNews(text: string): Segment[] {
       }
       inComment = true
       inSuperComment = isSuperStart
+      inReportComment = isReportStart
       if (isCommentEnd) {
         inComment = false
         if (inSuperComment) superActive = true
+        if (inReportComment) skipReportTail = true
         inSuperComment = false
+        inReportComment = false
       }
       continue
     }
@@ -387,7 +398,9 @@ export function parseNews(text: string): Segment[] {
       if (isCommentEnd) {
         inComment = false
         if (inSuperComment) superActive = true
+        if (inReportComment) skipReportTail = true
         inSuperComment = false
+        inReportComment = false
       }
       continue
     }

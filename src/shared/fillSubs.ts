@@ -1354,6 +1354,20 @@ function normalizeTrailingConjunctionHead(
   return { line: left, rest: `${conjunction} ${rest}` }
 }
 
+function normalizeTrailingNumericAlternative(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const match = line.trimEnd().match(/^(.*?)\b(\d+(?:\.\d+)?)\s+or$/i)
+  const trimmedRest = rest.trimStart()
+  if (!match || !/^\d+(?:\.\d+)?\b/.test(trimmedRest)) return { line, rest }
+
+  const left = (match[1] ?? '').trimEnd()
+  const firstNumber = match[2] ?? ''
+  if (!left || !firstNumber) return { line, rest }
+  return { line: left, rest: `${firstNumber} or ${trimmedRest}` }
+}
+
 function normalizeTrailingArticleHead(
   line: string,
   rest: string
@@ -1594,9 +1608,13 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     openingQuoteNormalized.line,
     openingQuoteNormalized.rest
   )
-  const conjunctionNormalized = normalizeTrailingConjunctionHead(
+  const numericAlternativeNormalized = normalizeTrailingNumericAlternative(
     quoteNormalized.line,
     quoteNormalized.rest
+  )
+  const conjunctionNormalized = normalizeTrailingConjunctionHead(
+    numericAlternativeNormalized.line,
+    numericAlternativeNormalized.rest
   )
   const articleNormalized = normalizeTrailingArticleHead(
     conjunctionNormalized.line,

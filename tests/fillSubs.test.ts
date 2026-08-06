@@ -2918,6 +2918,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.line.toLowerCase().includes("four or five")).toBe(true)
   })
 
+  it("keeps decimal alternatives together after a space fallback", () => {
+  const split = __testTakeLine(
+    "chewing 1.5 or 2 times as much slowed their eating",
+    15,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("chewing")
+  expect(split.rest.startsWith("1.5 or 2 ")).toBe(true)
+  })
+
   it("keeps short paired noun phrases together before a verb phrase", () => {
   const split = __testTakeLine(
     "my hands and feet are always cold, so every night before bed he warms them up.",

@@ -747,6 +747,24 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("your background, abilities, and luck.")
   })
 
+  it("does not prefer a break before unpunctuated but", () => {
+  const lines = [
+    "00:00:34:11\t00:00:36:22\t如果一個人明明體重不重",
+    "00:00:36:22\t00:00:37:24\t體內脂肪率",
+    "00:00:37:24\t00:00:39:19\t卻達到肥胖的標準",
+  ]
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    new Set([0, 1, 2]),
+    "Someone can be a normal weight but still have an obese level of body fat.",
+    { maxChars: 54, inline: false }
+  )
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(translations.some((line) => /^but\b/i.test(line))).toBe(false)
+  })
+
   it("keeps comma split precedence on subordinate lead-ins", () => {
   const split = __testTakeLine(
     "Because if we don't, it'll be hard to transition from the second stage of life into the third.",

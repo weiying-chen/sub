@@ -626,7 +626,11 @@ function findRightmostConjunctionStart(window: string, nextText: string): number
     ) {
       continue
     }
-    if (m[0].toLowerCase() === 'and' || m[0].toLowerCase() === 'or') {
+    if (
+      m[0].toLowerCase() === 'and' ||
+      m[0].toLowerCase() === 'or' ||
+      m[0].toLowerCase() === 'but'
+    ) {
       continue
     }
 

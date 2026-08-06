@@ -2517,6 +2517,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.startsWith("and ")).toBe(true)
   })
 
+  it("moves a trailing list conjunction to the next split chunk", () => {
+  const split = __testTakeLine(
+    "whole grains, moderate amounts of meat, and is low in salt and sugar.",
+    54,
+    null,
+    false
+  )
+
+  expect(split.line.endsWith(" and")).toBe(false)
+  expect(split.rest.startsWith("and ")).toBe(true)
+  })
+
 
   it("moves trailing 'a' to the next split chunk", () => {
   const split = __testTakeLine(

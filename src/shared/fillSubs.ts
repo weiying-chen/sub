@@ -1340,7 +1340,7 @@ function normalizeTrailingConjunctionHead(
   rest: string
 ): { line: string; rest: string } {
   const trimmed = line.trimEnd()
-  const match = trimmed.match(/^(.*)\s+(but|so|yet|nor)$/i)
+  const match = trimmed.match(/^(.*)\s+(and|but|so|yet|nor)$/i)
   if (!match) return { line, rest }
 
   const left = (match[1] ?? '').trimEnd()

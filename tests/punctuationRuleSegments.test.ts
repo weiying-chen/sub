@@ -716,6 +716,30 @@ describe("punctuationRule (segments)", () => {
     ).toBe(true)
   })
 
+  it("flags an unfinished sentence after a complete sentence in a duplicate span", () => {
+    const text = [
+      "00:00:04:18\t00:00:05:20\t大家好",
+      "Hello, everyone. Eating slowly and chewing thoroughly",
+      "00:00:05:20\t00:00:06:27\t進餐的時候",
+      "Hello, everyone. Eating slowly and chewing thoroughly",
+      "00:00:06:27\t00:00:08:00\t細嚼慢嚥",
+      "Hello, everyone. Eating slowly and chewing thoroughly",
+      "00:00:08:00\t00:00:10:18\t對健康有許多好處",
+      "has many health benefits.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(
+      findings.some(
+        (f) =>
+          f.ruleCode === "MISSING_END_PUNCTUATION" &&
+          f.text === "Hello, everyone. Eating slowly and chewing thoroughly"
+      )
+    ).toBe(true)
+  })
+
   it("flags missing end punctuation before an empty-line speaker break", () => {
     const text = [
       "00:13:10:26\t00:13:12:15\t那假設他現在餐吃得不夠",

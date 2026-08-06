@@ -148,6 +148,24 @@ function isSameTextWithAddedTerminal(prevText: string, nextText: string): boolea
   return left !== '' && left === right
 }
 
+function hasUnfinishedSentenceAfterCompleteSentence(
+  text: string,
+  abbreviationEndMatchers: RegExp[]
+): boolean {
+  if (endsTerminal(text)) return false
+
+  const boundaryRe = /[.!?](?:["'\)\]\}]+)?\s+(?=(?:["'\(\[\{]\s*)*[A-Z])/g
+  let match: RegExpExecArray | null
+  while ((match = boundaryRe.exec(text)) !== null) {
+    const prefix = text.slice(0, match.index + 1)
+    if (endsWithAcronym(prefix)) continue
+    if (endsWithConfiguredAbbreviation(prefix, abbreviationEndMatchers)) continue
+    return true
+  }
+
+  return false
+}
+
 function isStandaloneDoubleQuotedCue(s: string): boolean {
   const trimmed = s.trim()
   if (!trimmed.startsWith('"') || !trimmed.endsWith('"')) return false
@@ -477,6 +495,19 @@ function collectMetrics(
       text: cue.text,
       timestamp: cueTimestamp(cue) || undefined,
     })
+  }
+
+  for (let i = 0; i < cues.length; i += 1) {
+    if (parentheticalCueExemptions.has(i)) continue
+    const cue = cues[i]
+    if (
+      hasUnfinishedSentenceAfterCompleteSentence(
+        cue.text,
+        abbreviationEndMatchers
+      )
+    ) {
+      addRule4Metric(cue, metrics, reportedRule4)
+    }
   }
 
   for (let j = 0; j < cues.length - 1; j += 1) {

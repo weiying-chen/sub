@@ -911,6 +911,35 @@ function findRightmostEmbeddedPronounClauseStart(
   return best
 }
 
+function findRightmostDependentPronounClauseStart(
+  window: string,
+  nextText: string
+): number {
+  let best = -1
+  const re = /\b(?:(?:I|you|we|they|he|she|it)['’](?:d|ll|ve|re|s)|(?:I|you|we|they|he|she|it)\s+(?:would|could|will|can|might|may|should|had|has|have|was|were|is|are|did|does))\b/gi
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const left = window.slice(0, start).trimEnd()
+    const right = (window.slice(start) + nextText).trimStart()
+    if (!left || !right) continue
+    if (left.length < MIN_CLAUSE_START_SPLIT_CHARS) continue
+    if (left.split(/\s+/).filter(Boolean).length < 3) continue
+    if (right.split(/\s+/).filter(Boolean).length < 2) continue
+    const leftLastWord = left.match(/([A-Za-z]+(?:['’][A-Za-z]+)?)$/)?.[1] ?? ''
+    if (THAT_SPLIT_VERB_RE.test(leftLastWord)) continue
+    if (
+      /\b(?:and|or|but|so|because|although|though|while|since|if|when|where|why|how|what|whether|that|someone|somebody|anyone|anybody|everyone|everybody|no-one|nobody)$/i.test(
+        left
+      )
+    ) {
+      continue
+    }
+    best = start
+  }
+  return best
+}
+
 function findRightmostModalLead(window: string, nextText: string): number {
   if (countDoubleQuotes(window) > 0) return -1
 
@@ -1069,6 +1098,14 @@ function findBestCut(
   const embeddedPronounCut = findRightmostEmbeddedPronounClauseStart(window, nextText)
   if (embeddedPronounCut >= 0) {
     return { cut: embeddedPronounCut, reason: 'embeddedPronounClause' }
+  }
+
+  const dependentPronounCut = findRightmostDependentPronounClauseStart(
+    window,
+    nextText
+  )
+  if (dependentPronounCut >= 0) {
+    return { cut: dependentPronounCut, reason: 'dependentPronounClause' }
   }
 
   const listTailCut = findRightmostListTailLead(window, nextText)

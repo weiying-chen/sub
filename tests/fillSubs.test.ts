@@ -1028,6 +1028,30 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("I wrote down my 50 dreams at that moment.")
   })
 
+  it("splits before a pronoun in an implied relative clause", () => {
+  const split = __testTakeLine(
+    "we turned the process into animated videos they would enjoy.",
+    54,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("we turned the process into animated videos")
+  expect(split.rest).toBe("they would enjoy.")
+  })
+
+  it("splits before a contracted pronoun in an implied relative clause", () => {
+  const split = __testTakeLine(
+    "I looked at the periodic table I'd once been so proud of as a chemistry student.",
+    45,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("I looked at the periodic table")
+  expect(split.rest).toBe("I'd once been so proud of as a chemistry student.")
+  })
+
   it("does not split before because as a clause-starter heuristic", () => {
   const split = __testTakeLine(
     "A patient came to see me because he had a lot of gas.",

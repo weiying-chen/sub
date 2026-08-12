@@ -75,6 +75,7 @@ describe("loadAbbreviations", () => {
     expect(abbreviations).toContain("Ph.D.")
     expect(abbreviations).toContain("Mr.")
     expect(abbreviations).toContain("Supt.")
+    expect(abbreviations).toContain("Ven.")
   })
 })
 

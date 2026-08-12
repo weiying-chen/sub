@@ -202,6 +202,25 @@ describe("punctuationRule (segments)", () => {
     ).toBe(false)
   })
 
+  it("does not treat a configured title abbreviation as an internal sentence", () => {
+    const text = [
+      "00:00:05:16\t00:00:07:17\tMarker",
+      "Ven. Cheng Yen explained why those who are right.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [
+      punctuationRule({ abbreviations: ["Ven."] }),
+    ])
+
+    expect(
+      metrics.some(
+        (metric) =>
+          metric.type === "PUNCTUATION" &&
+          metric.ruleCode === "MISSING_END_PUNCTUATION"
+      )
+    ).toBe(false)
+  })
+
   it("flags across blank separators between cues", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

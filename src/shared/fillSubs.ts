@@ -1362,7 +1362,7 @@ function normalizeTrailingOpeningQuote(
   line: string,
   rest: string
 ): { line: string; rest: string } {
-  const match = line.trimEnd().match(/^(.*\b(?:and|but|or|so|yet|nor|then))\s+"$/i)
+  const match = line.trimEnd().match(/^(.*?)\s+"$/)
   if (!match) return { line, rest }
 
   const left = (match[1] ?? '').trimEnd()

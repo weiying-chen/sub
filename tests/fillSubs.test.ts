@@ -2473,6 +2473,31 @@ describe("fillSelectedTimestampLines", () => {
   expect(translations.join(" ")).toContain('then "you\'re not smart,"')
   })
 
+  it("moves a dangling opening quote after a speech lead-in", () => {
+  const lines = [
+    "00:07:59:24\t00:08:01:23\t你以為自己掌握了全局",
+    "00:08:01:23\t00:08:02:23\t同學就補一句",
+    "00:08:02:23\t00:08:03:25\t可是另外一個案例",
+    "00:08:03:25\t00:08:05:00\t好像剛好相反",
+  ]
+  const paragraph =
+    "You think you’ve got the whole picture, then a classmate says, “But another case shows the opposite.”"
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    new Set([0, 1, 2, 3]),
+    paragraph,
+    { maxChars: 54, inline: true }
+  )
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(translations.some((line) => /\s"$/.test(line))).toBe(false)
+  expect(translations.some((line) => /^""/.test(line))).toBe(false)
+  expect(translations.join(" ")).toContain(
+    'a classmate says, "But another case shows the opposite."'
+  )
+  })
+
   it("keeps an opening parenthesis with the text it introduces", () => {
   const lines = [
     "00:09:22:16\t00:09:24:04\t我為了怕大家不會",

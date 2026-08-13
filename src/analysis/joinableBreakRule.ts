@@ -73,7 +73,6 @@ function hasTiming(
 
 type BoundaryClass =
   | "duplicate_pair_before_multi_word_question"
-  | "duplicate_span_before_multi_word_question"
   | "mismatched_sentence_state"
   | "join_candidate"
 
@@ -124,16 +123,6 @@ function classifyBoundary(
     isMultiWordQuestion(next2.translation)
   ) {
     return "duplicate_pair_before_multi_word_question"
-  }
-
-  if (
-    info.prevMatchesCur &&
-    !info.nextMatchesNext2 &&
-    info.curFullSentence &&
-    info.nextFullSentence &&
-    isMultiWordQuestion(next.translation)
-  ) {
-    return "duplicate_span_before_multi_word_question"
   }
 
   if (

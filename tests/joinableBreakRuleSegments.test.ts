@@ -428,6 +428,27 @@ describe("joinableBreakRule (segments)", () => {
     ].join("\n")
 
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
-    expect(metrics).toHaveLength(0)
+  expect(metrics).toHaveLength(0)
+  })
+
+  it("flags the final duplicate boundary before a fitting follow-up question", () => {
+    const text = [
+      "00:11:10:19\t00:11:11:27\t你怎麼知道",
+      "Then ask: How do we know?",
+      "00:11:11:27\t00:11:12:29\t證據在哪裡",
+      "Then ask: How do we know?",
+      "00:11:12:29\t00:11:14:15\t方法可靠嗎",
+      "Where's the evidence?",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+
+    expect(metrics).toContainEqual(
+      expect.objectContaining({
+        type: "JOINABLE_BREAK",
+        text: "Then ask: How do we know?",
+        nextText: "Where's the evidence?",
+      })
+    )
   })
 })

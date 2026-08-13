@@ -2450,6 +2450,29 @@ describe("fillSelectedTimestampLines", () => {
   ])
   })
 
+  it("does not treat a quote after trailing then as a spanning quote", () => {
+  const lines = [
+    "00:03:08:23\t00:03:09:26\t你這題不會",
+    "00:03:09:26\t00:03:11:05\t變成你數學不好",
+    "00:03:11:05\t00:03:12:18\t再變成你頭腦不好",
+    "00:03:12:18\t00:03:13:28\t再變成你大概沒救",
+  ]
+  const paragraph =
+    "One problem becomes “you're bad at math,” then “you're not smart,” and finally, “you're hopeless.”"
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    new Set([0, 1, 2, 3]),
+    paragraph,
+    { maxChars: 54, inline: true }
+  )
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(translations.some((line) => /then\s+"$/.test(line))).toBe(false)
+  expect(translations.some((line) => /^"One problem/.test(line))).toBe(false)
+  expect(translations.join(" ")).toContain('then "you\'re not smart,"')
+  })
+
   it("keeps an opening parenthesis with the text it introduces", () => {
   const lines = [
     "00:09:22:16\t00:09:24:04\t我為了怕大家不會",

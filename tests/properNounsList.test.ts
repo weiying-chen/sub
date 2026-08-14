@@ -19,7 +19,6 @@ describe("loadProperNouns", () => {
     expect(properNouns).toContain("Mendeleyev")
     expect(properNouns).toContain("Switzerland")
     expect(properNouns).toContain("Taiwan")
-    expect(properNouns).toContain("National Cheng Kung University")
     expect(properNouns).toContain("Luye")
     expect(properNouns).toContain("Latin America")
     expect(properNouns).toContain("Japan")

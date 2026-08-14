@@ -396,6 +396,39 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("does not flag repeated line-start digits continuing a previous sentence", () => {
+    const segments = [
+      {
+        lineIndex: 1,
+        translation: "Over the past decade, we've made videos featuring over",
+      },
+      {
+        lineIndex: 3,
+        translation: "Over the past decade, we've made videos featuring over",
+      },
+      {
+        lineIndex: 5,
+        translation: "Over the past decade, we've made videos featuring over",
+      },
+      {
+        lineIndex: 7,
+        translation: "100 scientists and put them online.",
+      },
+      {
+        lineIndex: 9,
+        translation: "100 scientists and put them online.",
+      },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, lineText: segment.translation }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("flags sentence-start digits across line-start wrappers", () => {
     const segments = [
       { lineIndex: 0, translation: "20 birds arrived." },

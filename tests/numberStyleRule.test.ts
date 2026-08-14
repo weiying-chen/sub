@@ -99,6 +99,25 @@ describe("numberStyleRule", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("uses numeral style for coordinated numbers sharing a unit", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "It may happen 5 or 10 years from now.",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "The program accepts 10 or 5 participants.",
+      "00:00:03:00\t00:00:04:00\tMarker",
+      "The children were ages 5–10 years.",
+      "00:00:04:00\t00:00:05:00\tMarker",
+      "We sent 5 volunteers back after 10 years.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings.map((finding) => finding.token)).toEqual(["5", "10"])
+    expect(findings.every((finding) => finding.text === "We sent 5 volunteers back after 10 years.")).toBe(true)
+  })
+
   it("ignores coordinated AM/PM times with a shared suffix", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

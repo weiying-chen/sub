@@ -307,7 +307,7 @@ function coordinatedListHasCompliantNumber(
     if (/^\d/.test(rawToken)) {
       if (rawToken.includes('.')) return true
       const value = Number.parseInt(rawToken.replace(/,/g, ''), 10)
-      if (Number.isFinite(value) && value > 10 && !sentenceStart) return true
+      if (Number.isFinite(value) && value >= 10 && !sentenceStart) return true
       continue
     }
 
@@ -420,6 +420,31 @@ function getTextAndAnchor(
 
   const anchorIndex = block.translationIndex ?? block.tsIndex
   return { text, anchorIndex }
+}
+
+function getPreviousDistinctTargetText(
+  ctx: SegmentCtx,
+  candidateIndex: number,
+  currentText: string
+): string | undefined {
+  const normalizedCurrent = currentText.trim()
+  const currentTargetLines = ctx.segment.targetLines ?? []
+
+  for (let i = candidateIndex - 1; i >= 0; i -= 1) {
+    const text = currentTargetLines[i]?.lineText
+    if (text != null && text.trim() !== normalizedCurrent) return text
+  }
+
+  for (let segmentIndex = ctx.segmentIndex - 1; segmentIndex >= 0; segmentIndex -= 1) {
+    const segment = ctx.segments[segmentIndex]
+    const targetLines = segment?.targetLines ?? []
+    for (let lineIndex = targetLines.length - 1; lineIndex >= 0; lineIndex -= 1) {
+      const text = targetLines[lineIndex]?.lineText
+      if (text != null && text.trim() !== normalizedCurrent) return text
+    }
+  }
+
+  return undefined
 }
 
 function collectMetrics(
@@ -556,11 +581,11 @@ export function numberStyleRule(
       if (candidates.length === 0) return []
       return candidates.flatMap((candidate, candidateIndex) => {
         const quoteInfo = quoteTracker.inspect(candidate.lineText)
-        const previousSegmentTargetLines =
-          ctx.segments[ctx.segmentIndex - 1]?.targetLines
-        const previousCandidateText =
-          candidates[candidateIndex - 1]?.lineText ??
-          previousSegmentTargetLines?.[previousSegmentTargetLines.length - 1]?.lineText
+        const previousCandidateText = getPreviousDistinctTargetText(
+          ctx,
+          candidateIndex,
+          candidate.lineText
+        )
         const nextCandidateText =
           candidates[candidateIndex + 1]?.lineText ??
           ctx.segments[ctx.segmentIndex + 1]?.targetLines?.[0]?.lineText

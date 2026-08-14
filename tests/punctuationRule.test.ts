@@ -266,7 +266,7 @@ describe("punctuationRule", () => {
     ).toBe(false)
   })
 
-  it("checks across empty lines between cues", () => {
+  it("does not check across empty lines between cues", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "Hello.",
@@ -285,12 +285,7 @@ describe("punctuationRule", () => {
     const metrics = analyzeLines(text, [punctuationRule()])
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
-    expect(
-      findings.some((f) => f.ruleCode === "LOWERCASE_AFTER_PERIOD")
-    ).toBe(true)
-    expect(
-      findings.some((f) => f.ruleCode === "COMMA_BEFORE_QUOTE")
-    ).toBe(true)
+    expect(findings).toHaveLength(0)
   })
 
   it("flags uppercase continuation after triple hyphen", () => {

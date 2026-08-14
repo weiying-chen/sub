@@ -7,6 +7,7 @@ import { endsSentenceBoundary, startsWithOpenQuote } from './punctuationShared'
 import {
   type LineSource,
   type ParseBlockOptions,
+  hasEmptyLineBetween,
   isSubsCommentLine,
   parseBlockAt,
 } from '../shared/tsvRuns'
@@ -392,23 +393,6 @@ function hasInterveningNonEmptyLine(
   return false
 }
 
-function hasInterveningSpeakerBreak(
-  src: LineSource,
-  startIndex: number,
-  endIndex: number
-): boolean {
-  let sawEmptyLine = false
-  for (let i = startIndex + 1; i < endIndex; i += 1) {
-    const text = src.getLine(i)
-    if (text.trim() === '') {
-      sawEmptyLine = true
-      continue
-    }
-    if (sawEmptyLine && isSubsCommentLine(text)) return true
-  }
-  return false
-}
-
 function cueTimestamp(cue: Cue): string {
   if (!cue.start || !cue.end) return ''
   return `${cue.start} -> ${cue.end}`
@@ -452,8 +436,17 @@ function collectMetrics(
   const cuesFromTimestamps = collectCues(src, options)
   const usesTimestampCues = cuesFromTimestamps.length > 0
   const cues = cuesFromTimestamps.length > 0 ? cuesFromTimestamps : collectTextCues(lines)
-  const quoteTracker = createDoubleQuoteSpanTracker()
-  const quoteStateByCue = cues.map((cue) => quoteTracker.inspect(cue.text))
+  let quoteTracker = createDoubleQuoteSpanTracker()
+  const quoteStateByCue = cues.map((cue, index) => {
+    const previousCue = cues[index - 1]
+    if (
+      previousCue &&
+      hasEmptyLineBetween(src, previousCue.translationIndex, cue.tsIndex)
+    ) {
+      quoteTracker = createDoubleQuoteSpanTracker()
+    }
+    return quoteTracker.inspect(cue.text)
+  })
   const parentheticalCueExemptions = buildParentheticalCueExemptions(cues)
   const metrics: PunctuationMetric[] = []
   const reportedRule4 = new Set<string>()
@@ -516,6 +509,10 @@ function collectMetrics(
     const prevIsParentheticalExempt = parentheticalCueExemptions.has(j)
     const nextIsParentheticalExempt = parentheticalCueExemptions.has(j + 1)
 
+    if (hasEmptyLineBetween(src, prev.translationIndex, next.tsIndex)) {
+      continue
+    }
+
     if (isSameTextWithAddedTerminal(prev.text, next.text)) {
       addRule4Metric(prev, metrics, reportedRule4)
       continue
@@ -527,13 +524,7 @@ function collectMetrics(
       prev.translationIndex,
       next.tsIndex
     )
-    const hasSpeakerBreak = hasInterveningSpeakerBreak(
-      src,
-      prev.translationIndex,
-      next.tsIndex
-    )
-
-    if (hasMetadataBreak || hasSpeakerBreak) {
+    if (hasMetadataBreak) {
       if (!usesTimestampCues) {
         const nextCase = firstAlphaCase(next.text)
         if (nextCase === 'lower' && !prevIsParentheticalExempt) {

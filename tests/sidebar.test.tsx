@@ -686,15 +686,7 @@ describe("Sidebar", () => {
       "use words instead of digits for this number"
     )
 
-    const numberRow = screen
-      .getAllByText("Punctuation is incorrect")[0]
-      ?.closest(".finding-row-button")
-    expect(numberRow).not.toBeNull()
-    if (!numberRow) return
-    const inactiveInstruction = numberRow.querySelector(".finding-row-instruction")
-    expect(inactiveInstruction).not.toBeNull()
-    expect(inactiveInstruction).not.toHaveClass("is-open")
-    expect(inactiveInstruction).toHaveAttribute("aria-hidden", "true")
+    expect(screen.queryByText("Punctuation is incorrect")).not.toBeInTheDocument()
   })
 
   it("orders errors before warnings in the findings list", () => {
@@ -951,7 +943,7 @@ describe("Sidebar", () => {
     })
   })
 
-  it("shows missing end punctuation before a metadata break", async () => {
+  it("does not show punctuation across an empty line before metadata", async () => {
     const { container } = render(<App />)
     const ui = within(container)
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
@@ -995,8 +987,7 @@ describe("Sidebar", () => {
     }
 
     await waitFor(() => {
-      expect(countFindingRowsWithText("Punctuation is incorrect")).toBeGreaterThan(0)
-      expect(countFindingRowsWithText("I love you, sorry, and goodbye")).toBeGreaterThan(0)
+      expect(countFindingRowsWithText("Punctuation is incorrect")).toBe(0)
     })
   })
 

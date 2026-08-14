@@ -221,7 +221,7 @@ describe("punctuationRule (segments)", () => {
     ).toBe(false)
   })
 
-  it("flags across blank separators between cues", () => {
+  it("does not compare across blank separators between cues", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "continues here",
@@ -238,13 +238,7 @@ describe("punctuationRule (segments)", () => {
     })
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
-    expect(
-      findings.some(
-        (f) =>
-          f.ruleCode === "MISSING_PUNCTUATION_BEFORE_CAPITAL" &&
-          f.text === "continues here"
-      )
-    ).toBe(true)
+    expect(findings).toHaveLength(0)
   })
 
   it("does not compare across non-empty metadata lines between cues", () => {
@@ -759,7 +753,7 @@ describe("punctuationRule (segments)", () => {
     ).toBe(true)
   })
 
-  it("flags missing end punctuation before an empty-line speaker break", () => {
+  it("does not check punctuation across an empty-line boundary", () => {
     const text = [
       "00:13:10:26\t00:13:12:15\t那假設他現在餐吃得不夠",
       "If older adults aren't eating enough,",
@@ -778,13 +772,26 @@ describe("punctuationRule (segments)", () => {
     const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
-    expect(
-      findings.some(
-        (f) =>
-          f.ruleCode === "MISSING_END_PUNCTUATION" &&
-          f.text === "lose weight, or cough frequently,"
-      )
-    ).toBe(true)
+    expect(findings).toHaveLength(1)
+    expect(findings[0]).toMatchObject({
+      ruleCode: "MISSING_END_PUNCTUATION",
+      text: "Wang Hsueh-pei extends her work beyond the clinic to",
+    })
+  })
+
+  it("does not check capitalization across a plain empty line", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\t第一段",
+      "This sentence ends.",
+      "",
+      "00:00:02:00\t00:00:03:00\t第二段",
+      "lowercase text in a separate block.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+    const findings = metrics.filter((m) => m.type === "PUNCTUATION")
+
+    expect(findings).toHaveLength(0)
   })
 
   it("ignores trailing CPS suppression markers for punctuation checks", () => {

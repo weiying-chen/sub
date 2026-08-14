@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest"
 import {
   DEFAULT_FILL_MAX_TARGET_CPS,
   DEFAULT_FILL_MIN_TARGET_CPS,
+  __testIsSubstantialClauseBoundary,
   __testMergeJoinableTranslations,
   __testTakeLine,
   fillSelectedTimestampLines,
@@ -20,6 +21,26 @@ const NO_SPLIT_ABBREVIATIONS = [
 ]
 
 describe("fillSelectedTimestampLines", () => {
+  it("checks substantial clause boundaries with configurable right size", () => {
+    expect(
+      __testIsSubstantialClauseBoundary(
+        "we want kids to understand",
+        "why science matters",
+        3
+      )
+    ).toBe(true)
+    expect(__testIsSubstantialClauseBoundary("I know", "what happened", 2)).toBe(
+      false
+    )
+    expect(
+      __testIsSubstantialClauseBoundary(
+        "we turned the process into animated videos",
+        "they would enjoy",
+        4
+      )
+    ).toBe(false)
+  })
+
   it("uses explicit fill target cps defaults", () => {
     expect(DEFAULT_FILL_MAX_TARGET_CPS).toBe(16)
     expect(DEFAULT_FILL_MIN_TARGET_CPS).toBe(10)
@@ -1025,7 +1046,58 @@ describe("fillSelectedTimestampLines", () => {
   )
 
   expect(split.line).toBe("You might wonder why")
-  expect(split.rest).toBe("I wrote down my 50 dreams at that moment.")
+    expect(split.rest).toBe("I wrote down my 50 dreams at that moment.")
+  })
+
+  it("prefers splitting before an embedded pronoun with an auxiliary", () => {
+    const split = __testTakeLine(
+      "we turned the process into animated videos they would enjoy.",
+      53,
+      null,
+      false
+    )
+
+    expect(split.line).toBe("we turned the process into animated videos")
+    expect(split.rest).toBe("they would enjoy.")
+  })
+
+  it("prefers splitting before a contracted embedded pronoun clause", () => {
+    const split = __testTakeLine(
+      "One parent told us he'd studied the humanities and hated science.",
+      48,
+      null,
+      false
+    )
+
+    expect(split.line).toBe("One parent told us")
+    expect(split.rest).toBe("he'd studied the humanities and hated science.")
+  })
+
+  it.each(["why", "how", "what", "where", "which"])(
+    "prefers splitting before a substantial %s clause",
+    (starter) => {
+      const split = __testTakeLine(
+        `We want every student to understand ${starter} learning science matters.`,
+        54,
+        null,
+        false
+      )
+
+      expect(split.line).toBe("We want every student to understand")
+      expect(split.rest).toBe(`${starter} learning science matters.`)
+    }
+  )
+
+  it("does not split before a wh-clause when the left side is too short", () => {
+    const split = __testTakeLine(
+      "I know what happened during the experiment yesterday.",
+      35,
+      null,
+      false
+    )
+
+    expect(split.line).not.toBe("I know")
+    expect(split.rest.startsWith("what ")).toBe(false)
   })
 
   it("splits before a pronoun in an implied relative clause", () => {

@@ -911,6 +911,46 @@ function findRightmostEmbeddedPronounClauseStart(
   return best
 }
 
+function isSubstantialClauseBoundary(
+  left: string,
+  right: string,
+  minRightWords: number
+): boolean {
+  const normalizedLeft = left.trim()
+  const normalizedRight = right.trim()
+  if (!normalizedLeft || !normalizedRight) return false
+  if (normalizedLeft.length < MIN_CLAUSE_START_SPLIT_CHARS) return false
+  if (
+    normalizedLeft.split(/\s+/).filter(Boolean).length <
+    MIN_CLAUSE_START_SPLIT_WORDS
+  ) {
+    return false
+  }
+  return normalizedRight.split(/\s+/).filter(Boolean).length >= minRightWords
+}
+
+export const __testIsSubstantialClauseBoundary =
+  isSubstantialClauseBoundary
+
+function findRightmostAuxiliaryPronounClauseStart(
+  window: string,
+  nextText: string
+): number {
+  let best = -1
+  const re = /\b(?:I|you|we|they|he|she|it)(?=(?:['’]d\b|\s+(?:can|could|will|would|should|may|might|must|shall)\b))/gi
+  let match: RegExpExecArray | null
+
+  while ((match = re.exec(window)) !== null) {
+    const start = match.index
+    const left = window.slice(0, start).trimEnd()
+    const right = (window.slice(start) + nextText).trimStart()
+    if (!isSubstantialClauseBoundary(left, right, 2)) continue
+    best = start
+  }
+
+  return best
+}
+
 function findRightmostDependentPronounClauseStart(
   window: string,
   nextText: string
@@ -937,6 +977,32 @@ function findRightmostDependentPronounClauseStart(
     }
     best = start
   }
+  return best
+}
+
+function findRightmostWhClauseStart(
+  window: string,
+  nextText: string
+): number {
+  let best = -1
+  const re = /\b(?:why|how|what|where|which)\b/gi
+  let match: RegExpExecArray | null
+
+  while ((match = re.exec(window)) !== null) {
+    const start = match.index
+    const left = window.slice(0, start).trimEnd()
+    const right = (window.slice(start) + nextText).trimStart()
+    if (!isSubstantialClauseBoundary(left, right, 3)) continue
+    if (
+      !/\b(?:ask|choose|decide|determine|discover|explain|figure out|find out|know|learn|remember|reveal|show|tell|understand|wonder)$/i.test(
+        left
+      )
+    ) {
+      continue
+    }
+    best = start
+  }
+
   return best
 }
 
@@ -1090,6 +1156,14 @@ function findBestCut(
   const clauseLeadCut = findRightmostClauseStarterLead(window, nextText)
   if (clauseLeadCut >= 0) return { cut: clauseLeadCut, reason: 'clauseStarter' }
 
+  const auxiliaryPronounCut = findRightmostAuxiliaryPronounClauseStart(
+    window,
+    nextText
+  )
+  if (auxiliaryPronounCut >= 0) {
+    return { cut: auxiliaryPronounCut, reason: 'auxiliaryPronounClause' }
+  }
+
   const quantifiedNounCut = findRightmostQuantifiedNounStart(window, nextText)
   if (quantifiedNounCut >= 0) {
     return { cut: quantifiedNounCut, reason: 'quantifiedNoun' }
@@ -1106,6 +1180,11 @@ function findBestCut(
   )
   if (dependentPronounCut >= 0) {
     return { cut: dependentPronounCut, reason: 'dependentPronounClause' }
+  }
+
+  const whClauseCut = findRightmostWhClauseStart(window, nextText)
+  if (whClauseCut >= 0) {
+    return { cut: whClauseCut, reason: 'whClause' }
   }
 
   const listTailCut = findRightmostListTailLead(window, nextText)

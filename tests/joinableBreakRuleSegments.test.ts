@@ -93,7 +93,7 @@ describe("joinableBreakRule (segments)", () => {
 
   it("flags dash continuation when both sides are non-full", () => {
     const text = [
-      "00:07:51:16\t00:07:53:03\t是這一點有問題",
+      "00:07:51:16\t00:07:54:01\t是這一點有問題",
       "It was this---",
       "00:07:54:01\t00:07:55:08\t這裡有問題",
       "right here.",
@@ -141,6 +141,19 @@ describe("joinableBreakRule (segments)", () => {
     ].join("\n")
 
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+    expect(metrics).toHaveLength(0)
+  })
+
+  it("does not flag when timestamps have any positive gap", () => {
+    const text = [
+      "00:15:03:27\t00:15:04:20\t而且每一年",
+      "And they reach over",
+      "00:15:04:23\t00:15:06:27\t影響超過十三萬名的孩子",
+      "130,000 kids each year.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+
     expect(metrics).toHaveLength(0)
   })
 

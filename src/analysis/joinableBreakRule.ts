@@ -11,7 +11,7 @@ type JoinableBreakRuleOptions = ParseBlockOptions & {
   maxJoinedChars?: number
 }
 
-const DEFAULT_MAX_GAP_FRAMES = 30
+const DEFAULT_MAX_GAP_FRAMES = 0
 const COMMA_END_RE = /[,，]\s*$/
 const SENTENCE_END_RE = /[.!?]["')\]]*\s*$/
 const TRAILING_ABBREV_FRAGMENT_RE = /(?:^|[\s"'([])([A-Za-z]{1,4}\.)["')\]]*\s*$/

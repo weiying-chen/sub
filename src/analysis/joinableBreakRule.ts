@@ -112,7 +112,6 @@ function getBoundaryInfo(
 
 function classifyBoundary(
   info: BoundaryInfo,
-  next: Segment,
   next2: Segment | undefined
 ): BoundaryClass {
   if (
@@ -172,7 +171,7 @@ export function joinableBreakRule(
     if (isSameTranslationText(curText, nextText)) return []
 
     const boundaryInfo = getBoundaryInfo(prev, cur, next, next2, curText, nextText)
-    const boundaryClass = classifyBoundary(boundaryInfo, next, next2)
+    const boundaryClass = classifyBoundary(boundaryInfo, next2)
     if (boundaryClass !== "join_candidate") {
       return []
     }

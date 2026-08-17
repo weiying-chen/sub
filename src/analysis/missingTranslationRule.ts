@@ -9,7 +9,7 @@ export function missingTranslationRule(): SegmentRule {
     const sourceText = ctx.segment.sourceText?.trim() ?? ''
     if (sourceText === '') return []
 
-    if (blockType === 'super' && ctx.segment.skipTranslation) return []
+    if (ctx.segment.skipTranslation) return []
 
     const targetCount = ctx.segment.targetLines?.length ?? 0
     if (targetCount > 0) return []

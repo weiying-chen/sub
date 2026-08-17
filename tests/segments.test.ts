@@ -206,6 +206,23 @@ describe("parseNews", () => {
     ])
   })
 
+  it("marks VO blocks with tilde placeholders as translation-skip segments", () => {
+    const text = ["老師NS+小孩重複NS", "~", ""].join("\n")
+
+    const segments = parseNews(text)
+
+    expect(segments).toMatchObject([
+      {
+        lineIndex: 0,
+        lineIndexEnd: 0,
+        blockType: "vo",
+        skipTranslation: true,
+        targetLines: [],
+        sourceText: "老師NS+小孩重複NS",
+      },
+    ])
+  })
+
   it("treats parenthesized English lines as SUPER translations", () => {
     const text = [
       "/*SUPER:",

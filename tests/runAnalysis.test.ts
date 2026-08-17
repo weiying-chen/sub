@@ -191,6 +191,19 @@ describe("runAnalysis output", () => {
     ).toBe(false)
   })
 
+  it("skips VO missing-translation when a tilde placeholder is present", async () => {
+    const text = ["老師NS+小孩重複NS", "~", ""].join("\n")
+
+    const output = (await runAnalysis(text, {
+      type: "news",
+      mode: "findings",
+    })) as Metric[]
+
+    expect(
+      output.some((metric) => metric.type === "MISSING_TRANSLATION")
+    ).toBe(false)
+  })
+
   it("returns news marker findings for bad format, order, and backward time", async () => {
     const text = [
       "1_0010",

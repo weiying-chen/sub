@@ -416,9 +416,8 @@ export function parseNews(text: string): Segment[] {
             !isNewsStructureLine(next.trimmed)
           const nextIsSourceParagraph =
             currentBlock === 'vo' && isNewsSourceLine(next.raw)
-          const nextIsSuperSkipMarker =
-            currentBlock === 'super' && next.trimmed === '~'
-          if (nextIsTargetText || nextIsSourceParagraph || nextIsSuperSkipMarker) {
+          const nextIsSkipMarker = currentBlock != null && next.trimmed === '~'
+          if (nextIsTargetText || nextIsSourceParagraph || nextIsSkipMarker) {
             continue
           }
         }
@@ -511,7 +510,7 @@ export function parseNews(text: string): Segment[] {
 
     if (
       trimmed === '~' &&
-      currentBlock === 'super' &&
+      currentBlock != null &&
       sourceBuffer.length > 0 &&
       targetBuffer.length === 0
     ) {

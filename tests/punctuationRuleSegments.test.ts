@@ -791,7 +791,30 @@ describe("punctuationRule (segments)", () => {
     const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
-    expect(findings).toHaveLength(0)
+  expect(findings).toHaveLength(0)
+  })
+
+  it("flags a bare unpunctuated duplicate span before a section break", () => {
+    const text = [
+      "00:18:06:24\t00:18:08:04\t對他來說",
+      "To him, getting old has never been a reason to stop",
+      "00:18:08:04\t00:18:11:15\t老 從來不是停下來的理由",
+      "To him, getting old has never been a reason to stop",
+      "",
+      "// main",
+      "00:18:14:03\t00:18:15:27\t風雨無阻",
+      "It doesn't matter if it rains or shines.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+    const findings = metrics.filter((metric) => metric.type === "PUNCTUATION")
+
+    expect(findings).toContainEqual(
+      expect.objectContaining({
+        ruleCode: "MISSING_END_PUNCTUATION",
+        text: "To him, getting old has never been a reason to stop",
+      })
+    )
   })
 
   it("ignores trailing CPS suppression markers for punctuation checks", () => {

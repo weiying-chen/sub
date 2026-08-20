@@ -886,6 +886,32 @@ describe("fillSelectedTimestampLines", () => {
     ])
   })
 
+  it("does not rejoin a full sentence with a subordinate comma fragment", () => {
+  const lines = [
+    "00:05:58:12\t00:06:01:11\t我的心態由我自己培養出來",
+    "00:06:01:11\t00:06:04:03\t我說我遇到什麼困難",
+    "00:06:04:03\t00:06:06:15\t寧可吃虧也不占別人便宜",
+    "00:06:06:15\t00:06:10:04\t他們有的芝麻蒜頭大的事件",
+    "00:06:10:04\t00:06:11:18\t鬧得一塌糊塗",
+  ]
+  const paragraph =
+    "I developed this mindset myself. Whatever happens, I'd rather lose out than take advantage of others. Some people make a fuss over little things."
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    new Set([0, 1, 2, 3, 4]),
+    paragraph,
+    { maxChars: 54, inline: true }
+  )
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(
+    translations.some((line) =>
+      line.includes("mindset myself. Whatever happens,")
+    )
+  ).toBe(false)
+  })
+
   it("uses one quote pair when merging adjacent quoted sentences", () => {
     const merged = __testMergeJoinableTranslations(
       ['"Keep fighting."', '"There\'s still hope."'],

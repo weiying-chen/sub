@@ -642,6 +642,28 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("50 dreams I wanted to achieve.")
   })
 
+  it("keeps an aged numeric range with its lead-in", () => {
+  const lines = [
+    "00:08:48:06\t00:08:49:10\t千歲合唱團",
+    "00:08:49:10\t00:08:52:19\t從七十歲以上到一百零五歲不等",
+    "00:08:52:19\t00:08:54:22\t團員有二十多個人",
+    "00:08:54:22\t00:08:56:25\t每個禮拜六下午練唱",
+  ]
+  const paragraph =
+    "They have over 20 members, aged 70 to 105, and rehearse every Saturday afternoon."
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    new Set([0, 1, 2, 3]),
+    paragraph,
+    { maxChars: 54, inline: true }
+  )
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(translations.some((line) => /aged\s*$/.test(line))).toBe(false)
+  expect(translations.some((line) => /aged 70 to 105/.test(line))).toBe(true)
+  })
+
   it("moves the full final list item to the next line when it doesn't fit", () => {
   const split = __testTakeLine(
     "We reviewed budgets, timelines, or staffing constraints before launch.",

@@ -867,7 +867,7 @@ function findRightmostQuantifiedNounStart(
   nextText: string
 ): number {
   let best = -1
-  const re = /\b\d+(?:[,.]\d+)?\s+(?!percent\b)[A-Za-z][\w'-]*/gi
+  const re = /\b\d+(?:[,.]\d+)?\s+(?!(?:and|or|percent|to)\b)[A-Za-z][\w'-]*/gi
   let m: RegExpExecArray | null
   while ((m = re.exec(window)) !== null) {
     const start = m.index

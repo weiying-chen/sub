@@ -240,6 +240,30 @@ describe("numberStyleRule (segments)", () => {
     ])
   })
 
+  it("uses sentence-start word style for the rest of a number sequence", () => {
+    const segments = [
+      { lineIndex: 0, translation: "Thirty-eight, thirty-nine." },
+      { lineIndex: 1, translation: "Thirty-eight to forty medals." },
+      { lineIndex: 2, translation: "Thirty-eight or forty medals." },
+      { lineIndex: 3, translation: "Thirty-eight, 39." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, lineText: segment.translation }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((metric) => metric.type === "NUMBER_STYLE")
+
+    expect(findings).toMatchObject([
+      {
+        lineIndex: 3,
+        token: "39",
+        found: "digits",
+        expected: "words",
+      },
+    ])
+  })
+
   it("ignores decimal quantities like 8.47 years", () => {
     const segments = [
       { lineIndex: 0, translation: "People spend about 8.47 years in poor health." },

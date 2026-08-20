@@ -342,6 +342,21 @@ function isWithinAnySpan(
   return spans.some((span) => index >= span.start && end <= span.end)
 }
 
+function getSentenceInitialWordNumberSequenceSpan(
+  text: string,
+  previousText?: string
+): { start: number; end: number } | null {
+  if (continuesPreviousSentence(previousText)) return null
+
+  const sequenceRe = new RegExp(
+    `^\\s*(?:["'([{]\\s*)?(${WORD_NUMBER_TOKEN_RE_SOURCE})(?:\\s*(?:,|to\\b|and\\b|or\\b|[-–—])\\s*(?:${WORD_NUMBER_TOKEN_RE_SOURCE}|${DIGIT_TOKEN_RE_SOURCE}))+`,
+    'i'
+  )
+  const match = text.match(sequenceRe)
+  if (!match || match.index == null) return null
+  return { start: match.index, end: match.index + match[0].length }
+}
+
 function isSplitCoordinatedAmPmToken(
   text: string,
   index: number,
@@ -457,6 +472,8 @@ function collectMetrics(
 ): NumberStyleMetric[] {
   const metrics: NumberStyleMetric[] = []
   const coordinatedListSpans = getCoordinatedNumberListSpans(text)
+  const sentenceInitialWordSequence =
+    getSentenceInitialWordNumberSequenceSpan(text, previousText)
 
   const digitsRe = new RegExp(DIGIT_TOKEN_RE_SOURCE, 'g')
   let match: RegExpExecArray | null = null
@@ -467,6 +484,24 @@ function collectMetrics(
     const normalized = rawToken.replace(/,/g, '')
     const value = Number.parseInt(normalized, 10)
     if (!Number.isFinite(value)) continue
+    if (
+      sentenceInitialWordSequence &&
+      match.index >= sentenceInitialWordSequence.start &&
+      match.index + rawToken.length <= sentenceInitialWordSequence.end
+    ) {
+      metrics.push({
+        type: 'NUMBER_STYLE',
+        ruleCode: 'SMALL_NUMBER_AS_DIGITS',
+        lineIndex: anchorIndex,
+        index: match.index,
+        value,
+        found: 'digits',
+        expected: 'words',
+        token: rawToken,
+        text: fullText,
+      })
+      continue
+    }
     if (isCalendarYearToken(rawToken, value)) continue
     if (isTimeToken(text, match.index, rawToken.length)) continue
     if (isAmPmToken(text, match.index, rawToken.length)) continue
@@ -546,6 +581,13 @@ function collectMetrics(
     const rawToken = match[0]
     const value = parseNumberWords(rawToken)
     if (value == null || value <= 10) continue
+    if (
+      sentenceInitialWordSequence &&
+      match.index >= sentenceInitialWordSequence.start &&
+      match.index + rawToken.length <= sentenceInitialWordSequence.end
+    ) {
+      continue
+    }
     if (isAgeAdjective(text, match.index, rawToken.length)) continue
     if (isWithinAnySpan(coordinatedListSpans, match.index, rawToken.length)) continue
     if (isStatisticalRatioToken(text, match.index, rawToken.length)) continue

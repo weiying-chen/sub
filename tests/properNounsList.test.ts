@@ -35,6 +35,8 @@ describe("loadProperNouns", () => {
     expect(properNouns).toContain("Mendeleyev")
     expect(properNouns).toContain("National Cheng Kung University")
     expect(properNouns).toContain("Great Love Preschool")
+    expect(properNouns).toContain("Chenggong High School")
+    expect(properNouns).toContain("Hongik University")
     expect(properNouns).toContain("Buddhism")
     expect(properNouns).toContain("Dharma")
     expect(properNouns).toContain("God")

@@ -870,6 +870,22 @@ describe("punctuationRule (segments)", () => {
     ).toBe(false)
   })
 
+  it("allows a balanced parenthetical appositive ending with a comma", () => {
+    const text = [
+      "00:13:38:17\t00:13:40:00\t可能是覺得",
+      "but the director may have seen my book,",
+      "00:13:40:00\t00:13:44:07\t我當時出版的書籍叫全民搭訕運動",
+      "(The Art of Approaching Strangers),",
+      "00:13:44:07\t00:13:47:21\t心裡覺得這傢伙可能是個妖魔鬼怪",
+      "and thought I was some kind of weirdo.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+    const findings = metrics.filter((metric) => metric.type === "PUNCTUATION")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("does not flag balanced inline parentheses across normal subtitle cues", () => {
     const text = [
       "00:00:31:23\t00:00:34:28\t那像這種就是說不出來的困擾",

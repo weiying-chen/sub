@@ -1734,7 +1734,7 @@ function mergeJoinableTranslations(
     const leftFullSentence = isMergeFullSentence(leftRaw)
     const rightFullSentence = isMergeFullSentence(rightRaw)
     const rightStartsSubordinateLead =
-      /^(?:although|as|because|before|even if|even though|if|once|since|though|unless|until|whatever|when|whenever|wherever|while)\b/i.test(
+      /^(?:although|as|because|before|even if|even though|if|once|since|though|unless|unlike|until|whatever|when|whenever|wherever|while)\b/i.test(
         normalizeJoinText(rightRaw)
       )
     const rightIsCommaEndedContinuation =

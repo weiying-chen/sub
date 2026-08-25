@@ -912,6 +912,18 @@ describe("fillSelectedTimestampLines", () => {
   ).toBe(false)
   })
 
+  it("does not rejoin a full sentence with an unlike fragment", () => {
+    const merged = __testMergeJoinableTranslations(
+      ["When it was my turn, I walked in.", "Unlike the others,"],
+      54
+    )
+
+    expect(merged).toEqual([
+      "When it was my turn, I walked in.",
+      "Unlike the others,",
+    ])
+  })
+
   it("uses one quote pair when merging adjacent quoted sentences", () => {
     const merged = __testMergeJoinableTranslations(
       ['"Keep fighting."', '"There\'s still hope."'],

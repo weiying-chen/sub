@@ -874,15 +874,15 @@ describe("fillSelectedTimestampLines", () => {
   ])
   })
 
-  it("re-joins a full sentence with a fitting comma-ended continuation", () => {
+  it("does not rejoin a full sentence with a comma-ended continuation", () => {
     const merged = __testMergeJoinableTranslations(
       ["Because they clearly weren't.", "They looked pale,"],
       54
     )
 
     expect(merged).toEqual([
-      "Because they clearly weren't. They looked pale,",
-      "Because they clearly weren't. They looked pale,",
+      "Because they clearly weren't.",
+      "They looked pale,",
     ])
   })
 
@@ -958,6 +958,18 @@ describe("fillSelectedTimestampLines", () => {
     "No. Some became presidents like Kennedy.",
     "No. Some became presidents like Kennedy.",
   ])
+  })
+
+  it("does not merge a full reply with a comma-ended fragment", () => {
+    const merged = __testMergeJoinableTranslations(
+      ["Again.", "Hold your arms out, lift your chest,"],
+      54
+    )
+
+    expect(merged).toEqual([
+      "Again.",
+      "Hold your arms out, lift your chest,",
+    ])
   })
 
   it("does not leave subject pronouns before be-verbs", () => {

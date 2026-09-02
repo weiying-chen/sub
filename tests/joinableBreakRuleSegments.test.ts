@@ -19,9 +19,9 @@ describe("joinableBreakRule (segments)", () => {
   it("flags abbreviation splits like Ph. followed by D.", () => {
     const text = [
       "00:14:40:02\t00:14:41:06\t我們有的孩子",
-      "Some of our patients have even gone on to pursue a Ph.",
+      "She earned a Ph.",
       "00:14:41:06\t00:14:42:08\t一路已經培養了",
-      "D. But they've still faced many challenges.",
+      "D. degree.",
     ].join("\n")
 
     const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
@@ -29,9 +29,24 @@ describe("joinableBreakRule (segments)", () => {
     expect(metrics).toHaveLength(1)
     expect(metrics[0]).toMatchObject({
       type: "JOINABLE_BREAK",
-      text: "Some of our patients have even gone on to pursue a Ph.",
-      nextText: "D. But they've still faced many challenges.",
+      text: "She earned a Ph.",
+      nextText: "D. degree.",
     })
+  })
+
+  it("does not flag split abbreviations when full lines cannot fit", () => {
+    const text = [
+      "00:03:49:09\t00:03:51:18\t簡副院長",
+      "Dr. Chien Sou-hsin, Dr. Tsai Po-wen, and Asst.",
+      "00:03:51:18\t00:03:54:08\t還有蔡醫師",
+      "Dr. Chien Sou-hsin, Dr. Tsai Po-wen, and Asst.",
+      "00:03:54:08\t00:03:59:20\t還有羅東醫院的張副院長",
+      "Supt. Chang Yao-jen of Luodong Hospital.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+
+    expect(metrics).toHaveLength(0)
   })
 
   it("does not treat a word ending as a split abbreviation boundary", () => {

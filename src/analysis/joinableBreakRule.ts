@@ -194,13 +194,14 @@ export function joinableBreakRule(
       }
     }
 
+    const abbreviationJoin = `${normalizeJoinText(curText)} ${normalizeJoinText(nextText)}`.trim()
     const join = boundaryInfo.splitAbbreviationBoundary
-      ? {
-          joined: `${normalizeJoinText(curText)} ${normalizeJoinText(nextText)}`.trim(),
-          joinedLength: `${normalizeJoinText(curText)} ${normalizeJoinText(nextText)}`
-            .trim()
-            .length,
-        }
+      ? abbreviationJoin.length <= maxJoinedChars
+        ? {
+            joined: abbreviationJoin,
+            joinedLength: abbreviationJoin.length,
+          }
+        : null
       : canJoinAdjacentText(curText, nextText, maxJoinedChars, {
           allowSentenceEndJoin: true,
         })

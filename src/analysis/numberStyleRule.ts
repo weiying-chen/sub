@@ -154,6 +154,14 @@ function isCalendarYearToken(rawToken: string, value: number) {
   return /^\d{4}$/.test(rawToken) && value >= 1000 && value <= 2999
 }
 
+function isCalendarDayToken(text: string, index: number, value: number) {
+  if (value < 1 || value > 31) return false
+  const prefix = text.slice(0, index)
+  return /(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s+$/i.test(
+    prefix
+  )
+}
+
 function isAgeAdjective(text: string, index: number, length: number) {
   const tail = text.slice(index + length).toLowerCase()
   return /^(?:\s*-|\s+)year(?:-|\s+)old\b/.test(tail)
@@ -503,6 +511,7 @@ function collectMetrics(
       continue
     }
     if (isCalendarYearToken(rawToken, value)) continue
+    if (isCalendarDayToken(text, match.index, value)) continue
     if (isTimeToken(text, match.index, rawToken.length)) continue
     if (isAmPmToken(text, match.index, rawToken.length)) continue
     if (

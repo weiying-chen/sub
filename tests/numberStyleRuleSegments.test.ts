@@ -110,6 +110,24 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores calendar days following month names", () => {
+    const segments = [
+      { lineIndex: 0, translation: "Services begin Monday, September 7." },
+      { lineIndex: 1, translation: "The appointment is on Jan. 3." },
+      { lineIndex: 2, translation: "The event runs through December 31." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [
+        { lineIndex: segment.lineIndex, lineText: segment.translation },
+      ],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((metric) => metric.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("ignores currency amounts with symbols", () => {
     const segments = [
       { lineIndex: 0, translation: "It's about NT$1 million per bed." },

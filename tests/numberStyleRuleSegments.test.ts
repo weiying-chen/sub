@@ -128,6 +128,23 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores digits in academic grade labels", () => {
+    const segments = [
+      { lineIndex: 0, translation: "Grade 10 has an important final exam." },
+      { lineIndex: 1, translation: "Students enter grade 3 next year." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [
+        { lineIndex: segment.lineIndex, lineText: segment.translation },
+      ],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((metric) => metric.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("ignores currency amounts with symbols", () => {
     const segments = [
       { lineIndex: 0, translation: "It's about NT$1 million per bed." },

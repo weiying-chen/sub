@@ -217,9 +217,9 @@ function isCurrencyToken(text: string, index: number) {
   return /\$\s*$/.test(window)
 }
 
-function isLevelNumberToken(text: string, index: number) {
+function isLabeledNumberToken(text: string, index: number) {
   const prefix = text.slice(0, index)
-  return /\blevel\s+$/i.test(prefix)
+  return /\b(?:grade|level)\s+$/i.test(prefix)
 }
 
 function isEarthquakeMagnitudeToken(text: string, index: number) {
@@ -531,7 +531,7 @@ function collectMetrics(
     if (isPercentToken(text, match.index, rawToken.length)) continue
     if (isTemperatureUnitToken(text, match.index, rawToken.length)) continue
     if (isCurrencyToken(text, match.index)) continue
-    if (isLevelNumberToken(text, match.index)) continue
+    if (isLabeledNumberToken(text, match.index)) continue
     if (isEarthquakeMagnitudeToken(text, match.index)) continue
 
     const sentenceStart = isSentenceStart(

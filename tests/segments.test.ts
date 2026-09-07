@@ -523,4 +523,18 @@ describe("parseText", () => {
       "This is plain English.",
     ])
   })
+
+  it("ignores short timestamps and standalone XXX markers in text mode", () => {
+    const text = [
+      "It's that easy, so why not try it with your next meal?",
+      "02:40",
+      "XXX",
+    ].join("\n")
+
+    const segments = parseText(text)
+
+    expect(segments.map((segment) => segment.translation)).toEqual([
+      "It's that easy, so why not try it with your next meal?",
+    ])
+  })
 })

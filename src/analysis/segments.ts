@@ -210,6 +210,8 @@ export function parseText(text: string): Segment[] {
     const raw = lines[i] ?? ''
     const trimmed = raw.trim()
 
+    if (/^(?:XXX|\d{1,2}:\d{2}(?::\d{2})?)$/i.test(trimmed)) continue
+
     if (isReferenceUrlLine(trimmed)) {
       skipReferenceBlockAfterUrl = true
       continue

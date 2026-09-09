@@ -21,7 +21,7 @@ const NO_SPLIT_ABBREVIATIONS = [
 
 describe("fillSelectedTimestampLines", () => {
   it("uses explicit fill target cps defaults", () => {
-    expect(DEFAULT_FILL_MAX_TARGET_CPS).toBe(16)
+    expect(DEFAULT_FILL_MAX_TARGET_CPS).toBe(17)
     expect(DEFAULT_FILL_MIN_TARGET_CPS).toBe(10)
   })
 

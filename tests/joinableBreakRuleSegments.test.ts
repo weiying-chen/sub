@@ -361,6 +361,27 @@ describe("joinableBreakRule (segments)", () => {
     expect(metrics).toHaveLength(0)
   })
 
+  it("flags a joinable break after a repeated comma-ended span", () => {
+    const text = [
+      "00:02:19:14\t00:02:20:00\t幾個月前",
+      "On a freezing winter night,",
+      "00:02:20:00\t00:02:21:26\t在今年冬天最冷的那一天",
+      "On a freezing winter night,",
+      "00:02:21:26\t00:02:24:07\t晚上七點多我在上急診",
+      "I was working in the ER.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [joinableBreakRule()])
+
+    expect(metrics).toContainEqual(
+      expect.objectContaining({
+        type: "JOINABLE_BREAK",
+        text: "On a freezing winter night,",
+        nextText: "I was working in the ER.",
+      })
+    )
+  })
+
   it("does not flag when the next line does not end with sentence punctuation", () => {
     const text = [
       "00:10:08:10\t00:10:09:20\t來到了財務",

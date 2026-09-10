@@ -126,6 +126,7 @@ function classifyBoundary(
 
   if (
     !info.splitAbbreviationBoundary &&
+    !info.prevMatchesCur &&
     info.curFullSentence !== info.nextFullSentence
   ) {
     return "mismatched_sentence_state"
@@ -181,6 +182,7 @@ export function joinableBreakRule(
     if (
       prev &&
       hasTiming(prev) &&
+      !boundaryInfo.prevMatchesCur &&
       COMMA_END_RE.test(prev.translation.trim()) &&
       SENTENCE_END_RE.test(cur.translation.trim())
     ) {

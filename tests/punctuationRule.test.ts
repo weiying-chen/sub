@@ -164,7 +164,6 @@ describe("punctuationRule", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "He was always listening to",
-      "",
       "00:00:02:00\t00:00:03:00\tMarker",
       "English stories or songs.",
       "",
@@ -196,7 +195,6 @@ describe("punctuationRule", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "He was speaking to",
-      "",
       "00:00:02:00\t00:00:03:00\tMarker",
       "Mr. Chen at the gate.",
       "",

@@ -397,23 +397,6 @@ function hasInterveningNonEmptyLine(
   return false
 }
 
-function hasInterveningSectionComment(
-  src: LineSource,
-  startIndex: number,
-  endIndex: number
-): boolean {
-  let sawEmptyLine = false
-  for (let i = startIndex + 1; i < endIndex; i += 1) {
-    const text = src.getLine(i)
-    if (text.trim() === '') {
-      sawEmptyLine = true
-      continue
-    }
-    if (sawEmptyLine && isSubsCommentLine(text)) return true
-  }
-  return false
-}
-
 function cueTimestamp(cue: Cue): string {
   if (!cue.start || !cue.end) return ''
   return `${cue.start} -> ${cue.end}`
@@ -533,11 +516,6 @@ function collectMetrics(
     if (hasEmptyLineBetween(src, prev.translationIndex, next.tsIndex)) {
       if (
         !prevIsParentheticalExempt &&
-        hasInterveningSectionComment(
-          src,
-          prev.translationIndex,
-          next.tsIndex
-        ) &&
         !endsAnyBoundaryPunctuation(prev.text)
       ) {
         addRule4Metric(prev, metrics, reportedRule4)

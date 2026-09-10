@@ -221,7 +221,7 @@ describe("punctuationRule (segments)", () => {
     ).toBe(false)
   })
 
-  it("does not compare across blank separators between cues", () => {
+  it("finalizes bare cues without comparing across blank separators", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "continues here",
@@ -238,7 +238,12 @@ describe("punctuationRule (segments)", () => {
     })
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
-    expect(findings).toHaveLength(0)
+    expect(findings).toEqual([
+      expect.objectContaining({
+        ruleCode: "MISSING_END_PUNCTUATION",
+        text: "continues here",
+      }),
+    ])
   })
 
   it("does not compare across non-empty metadata lines between cues", () => {
@@ -792,6 +797,30 @@ describe("punctuationRule (segments)", () => {
     const findings = metrics.filter((m) => m.type === "PUNCTUATION")
 
   expect(findings).toHaveLength(0)
+  })
+
+  it("flags bare missing punctuation before a plain empty line", () => {
+    const text = [
+      "00:03:00:00\t00:03:01:15\t就在那一刻開始",
+      "From that moment on,",
+      "00:03:01:15\t00:03:03:15\t我願意接納很多身邊的人",
+      "I began accepting those around me,",
+      "00:03:03:15\t00:03:05:15\t我的生命就開始有改變",
+      "and my life began to change",
+      "",
+      "00:03:05:15\t00:03:08:00\t在那之後我開始拿著麥克風",
+      "After that, I began sharing my story.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+
+    expect(metrics).toContainEqual(
+      expect.objectContaining({
+        type: "PUNCTUATION",
+        ruleCode: "MISSING_END_PUNCTUATION",
+        text: "and my life began to change",
+      })
+    )
   })
 
   it("flags a bare unpunctuated duplicate span before a section break", () => {

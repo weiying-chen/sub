@@ -1591,11 +1591,11 @@ function normalizeTrailingHyphenCompound(
 ): { line: string; rest: string } {
   const trimmedLine = line.trimEnd()
   const trimmedRest = rest.trimStart()
-  if (!/[A-Za-z]-$/.test(trimmedLine) || !/^[A-Za-z][A-Za-z-]*/.test(trimmedRest)) {
+  if (!/[A-Za-z]-$/.test(trimmedLine) || !/^[A-Za-z0-9][A-Za-z0-9-]*/.test(trimmedRest)) {
     return { line, rest }
   }
 
-  const token = trimmedRest.match(/^[A-Za-z][A-Za-z-]*/)?.[0]
+  const token = trimmedRest.match(/^[A-Za-z0-9][A-Za-z0-9-]*/)?.[0]
   if (!token) return { line, rest }
 
   const nextRest = trimmedRest.slice(token.length).trimStart()

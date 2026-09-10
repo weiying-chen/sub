@@ -2078,6 +2078,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(translations.some((line) => /^and-loss\b/.test(line))).toBe(false)
   })
 
+  it("keeps letter-number compounds together at split boundaries", () => {
+  const split = __testTakeLine(
+    "K-12 Education Administration.",
+    2,
+    /(?:^|\s)(?:Mr\.|Mrs\.|Ms\.|Dr\.|U\.S\.|a\.m\.|p\.m\.)$/i,
+    true
+  )
+
+  expect(split.line).toBe("K-12")
+  expect(split.rest).toBe("Education Administration.")
+  })
+
   it("allows natural fallback splits after trailing to", () => {
   const lines = [
     "00:00:00:00\t00:00:02:00\tMarker",

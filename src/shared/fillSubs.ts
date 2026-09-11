@@ -116,8 +116,13 @@ function findConfiguredDottedAbbreviationSuffix(
       const suffix = parts.slice(i + 1).join('')
       const prefixMatcher = new RegExp(`(?:^|\\s)${escapeRegExp(prefix)}$`, 'i')
       if (!prefixMatcher.test(leftTrimmed)) continue
-      if (!rightTrimmed.toLowerCase().startsWith(suffix.toLowerCase())) continue
-      return rightTrimmed.slice(0, suffix.length)
+      if (rightTrimmed.toLowerCase().startsWith(suffix.toLowerCase())) {
+        return rightTrimmed.slice(0, suffix.length)
+      }
+      const suffixWithoutFinalPeriod = suffix.replace(/\.$/, '')
+      if (rightTrimmed.toLowerCase() === suffixWithoutFinalPeriod.toLowerCase()) {
+        return rightTrimmed
+      }
     }
   }
 
@@ -1942,7 +1947,9 @@ function adjustSplitForNoSplitAbbrev(
   }
 
   if (!isNoSplitAbbrevEnding(nextLine, noSplitAbbrevMatcher)) {
-    return { line, rest }
+    return dottedAbbreviationSuffix
+      ? { line: nextLine, rest: nextRest }
+      : { line, rest }
   }
   if (!/^[A-Za-z]/.test(nextRest)) return { line: nextLine, rest: nextRest }
   if (startsSentenceAfterNoSplitAbbrev(nextRest)) {

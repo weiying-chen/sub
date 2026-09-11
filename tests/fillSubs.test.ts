@@ -1224,6 +1224,32 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("does not split inside a sentence-final meridiem", () => {
+    const lines = [
+      "00:12:45:02\t00:12:46:25\t前幾天跑步都沒有人",
+      "00:12:46:25\t00:12:48:11\t那天已經半夜一點了",
+    ]
+
+    const result = fillSelectedTimestampLines(
+      lines,
+      new Set([0, 1]),
+      "The track had been empty the past few days. That night, it was already 1 a.m",
+      {
+        maxChars: 54,
+        inline: true,
+        noSplitAbbreviations: NO_SPLIT_ABBREVIATIONS,
+      }
+    )
+
+    expect(result.lines).toEqual([
+      "00:12:45:02\t00:12:46:25\t前幾天跑步都沒有人",
+      "The track had been empty the past few days.",
+      "00:12:46:25\t00:12:48:11\t那天已經半夜一點了",
+      "That night, it was already 1 a.m",
+    ])
+    expect(result.remaining).toBe("")
+  })
+
   it("keeps subject pronouns with following be-verbs", () => {
   const lines = [
     "00:00:01:00\t00:00:02:00\tMarker",

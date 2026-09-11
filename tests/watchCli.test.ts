@@ -6,8 +6,16 @@ import { spawnSync } from "node:child_process"
 import { describe, expect, it } from "vitest"
 
 import { normalizeRuleFilters } from "../src/cli/watchRuleFilters"
+import { shouldRunForWatchEvent } from "../src/cli/watchEvents"
 
 describe("watch CLI rule filters", () => {
+  it("reruns for changes and post-startup file replacements", () => {
+    expect(shouldRunForWatchEvent("change", false)).toBe(true)
+    expect(shouldRunForWatchEvent("add", false)).toBe(false)
+    expect(shouldRunForWatchEvent("add", true)).toBe(true)
+    expect(shouldRunForWatchEvent("unlink", true)).toBe(false)
+  })
+
   it("treats an empty rule filter list as undefined", () => {
     expect(normalizeRuleFilters([])).toBeUndefined()
   })

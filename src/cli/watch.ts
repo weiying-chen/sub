@@ -4,6 +4,7 @@ import { createNewsReporter } from './news'
 import { createSubsReporter } from './subs'
 import { parseArgs } from './watchArgs'
 import { normalizeRuleFilters } from './watchRuleFilters'
+import { shouldRunForWatchEvent } from './watchEvents'
 import { resolveWatchProfile } from './watchProfiles'
 
 export type Reporter = (
@@ -93,7 +94,13 @@ export async function watch(
     },
   })
 
-  watcher.on('change', run)
+  let initialScanComplete = false
+  watcher.on('ready', () => {
+    initialScanComplete = true
+  })
+  watcher.on('all', (event) => {
+    if (shouldRunForWatchEvent(event, initialScanComplete)) run()
+  })
   watcher.on('error', (err) => {
     const msg = err instanceof Error ? err.message : String(err)
     console.error(`WATCHER_ERROR ${msg}`)

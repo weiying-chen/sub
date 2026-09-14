@@ -145,6 +145,23 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores digits in medical stage labels", () => {
+    const segments = [
+      { lineIndex: 0, translation: "She delayed treatment for Stage 2 breast cancer." },
+      { lineIndex: 1, translation: "He was diagnosed with stage 4 kidney disease." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [
+        { lineIndex: segment.lineIndex, lineText: segment.translation },
+      ],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((metric) => metric.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("ignores currency amounts with symbols", () => {
     const segments = [
       { lineIndex: 0, translation: "It's about NT$1 million per bed." },

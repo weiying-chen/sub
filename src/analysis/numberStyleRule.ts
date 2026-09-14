@@ -219,7 +219,7 @@ function isCurrencyToken(text: string, index: number) {
 
 function isLabeledNumberToken(text: string, index: number) {
   const prefix = text.slice(0, index)
-  return /\b(?:grade|level)\s+$/i.test(prefix)
+  return /\b(?:grade|level|stage)\s+$/i.test(prefix)
 }
 
 function isEarthquakeMagnitudeToken(text: string, index: number) {

@@ -46,7 +46,7 @@ describe("cpsRule (segments)", () => {
     expect(findings[0].minCps).toBe(10)
   })
 
-  it("ignores low CPS when the translation line has a trailing marker", () => {
+  it("suppresses low CPS metrics for marked translations", () => {
     const text = [
       "00:00:01:00\t00:00:03:00\tMarker",
       "Hi #",
@@ -56,14 +56,10 @@ describe("cpsRule (segments)", () => {
     const findings = getFindings(metrics).filter((m) => m.type === "MIN_CPS")
 
     expect(findings).toHaveLength(0)
-    expect(metrics[0]).toMatchObject({
-      type: "CPS",
-      text: "Hi",
-      charCount: 2,
-    })
+    expect(metrics).toHaveLength(0)
   })
 
-  it("ignores high CPS when the translation line has a trailing marker", () => {
+  it("suppresses high CPS metrics for marked translations", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "This translation is definitely too long for one second. #",
@@ -73,9 +69,7 @@ describe("cpsRule (segments)", () => {
     const findings = getFindings(metrics).filter((m) => m.type === "MAX_CPS")
 
     expect(findings).toHaveLength(0)
-    expect(metrics[0]?.text).toBe(
-      "This translation is definitely too long for one second."
-    )
+    expect(metrics).toHaveLength(0)
   })
 
   it("does not flag low CPS when one-decimal CPS rounds to the minimum", () => {

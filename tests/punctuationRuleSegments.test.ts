@@ -860,6 +860,22 @@ describe("punctuationRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("suppresses cross-cue punctuation findings for marked translations", () => {
+    const text = [
+      "00:01:23:14\t00:01:25:04\t出生於獅子山",
+      "Born in Sierra Leone and now living in the U.S., #",
+      "00:01:25:04\t00:01:26:20\t已經移居美國",
+      "Born in Sierra Leone and now living in the U.S., #",
+      "00:01:26:20\t00:01:30:00\t而且服務於非政府組織的豐巴",
+      "Stephen T. Fomba worked for an NGO. #",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "subs", [punctuationRule()])
+    const findings = metrics.filter((metric) => metric.type === "PUNCTUATION")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("does not flag single-line parenthetical on-screen text in subs mode", () => {
     const text = [
       "00:04:28:17\t00:04:31:25\t清熱燥濕 瀉火解毒",

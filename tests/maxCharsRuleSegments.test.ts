@@ -56,7 +56,7 @@ describe("maxCharsRule (segments)", () => {
     expect(byLine.get(2)?.actual).toBe(4)
   })
 
-  it("ignores trailing suppression markers when checking max chars", () => {
+  it("suppresses max chars for marked translations", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",
       "1234567890 #",
@@ -64,14 +64,7 @@ describe("maxCharsRule (segments)", () => {
 
     const metrics = analyzeTextByType(text, "subs", [maxCharsRule(10)])
 
-    expect(metrics).toHaveLength(1)
-    expect(metrics[0]).toMatchObject({
-      type: "MAX_CHARS",
-      lineIndex: 1,
-      text: "1234567890",
-      actual: 10,
-      maxAllowed: 10,
-    })
+    expect(metrics).toHaveLength(0)
   })
 
   it("still checks max chars for parenthetical subtitle blocks", () => {

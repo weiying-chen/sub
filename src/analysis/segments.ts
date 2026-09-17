@@ -92,6 +92,19 @@ export function analyzeSegments(
 ): Metric[] {
   const metrics: Metric[] = []
   const { lines, sourceText } = options
+  const suppressedLineIndices = new Set<number>()
+
+  for (const segment of segments) {
+    if (!segment.suppressSuggestions) continue
+    if (typeof segment.tsIndex === 'number') {
+      suppressedLineIndices.add(segment.tsIndex)
+    }
+    const start = segment.lineIndex
+    const end = segment.lineIndexEnd ?? segment.lineIndex
+    for (let lineIndex = start; lineIndex <= end; lineIndex += 1) {
+      suppressedLineIndices.add(lineIndex)
+    }
+  }
 
   const shouldSuppressMetricForSkippedSegment = (
     segment: Segment,
@@ -127,7 +140,16 @@ export function analyzeSegments(
     }
   })
 
-  return metrics
+  return metrics.filter((metric) => {
+    if (suppressedLineIndices.has(metric.lineIndex)) return false
+    if (
+      'nextLineIndex' in metric &&
+      suppressedLineIndices.has(metric.nextLineIndex)
+    ) {
+      return false
+    }
+    return true
+  })
 }
 
 function collectTranslationLinesForTimestamp(

@@ -1341,6 +1341,25 @@ function normalizeQuoteOnlyHead(line: string, rest: string): { line: string; res
   return { line: '', rest: `"${rest}` }
 }
 
+function normalizeTrailingCurrencyPrefix(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmedLine = line.trimEnd()
+  const trimmedRest = rest.trimStart()
+  if (!/^\d/.test(trimmedRest)) return { line, rest }
+
+  const match = trimmedLine.match(
+    /^(.*?)(?:(?:NT|US|HK|SG|AU|CA|AUD|CAD|USD|HKD|TWD)\$|\$)$/i
+  )
+  if (!match) return { line, rest }
+
+  const left = (match[1] ?? '').trimEnd()
+  const currencyPrefix = trimmedLine.slice(match[1]?.length ?? 0)
+  if (!left || !currencyPrefix) return { line, rest }
+  return { line: left, rest: `${currencyPrefix}${trimmedRest}` }
+}
+
 function normalizeTrailingOpeningDelimiter(
   line: string,
   rest: string
@@ -1636,7 +1655,11 @@ function normalizeLeadingToAfterPayAttention(
 }
 
 function normalizeSplit(line: string, rest: string): { line: string; rest: string } {
-  const openingDelimiterNormalized = normalizeTrailingOpeningDelimiter(line, rest)
+  const currencyNormalized = normalizeTrailingCurrencyPrefix(line, rest)
+  const openingDelimiterNormalized = normalizeTrailingOpeningDelimiter(
+    currencyNormalized.line,
+    currencyNormalized.rest
+  )
   const openingQuoteNormalized = normalizeTrailingOpeningQuote(
     openingDelimiterNormalized.line,
     openingDelimiterNormalized.rest

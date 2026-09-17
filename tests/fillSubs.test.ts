@@ -2435,6 +2435,19 @@ describe("fillSelectedTimestampLines", () => {
   expect(translations).not.toContain("10,")
   })
 
+  it("keeps currency prefixes with their amounts", () => {
+  const prefix = "We paid for the surgery and spent NT$"
+  const split = __testTakeLine(
+    `${prefix} 6 million on specialized equipment.`,
+    prefix.length,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("We paid for the surgery and spent")
+  expect(split.rest).toBe("NT$6 million on specialized equipment.")
+  })
+
   it("preserves quote continuity when a split lands inside quotes", () => {
   const lines = [
     "00:00:00:00\t00:00:01:00\tMarker",

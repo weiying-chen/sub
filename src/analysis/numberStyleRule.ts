@@ -83,6 +83,12 @@ const COORDINATED_NUMBER_LIST_RE = new RegExp(
   `\\b${NUMBER_TOKEN_RE_SOURCE}(?:\\s*,\\s*${NUMBER_TOKEN_RE_SOURCE})*(?:\\s*,?\\s+(?:and|or)\\s+${NUMBER_TOKEN_RE_SOURCE})\\s+[A-Za-z]+\\b`,
   'gi'
 )
+const DIGIT_COUNT_ITEM_RE_SOURCE =
+  `(?:${DIGIT_TOKEN_RE_SOURCE})\\s+[A-Za-z]+(?:-[A-Za-z]+)*`
+const COORDINATED_DIGIT_COUNT_LIST_RE = new RegExp(
+  `\\b${DIGIT_COUNT_ITEM_RE_SOURCE}(?:\\s*,\\s*${DIGIT_COUNT_ITEM_RE_SOURCE})*\\s*,?\\s+(?:and|or)\\s+${DIGIT_COUNT_ITEM_RE_SOURCE}\\b`,
+  'gi'
+)
 
 function isSpace(ch: string) {
   return ch === ' ' || ch === '\t'
@@ -336,6 +342,10 @@ function getCoordinatedNumberListSpans(text: string): Array<{ start: number; end
     if (coordinatedListHasCompliantNumber(text, start, end)) {
       spans.push({ start, end })
     }
+  }
+
+  while ((match = COORDINATED_DIGIT_COUNT_LIST_RE.exec(text))) {
+    spans.push({ start: match.index, end: match.index + match[0].length })
   }
 
   return spans

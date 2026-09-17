@@ -412,6 +412,21 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores coordinated count lists with individual nouns", () => {
+    const translation =
+      "12,000 orphans, 7,000 widows, and 4,500 survivors arrived."
+    const segments = [{
+      lineIndex: 0,
+      translation,
+      targetLines: [{ lineIndex: 0, lineText: translation }],
+    }]
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((metric) => metric.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("ignores coordinated AM/PM times with a shared suffix", () => {
     const segments = [
       {

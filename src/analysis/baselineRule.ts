@@ -11,6 +11,10 @@ type TsEntry = {
   sourceText: string
 }
 
+function normalizeBaselineSourceText(text: string): string {
+  return text.replace(/\*/g, '').trim()
+}
+
 function parseTimestampLines(lines: string[]): TsEntry[] {
   const out: TsEntry[] = []
 
@@ -20,7 +24,7 @@ function parseTimestampLines(lines: string[]): TsEntry[] {
 
     const start = m.groups.start
     const end = m.groups.end
-    const sourceText = extractSourceText(line) ?? ''
+    const sourceText = normalizeBaselineSourceText(extractSourceText(line) ?? '')
 
     out.push({ lineIndex, start, end, sourceText })
   })

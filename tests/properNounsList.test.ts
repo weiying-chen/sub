@@ -103,6 +103,7 @@ describe("loadCapitalizationTerms", () => {
     expect(capitalizationTerms).toContain("Japanese")
     expect(capitalizationTerms).toContain("Harmony-preserving Pill")
     expect(capitalizationTerms).toContain("Elitegroup Computer Systems")
+    expect(capitalizationTerms).not.toContain("Indigenous")
     expect(capitalizationTerms).not.toContain("Grandma")
     expect(capitalizationTerms).not.toContain("Grandpa")
   })

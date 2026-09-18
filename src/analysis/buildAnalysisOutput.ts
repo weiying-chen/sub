@@ -95,6 +95,13 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     ...(capitalizationTerms ?? []),
   ]
 
+  if (type === 'docs') {
+    const enabled = enabledRuleTypes ? new Set<Metric['type']>(enabledRuleTypes) : null
+    return !enabled || enabled.has('MISSING_TRANSLATION')
+      ? [missingTranslationRule()]
+      : []
+  }
+
   if (type === 'news') {
     const enabled = enabledRuleTypes ? new Set<Metric['type']>(enabledRuleTypes) : null
     const rules = []
@@ -192,6 +199,7 @@ export function buildAnalysisOutput(
   options: BuildAnalysisOutputOptions
 ): Metric[] | Finding[] {
   const metrics = analyzeTextByType(options.text, options.type, buildRules(options), {
+    baselineText: options.baselineText,
     parseOptions: {
       ignoreEmptyLines: options.ignoreEmptyLines,
     },

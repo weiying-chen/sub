@@ -10,7 +10,7 @@ import {
 } from './properNouns'
 
 export type RunAnalysisOptions = {
-  type: 'subs' | 'news' | 'text'
+  type: 'subs' | 'news' | 'text' | 'docs'
   mode?: 'metrics' | 'findings'
   ruleFilters?: string[]
   baselineText?: string

@@ -27,6 +27,8 @@ type SubsOptions = {
   maxCps?: number
   minCps?: number
   maxChars?: number
+  analysisType?: 'subs' | 'docs'
+  useSiblingBaseline?: boolean
 }
 
 function asNum(v: unknown): number | null {
@@ -262,9 +264,11 @@ async function printReport(
   const lines = text.split('\n')
   const baselineText = options.baselinePath
     ? await readTextFile(options.baselinePath)
-    : await readOptionalSiblingBaseline(path)
+    : options.useSiblingBaseline === false
+      ? null
+      : await readOptionalSiblingBaseline(path)
   const findings = (await runAnalysis(text, {
-    type: 'subs',
+    type: options.analysisType ?? 'subs',
     mode: 'findings',
     ruleFilters: options.ruleFilters,
     baselineText: baselineText ?? undefined,
@@ -316,7 +320,7 @@ async function printReport(
   }
 
   if (otherFindings.length > 0) {
-    console.log('[Subtitle checks]')
+    console.log(options.analysisType === 'docs' ? '[Document checks]' : '[Subtitle checks]')
     console.log('')
     otherFindings.forEach((f, index) => {
       console.log(formatFinding(f))

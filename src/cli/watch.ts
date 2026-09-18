@@ -17,9 +17,9 @@ type WatchOptions = {
 }
 
 // Parse CLI args once
-const USAGE = 'Usage: watch <file> [--type subs|news|dramas] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines] [--max-cps number] [--min-cps number]'
+const USAGE = 'Usage: watch <file> [--type subs|news|dramas|docs] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines] [--max-cps number] [--min-cps number]'
 
-// Usage: watch <file> [--type subs|news|dramas] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines] [--max-cps number] [--min-cps number]
+// Usage: watch <file> [--type subs|news|dramas|docs] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines] [--max-cps number] [--min-cps number]
 const args = process.argv.slice(2)
 const {
   filePath,
@@ -138,6 +138,8 @@ const reporter =
         maxCps: maxCps ?? undefined,
         minCps: minCps ?? undefined,
         maxChars: profile.maxChars,
+        analysisType: profile.type === 'docs' ? 'docs' : 'subs',
+        useSiblingBaseline: profile.supportsBaseline,
       })
 
 const label = profile.label

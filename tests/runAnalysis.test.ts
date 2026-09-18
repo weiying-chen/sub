@@ -10,6 +10,59 @@ function expectNoStyleRuleFindings(metrics: Metric[]) {
 }
 
 describe("runAnalysis output", () => {
+  it("checks missing English only inside paired docs markers", async () => {
+    const text = [
+      "00:00:00:00\t00:00:01:00 *",
+      "第一段中文",
+      "First translated line.",
+      "00:00:01:00\t00:00:02:00\t第二段中文",
+      "Second translated line.",
+      "00:00:02:00\t00:00:03:00 *",
+      "區段結尾",
+      "End of the section.",
+      "00:00:03:00\t00:00:04:00\t範圍外中文",
+      "",
+      "00:00:04:00\t00:00:05:00 *",
+      "來源｜AP",
+      "AP",
+      "00:00:05:00\t00:00:06:00\t已有翻譯",
+      "SMILE WITH US PRIMARY SCHOOL",
+      "Translated.",
+      "00:00:06:00\t00:00:07:00 *",
+      "最後一段",
+      "Last line.",
+    ].join("\n")
+    const baseline = [
+      "00:00:00:00\t00:00:01:00",
+      "第一段中文",
+      "00:00:01:00\t00:00:02:00\t第二段中文",
+      "00:00:02:00\t00:00:03:00",
+      "區段結尾",
+      "00:00:03:00\t00:00:04:00\t範圍外中文",
+      "00:00:04:00\t00:00:05:00",
+      "來源｜AP",
+      "AP",
+      "00:00:05:00\t00:00:06:00\t已有翻譯",
+      "SMILE WITH US PRIMARY SCHOOL",
+      "00:00:06:00\t00:00:07:00",
+      "最後一段",
+    ].join("\n")
+
+    const output = (await runAnalysis(text, {
+      type: "docs",
+      mode: "findings",
+      baselineText: baseline,
+    })) as Metric[]
+
+    expect(output).toEqual([
+      expect.objectContaining({
+        type: "MISSING_TRANSLATION",
+        lineIndex: 11,
+        text: "來源｜AP",
+      }),
+    ])
+  })
+
   it("applies a subtitle max-character override", async () => {
     const text = [
       "00:00:01:00\t00:00:05:00\t來源",

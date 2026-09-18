@@ -223,6 +223,133 @@ export function parseSubs(
   return segments
 }
 
+const DOCS_TIMESTAMP_RE =
+  /^(?:.*?)(?:\d{2}:\d{2}:\d{2}:\d{2})\t+(?:\d{2}:\d{2}:\d{2}:\d{2})(?:\s+.*)?$/
+
+function isDocsTimestamp(line: string): boolean {
+  return DOCS_TIMESTAMP_RE.test(line)
+}
+
+function isDocsBoundary(line: string): boolean {
+  return isDocsTimestamp(line) && /\s+\*\s*$/.test(line)
+}
+
+function hasHan(text: string): boolean {
+  return /\p{Script=Han}/u.test(text)
+}
+
+function docsTimestampText(line: string): string {
+  if (!isDocsTimestamp(line)) return ''
+  const withoutMarker = isDocsBoundary(line) ? line.replace(/\s+\*\s*$/, '') : line
+  const columns = withoutMarker.split(/\t+/)
+  return columns.slice(2).join('\t').trim()
+}
+
+function docsTimestampKey(line: string): string {
+  return (line.match(/\d{2}:\d{2}:\d{2}:\d{2}/g) ?? []).slice(0, 2).join('\t')
+}
+
+function subtractBaselineLines(
+  currentLines: CandidateLine[],
+  baselineLines: CandidateLine[]
+): CandidateLine[] {
+  const remaining = new Map<string, number>()
+  for (const line of baselineLines) {
+    const text = line.lineText.trim()
+    remaining.set(text, (remaining.get(text) ?? 0) + 1)
+  }
+  return currentLines.filter((line) => {
+    const text = line.lineText.trim()
+    const count = remaining.get(text) ?? 0
+    if (count === 0) return true
+    remaining.set(text, count - 1)
+    return false
+  })
+}
+
+export function parseDocs(text: string, baselineText?: string): Segment[] {
+  const lines = text.split('\n')
+  const timestampIndices = lines
+    .map((line, lineIndex) => (isDocsTimestamp(line) ? lineIndex : -1))
+    .filter((lineIndex) => lineIndex >= 0)
+  const boundaryIndices = timestampIndices.filter((lineIndex) =>
+    isDocsBoundary(lines[lineIndex] ?? '')
+  )
+  const checkedTimestampIndices = new Set<number>()
+  const baselineTargetLines = new Map<string, CandidateLine[][]>()
+
+  if (baselineText != null) {
+    const baselineLines = baselineText.split('\n')
+    const baselineTimestampIndices = baselineLines
+      .map((line, lineIndex) => (isDocsTimestamp(line) ? lineIndex : -1))
+      .filter((lineIndex) => lineIndex >= 0)
+    baselineTimestampIndices.forEach((tsIndex, position) => {
+      const nextTsIndex = baselineTimestampIndices[position + 1] ?? baselineLines.length
+      const candidates: CandidateLine[] = []
+      const inlineText = docsTimestampText(baselineLines[tsIndex] ?? '')
+      if (inlineText !== '') candidates.push({ lineIndex: tsIndex, lineText: inlineText })
+      for (let lineIndex = tsIndex + 1; lineIndex < nextTsIndex; lineIndex += 1) {
+        const lineText = baselineLines[lineIndex]?.trim() ?? ''
+        if (lineText !== '') candidates.push({ lineIndex, lineText })
+      }
+      const targetLines = candidates.filter(
+        (line) => !hasHan(line.lineText) && /[A-Za-z]/.test(line.lineText)
+      )
+      const key = docsTimestampKey(baselineLines[tsIndex] ?? '')
+      const entries = baselineTargetLines.get(key) ?? []
+      entries.push(targetLines)
+      baselineTargetLines.set(key, entries)
+    })
+  }
+
+  for (let i = 0; i + 1 < boundaryIndices.length; i += 2) {
+    const start = boundaryIndices[i]
+    const end = boundaryIndices[i + 1]
+    for (const timestampIndex of timestampIndices) {
+      if (timestampIndex >= start && timestampIndex <= end) {
+        checkedTimestampIndices.add(timestampIndex)
+      }
+    }
+  }
+
+  const baselineOccurrences = new Map<string, number>()
+  return timestampIndices.flatMap((tsIndex, timestampPosition) => {
+    const nextTsIndex = timestampIndices[timestampPosition + 1] ?? lines.length
+    const candidates: CandidateLine[] = []
+    const inlineText = docsTimestampText(lines[tsIndex] ?? '')
+    if (inlineText !== '' && inlineText !== '*') {
+      candidates.push({ lineIndex: tsIndex, lineText: inlineText })
+    }
+    for (let lineIndex = tsIndex + 1; lineIndex < nextTsIndex; lineIndex += 1) {
+      const lineText = lines[lineIndex]?.trim() ?? ''
+      if (lineText !== '') candidates.push({ lineIndex, lineText })
+    }
+
+    const sourceLines = candidates.filter((line) => hasHan(line.lineText))
+    const detectedTargetLines = candidates.filter(
+      (line) => !hasHan(line.lineText) && /[A-Za-z]/.test(line.lineText)
+    )
+    const key = docsTimestampKey(lines[tsIndex] ?? '')
+    const occurrence = baselineOccurrences.get(key) ?? 0
+    baselineOccurrences.set(key, occurrence + 1)
+    if (!checkedTimestampIndices.has(tsIndex)) return []
+    const originalTargetLines = baselineTargetLines.get(key)?.[occurrence] ?? []
+    const targetLines = subtractBaselineLines(detectedTargetLines, originalTargetLines)
+    if (sourceLines.length === 0) return []
+
+    return [{
+      lineIndex: sourceLines[0].lineIndex,
+      lineIndexEnd: candidates.at(-1)?.lineIndex ?? sourceLines[0].lineIndex,
+      translation: targetLines.map((line) => line.lineText).join(' '),
+      blockType: 'super' as const,
+      sourceText: sourceLines.map((line) => line.lineText).join(' '),
+      sourceLines,
+      targetLines,
+      tsIndex,
+    }]
+  })
+}
+
 export function parseText(text: string): Segment[] {
   const lines = text.split('\n')
   const segments: Segment[] = []

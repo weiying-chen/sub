@@ -1,5 +1,5 @@
 export type WatchProfile = {
-  type: 'subs' | 'news' | 'dramas'
+  type: 'subs' | 'news' | 'dramas' | 'docs'
   reporter: 'subs' | 'news'
   label: string
   maxChars?: number
@@ -26,6 +26,13 @@ const WATCH_PROFILES: Record<WatchProfile['type'], WatchProfile> = {
     reporter: 'subs',
     label: '(dramas)',
     maxChars: 50,
+    supportsBaseline: true,
+  },
+  docs: {
+    type: 'docs',
+    reporter: 'subs',
+    label: '(docs)',
+    maxChars: undefined,
     supportsBaseline: true,
   },
 }

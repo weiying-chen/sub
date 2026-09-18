@@ -20,4 +20,14 @@ describe("resolveWatchProfile", () => {
       supportsBaseline: true,
     })
   })
+
+  it("uses document checks without subtitle limits", () => {
+    expect(resolveWatchProfile("docs")).toEqual({
+      type: "docs",
+      reporter: "subs",
+      label: "(docs)",
+      maxChars: undefined,
+      supportsBaseline: true,
+    })
+  })
 })

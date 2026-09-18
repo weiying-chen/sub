@@ -23,6 +23,7 @@ const FINDING_LABELS: Partial<Record<Finding["type"], string>> = {
   PUNCTUATION: "Punctuation is incorrect",
   BASELINE: "Text does not match baseline",
   MISSING_TRANSLATION: "Translation line is missing",
+  TRANSLATION_OUTSIDE_RANGE: "Translation is outside marked range",
   NEWS_MARKER: "News marker is incorrect",
   PEOPLE: "People entry is incorrect",
 }

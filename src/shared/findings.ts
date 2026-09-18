@@ -279,6 +279,16 @@ export function getFindings(
       continue
     }
 
+    if (m.type === 'TRANSLATION_OUTSIDE_RANGE') {
+      out.push({
+        ...m,
+        severity: 'warn',
+        instruction:
+          'Move this translation inside a paired * range, or adjust the * markers.',
+      })
+      continue
+    }
+
     if (m.type === 'NEWS_MARKER') {
       const instruction =
         m.ruleCode === 'INVALID_FORMAT'

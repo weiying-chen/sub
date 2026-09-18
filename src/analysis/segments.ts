@@ -332,7 +332,7 @@ export function parseDocs(text: string, baselineText?: string): Segment[] {
     const key = docsTimestampKey(lines[tsIndex] ?? '')
     const occurrence = baselineOccurrences.get(key) ?? 0
     baselineOccurrences.set(key, occurrence + 1)
-    if (!checkedTimestampIndices.has(tsIndex)) return []
+    const insideMarkedRange = checkedTimestampIndices.has(tsIndex)
     const originalTargetLines = baselineTargetLines.get(key)?.[occurrence] ?? []
     const targetLines = subtractBaselineLines(detectedTargetLines, originalTargetLines)
     if (sourceLines.length === 0) return []
@@ -346,6 +346,7 @@ export function parseDocs(text: string, baselineText?: string): Segment[] {
       sourceLines,
       targetLines,
       tsIndex,
+      skipTranslation: !insideMarkedRange,
     }]
   })
 }

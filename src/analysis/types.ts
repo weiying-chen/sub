@@ -268,6 +268,13 @@ export type MissingTranslationMetric = {
   severity?: 'error' | 'warn'
 }
 
+export type TranslationOutsideRangeMetric = {
+  type: 'TRANSLATION_OUTSIDE_RANGE'
+  lineIndex: number
+  text: string
+  severity: 'warn'
+}
+
 export type SuperPeopleMetric = {
   type: 'PEOPLE'
   lineIndex: number
@@ -299,6 +306,7 @@ export type Metric =
   | JoinableBreakMetric
   | SpanGapMetric
   | MissingTranslationMetric
+  | TranslationOutsideRangeMetric
   | SuperPeopleMetric
   | import('./newsMarkerRule').NewsMarkerMetric
   | BaselineMetric

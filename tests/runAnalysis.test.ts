@@ -21,6 +21,7 @@ describe("runAnalysis output", () => {
       "區段結尾",
       "End of the section.",
       "00:00:03:00\t00:00:04:00\t範圍外中文",
+      "Outside translation.",
       "",
       "00:00:04:00\t00:00:05:00 *",
       "來源｜AP",
@@ -56,8 +57,15 @@ describe("runAnalysis output", () => {
 
     expect(output).toEqual([
       expect.objectContaining({
+        type: "TRANSLATION_OUTSIDE_RANGE",
+        lineIndex: 9,
+        text: "Outside translation.",
+        severity: "warn",
+        instruction: "Move this translation inside a paired * range, or adjust the * markers.",
+      }),
+      expect.objectContaining({
         type: "MISSING_TRANSLATION",
-        lineIndex: 11,
+        lineIndex: 12,
         text: "來源｜AP",
       }),
     ])

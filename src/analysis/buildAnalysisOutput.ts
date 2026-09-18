@@ -18,6 +18,7 @@ import { getFindings } from '../shared/findings'
 import { filterSegments } from './segmentRuleFilters'
 import { leadingWhitespaceRule } from './leadingWhitespaceRule'
 import { percentStyleRule } from './percentStyleRule'
+import { translationOutsideRangeRule } from './translationOutsideRangeRule'
 import { DEFAULT_MAX_CHARS, NEWS_MAX_CHARS } from '../shared/maxChars'
 
 export type AnalysisRuleSet = 'findings' | 'metrics'
@@ -97,9 +98,17 @@ function buildRules(options: BuildAnalysisOutputOptions) {
 
   if (type === 'docs') {
     const enabled = enabledRuleTypes ? new Set<Metric['type']>(enabledRuleTypes) : null
-    return !enabled || enabled.has('MISSING_TRANSLATION')
-      ? [missingTranslationRule()]
-      : []
+    const rules = []
+    if (!enabled || enabled.has('MISSING_TRANSLATION')) {
+      rules.push(missingTranslationRule())
+    }
+    if (
+      baselineText != null &&
+      (!enabled || enabled.has('TRANSLATION_OUTSIDE_RANGE'))
+    ) {
+      rules.push(translationOutsideRangeRule())
+    }
+    return rules
   }
 
   if (type === 'news') {

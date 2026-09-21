@@ -28,6 +28,7 @@ describe("loadProperNouns", () => {
     expect(properNouns).toContain("Tzu Chi")
     expect(properNouns).toContain("Tzu Cheng")
     expect(properNouns).toContain("Sri Lanka")
+    expect(properNouns).toContain("Sabah")
     expect(properNouns).toContain("Nanjichang Borough Chief")
     expect(properNouns).toContain("Borough Chief Fang")
     expect(properNouns).toContain("Guanyin Bodhisattva")

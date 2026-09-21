@@ -11,22 +11,45 @@ type TsEntry = {
   sourceText: string
 }
 
+type BaselineRuleOptions = {
+  includeFollowingHanLines?: boolean
+}
+
 function normalizeBaselineSourceText(text: string): string {
   return text.replace(/\*/g, '').trim()
 }
 
-function parseTimestampLines(lines: string[]): TsEntry[] {
+function parseTimestampLines(
+  lines: string[],
+  includeFollowingHanLines = false
+): TsEntry[] {
   const out: TsEntry[] = []
 
   lines.forEach((line, lineIndex) => {
-    const m = line.match(TSV_RE)
+    const normalizedLine = line.replace(/\*/g, '').trimEnd()
+    const m = normalizedLine.match(TSV_RE)
     if (!m?.groups) return
 
     const start = m.groups.start
     const end = m.groups.end
-    const sourceText = normalizeBaselineSourceText(extractSourceText(line) ?? '')
+    const sourceParts: string[] = []
+    const inlineSourceText = normalizeBaselineSourceText(
+      extractSourceText(normalizedLine) ?? ''
+    )
+    if (inlineSourceText) sourceParts.push(inlineSourceText)
 
-    out.push({ lineIndex, start, end, sourceText })
+    if (includeFollowingHanLines) {
+      for (let nextIndex = lineIndex + 1; nextIndex < lines.length; nextIndex += 1) {
+        const nextLine = lines[nextIndex]?.replace(/\*/g, '').trimEnd() ?? ''
+        if (TSV_RE.test(nextLine)) break
+        const candidate = normalizeBaselineSourceText(nextLine)
+        if (candidate && /\p{Script=Han}/u.test(candidate)) {
+          sourceParts.push(candidate)
+        }
+      }
+    }
+
+    out.push({ lineIndex, start, end, sourceText: sourceParts.join(' ') })
   })
 
   return out
@@ -143,9 +166,16 @@ function findMissingAnchor(
 
 type BaselineRule = Rule & SegmentRule
 
-export function baselineRule(baselineText: string): BaselineRule {
+export function baselineRule(
+  baselineText: string,
+  options: BaselineRuleOptions = {}
+): BaselineRule {
   const baselineLines = normalizeLineEndings(baselineText).split('\n')
-  const baselineEntries = parseTimestampLines(baselineLines)
+  const includeFollowingHanLines = options.includeFollowingHanLines ?? false
+  const baselineEntries = parseTimestampLines(
+    baselineLines,
+    includeFollowingHanLines
+  )
 
   return ((ctx: RuleCtx | SegmentCtx) => {
     if ('segment' in ctx) {
@@ -153,7 +183,10 @@ export function baselineRule(baselineText: string): BaselineRule {
       if (!ctx.lines) return []
 
       const metrics: BaselineMetric[] = []
-      const currentEntries = parseTimestampLines(ctx.lines)
+      const currentEntries = parseTimestampLines(
+        ctx.lines,
+        includeFollowingHanLines
+      )
       const { matches, missing, extra } = diffTimestampEntries(
         baselineEntries,
         currentEntries
@@ -212,7 +245,10 @@ export function baselineRule(baselineText: string): BaselineRule {
     if (ctx.lineIndex !== 0) return []
 
     const metrics: BaselineMetric[] = []
-    const currentEntries = parseTimestampLines(ctx.lines)
+    const currentEntries = parseTimestampLines(
+      ctx.lines,
+      includeFollowingHanLines
+    )
     const { matches, missing, extra } = diffTimestampEntries(
       baselineEntries,
       currentEntries

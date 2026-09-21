@@ -71,6 +71,60 @@ describe("runAnalysis output", () => {
     ])
   })
 
+  it("reports timestamp lines missing from docs baselines", async () => {
+    const baseline = [
+      "00:00:00:00\t00:00:01:00\t第一段",
+      "00:00:01:00\t00:00:02:00\t第二段",
+      "00:00:02:00\t00:00:03:00\t第三段",
+    ].join("\n")
+    const text = [
+      "00:00:00:00\t00:00:01:00\t第一段",
+      "00:00:02:00\t00:00:03:00\t第三段",
+    ].join("\n")
+
+    const output = (await runAnalysis(text, {
+      type: "docs",
+      mode: "findings",
+      baselineText: baseline,
+      ruleFilters: ["BASELINE"],
+    })) as Metric[]
+
+    expect(output).toContainEqual(
+      expect.objectContaining({
+        type: "BASELINE",
+        ruleCode: "MISSING_TIMESTAMP_LINE",
+        timestamp: "00:00:01:00 -> 00:00:02:00",
+      })
+    )
+  })
+
+  it("reports Chinese source lines removed from docs blocks", async () => {
+    const baseline = [
+      "00:11:09:17\t00:11:21:17",
+      "2014年",
+      "當地人露西母女",
+      "投入照顧產婦",
+    ].join("\n")
+    const text = "00:11:09:17\t00:11:21:17"
+
+    const output = (await runAnalysis(text, {
+      type: "docs",
+      mode: "findings",
+      baselineText: baseline,
+      ruleFilters: ["BASELINE"],
+    })) as Metric[]
+
+    expect(output).toContainEqual(
+      expect.objectContaining({
+        type: "BASELINE",
+        ruleCode: "SOURCE_TEXT_MISMATCH",
+        timestamp: "00:11:09:17 -> 00:11:21:17",
+        expected: "2014年 當地人露西母女 投入照顧產婦",
+        actual: "(empty)",
+      })
+    )
+  })
+
   it("applies a subtitle max-character override", async () => {
     const text = [
       "00:00:01:00\t00:00:05:00\t來源",

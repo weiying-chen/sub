@@ -48,10 +48,12 @@ describe("baselineRule", () => {
     const baseline = [
       "00:00:01:00\t00:00:02:00\tSRC1",
       "00:00:02:00\t00:00:03:00\tSRC2",
+      "00:00:03:00\t00:00:04:00",
     ].join("\n")
     const current = [
       "00:00:01:00\t00:00:02:00\tSRC1 *",
       "00:00:02:00\t00:00:03:00\tSRC2*",
+      "00:00:03:00\t00:00:04:00 *",
     ].join("\n")
 
     const findings = getBaselineFindings(baseline, current)

@@ -1,4 +1,5 @@
 import { analyzeTextByType, type AnalysisType } from './analyzeTextByType'
+import { baselineRule } from './baselineRule'
 import { capitalizationRule } from './capitalizationRule'
 import { createSubsFindingsRules, createSubsMetricsRules } from './subsSegmentRules'
 import { dashStyleRule } from './dashStyleRule'
@@ -99,6 +100,9 @@ function buildRules(options: BuildAnalysisOutputOptions) {
   if (type === 'docs') {
     const enabled = enabledRuleTypes ? new Set<Metric['type']>(enabledRuleTypes) : null
     const rules = []
+    if (baselineText != null && (!enabled || enabled.has('BASELINE'))) {
+      rules.push(baselineRule(baselineText, { includeFollowingHanLines: true }))
+    }
     if (!enabled || enabled.has('MISSING_TRANSLATION')) {
       rules.push(missingTranslationRule())
     }

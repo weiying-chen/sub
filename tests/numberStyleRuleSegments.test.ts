@@ -258,6 +258,21 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores digits followed by large-number scales", () => {
+    const segments = [
+      { lineIndex: 0, translation: "Sabah alone has over 1 million stateless people." },
+      { lineIndex: 1, translation: "The program reached 2 billion views." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, lineText: segment.translation }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((metric) => metric.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("ignores coordinated ranges when at least one number follows style", () => {
     const segments = [
       { lineIndex: 0, translation: "I must have one or two hundred outfits." },

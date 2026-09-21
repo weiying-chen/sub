@@ -178,6 +178,11 @@ function isPercentToken(text: string, index: number, length: number) {
   return /^\s*(%|percent\b)/i.test(tail)
 }
 
+function isLargeScaleQuantityToken(text: string, index: number, length: number) {
+  const tail = text.slice(index + length)
+  return /^\s+(?:million|billion|trillion)\b/i.test(tail)
+}
+
 function isAmPmToken(text: string, index: number, length: number) {
   const tail = text.slice(index + length)
   return /^\s*(?:a\.m\.(?!\w)|p\.m\.(?!\w)|am\b|pm\b)/i.test(tail)
@@ -539,6 +544,7 @@ function collectMetrics(
     if (isWithinAnySpan(coordinatedListSpans, match.index, rawToken.length)) continue
     if (isStatisticalRatioToken(text, match.index, rawToken.length)) continue
     if (isPercentToken(text, match.index, rawToken.length)) continue
+    if (isLargeScaleQuantityToken(text, match.index, rawToken.length)) continue
     if (isTemperatureUnitToken(text, match.index, rawToken.length)) continue
     if (isCurrencyToken(text, match.index)) continue
     if (isLabeledNumberToken(text, match.index)) continue

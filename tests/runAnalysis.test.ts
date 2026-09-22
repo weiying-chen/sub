@@ -125,6 +125,37 @@ describe("runAnalysis output", () => {
     )
   })
 
+  it("ignores double-slash comments in docs checks", async () => {
+    const baseline = [
+      "00:00:00:00\t00:00:01:00 *",
+      "第一段中文",
+      "// 基準備註",
+      "00:00:01:00\t00:00:02:00 *",
+      "區段結尾",
+    ].join("\n")
+    const text = [
+      "00:00:00:00\t00:00:01:00 *",
+      "第一段中文",
+      "// English production note",
+      "00:00:01:00\t00:00:02:00 *",
+      "區段結尾",
+    ].join("\n")
+
+    const output = (await runAnalysis(text, {
+      type: "docs",
+      mode: "findings",
+      baselineText: baseline,
+    })) as Metric[]
+
+    expect(output.some((metric) => metric.type === "BASELINE")).toBe(false)
+    expect(output).toContainEqual(
+      expect.objectContaining({
+        type: "MISSING_TRANSLATION",
+        text: "第一段中文",
+      })
+    )
+  })
+
   it("applies a subtitle max-character override", async () => {
     const text = [
       "00:00:01:00\t00:00:05:00\t來源",

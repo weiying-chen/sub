@@ -289,7 +289,9 @@ export function parseDocs(text: string, baselineText?: string): Segment[] {
       const inlineText = docsTimestampText(baselineLines[tsIndex] ?? '')
       if (inlineText !== '') candidates.push({ lineIndex: tsIndex, lineText: inlineText })
       for (let lineIndex = tsIndex + 1; lineIndex < nextTsIndex; lineIndex += 1) {
-        const lineText = baselineLines[lineIndex]?.trim() ?? ''
+        const rawLine = baselineLines[lineIndex] ?? ''
+        if (isSubsCommentLine(rawLine)) continue
+        const lineText = rawLine.trim()
         if (lineText !== '') candidates.push({ lineIndex, lineText })
       }
       const targetLines = candidates.filter(
@@ -321,7 +323,9 @@ export function parseDocs(text: string, baselineText?: string): Segment[] {
       candidates.push({ lineIndex: tsIndex, lineText: inlineText })
     }
     for (let lineIndex = tsIndex + 1; lineIndex < nextTsIndex; lineIndex += 1) {
-      const lineText = lines[lineIndex]?.trim() ?? ''
+      const rawLine = lines[lineIndex] ?? ''
+      if (isSubsCommentLine(rawLine)) continue
+      const lineText = rawLine.trim()
       if (lineText !== '') candidates.push({ lineIndex, lineText })
     }
 

@@ -2,6 +2,7 @@ import type { Rule, BaselineMetric, RuleCtx } from './types'
 
 import { TSV_RE, extractSourceText } from '../shared/subtitles'
 import { normalizeLineEndings } from '../shared/normalizeLineEndings'
+import { isSubsCommentLine } from '../shared/tsvRuns'
 import type { SegmentCtx, SegmentRule } from './segments'
 
 type TsEntry = {
@@ -40,6 +41,7 @@ function parseTimestampLines(
 
     if (includeFollowingHanLines) {
       for (let nextIndex = lineIndex + 1; nextIndex < lines.length; nextIndex += 1) {
+        if (isSubsCommentLine(lines[nextIndex] ?? '')) continue
         const nextLine = lines[nextIndex]?.replace(/\*/g, '').trimEnd() ?? ''
         if (TSV_RE.test(nextLine)) break
         const candidate = normalizeBaselineSourceText(nextLine)

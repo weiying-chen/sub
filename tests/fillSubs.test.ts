@@ -228,6 +228,30 @@ describe("fillSelectedTimestampLines", () => {
   expect(result.remaining).toBe("")
   })
 
+  it("keeps a new opening quote after a dash on the next line", () => {
+  const lines = [
+    "00:01:11:03\t00:01:13:02\tMarker",
+    "00:01:13:02\t00:01:15:05\tMarker",
+    "00:01:15:05\t00:01:17:21\tMarker",
+  ]
+  const paragraph =
+    'Ecuadorians often say, "Minga nos une"---"Minga brings us together."'
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    new Set([0, 1, 2]),
+    paragraph,
+    { maxChars: 50, inline: false }
+  )
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(translations).toEqual([
+    'Ecuadorians often say, "Minga nos une"---',
+    'Ecuadorians often say, "Minga nos une"---',
+    '"Minga brings us together."',
+  ])
+  })
+
   it("supports inline mode when requested", () => {
   const lines = [
     "00:00:11:00\t00:00:12:00\tNo blank",

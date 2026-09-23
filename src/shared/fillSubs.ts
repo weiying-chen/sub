@@ -765,9 +765,19 @@ function findRightmostDashBoundary(window: string, nextText: string): number {
   return -1
 }
 
-function adjustCutForTrailingQuote(window: string, cut: number): number {
+function adjustCutForTrailingQuote(
+  window: string,
+  cut: number,
+  overflow: string
+): number {
   if (cut <= 0) return cut
   if (!isPunctForQuote(window[cut - 1])) return cut
+  if (
+    isQuoteChar(window[cut] ?? '') &&
+    isWordChar((window.slice(cut + 1) + overflow)[0] ?? '')
+  ) {
+    return cut
+  }
 
   let i = cut
   while (i < window.length && isQuoteChar(window[i])) i++
@@ -1273,7 +1283,7 @@ function takeLine(
   const window = s.slice(0, limit)
   const overflow = s.slice(limit)
   const splitDecision = findBestCut(window, s.slice(limit), noSplitAbbrevMatcher)
-  let cut = adjustCutForTrailingQuote(window, splitDecision.cut)
+  let cut = adjustCutForTrailingQuote(window, splitDecision.cut, overflow)
   cut = adjustCutForTripleHyphen(window, cut)
   cut = adjustCutForEdgeTripleHyphen(window, overflow, cut)
   if (

@@ -241,12 +241,31 @@ function isEarthquakeMagnitudeToken(text: string, index: number) {
 function isDigitRangeToken(text: string, index: number, length: number) {
   const prefix = text.slice(0, index)
   const suffix = text.slice(index + length)
-  return (
+  if (
     /\b\d+(?:\.\d+)?\s*(?:to|[-–—])\s*(?:about\s+|approximately\s+)?$/i.test(
       prefix
     ) ||
     /^\s*(?:to|[-–—])\s*\d+\b/i.test(suffix)
+  ) {
+    return true
+  }
+
+  const currentValue = Number(text.slice(index, index + length).replace(/,/g, ''))
+  const followingEndpoint = suffix.match(
+    /^\s+[A-Za-z]+(?:-[A-Za-z]+)*\s+to\s+(?:about\s+|approximately\s+)?(\d+(?:\.\d+)?)\b/i
   )
+  if (followingEndpoint) {
+    return Math.max(currentValue, Number(followingEndpoint[1])) >= 10
+  }
+
+  const precedingEndpoint = prefix.match(
+    /\b(\d+(?:\.\d+)?)\s+[A-Za-z]+(?:-[A-Za-z]+)*\s+to\s*$/i
+  )
+  if (precedingEndpoint) {
+    return Math.max(Number(precedingEndpoint[1]), currentValue) >= 10
+  }
+
+  return false
 }
 
 function isStatisticalRatioToken(text: string, index: number, length: number) {

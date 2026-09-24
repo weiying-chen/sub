@@ -358,6 +358,34 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores digit ranges with a unit after the first endpoint", () => {
+    const segments = [
+      { lineIndex: 0, translation: "The journey stretched from 3 years to 30." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, lineText: segment.translation }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((metric) => metric.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
+
+  it("requires words when both repeated-unit range endpoints are small", () => {
+    const translation = "The program grew from 3 years to 8."
+    const segments = [{
+      lineIndex: 0,
+      translation,
+      targetLines: [{ lineIndex: 0, lineText: translation }],
+    }]
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((metric) => metric.type === "NUMBER_STYLE")
+
+    expect(findings.map((finding) => finding.token)).toEqual(["3", "8"])
+  })
+
   it("ignores sentence-start non-round comma numbers", () => {
     const segments = [
       { lineIndex: 0, translation: "36,500 square kilometers versus 41,400," },

@@ -234,13 +234,20 @@ function isDocsBoundary(line: string): boolean {
   return isDocsTimestamp(line) && /\s+\*\s*$/.test(line)
 }
 
+function isDocsSingleBlockRange(line: string): boolean {
+  return isDocsTimestamp(line) && /\s+\*\*\s*$/.test(line)
+}
+
 function hasHan(text: string): boolean {
   return /\p{Script=Han}/u.test(text)
 }
 
 function docsTimestampText(line: string): string {
   if (!isDocsTimestamp(line)) return ''
-  const withoutMarker = isDocsBoundary(line) ? line.replace(/\s+\*\s*$/, '') : line
+  const withoutMarker =
+    isDocsBoundary(line) || isDocsSingleBlockRange(line)
+      ? line.replace(/\s+\*{1,2}\s*$/, '')
+      : line
   const columns = withoutMarker.split(/\t+/)
   return columns.slice(2).join('\t').trim()
 }
@@ -311,6 +318,11 @@ export function parseDocs(text: string, baselineText?: string): Segment[] {
       if (timestampIndex >= start && timestampIndex <= end) {
         checkedTimestampIndices.add(timestampIndex)
       }
+    }
+  }
+  for (const timestampIndex of timestampIndices) {
+    if (isDocsSingleBlockRange(lines[timestampIndex] ?? '')) {
+      checkedTimestampIndices.add(timestampIndex)
     }
   }
 

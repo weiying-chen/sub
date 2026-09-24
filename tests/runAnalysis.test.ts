@@ -10,6 +10,34 @@ function expectNoStyleRuleFindings(metrics: Metric[]) {
 }
 
 describe("runAnalysis output", () => {
+  it("checks docs translations inside a double-asterisk timestamp block", async () => {
+    const text = [
+      "00:01:19:25\t00:01:26:07 **",
+      "主持人",
+      "陳竹琪",
+      "Chen Zhu-qi",
+      "Presenter",
+    ].join("\n")
+    const baseline = [
+      "00:01:19:25\t00:01:26:07",
+      "主持人",
+      "陳竹琪",
+    ].join("\n")
+
+    const output = (await runAnalysis(text, {
+      type: "docs",
+      mode: "findings",
+      baselineText: baseline,
+    })) as Metric[]
+
+    expect(output).not.toContainEqual(
+      expect.objectContaining({ type: "TRANSLATION_OUTSIDE_RANGE" })
+    )
+    expect(output).not.toContainEqual(
+      expect.objectContaining({ type: "MISSING_TRANSLATION" })
+    )
+  })
+
   it("checks missing English only inside paired docs markers", async () => {
     const text = [
       "00:00:00:00\t00:00:01:00 *",

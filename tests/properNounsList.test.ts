@@ -52,6 +52,7 @@ describe("loadProperNouns", () => {
     expect(properNouns).toContain("Dharma")
     expect(properNouns).toContain("God")
     expect(properNouns).toContain("Master")
+    expect(properNouns).toContain("Venerable Cheng Yen")
     expect(properNouns).toContain("Venerable Master Cheng Yen")
     expect(properNouns).toContain("Emperor Yao")
     expect(properNouns).toContain("Vice Superintendent")

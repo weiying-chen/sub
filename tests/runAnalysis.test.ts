@@ -38,6 +38,33 @@ describe("runAnalysis output", () => {
     )
   })
 
+  it("recognizes a space-separated docs timestamp as a range boundary", async () => {
+    const text = [
+      "00:00:00:00\t00:00:01:00 *",
+      "第一段",
+      "First translation.",
+      "00:00:01:00   00:00:02:00 *",
+      "第二段",
+      "Second translation.",
+    ].join("\n")
+    const baseline = [
+      "00:00:00:00\t00:00:01:00",
+      "第一段",
+      "00:00:01:00   00:00:02:00",
+      "第二段",
+    ].join("\n")
+
+    const output = (await runAnalysis(text, {
+      type: "docs",
+      mode: "findings",
+      baselineText: baseline,
+    })) as Metric[]
+
+    expect(output).not.toContainEqual(
+      expect.objectContaining({ type: "TRANSLATION_OUTSIDE_RANGE" })
+    )
+  })
+
   it("checks missing English only inside paired docs markers", async () => {
     const text = [
       "00:00:00:00\t00:00:01:00 *",

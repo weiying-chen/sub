@@ -224,7 +224,7 @@ export function parseSubs(
 }
 
 const DOCS_TIMESTAMP_RE =
-  /^(?:.*?)(?:\d{2}:\d{2}:\d{2}:\d{2})\t+(?:\d{2}:\d{2}:\d{2}:\d{2})(?:\s+.*)?$/
+  /^(?:.*?)(?:\d{2}:\d{2}:\d{2}:\d{2})[ \t]+(?:\d{2}:\d{2}:\d{2}:\d{2})(?:\s+.*)?$/
 
 function isDocsTimestamp(line: string): boolean {
   return DOCS_TIMESTAMP_RE.test(line)

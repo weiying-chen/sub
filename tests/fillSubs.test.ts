@@ -20,6 +20,33 @@ const NO_SPLIT_ABBREVIATIONS = [
 ]
 
 describe("fillSelectedTimestampLines", () => {
+  it("preserves the complete final clause when it fits the last cue", () => {
+  const lines = [
+    "00:00:13:13\t00:00:15:21\tMarker",
+    "00:00:15:21\t00:00:17:17\tMarker",
+    "00:00:17:17\t00:00:21:04\tMarker",
+  ]
+  const paragraph =
+    "Beneath the beautiful evening sky lies La Chureca, the largest open-air landfill in Central America."
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    new Set([0, 1, 2]),
+    paragraph,
+    { inline: false }
+  )
+
+  expect(result.lines).toEqual([
+    lines[0],
+    "Beneath the beautiful evening sky lies La Chureca,",
+    lines[1],
+    "Beneath the beautiful evening sky lies La Chureca,",
+    lines[2],
+    "the largest open-air landfill in Central America.",
+  ])
+  expect(result.remaining).toBe("")
+  })
+
   it("uses explicit fill target cps defaults", () => {
     expect(DEFAULT_FILL_MAX_TARGET_CPS).toBe(17)
     expect(DEFAULT_FILL_MIN_TARGET_CPS).toBe(10)

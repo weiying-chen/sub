@@ -41,6 +41,8 @@ describe("loadProperNouns", () => {
     expect(properNouns).toContain("Olinda")
     expect(properNouns).toContain("Telma")
     expect(properNouns).toContain("Mambo")
+    expect(properNouns).toContain("Jocelyn")
+    expect(properNouns).toContain("Maria")
     expect(properNouns).toContain("Mediterranean")
     expect(properNouns).toContain("Russia")
     expect(properNouns).toContain("Mendeleyev")

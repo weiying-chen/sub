@@ -93,7 +93,7 @@ export type PercentStyleMetric = {
   lineIndex: number
   index: number
   value: number
-  found: 'word'
+  found: 'word' | 'missing'
   expected: 'symbol'
   token: string
   text?: string

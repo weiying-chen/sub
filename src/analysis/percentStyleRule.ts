@@ -15,6 +15,32 @@ function collectMetrics(
   fullText?: string
 ): PercentStyleMetric[] {
   const metrics: PercentStyleMetric[] = []
+  const rangeRe = /\b(\d+(?:\.\d+)?)(%?)[ \t]*(?:to|[-–—])[ \t]*(\d+(?:\.\d+)?)(%?)/g
+  let rangeMatch: RegExpExecArray | null = null
+
+  while ((rangeMatch = rangeRe.exec(text))) {
+    const firstHasSymbol = rangeMatch[2] === '%'
+    const secondHasSymbol = rangeMatch[4] === '%'
+    if (firstHasSymbol === secondHasSymbol) continue
+
+    const token = firstHasSymbol ? rangeMatch[3] : rangeMatch[1]
+    const index = firstHasSymbol
+      ? rangeMatch.index + rangeMatch[0].lastIndexOf(rangeMatch[3])
+      : rangeMatch.index
+    const value = Number.parseFloat(token)
+
+    metrics.push({
+      type: 'PERCENT_STYLE',
+      lineIndex: anchorIndex,
+      index,
+      value,
+      found: 'missing',
+      expected: 'symbol',
+      token,
+      text: fullText,
+    })
+  }
+
   const digitsRe = /\b\d{1,3}(?:,\d{3})+\b|\b\d+(?:\.\d+)?\b/g
   let match: RegExpExecArray | null = null
 

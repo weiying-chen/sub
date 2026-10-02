@@ -3,6 +3,25 @@ import { analyzeLines } from "../src/analysis/analyzeLines"
 import { percentStyleRule } from "../src/analysis/percentStyleRule"
 
 describe("percentStyleRule", () => {
+  it("requires a percent symbol on both endpoints of a range", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "About 80 to 90% of students returned.",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "About 80% to 90 of students returned.",
+      "00:00:03:00\t00:00:04:00\tMarker",
+      "About 80% to 90% of students returned.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [percentStyleRule()])
+    const findings = metrics.filter((metric) => metric.type === "PERCENT_STYLE")
+
+    expect(findings).toMatchObject([
+      { token: "80", found: "missing", expected: "symbol" },
+      { token: "90", found: "missing", expected: "symbol" },
+    ])
+  })
+
   it("flags digit percent and ignores percent symbol", () => {
     const text = [
       "00:00:01:00\t00:00:02:00\tMarker",

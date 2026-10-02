@@ -161,7 +161,10 @@ export function getFindings(
       out.push({
         ...m,
         severity: 'error',
-        instruction: 'Use % instead of the word "percent".',
+        instruction:
+          m.found === 'missing'
+            ? 'Add % to both endpoints of the percentage range.'
+            : 'Use % instead of the word "percent".',
       })
       continue
     }

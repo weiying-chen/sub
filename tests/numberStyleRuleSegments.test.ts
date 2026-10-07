@@ -441,6 +441,21 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores slash-linked numeric expressions", () => {
+    const translation =
+      "At 56, Bu Mao-jie relies on an oxygen machine 24/7."
+    const segments = [{
+      lineIndex: 0,
+      translation,
+      targetLines: [{ lineIndex: 0, lineText: translation }],
+    }]
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((metric) => metric.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("ignores coordinated numeric lists with a shared unit", () => {
     const segments = [
       { lineIndex: 0, translation: "with full evaluations at 6, 12, and 24 months." },

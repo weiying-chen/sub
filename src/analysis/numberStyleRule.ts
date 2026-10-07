@@ -156,6 +156,15 @@ function isTimeToken(text: string, index: number, length: number) {
   return before === ':' || after === ':'
 }
 
+function isSlashLinkedNumericToken(text: string, index: number, length: number) {
+  const prefix = text.slice(0, index)
+  const suffix = text.slice(index + length)
+  return (
+    /\d(?:\.\d+)?\s*\/\s*$/.test(prefix) ||
+    /^\s*\/\s*\d+(?:\.\d+)?\b/.test(suffix)
+  )
+}
+
 function isCalendarYearToken(rawToken: string, value: number) {
   return /^\d{4}$/.test(rawToken) && value >= 1000 && value <= 2999
 }
@@ -547,6 +556,7 @@ function collectMetrics(
     if (isCalendarYearToken(rawToken, value)) continue
     if (isCalendarDayToken(text, match.index, value)) continue
     if (isTimeToken(text, match.index, rawToken.length)) continue
+    if (isSlashLinkedNumericToken(text, match.index, rawToken.length)) continue
     if (isAmPmToken(text, match.index, rawToken.length)) continue
     if (
       isSplitCoordinatedAmPmToken(

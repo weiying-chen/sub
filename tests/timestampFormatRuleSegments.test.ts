@@ -61,6 +61,21 @@ describe("timestampFormatRule (segments)", () => {
     ).toBe(false)
   })
 
+  it("allows timestamp rows separated by spaces", () => {
+    const text = [
+      "00:00:16:01      00:00:19:12      承載了時間記憶的奧地利",
+      "In Austria, a land steeped in history,",
+    ].join("\n")
+
+    const findings = getFindings(
+      analyzeTextByType(text, "subs", createSubsSegmentRules())
+    )
+
+    expect(
+      findings.some((finding) => String(finding.type) === "TIMESTAMP_FORMAT")
+    ).toBe(false)
+  })
+
   it("flags timestamp rows with missing leading zero", () => {
     const text = [
       "0:00:01:00\t00:00:02:00\tSource text",

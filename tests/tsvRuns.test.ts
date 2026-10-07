@@ -47,6 +47,18 @@ describe("tsvRuns empty-line handling", () => {
     expect(block?.endFrames).toBe(11 * 1800 + 5 * 30 + 10)
   })
 
+  it("parses timestamp rows separated by spaces", () => {
+    const lines = [
+      "00:00:16:01      00:00:19:12      承載了時間記憶的奧地利",
+      "In Austria, a land steeped in history,",
+    ]
+
+    const block = parseBlockAt(makeSrc(lines), 0)
+
+    expect(block?.translation).toBe("In Austria, a land steeped in history,")
+    expect(block?.translationIndex).toBe(1)
+  })
+
   it("ignores comment lines before and after subtitle translations", () => {
     const lines = [
       "00:00:01:00\t00:00:02:00\tMarker",

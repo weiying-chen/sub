@@ -10,6 +10,40 @@ function expectNoStyleRuleFindings(metrics: Metric[]) {
 }
 
 describe("runAnalysis output", () => {
+  it("reports missing translations in untimed docs using baseline blocks", async () => {
+    const baseline = [
+      "片名：測試節目",
+      "",
+      "第一行中文",
+      "第二行中文",
+      "",
+      "新索SONY Music Publishing",
+    ].join("\n")
+    const text = [
+      "片名：測試節目",
+      "Test Program",
+      "",
+      "第一行中文",
+      "第二行中文",
+      "First translated block.",
+      "",
+      "新索SONY Music Publishing",
+    ].join("\n")
+
+    const output = (await runAnalysis(text, {
+      type: "docs",
+      mode: "findings",
+      baselineText: baseline,
+    })) as Metric[]
+
+    expect(output).toEqual([
+      expect.objectContaining({
+        type: "MISSING_TRANSLATION",
+        text: "新索SONY Music Publishing",
+      }),
+    ])
+  })
+
   it("checks docs translations inside a double-asterisk timestamp block", async () => {
     const text = [
       "00:01:19:25\t00:01:26:07 **",

@@ -256,21 +256,138 @@ function docsTimestampKey(line: string): string {
   return (line.match(/\d{2}:\d{2}:\d{2}:\d{2}/g) ?? []).slice(0, 2).join('\t')
 }
 
+function normalizeDocsLine(line: string): string {
+  return line.replace(/^\uFEFF/, '').trim()
+}
+
 function subtractBaselineLines(
   currentLines: CandidateLine[],
   baselineLines: CandidateLine[]
 ): CandidateLine[] {
   const remaining = new Map<string, number>()
   for (const line of baselineLines) {
-    const text = line.lineText.trim()
+    const text = normalizeDocsLine(line.lineText)
     remaining.set(text, (remaining.get(text) ?? 0) + 1)
   }
   return currentLines.filter((line) => {
-    const text = line.lineText.trim()
+    const text = normalizeDocsLine(line.lineText)
     const count = remaining.get(text) ?? 0
     if (count === 0) return true
     remaining.set(text, count - 1)
     return false
+  })
+}
+
+function findAddedEnglishLines(
+  currentLines: CandidateLine[],
+  baselineLines: CandidateLine[]
+): CandidateLine[] {
+  return subtractBaselineLines(currentLines, baselineLines).filter(
+    (line) => !hasHan(line.lineText) && /[A-Za-z]/.test(line.lineText)
+  )
+}
+
+type UntimedBaselineBlock = {
+  lines: CandidateLine[]
+}
+
+function parseUntimedBaselineBlocks(text: string): UntimedBaselineBlock[] {
+  const blocks: UntimedBaselineBlock[] = []
+  let current: CandidateLine[] = []
+
+  const flush = () => {
+    if (current.length > 0) blocks.push({ lines: current })
+    current = []
+  }
+
+  text.split('\n').forEach((rawLine, lineIndex) => {
+    if (isSubsCommentLine(rawLine)) return
+    const lineText = normalizeDocsLine(rawLine)
+    if (lineText === '') {
+      flush()
+      return
+    }
+    current.push({ lineIndex, lineText })
+  })
+  flush()
+
+  return blocks
+}
+
+function parseUntimedDocs(text: string, baselineText: string): Segment[] {
+  const lines = text.split('\n')
+  const baselineBlocks = parseUntimedBaselineBlocks(baselineText)
+  const matchedBlocks: Array<{
+    baselineLines: CandidateLine[]
+    sourceLines: CandidateLine[]
+    matchedIndices: number[]
+  }> = []
+  let cursor = 0
+
+  for (const block of baselineBlocks) {
+    const sourceLines: CandidateLine[] = []
+    const matchedIndices: number[] = []
+
+    for (const baselineLine of block.lines) {
+      let matchedIndex = -1
+      for (let lineIndex = cursor; lineIndex < lines.length; lineIndex += 1) {
+        if (
+          normalizeDocsLine(lines[lineIndex] ?? '') ===
+          baselineLine.lineText
+        ) {
+          matchedIndex = lineIndex
+          break
+        }
+      }
+      if (matchedIndex < 0) continue
+      cursor = matchedIndex + 1
+      matchedIndices.push(matchedIndex)
+      if (hasHan(baselineLine.lineText)) {
+        sourceLines.push({
+          lineIndex: matchedIndex,
+          lineText: baselineLine.lineText,
+        })
+      }
+    }
+
+    matchedBlocks.push({
+      baselineLines: block.lines,
+      sourceLines,
+      matchedIndices,
+    })
+  }
+
+  return matchedBlocks.flatMap((block, blockIndex) => {
+    if (block.sourceLines.length === 0 || block.matchedIndices.length === 0) {
+      return []
+    }
+
+    const start = block.matchedIndices[0]
+    const nextStart = matchedBlocks
+      .slice(blockIndex + 1)
+      .map((nextBlock) => nextBlock.matchedIndices[0])
+      .find((lineIndex) => lineIndex != null)
+    const end = nextStart == null ? lines.length - 1 : nextStart - 1
+    const candidates: CandidateLine[] = []
+
+    for (let lineIndex = start; lineIndex <= end; lineIndex += 1) {
+      const rawLine = lines[lineIndex] ?? ''
+      if (isSubsCommentLine(rawLine)) continue
+      const lineText = normalizeDocsLine(rawLine)
+      if (lineText !== '') candidates.push({ lineIndex, lineText })
+    }
+    const targetLines = findAddedEnglishLines(candidates, block.baselineLines)
+
+    return [{
+      lineIndex: block.sourceLines[0].lineIndex,
+      lineIndexEnd: end,
+      translation: targetLines.map((line) => line.lineText).join(' '),
+      blockType: 'super' as const,
+      sourceText: block.sourceLines.map((line) => line.lineText).join(' '),
+      sourceLines: block.sourceLines,
+      targetLines,
+      skipTranslation: false,
+    }]
   })
 }
 
@@ -279,6 +396,9 @@ export function parseDocs(text: string, baselineText?: string): Segment[] {
   const timestampIndices = lines
     .map((line, lineIndex) => (isDocsTimestamp(line) ? lineIndex : -1))
     .filter((lineIndex) => lineIndex >= 0)
+  if (timestampIndices.length === 0 && baselineText != null) {
+    return parseUntimedDocs(text, baselineText)
+  }
   const boundaryIndices = timestampIndices.filter((lineIndex) =>
     isDocsBoundary(lines[lineIndex] ?? '')
   )
@@ -342,15 +462,12 @@ export function parseDocs(text: string, baselineText?: string): Segment[] {
     }
 
     const sourceLines = candidates.filter((line) => hasHan(line.lineText))
-    const detectedTargetLines = candidates.filter(
-      (line) => !hasHan(line.lineText) && /[A-Za-z]/.test(line.lineText)
-    )
     const key = docsTimestampKey(lines[tsIndex] ?? '')
     const occurrence = baselineOccurrences.get(key) ?? 0
     baselineOccurrences.set(key, occurrence + 1)
     const insideMarkedRange = checkedTimestampIndices.has(tsIndex)
     const originalTargetLines = baselineTargetLines.get(key)?.[occurrence] ?? []
-    const targetLines = subtractBaselineLines(detectedTargetLines, originalTargetLines)
+    const targetLines = findAddedEnglishLines(candidates, originalTargetLines)
     if (sourceLines.length === 0) return []
 
     return [{

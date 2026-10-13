@@ -397,6 +397,22 @@ function hasInterveningNonEmptyLine(
   return false
 }
 
+function hasInterveningTextMetadataLine(
+  src: LineSource,
+  startIndex: number,
+  endIndex: number
+): boolean {
+  for (let i = startIndex + 1; i < endIndex; i += 1) {
+    const text = src.getLine(i)
+    if (isSubsCommentLine(text)) continue
+    const trimmed = text.trim()
+    if (trimmed === '') continue
+    if (/\p{Script=Han}/u.test(trimmed)) continue
+    return true
+  }
+  return false
+}
+
 function cueTimestamp(cue: Cue): string {
   if (!cue.start || !cue.end) return ''
   return `${cue.start} -> ${cue.end}`
@@ -529,11 +545,17 @@ function collectMetrics(
     }
 
     if (next.text === prev.text) continue
-    const hasMetadataBreak = hasInterveningNonEmptyLine(
-      src,
-      prev.translationIndex,
-      next.tsIndex
-    )
+    const hasMetadataBreak = usesTimestampCues
+      ? hasInterveningNonEmptyLine(
+          src,
+          prev.translationIndex,
+          next.tsIndex
+        )
+      : hasInterveningTextMetadataLine(
+          src,
+          prev.translationIndex,
+          next.tsIndex
+        )
     if (hasMetadataBreak) {
       if (!usesTimestampCues) {
         const nextCase = firstAlphaCase(next.text)

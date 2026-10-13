@@ -686,7 +686,25 @@ describe("punctuationRule (segments)", () => {
     ).toBe(true)
   })
 
-  it("flags missing end punctuation in text mode before a source-line break to lowercase continuation", () => {
+  it("treats alternating Han source lines as transparent in text mode", () => {
+    const text = [
+      "大家既是發願要當醫師",
+      "Since you have all vowed to become doctors,",
+      "不是職業而已 是志業",
+      "this is your calling, not just a profession.",
+      "現在各位醫王菩薩",
+      "Everyone,",
+      "你們現在已經希望在你的面前",
+      "your aspirations are beginning to take shape.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "text", [punctuationRule()])
+    const findings = metrics.filter((metric) => metric.type === "PUNCTUATION")
+
+    expect(findings).toHaveLength(0)
+  })
+
+  it("allows lowercase continuation across a Han source line in text mode", () => {
     const text = [
       "在我二十三歲那一年",
       "When I was 23, my dad was diagntttt.",
@@ -707,7 +725,7 @@ describe("punctuationRule (segments)", () => {
           f.ruleCode === "MISSING_END_PUNCTUATION" &&
           f.text === "When I was 23, my dad was ancertttt"
       )
-    ).toBe(true)
+    ).toBe(false)
   })
 
   it("flags missing end punctuation when the next cue repeats the same text with a period", () => {

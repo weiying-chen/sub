@@ -62,6 +62,10 @@ const BE_VERB_TOKEN_RE =
   /^(?:am|is|are|was|were|be|been|being|isn['’]?t|aren['’]?t|wasn['’]?t|weren['’]?t)$/i
 const BE_VERB_START_RE =
   /^(?:am|is|are|was|were|be|been|being|isn['’]?t|aren['’]?t|wasn['’]?t|weren['’]?t)\b/i
+const PURPOSE_INFINITIVE_LEAD_RE =
+  /\b(?:take|takes|took|taken|bring|brings|brought|send|sends|sent|invite|invites|invited|encourage|encourages|encouraged|lead|leads|led)\b/i
+const PURPOSE_INFINITIVE_VERB_RE =
+  /^to\s+(?:visit|help|provide|support|care|check|deliver|distribute|volunteer|serve|meet|inspect|assist|prepare|collect|clean|build|repair)\b/i
 const SENTENCE_END_RE = /[.!?]["')\]]*\s*$/
 const STRONG_PUNCT = new Set(['.', '?', '!', ':', EM_DASH])
 const SEMICOLON_PUNCT = new Set([';'])
@@ -1020,6 +1024,30 @@ function findRightmostGuardedBeVerbLead(
   return best
 }
 
+function findRightmostPurposeInfinitiveLead(
+  window: string,
+  nextText: string
+): number {
+  if (countDoubleQuotes(window) > 0) return -1
+  if ((window + nextText).length < window.length + 10) return -1
+
+  let best = -1
+  const re = /\bto\b/gi
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const left = window.slice(0, start).trimEnd()
+    const right = (window.slice(start) + nextText).trimStart()
+    if (!left || !right) continue
+    if (left.length < 20 || left.split(/\s+/).filter(Boolean).length < 4) continue
+    if (right.length < 20 || right.split(/\s+/).filter(Boolean).length < 4) continue
+    if (!PURPOSE_INFINITIVE_LEAD_RE.test(left)) continue
+    if (!PURPOSE_INFINITIVE_VERB_RE.test(right)) continue
+    best = start
+  }
+  return best
+}
+
 function findBestCut(
   window: string,
   nextText: string,
@@ -1166,6 +1194,11 @@ function findBestCut(
   // 3) Last-resort lexical/space fallback boundaries.
   const beVerbCut = findRightmostGuardedBeVerbLead(window, nextText)
   if (beVerbCut >= 0) return { cut: beVerbCut, reason: 'beVerb' }
+
+  const purposeInfinitiveCut = findRightmostPurposeInfinitiveLead(window, nextText)
+  if (purposeInfinitiveCut >= 0) {
+    return { cut: purposeInfinitiveCut, reason: 'purposeInfinitive' }
+  }
 
   const modalCut = findRightmostModalLead(window, nextText)
   if (modalCut >= 0) return { cut: modalCut, reason: 'modal' }

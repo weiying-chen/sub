@@ -2971,6 +2971,30 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).not.toMatch(/^is\b/i)
   })
 
+  it("prefers a guarded break before a purpose infinitive", () => {
+  const split = __testTakeLine(
+    "Sandra and her husband often took their employees to visit orphanages and nursing homes.",
+    65,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("Sandra and her husband often took their employees")
+  expect(split.rest).toBe("to visit orphanages and nursing homes.")
+  })
+
+  it("does not treat a destination phrase as an infinitive", () => {
+  const split = __testTakeLine(
+    "Sandra and her husband often took their employees to the nearby nursing home for a visit.",
+    65,
+    null,
+    false
+  )
+
+  expect(split.line).not.toBe("Sandra and her husband often took their employees")
+  expect(split.rest).not.toMatch(/^to the\b/i)
+  })
+
   it("keeps a preposition phrase before an if clause", () => {
   const split = __testTakeLine(
     "What absolutely belonged in it if I was ever going to get everything done?",

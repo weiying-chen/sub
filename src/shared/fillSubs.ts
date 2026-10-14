@@ -631,22 +631,25 @@ function findRightmostConjunctionStart(window: string, nextText: string): number
     ) {
       continue
     }
-    if (
-      m[0].toLowerCase() === 'and' ||
-      m[0].toLowerCase() === 'or' ||
-      m[0].toLowerCase() === 'but'
-    ) {
-      continue
-    }
+    const conjunction = m[0].toLowerCase()
+    if (conjunction === 'or') continue
+    if (conjunction === 'but' && /^\s+still\b/i.test(rest)) continue
 
     const left = window.slice(0, start).trimEnd()
     const right = (window.slice(start) + nextText).trimStart()
     if (!left || !right) continue
+    const isIndependentClause =
+      startsWithCoordinatedIndependentClause(right) ||
+      /^(?:and|but)\s+(?:I|you|we|they|he|she|it|this|that|there)\s+\S+/i.test(right)
+    const isExampleLead = conjunction === 'and' && /^and\s+for example\b/i.test(right)
+    if ((conjunction === 'and' || conjunction === 'but') && !isIndependentClause && !isExampleLead) {
+      continue
+    }
     const leftWords = left.split(/\s+/).filter(Boolean)
     if (leftWords.length === 1) continue
     if (leftWords.length === 1 && CONJ_RE.test(leftWords[0])) continue
-    if (isLikelyCoordinatedSubjectSplit(left, right, m[0])) continue
-    if (isLikelyCoordinatedPhraseSplit(left, right, m[0])) continue
+    if (!isExampleLead && isLikelyCoordinatedSubjectSplit(left, right, m[0])) continue
+    if (!isExampleLead && isLikelyCoordinatedPhraseSplit(left, right, m[0])) continue
     best = start
   }
   return best

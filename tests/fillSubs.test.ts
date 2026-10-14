@@ -796,6 +796,30 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("they'll take my body and place it in cold storage at the funeral home.")
   })
 
+  it("splits before and at the conjunction rank", () => {
+  const split = __testTakeLine(
+    "Volunteers delivered food to every family and for example checked on older residents.",
+    54,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("Volunteers delivered food to every family")
+  expect(split.rest).toBe("and for example checked on older residents.")
+  })
+
+  it("splits before but at the conjunction rank", () => {
+  const split = __testTakeLine(
+    "The clinic was already closed but we continued helping patients outside.",
+    54,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("The clinic was already closed")
+  expect(split.rest).toBe("but we continued helping patients outside.")
+  })
+
   it("keeps comma split precedence over later so split", () => {
   const split = __testTakeLine(
     "I may be making less money now, but I'm so much happier.",

@@ -2191,6 +2191,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("Education Administration.")
   })
 
+  it("keeps numbered labels together at split boundaries", () => {
+  const split = __testTakeLine(
+    "In 1995, Category 4 Hurricane Luis damaged most homes.",
+    17,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("In 1995,")
+  expect(split.rest).toBe("Category 4 Hurricane Luis damaged most homes.")
+  })
+
   it("allows natural fallback splits after trailing to", () => {
   const lines = [
     "00:00:00:00\t00:00:02:00\tMarker",

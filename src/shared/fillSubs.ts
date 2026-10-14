@@ -1442,6 +1442,25 @@ function normalizeTrailingNumericAlternative(
   return { line: left, rest: `${firstNumber} or ${trimmedRest}` }
 }
 
+function normalizeTrailingNumberedLabel(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmedLine = line.trimEnd()
+  const trimmedRest = rest.trimStart()
+  if (!/^\d+(?:\.\d+)?\b/.test(trimmedRest)) return { line, rest }
+
+  const match = trimmedLine.match(
+    /^(.*)\s+(Category|Stage|Grade|Type|Level|Phase|Chapter|Ward|Route|Class|Section)$/i
+  )
+  if (!match) return { line, rest }
+
+  const left = (match[1] ?? '').trimEnd()
+  const label = match[2] ?? ''
+  if (!left || !label) return { line, rest }
+  return { line: left, rest: `${label} ${trimmedRest}` }
+}
+
 function normalizeTrailingArticleHead(
   line: string,
   rest: string
@@ -1690,9 +1709,13 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     quoteNormalized.line,
     quoteNormalized.rest
   )
-  const conjunctionNormalized = normalizeTrailingConjunctionHead(
+  const numberedLabelNormalized = normalizeTrailingNumberedLabel(
     numericAlternativeNormalized.line,
     numericAlternativeNormalized.rest
+  )
+  const conjunctionNormalized = normalizeTrailingConjunctionHead(
+    numberedLabelNormalized.line,
+    numberedLabelNormalized.rest
   )
   const articleNormalized = normalizeTrailingArticleHead(
     conjunctionNormalized.line,

@@ -986,6 +986,40 @@ function findRightmostModalLead(window: string, nextText: string): number {
   return best
 }
 
+function findRightmostGuardedBeVerbLead(
+  window: string,
+  nextText: string
+): number {
+  if (countDoubleQuotes(window) > 0) return -1
+  if ((window + nextText).length < window.length + 10) return -1
+
+  let best = -1
+  const re = /\b(?:is|are|was|were)\b/gi
+  let m: RegExpExecArray | null
+  while ((m = re.exec(window)) !== null) {
+    const start = m.index
+    const end = start + m[0].length
+    const prev = window[start - 1] ?? ''
+    const next = window[end] ?? ''
+    if ((prev && isWordChar(prev)) || (next && isWordChar(next))) continue
+
+    const left = window.slice(0, start).trimEnd()
+    const right = (window.slice(start) + nextText).trimStart()
+    if (!left || !right) continue
+    if (left.length < 20 || left.split(/\s+/).filter(Boolean).length < 4) continue
+    if (right.length < 20 || right.split(/\s+/).filter(Boolean).length < 4) continue
+    if (
+      /\b(?:and|or|but|so|because|although|though|while|since|if|when|where|why|how|what|whether|that)$/i.test(
+        left
+      )
+    ) {
+      continue
+    }
+    best = start
+  }
+  return best
+}
+
 function findBestCut(
   window: string,
   nextText: string,
@@ -1130,6 +1164,9 @@ function findBestCut(
   if (listTailCut >= 0) return { cut: listTailCut, reason: 'listTail' }
 
   // 3) Last-resort lexical/space fallback boundaries.
+  const beVerbCut = findRightmostGuardedBeVerbLead(window, nextText)
+  if (beVerbCut >= 0) return { cut: beVerbCut, reason: 'beVerb' }
+
   const modalCut = findRightmostModalLead(window, nextText)
   if (modalCut >= 0) return { cut: modalCut, reason: 'modal' }
 

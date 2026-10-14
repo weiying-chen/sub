@@ -2947,6 +2947,30 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("can cause problems in the vertebrae above.")
   })
 
+  it("prefers a guarded break before a be-verb", () => {
+  const split = __testTakeLine(
+    "The small island of Sint Maarten is home to people from over 90 ethnic groups.",
+    54,
+    null,
+    false
+  )
+
+  expect(split.line).toBe("The small island of Sint Maarten")
+  expect(split.rest).toBe("is home to people from over 90 ethnic groups.")
+  })
+
+  it("does not split a short subject from its be-verb", () => {
+  const split = __testTakeLine(
+    "He is good at helping residents during difficult emergencies.",
+    40,
+    null,
+    false
+  )
+
+  expect(split.line).not.toBe("He")
+  expect(split.rest).not.toMatch(/^is\b/i)
+  })
+
   it("keeps a preposition phrase before an if clause", () => {
   const split = __testTakeLine(
     "What absolutely belonged in it if I was ever going to get everything done?",

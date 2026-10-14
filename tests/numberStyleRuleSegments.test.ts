@@ -162,6 +162,20 @@ describe("numberStyleRule (segments)", () => {
     expect(findings).toHaveLength(0)
   })
 
+  it("ignores digits in hurricane category labels", () => {
+    const translation = "Category 4 Hurricane Luis damaged most homes."
+    const segments = [{
+      lineIndex: 0,
+      translation,
+      targetLines: [{ lineIndex: 0, lineText: translation }],
+    }]
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((metric) => metric.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
+
   it("ignores digits following an abbreviated number label", () => {
     const translation =
       "In Ward No. 1, over 400 riverside homes were destroyed."

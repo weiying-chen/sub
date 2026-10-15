@@ -2971,6 +2971,29 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).not.toMatch(/^is\b/i)
   })
 
+  it("does not allocate a subject pronoun as its own cue", () => {
+  const lines = [
+    "00:09:03:21\t00:09:05:04\t所以那個當下是很感動",
+    "00:09:05:04\t00:09:07:07\t我就看他跟災民抱在一起哭",
+    "00:09:07:13\t00:09:08:27\t我才知道 哦",
+    "00:09:09:01\t00:09:09:14\t原來",
+    "00:09:09:14\t00:09:13:17\t他是有歷經那樣的一個可怕的景象",
+    "00:09:13:17\t00:09:16:10\t可是也因為這樣做志工的一個過程",
+    "00:09:16:25\t00:09:19:28\t讓他的心境轉變了",
+  ]
+
+  const result = fillSelectedTimestampLines(
+    lines,
+    new Set(lines.map((_, index) => index)),
+    "It was so moving to see Flora hugging and crying with the survivors, and I realized that despite what she'd witnessed, volunteering had changed her outlook.",
+    { maxChars: 54, inline: false }
+  )
+  const translations = result.lines.filter((line) => !line.includes("\t"))
+
+  expect(translations).not.toContain("It")
+  expect(translations[0]).toMatch(/^It was\b/)
+  })
+
   it("prefers a guarded break before a purpose infinitive", () => {
   const split = __testTakeLine(
     "Sandra and her husband often took their employees to visit orphanages and nursing homes.",

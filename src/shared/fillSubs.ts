@@ -636,6 +636,14 @@ function findRightmostConjunctionStart(window: string, nextText: string): number
       continue
     }
     const conjunction = m[0].toLowerCase()
+    if (
+      conjunction === 'so' &&
+      !/^so\s+(?:I|you|we|they|he|she|it|this|that|there)\s+\S+/i.test(
+        (window.slice(start) + nextText).trimStart()
+      )
+    ) {
+      continue
+    }
     if (conjunction === 'or') continue
     if (conjunction === 'but' && /^\s+still\b/i.test(rest)) continue
 

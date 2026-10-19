@@ -1539,6 +1539,24 @@ function normalizeTrailingNumberedLabel(
   return { line: left, rest: `${label} ${trimmedRest}` }
 }
 
+function normalizeTrailingNumericQuantifier(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmedRest = rest.trimStart()
+  if (!/^\d/.test(trimmedRest)) return { line, rest }
+
+  const match = line.trimEnd().match(
+    /^(.*)\s+((?:more|less|fewer)\s+than|at\s+(?:least|most)|over|under|about|around|nearly|almost|approximately)$/i
+  )
+  if (!match) return { line, rest }
+
+  const left = (match[1] ?? '').trimEnd()
+  const quantifier = match[2] ?? ''
+  if (!left || !quantifier) return { line, rest }
+  return { line: left, rest: `${quantifier} ${trimmedRest}` }
+}
+
 function normalizeTrailingArticleHead(
   line: string,
   rest: string
@@ -1791,9 +1809,13 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     numericAlternativeNormalized.line,
     numericAlternativeNormalized.rest
   )
-  const conjunctionNormalized = normalizeTrailingConjunctionHead(
+  const numericQuantifierNormalized = normalizeTrailingNumericQuantifier(
     numberedLabelNormalized.line,
     numberedLabelNormalized.rest
+  )
+  const conjunctionNormalized = normalizeTrailingConjunctionHead(
+    numericQuantifierNormalized.line,
+    numericQuantifierNormalized.rest
   )
   const articleNormalized = normalizeTrailingArticleHead(
     conjunctionNormalized.line,

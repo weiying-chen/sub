@@ -715,6 +715,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(translations.some((line) => /aged 70 to 105/.test(line))).toBe(true)
   })
 
+  it("keeps numeric quantifiers with their amounts", () => {
+    const split = __testTakeLine(
+      "Each year, over 40,000 people seek treatment abroad.",
+      15,
+      null,
+      false
+    )
+
+    expect(split.line).toBe("Each year,")
+    expect(split.rest).toBe("over 40,000 people seek treatment abroad.")
+  })
+
   it("moves the full final list item to the next line when it doesn't fit", () => {
   const split = __testTakeLine(
     "We reviewed budgets, timelines, or staffing constraints before launch.",

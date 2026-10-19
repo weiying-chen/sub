@@ -296,6 +296,29 @@ describe("parseNews", () => {
     ])
   })
 
+  it("accepts REPORT blocks with a missing opening slash", () => {
+    const text = [
+      "*REPORT:",
+      "真善美志工-澳洲報導│歐君萍 周子歆 製作//",
+      "彭雲華 蔡麗貞 洪婉雯 洪明德",
+      "*/",
+      "((請上傳網路新聞)",
+      "伊普高中(Ipswich State High School))",
+      "",
+      "1_0001",
+      "接續旁白",
+      "Following narration.",
+    ].join("\n")
+
+    expect(parseNews(text)).toMatchObject([
+      {
+        blockType: "vo",
+        sourceText: "接續旁白",
+        translation: "Following narration.",
+      },
+    ])
+  })
+
   it("recognizes SUPER blocks from named labels without a header", () => {
     const text = [
       "(NS 3秒)",

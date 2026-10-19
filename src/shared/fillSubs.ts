@@ -1547,7 +1547,7 @@ function normalizeTrailingNumericQuantifier(
   if (!/^\d/.test(trimmedRest)) return { line, rest }
 
   const match = line.trimEnd().match(
-    /^(.*)\s+((?:more|less|fewer)\s+than|at\s+(?:least|most)|over|under|about|around|nearly|almost|approximately)$/i
+    /^(.*)\s+((?:more|less|fewer)\s+than|at\s+(?:least|most)|an\s+additional|another|over|under|about|around|nearly|almost|approximately)$/i
   )
   if (!match) return { line, rest }
 

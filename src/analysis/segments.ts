@@ -653,8 +653,8 @@ export function parseNews(text: string): Segment[] {
     }
 
     const isSuperStart = trimmed.startsWith('/*SUPER')
-    const isReportStart = /^\/?\*REPORT\b/.test(trimmed)
-    const isCommentStart = trimmed.startsWith('/*') || isReportStart
+    const isReportStart = trimmed.startsWith('/*REPORT')
+    const isCommentStart = trimmed.startsWith('/*')
     const isCommentEnd = trimmed.includes('*/')
 
     if (isCommentStart) {

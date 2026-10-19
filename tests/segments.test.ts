@@ -271,7 +271,7 @@ describe("parseNews", () => {
     ])
   })
 
-  it("ignores all contiguous content in REPORT blocks", () => {
+  it("ignores all content after REPORT blocks", () => {
     const text = [
       "/*REPORT:",
       "宏都拉斯報導｜王以謙 周子歆 製作//",
@@ -287,13 +287,7 @@ describe("parseNews", () => {
       "Following narration.",
     ].join("\n")
 
-    expect(parseNews(text)).toMatchObject([
-      {
-        blockType: "vo",
-        sourceText: "接續旁白",
-        translation: "Following narration.",
-      },
-    ])
+    expect(parseNews(text)).toEqual([])
   })
 
   it("recognizes SUPER blocks from named labels without a header", () => {

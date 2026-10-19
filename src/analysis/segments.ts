@@ -648,7 +648,6 @@ export function parseNews(text: string): Segment[] {
     }
 
     if (skipReportTail) {
-      if (trimmed === '') skipReportTail = false
       continue
     }
 

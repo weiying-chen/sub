@@ -223,6 +223,23 @@ describe("numberStyleRule (segments)", () => {
     expect(findings[0]?.token).toBe("5")
   })
 
+  it("uses digits for measurements of ten or more", () => {
+    const segments = [
+      { lineIndex: 0, translation: "They walked 10 kilometers to school." },
+      { lineIndex: 1, translation: "They walked ten kilometers to school." },
+    ].map((segment) => ({
+      ...segment,
+      targetLines: [{ lineIndex: segment.lineIndex, lineText: segment.translation }],
+    }))
+
+    const metrics = analyzeSegments(segments, [numberStyleRule()])
+    const findings = metrics.filter((metric) => metric.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(1)
+    expect(findings[0]?.token).toBe("ten")
+    expect(findings[0]?.expected).toBe("digits")
+  })
+
   it("ignores temperature values with Celsius and Fahrenheit units", () => {
     const segments = [
       { lineIndex: 0, translation: "It was −3°C when we woke up." },

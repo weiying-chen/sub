@@ -114,7 +114,7 @@ describe("numberStyleRule", () => {
     const metrics = analyzeLines(text, [numberStyleRule()])
     const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
 
-    expect(findings.map((finding) => finding.token)).toEqual(["5"])
+    expect(findings.map((finding) => finding.token)).toEqual(["5", "10"])
     expect(findings.every((finding) => finding.text === "We sent 5 volunteers back after 10 years.")).toBe(true)
   })
 

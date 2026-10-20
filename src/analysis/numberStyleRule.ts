@@ -359,7 +359,7 @@ function coordinatedListHasCompliantNumber(
     }
 
     const value = parseNumberWords(rawToken)
-    if (value != null && (value < 10 || sentenceStart)) return true
+    if (value != null && (value <= 10 || sentenceStart)) return true
   }
 
   return false
@@ -597,7 +597,7 @@ function collectMetrics(
       continue
     }
 
-    if (value < 10 || (sentenceStart && !continuedFromPreviousLine)) {
+    if (value <= 10 || (sentenceStart && !continuedFromPreviousLine)) {
       metrics.push({
         type: 'NUMBER_STYLE',
         ruleCode: 'SMALL_NUMBER_AS_DIGITS',
@@ -634,7 +634,7 @@ function collectMetrics(
   while ((match = wordNumberRe.exec(text))) {
     const rawToken = match[0]
     const value = parseNumberWords(rawToken)
-    if (value == null || value < 10) continue
+    if (value == null || value <= 10) continue
     if (
       sentenceInitialWordSequence &&
       match.index >= sentenceInitialWordSequence.start &&

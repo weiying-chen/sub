@@ -1035,6 +1035,18 @@ describe("fillSelectedTimestampLines", () => {
     ])
   })
 
+  it("removes artificial quote boundaries when merging quoted fragments", () => {
+    const merged = __testMergeJoinableTranslations(
+      ['She also said, "Luckily,"', '"it had been two weeks"'],
+      54
+    )
+
+    expect(merged).toEqual([
+      'She also said, "Luckily, it had been two weeks"',
+      'She also said, "Luckily, it had been two weeks"',
+    ])
+  })
+
   it("merge pass joins sentence-end adjacent lines when they fit max chars", () => {
   const merged = __testMergeJoinableTranslations(
     ["What matters to them?", "Even their personal lives."],

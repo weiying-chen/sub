@@ -1907,8 +1907,14 @@ function mergeJoinableTranslations(
     if (!join) continue
     const normalizedLeft = normalizeJoinText(leftRaw)
     const normalizedRight = normalizeJoinText(rightRaw)
+    const leftWithoutTrailingQuote = normalizedLeft.slice(0, -1)
+    const joinsQuotedContinuation =
+      normalizedLeft.endsWith('"') &&
+      normalizedRight.startsWith('"') &&
+      !/[.!?]$/.test(leftWithoutTrailingQuote)
     const joined =
-      /^".*"$/.test(normalizedLeft) && /^".*"$/.test(normalizedRight)
+      (/^".*"$/.test(normalizedLeft) && /^".*"$/.test(normalizedRight)) ||
+      joinsQuotedContinuation
         ? `${normalizedLeft.slice(0, -1)} ${normalizedRight.slice(1)}`
         : join.joined
     translations.set(leftIndex, joined)

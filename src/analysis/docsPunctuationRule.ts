@@ -12,21 +12,35 @@ type TimedTranslatedSegment = Segment & {
   endFrames: number
 }
 
-const TITLE_CONNECTORS = new Set(['a', 'an', 'and', 'for', 'in', 'of', 'the', 'to'])
+const TITLE_CONNECTORS = new Set([
+  'a',
+  'an',
+  'and',
+  'by',
+  'for',
+  'in',
+  'of',
+  'the',
+  'to',
+])
+
+function titleWords(text: string): string[] {
+  return text.match(/[A-Za-z]+(?:-[A-Za-z]+)*/g) ?? []
+}
 
 function isMetadataLabel(text: string): boolean {
   const label = text.split(':', 1)[0]?.trim() ?? ''
   if (label === '' || !text.includes(':')) return false
-  return isTitleCaseText(label)
+  return isTitleCaseLine(label) && titleWords(label).length >= 2
 }
 
-function isTitleCaseText(text: string): boolean {
+function isTitleCaseLine(text: string): boolean {
   if (/[.!?]$/.test(text.trim())) return false
-  const words = text.match(/[A-Za-z]+(?:-[A-Za-z]+)*/g) ?? []
-  if (words.length < 2) return false
+  const words = titleWords(text)
+  if (words.length === 0) return false
   return words.every((word) => {
     if (TITLE_CONNECTORS.has(word.toLowerCase())) return true
-    return /^[A-Z](?:[A-Za-z]*|[A-Z]*)$/.test(word)
+    return /^[A-Z][A-Za-z]*(?:-[a-z]+)*$/.test(word)
   })
 }
 
@@ -36,7 +50,10 @@ function isDocsMetadataSegment(segment: Segment): boolean {
     .filter((line) => line !== '') ?? []
   if (lines.length === 0) return false
   if (lines.some(isMetadataLabel)) return true
-  return lines.every(isTitleCaseText)
+  return (
+    titleWords(lines.join(' ')).length >= 2 &&
+    lines.every(isTitleCaseLine)
+  )
 }
 
 function isTimedTranslatedSegment(

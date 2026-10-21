@@ -110,6 +110,35 @@ describe("runAnalysis output", () => {
     expect(output).toEqual([])
   })
 
+  it("ignores docs names with separate roles and produced-by credits", async () => {
+    const baseline = [
+      "00:00:01:00\t00:00:04:00",
+      "姓名職稱",
+      "",
+      "00:00:05:00\t00:00:08:00",
+      "製作單位",
+    ].join("\n")
+    const text = [
+      "00:00:01:00\t00:00:04:00",
+      "姓名職稱",
+      "Chen Zhu-qi",
+      "Presenter",
+      "",
+      "00:00:05:00\t00:00:08:00",
+      "製作單位",
+      "Produced by Tzu Chi Culture and Communication Foundation",
+    ].join("\n")
+
+    const output = (await runAnalysis(text, {
+      type: "docs",
+      mode: "findings",
+      baselineText: baseline,
+      ruleFilters: ["PUNCTUATION"],
+    })) as Metric[]
+
+    expect(output).toEqual([])
+  })
+
   it("reports missing translations in untimed docs using baseline blocks", async () => {
     const baseline = [
       "片名：測試節目",

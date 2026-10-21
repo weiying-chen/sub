@@ -10,10 +10,12 @@ type TsEntry = {
   start: string
   end: string
   sourceText: string
+  followingLines: string[]
 }
 
 type BaselineRuleOptions = {
   includeFollowingHanLines?: boolean
+  includeFollowingBaselineLines?: boolean
 }
 
 function normalizeBaselineSourceText(text: string): string {
@@ -34,27 +36,49 @@ function parseTimestampLines(
     const start = m.groups.start
     const end = m.groups.end
     const sourceParts: string[] = []
+    const followingLines: string[] = []
     const inlineSourceText = normalizeBaselineSourceText(
       extractSourceText(normalizedLine) ?? ''
     )
     if (inlineSourceText) sourceParts.push(inlineSourceText)
 
-    if (includeFollowingHanLines) {
-      for (let nextIndex = lineIndex + 1; nextIndex < lines.length; nextIndex += 1) {
-        if (isSubsCommentLine(lines[nextIndex] ?? '')) continue
-        const nextLine = lines[nextIndex]?.replace(/\*/g, '').trimEnd() ?? ''
-        if (TSV_RE.test(nextLine)) break
-        const candidate = normalizeBaselineSourceText(nextLine)
-        if (candidate && /\p{Script=Han}/u.test(candidate)) {
-          sourceParts.push(candidate)
-        }
+    for (let nextIndex = lineIndex + 1; nextIndex < lines.length; nextIndex += 1) {
+      if (isSubsCommentLine(lines[nextIndex] ?? '')) continue
+      const nextLine = lines[nextIndex]?.replace(/\*/g, '').trimEnd() ?? ''
+      if (TSV_RE.test(nextLine)) break
+      const candidate = normalizeBaselineSourceText(nextLine)
+      if (!candidate) continue
+      followingLines.push(candidate)
+      if (includeFollowingHanLines && /\p{Script=Han}/u.test(candidate)) {
+        sourceParts.push(candidate)
       }
     }
 
-    out.push({ lineIndex, start, end, sourceText: sourceParts.join(' ') })
+    out.push({
+      lineIndex,
+      start,
+      end,
+      sourceText: sourceParts.join(' '),
+      followingLines,
+    })
   })
 
   return out
+}
+
+function missingLatinBaselineLines(expected: TsEntry, actual: TsEntry): string[] {
+  const available = new Map<string, number>()
+  for (const line of actual.followingLines) {
+    available.set(line, (available.get(line) ?? 0) + 1)
+  }
+
+  return expected.followingLines.filter((line) => {
+    if (/\p{Script=Han}/u.test(line)) return false
+    const count = available.get(line) ?? 0
+    if (count === 0) return true
+    available.set(line, count - 1)
+    return false
+  })
 }
 
 type MatchPair = { expected: TsEntry; actual: TsEntry }
@@ -174,6 +198,8 @@ export function baselineRule(
 ): BaselineRule {
   const baselineLines = normalizeLineEndings(baselineText).split('\n')
   const includeFollowingHanLines = options.includeFollowingHanLines ?? false
+  const includeFollowingBaselineLines =
+    options.includeFollowingBaselineLines ?? false
   const baselineEntries = parseTimestampLines(
     baselineLines,
     includeFollowingHanLines
@@ -227,6 +253,7 @@ export function baselineRule(
       }
 
       for (const { expected, actual } of matches) {
+        let reportedMismatch = false
         if (expected.sourceText && expected.sourceText !== actual.sourceText) {
           metrics.push({
             type: 'BASELINE',
@@ -238,6 +265,23 @@ export function baselineRule(
             expected: expected.sourceText,
             actual: actual.sourceText || '(empty)',
           })
+          reportedMismatch = true
+        }
+
+        if (includeFollowingBaselineLines && !reportedMismatch) {
+          const missingLines = missingLatinBaselineLines(expected, actual)
+          if (missingLines.length > 0) {
+            metrics.push({
+              type: 'BASELINE',
+              ruleCode: 'SOURCE_TEXT_MISMATCH',
+              lineIndex: actual.lineIndex,
+              message: 'Original text mismatch between current file and baseline file.',
+              reason: 'sourceText',
+              timestamp: `${expected.start} -> ${expected.end}`,
+              expected: missingLines.join(' '),
+              actual: '(empty)',
+            })
+          }
         }
       }
 

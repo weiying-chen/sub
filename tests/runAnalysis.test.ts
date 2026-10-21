@@ -173,6 +173,38 @@ describe("runAnalysis output", () => {
     ])
   })
 
+  it("reports removed Latin-script docs baseline text", async () => {
+    const baseline = [
+      "00:02:09:10\t00:02:16:14 *",
+      "“Q’ij k’o chi re, k’aslemal k’o chi re.”",
+      "00:02:16:14\t00:02:17:00 *",
+      "結束",
+    ].join("\n")
+    const text = [
+      "00:02:09:10\t00:02:16:14 *",
+      "",
+      "00:02:16:14\t00:02:17:00 *",
+      "結束",
+      "End.",
+    ].join("\n")
+
+    const output = (await runAnalysis(text, {
+      type: "docs",
+      mode: "findings",
+      baselineText: baseline,
+      ruleFilters: ["BASELINE"],
+    })) as Metric[]
+
+    expect(output).toContainEqual(
+      expect.objectContaining({
+        type: "BASELINE",
+        ruleCode: "SOURCE_TEXT_MISMATCH",
+        expected: "“Q’ij k’o chi re, k’aslemal k’o chi re.”",
+        actual: "(empty)",
+      })
+    )
+  })
+
   it("checks docs translations inside a double-asterisk timestamp block", async () => {
     const text = [
       "00:01:19:25\t00:01:26:07 **",

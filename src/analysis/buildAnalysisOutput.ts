@@ -102,7 +102,12 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     const enabled = enabledRuleTypes ? new Set<Metric['type']>(enabledRuleTypes) : null
     const rules = []
     if (baselineText != null && (!enabled || enabled.has('BASELINE'))) {
-      rules.push(baselineRule(baselineText, { includeFollowingHanLines: true }))
+      rules.push(
+        baselineRule(baselineText, {
+          includeFollowingHanLines: true,
+          includeFollowingBaselineLines: true,
+        })
+      )
     }
     if (!enabled || enabled.has('MISSING_TRANSLATION')) {
       rules.push(missingTranslationRule())

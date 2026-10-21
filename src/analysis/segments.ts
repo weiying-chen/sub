@@ -2,7 +2,7 @@ import type { Metric } from './types'
 
 import { isCaptionBlock, type CaptionLine } from './caption'
 import { type ParseBlockOptions, isSubsCommentLine, parseBlockAt } from '../shared/tsvRuns'
-import { TSV_RE } from '../shared/subtitles'
+import { TSV_RE, parseTimecodeToFrames } from '../shared/subtitles'
 import { stripSuppressionMarker } from '../shared/suppressionMarker'
 
 export type CandidateLine = CaptionLine & {
@@ -469,6 +469,9 @@ export function parseDocs(text: string, baselineText?: string): Segment[] {
     const originalTargetLines = baselineTargetLines.get(key)?.[occurrence] ?? []
     const targetLines = findAddedEnglishLines(candidates, originalTargetLines)
     if (sourceLines.length === 0) return []
+    const timecodes = lines[tsIndex]?.match(/\d{2}:\d{2}:\d{2}:\d{2}/g) ?? []
+    const startFrames = parseTimecodeToFrames(timecodes[0] ?? '') ?? undefined
+    const endFrames = parseTimecodeToFrames(timecodes[1] ?? '') ?? undefined
 
     return [{
       lineIndex: sourceLines[0].lineIndex,
@@ -479,6 +482,8 @@ export function parseDocs(text: string, baselineText?: string): Segment[] {
       sourceLines,
       targetLines,
       tsIndex,
+      startFrames,
+      endFrames,
       skipTranslation: !insideMarkedRange,
     }]
   })

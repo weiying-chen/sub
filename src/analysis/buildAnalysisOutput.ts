@@ -3,6 +3,7 @@ import { baselineRule } from './baselineRule'
 import { capitalizationRule } from './capitalizationRule'
 import { createSubsFindingsRules, createSubsMetricsRules } from './subsSegmentRules'
 import { dashStyleRule } from './dashStyleRule'
+import { docsPunctuationRule } from './docsPunctuationRule'
 import { quoteStyleRule } from './quoteStyleRule'
 import { maxCharsRule } from './maxCharsRule'
 import { missingTranslationRule } from './missingTranslationRule'
@@ -111,6 +112,14 @@ function buildRules(options: BuildAnalysisOutputOptions) {
       (!enabled || enabled.has('TRANSLATION_OUTSIDE_RANGE'))
     ) {
       rules.push(translationOutsideRangeRule())
+    }
+    if (!enabled || enabled.has('PUNCTUATION')) {
+      rules.push(
+        docsPunctuationRule({
+          properNouns: punctuationStarts,
+          abbreviations,
+        })
+      )
     }
     return rules
   }

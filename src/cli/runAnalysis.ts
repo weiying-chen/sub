@@ -35,11 +35,11 @@ export async function runAnalysis(
         : undefined
   const capitalizationTerms = await loadCapitalizationTerms()
   const properNouns =
-    options.type === 'subs' || options.type === 'text' || options.type === 'news'
+    options.type === 'subs' || options.type === 'text' || options.type === 'news' || options.type === 'docs'
       ? await loadProperNouns()
       : undefined
   const abbreviations =
-    options.type === 'subs' || options.type === 'text' || options.type === 'news'
+    options.type === 'subs' || options.type === 'text' || options.type === 'news' || options.type === 'docs'
       ? await loadAbbreviations()
       : undefined
   const termVariants =

@@ -10,6 +10,68 @@ function expectNoStyleRuleFindings(metrics: Metric[]) {
 }
 
 describe("runAnalysis output", () => {
+  it("checks docs punctuation across blank lines and overlapping metadata", async () => {
+    const baseline = [
+      "00:00:03:01\t00:00:06:14",
+      "第一段",
+      "",
+      "00:00:03:16\t00:00:22:24",
+      "聲音來源：",
+      "受訪者姓名",
+      "",
+      "00:00:06:14\t00:00:09:21",
+      "第二段",
+      "",
+      "00:00:10:07\t00:00:12:25",
+      "第三段",
+      "",
+      "00:00:12:25\t00:00:16:21",
+      "第四段",
+    ].join("\n")
+    const text = [
+      "00:00:03:01\t00:00:06:14",
+      "第一段",
+      "A vehicle",
+      "",
+      "00:00:03:16\t00:00:22:24",
+      "聲音來源：",
+      "受訪者姓名",
+      "Voice of Alex Chen",
+      "Community volunteer",
+      "",
+      "00:00:06:14\t00:00:09:21",
+      "第二段",
+      "entered the site.",
+      "",
+      "00:00:10:07\t00:00:12:25",
+      "第三段",
+      "The moment it unloaded,",
+      "",
+      "00:00:12:25\t00:00:16:21",
+      "第四段",
+      "Many children ran over.",
+    ].join("\n")
+
+    const output = (await runAnalysis(text, {
+      type: "docs",
+      mode: "findings",
+      baselineText: baseline,
+      ruleFilters: ["PUNCTUATION"],
+    })) as Metric[]
+
+    expect(output).toContainEqual(
+      expect.objectContaining({
+        type: "PUNCTUATION",
+        ruleCode: "MISSING_PUNCTUATION_BEFORE_CAPITAL",
+        text: "The moment it unloaded,",
+        nextText: "Many children ran over.",
+      })
+    )
+    expect(output).not.toContainEqual(
+      expect.objectContaining({ text: "Voice of Alex Chen Community volunteer" })
+    )
+  })
+
   it("reports missing translations in untimed docs using baseline blocks", async () => {
     const baseline = [
       "片名：測試節目",

@@ -72,6 +72,44 @@ describe("runAnalysis output", () => {
     )
   })
 
+  it("ignores docs title cards and production credits in punctuation checks", async () => {
+    const baseline = [
+      "00:00:01:00\t00:00:04:00",
+      "機構職稱",
+      "",
+      "00:00:05:00\t00:00:08:00",
+      "畫面來源",
+      "",
+      "00:00:09:00\t00:00:12:00",
+      "製作名單",
+    ].join("\n")
+    const text = [
+      "00:00:01:00\t00:00:04:00",
+      "機構職稱",
+      "Head of Tzu Chi Guatemala",
+      "Liaison Office",
+      "",
+      "00:00:05:00\t00:00:08:00",
+      "畫面來源",
+      "Video Source: RTV",
+      "",
+      "00:00:09:00\t00:00:12:00",
+      "製作名單",
+      "Executive Producers: Alex Chen, Bailey Lin",
+      "Production Team:",
+      "Casey Wang, Dana Liu",
+    ].join("\n")
+
+    const output = (await runAnalysis(text, {
+      type: "docs",
+      mode: "findings",
+      baselineText: baseline,
+      ruleFilters: ["PUNCTUATION"],
+    })) as Metric[]
+
+    expect(output).toEqual([])
+  })
+
   it("reports missing translations in untimed docs using baseline blocks", async () => {
     const baseline = [
       "片名：測試節目",

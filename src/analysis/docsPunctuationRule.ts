@@ -12,13 +12,41 @@ type TimedTranslatedSegment = Segment & {
   endFrames: number
 }
 
+const TITLE_CONNECTORS = new Set(['a', 'an', 'and', 'for', 'in', 'of', 'the', 'to'])
+
+function isMetadataLabel(text: string): boolean {
+  const label = text.split(':', 1)[0]?.trim() ?? ''
+  if (label === '' || !text.includes(':')) return false
+  return isTitleCaseText(label)
+}
+
+function isTitleCaseText(text: string): boolean {
+  if (/[.!?]$/.test(text.trim())) return false
+  const words = text.match(/[A-Za-z]+(?:-[A-Za-z]+)*/g) ?? []
+  if (words.length < 2) return false
+  return words.every((word) => {
+    if (TITLE_CONNECTORS.has(word.toLowerCase())) return true
+    return /^[A-Z](?:[A-Za-z]*|[A-Z]*)$/.test(word)
+  })
+}
+
+function isDocsMetadataSegment(segment: Segment): boolean {
+  const lines = segment.targetLines
+    ?.map((line) => line.lineText.trim())
+    .filter((line) => line !== '') ?? []
+  if (lines.length === 0) return false
+  if (lines.some(isMetadataLabel)) return true
+  return lines.every(isTitleCaseText)
+}
+
 function isTimedTranslatedSegment(
   segment: Segment
 ): segment is TimedTranslatedSegment {
   return (
     typeof segment.startFrames === 'number' &&
     typeof segment.endFrames === 'number' &&
-    segment.translation.trim() !== ''
+    segment.translation.trim() !== '' &&
+    !isDocsMetadataSegment(segment)
   )
 }
 

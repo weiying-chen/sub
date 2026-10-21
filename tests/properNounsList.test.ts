@@ -31,6 +31,7 @@ describe("loadProperNouns", () => {
     expect(properNouns).toContain("Singapore")
     expect(properNouns).toContain("Vietnam")
     expect(properNouns).toContain("Portugal")
+    expect(properNouns).toContain("Cambodia")
     expect(properNouns).toContain("Sabah")
     expect(properNouns).toContain("Ecuador")
     expect(properNouns).toContain("Nanjichang Borough Chief")

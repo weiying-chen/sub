@@ -50,4 +50,25 @@ describe("watch CLI rule filters", () => {
     expect(result.status).toBe(0)
     expect(result.stdout).toContain("OK")
   })
+
+  it("runs untimed text checks from the watch CLI", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "watch-text-"))
+    const filePath = join(dir, "sample.txt")
+    await writeFile(filePath, "This is 5 examples.", "utf8")
+
+    const result = spawnSync(
+      "node_modules/.bin/tsx",
+      ["src/cli/watch.ts", "--once", filePath, "--type", "text"],
+      {
+        cwd: process.cwd(),
+        encoding: "utf8",
+        timeout: 5000,
+      }
+    )
+
+    expect(result.error).toBeUndefined()
+    expect(result.status).toBe(0)
+    expect(result.stdout).toContain("[Text checks]")
+    expect(result.stdout).toContain("NUMBER_STYLE")
+  })
 })

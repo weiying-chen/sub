@@ -27,7 +27,7 @@ type SubsOptions = {
   maxCps?: number
   minCps?: number
   maxChars?: number
-  analysisType?: 'subs' | 'docs'
+  analysisType?: 'subs' | 'docs' | 'text'
   useSiblingBaseline?: boolean
 }
 
@@ -320,7 +320,13 @@ async function printReport(
   }
 
   if (otherFindings.length > 0) {
-    console.log(options.analysisType === 'docs' ? '[Document checks]' : '[Subtitle checks]')
+    const checksHeading =
+      options.analysisType === 'docs'
+        ? '[Document checks]'
+        : options.analysisType === 'text'
+          ? '[Text checks]'
+          : '[Subtitle checks]'
+    console.log(checksHeading)
     console.log('')
     otherFindings.forEach((f, index) => {
       console.log(formatFinding(f))

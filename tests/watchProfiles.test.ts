@@ -30,4 +30,14 @@ describe("resolveWatchProfile", () => {
       supportsBaseline: true,
     })
   })
+
+  it("exposes generic untimed text checks", () => {
+    expect(resolveWatchProfile("text")).toEqual({
+      type: "text",
+      reporter: "subs",
+      label: "(text)",
+      maxChars: undefined,
+      supportsBaseline: false,
+    })
+  })
 })

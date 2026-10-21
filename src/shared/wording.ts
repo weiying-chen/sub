@@ -16,6 +16,11 @@ export const RULE_MODAL_EXPLANATIONS: Partial<Record<Finding["type"], string>> =
     "Flags a translation line with reading speed above the maximum CPS limit. You can edit it in the input below.",
   MAX_CHARS:
     "Flags a translation line with more than the maximum character limit. You can edit it in the input below.",
+  MISSING_TRANSLATION: "Flags a news source block that is missing its English translation.",
+  NEWS_MARKER: "Checks news marker order and formatting.",
+  PEOPLE: "Checks names and titles in PEOPLE entries.",
+  LEADING_WHITESPACE: "Flags translation lines that begin with extra spaces.",
+  CAPITALIZATION: "Checks configured capitalization conventions.",
   PUNCTUATION:
     "Checks sentence-ending punctuation, punctuation continuity between adjacent translation lines, and quote matching.",
   TERM_VARIANT:

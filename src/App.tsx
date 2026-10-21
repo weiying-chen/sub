@@ -41,7 +41,7 @@ const MIN_CPS_STORAGE_KEY = "subs.minCps"
 const MAX_CHARS_STORAGE_KEY = "subs.maxChars"
 const THEME_STORAGE_KEY = "subs.theme"
 const FINDINGS_MOTION_SUPPRESS_MS = 220
-type AppAnalysisType = "subs" | "text"
+type AppAnalysisType = "subs" | "text" | "news"
 
 type RuleOption = {
   type: Finding["type"]
@@ -58,6 +58,11 @@ const RULE_OPTION_SPECS: Array<{
   { type: "TIMESTAMP_FORMAT", severity: "error" },
   { type: "MAX_CPS", severity: "error" },
   { type: "MAX_CHARS", severity: "error" },
+  { type: "MISSING_TRANSLATION", severity: "error" },
+  { type: "NEWS_MARKER", severity: "error" },
+  { type: "PEOPLE", severity: "error" },
+  { type: "LEADING_WHITESPACE", severity: "error" },
+  { type: "CAPITALIZATION", severity: "error" },
   { type: "PUNCTUATION", severity: "error" },
   { type: "REPEATED_WORD", severity: "error" },
   { type: "REPEATED_PUNCTUATION", severity: "error" },
@@ -89,9 +94,27 @@ const DISPLAYED_RULE_TYPES = new Set<Finding["type"]>(RULE_OPTIONS.map((rule) =>
 const ANALYSIS_TYPE_OPTIONS: Array<{ type: AppAnalysisType; label: string }> = [
   { type: "subs", label: "Timestamps" },
   { type: "text", label: "No timestamps" },
+  { type: "news", label: "News" },
 ]
 const APPLICABLE_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Set<Finding["type"]>> = {
-  subs: new Set<Finding["type"]>(RULE_OPTIONS.map((rule) => rule.type)),
+  subs: new Set<Finding["type"]>([
+    "BLOCK_STRUCTURE",
+    "TIMESTAMP_FORMAT",
+    "MAX_CPS",
+    "MAX_CHARS",
+    "PUNCTUATION",
+    "REPEATED_WORD",
+    "REPEATED_PUNCTUATION",
+    "TERM_VARIANT",
+    "NUMBER_STYLE",
+    "PERCENT_STYLE",
+    "DASH_STYLE",
+    "QUOTE_STYLE",
+    "MIN_CPS",
+    "SPAN_GAP",
+    "MERGE_CANDIDATE",
+    "JOINABLE_BREAK",
+  ]),
   text: new Set<Finding["type"]>([
     "MAX_CHARS",
     "LEADING_WHITESPACE",
@@ -104,6 +127,20 @@ const APPLICABLE_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Set<Findin
     "REPEATED_PUNCTUATION",
     "CAPITALIZATION",
     "TERM_VARIANT",
+  ]),
+  news: new Set<Finding["type"]>([
+    "MAX_CHARS",
+    "MISSING_TRANSLATION",
+    "NEWS_MARKER",
+    "PEOPLE",
+    "NUMBER_STYLE",
+    "DASH_STYLE",
+    "QUOTE_STYLE",
+    "PUNCTUATION",
+    "CAPITALIZATION",
+    "TERM_VARIANT",
+    "REPEATED_WORD",
+    "REPEATED_PUNCTUATION",
   ]),
 }
 const DEFAULT_UI_ENABLED_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Finding["type"][]> = {
@@ -120,6 +157,20 @@ const DEFAULT_UI_ENABLED_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Fi
     "PERCENT_STYLE",
     "QUOTE_STYLE",
   ],
+  news: [
+    "MAX_CHARS",
+    "MISSING_TRANSLATION",
+    "NEWS_MARKER",
+    "PEOPLE",
+    "NUMBER_STYLE",
+    "DASH_STYLE",
+    "QUOTE_STYLE",
+    "PUNCTUATION",
+    "CAPITALIZATION",
+    "TERM_VARIANT",
+    "REPEATED_WORD",
+    "REPEATED_PUNCTUATION",
+  ],
 }
 const WARNING_RULE_TYPES = RULE_OPTIONS.filter((rule) => rule.severity === "warn").map(
   (rule) => rule.type
@@ -130,7 +181,7 @@ function loadStoredAnalysisType(): AppAnalysisType {
   if (typeof window === "undefined") return "subs"
   try {
     const raw = window.localStorage.getItem(MODE_STORAGE_KEY)
-    if (raw === "subs" || raw === "text") return raw
+    if (raw === "subs" || raw === "text" || raw === "news") return raw
     return "subs"
   } catch {
     return "subs"
@@ -1044,7 +1095,10 @@ export default function App({
                   />
                   <span>Errors</span>
                 </div>
-                {RULE_OPTIONS.filter((rule) => rule.severity === "error").map((rule) => (
+                {RULE_OPTIONS.filter(
+                  (rule) =>
+                    rule.severity === "error" && applicableRuleTypes.has(rule.type)
+                ).map((rule) => (
                   <div
                     key={rule.type}
                     className={`rules-modal-rule${
@@ -1117,7 +1171,10 @@ export default function App({
                   />
                   <span>Warnings</span>
                 </div>
-                {RULE_OPTIONS.filter((rule) => rule.severity === "warn").map((rule) => (
+                {RULE_OPTIONS.filter(
+                  (rule) =>
+                    rule.severity === "warn" && applicableRuleTypes.has(rule.type)
+                ).map((rule) => (
                   <div
                     key={rule.type}
                     className={`rules-modal-rule${

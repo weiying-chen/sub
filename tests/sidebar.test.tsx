@@ -265,6 +265,7 @@ describe("Sidebar", () => {
     expect(topbar?.textContent).toContain("Subtitle Checker")
     expect(topbar?.textContent).toContain("Timestamps")
     expect(topbar?.textContent).toContain("No timestamps")
+    expect(topbar?.textContent).toContain("News")
     expect(indexCss).toMatch(/\.app-title\s*\{[\s\S]*font-size:\s*15px;/)
     expect(indexCss).toMatch(/\.app-title\s*\{[\s\S]*font-weight:\s*600;/)
     expect(indexCss).toMatch(/\.app-topbar\s*\{[\s\S]*gap:\s*8px;/)
@@ -1021,6 +1022,62 @@ describe("Sidebar", () => {
       expect(subsButton).toHaveAttribute("aria-pressed", "false")
       expect(textButton).toHaveAttribute("aria-pressed", "true")
       expect(countFindingRowsWithText("Reading speed is too high")).toBe(0)
+    })
+  })
+
+  it("switches to news checks", async () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+    const newsButton = ui.getByRole("button", { name: "News" })
+
+    fireEvent.click(newsButton)
+    fireEvent.change(editor, {
+      target: {
+        value: [
+          "/*SUPER:",
+          "受訪者｜王小明//",
+          "這是一段沒有翻譯的內容",
+          "*/",
+        ].join("\n"),
+      },
+    })
+
+    await waitFor(() => {
+      expect(newsButton).toHaveAttribute("aria-pressed", "true")
+      expect(
+        ui.getByRole("button", { name: /Translation line is missing/i })
+      ).toBeInTheDocument()
+    })
+  })
+
+  it("stores news rule selections separately from subtitle rules", async () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+    const subsDashToggle = ui.getByRole("checkbox", {
+      name: /Dash style is incorrect/i,
+    })
+    fireEvent.click(subsDashToggle)
+    expect(subsDashToggle).not.toBeChecked()
+    fireEvent.click(ui.getByRole("button", { name: "Close rules modal" }))
+
+    fireEvent.click(ui.getByRole("button", { name: "News" }))
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+
+    const newsDashToggle = ui.getByRole("checkbox", {
+      name: /Dash style is incorrect/i,
+    })
+    expect(newsDashToggle).toBeChecked()
+
+    await waitFor(() => {
+      expect(window.localStorage.getItem("subs.ruleFilters")).not.toContain(
+        "DASH_STYLE"
+      )
+      expect(window.localStorage.getItem("subs.ruleFilters.news")).toContain(
+        "DASH_STYLE"
+      )
     })
   })
 

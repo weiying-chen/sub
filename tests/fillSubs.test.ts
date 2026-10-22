@@ -856,6 +856,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest).toBe("but we continued helping patients outside.")
   })
 
+  it("splits before a coordinated predicate starting with and", () => {
+    const split = __testTakeLine(
+      "They served as Reaksa's interpreters and were always there to listen to her.",
+      54,
+      null,
+      false
+    )
+
+    expect(split.line).toBe("They served as Reaksa's interpreters")
+    expect(split.rest).toBe("and were always there to listen to her.")
+  })
+
   it("keeps comma split precedence over later so split", () => {
   const split = __testTakeLine(
     "I may be making less money now, but I'm so much happier.",

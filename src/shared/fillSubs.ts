@@ -653,8 +653,17 @@ function findRightmostConjunctionStart(window: string, nextText: string): number
     const isIndependentClause =
       startsWithCoordinatedIndependentClause(right) ||
       /^(?:and|but)\s+(?:I|you|we|they|he|she|it|this|that|there)\s+\S+/i.test(right)
+    const coordinatedPredicate = right.match(/^(?:and|but)\s+(.+)$/i)
+    const isCoordinatedPredicate =
+      coordinatedPredicate != null &&
+      BE_VERB_START_RE.test(coordinatedPredicate[1] ?? '')
     const isExampleLead = conjunction === 'and' && /^and\s+for example\b/i.test(right)
-    if ((conjunction === 'and' || conjunction === 'but') && !isIndependentClause && !isExampleLead) {
+    if (
+      (conjunction === 'and' || conjunction === 'but') &&
+      !isIndependentClause &&
+      !isCoordinatedPredicate &&
+      !isExampleLead
+    ) {
       continue
     }
     const leftWords = left.split(/\s+/).filter(Boolean)

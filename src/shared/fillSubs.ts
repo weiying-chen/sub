@@ -1626,7 +1626,16 @@ function normalizeTrailingJustHead(
   line: string,
   rest: string
 ): { line: string; rest: string } {
-  return { line, rest }
+  const trimmedRest = rest.trimStart()
+  if (!/^\d/.test(trimmedRest)) return { line, rest }
+
+  const match = line.trimEnd().match(/^(.*)\s+(just)$/i)
+  if (!match) return { line, rest }
+
+  const left = (match[1] ?? '').trimEnd()
+  const just = match[2] ?? ''
+  if (!left || !just) return { line, rest }
+  return { line: left, rest: `${just} ${trimmedRest}` }
 }
 
 function normalizeTrailingBeVerbHead(

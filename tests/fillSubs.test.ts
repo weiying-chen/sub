@@ -727,6 +727,18 @@ describe("fillSelectedTimestampLines", () => {
     expect(split.rest).toBe("over 40,000 people seek treatment abroad.")
   })
 
+  it("keeps just with a following numeric amount", () => {
+    const split = __testTakeLine(
+      "That year, just 14 volunteers distributed the supplies.",
+      15,
+      null,
+      false
+    )
+
+    expect(split.line).toBe("That year,")
+    expect(split.rest).toBe("just 14 volunteers distributed the supplies.")
+  })
+
   it("keeps numeric determiners with their amounts", () => {
     const split = __testTakeLine(
       "So we donated water filters to another 3,000 households.",

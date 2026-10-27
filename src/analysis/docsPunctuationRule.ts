@@ -44,12 +44,36 @@ function isTitleCaseLine(text: string): boolean {
   })
 }
 
+function isSentenceCaseRoleLine(text: string): boolean {
+  if (/[.!?]$/.test(text.trim())) return false
+  const words = titleWords(text)
+  if (words.length < 2) return false
+  const role = words.at(-1) ?? ''
+  if (!/^[a-z][a-z-]*$/.test(role)) return false
+
+  return words.slice(0, -1).every((word) => {
+    if (TITLE_CONNECTORS.has(word.toLowerCase())) return true
+    return /^[A-Z][A-Za-z]*(?:-[a-z]+)*$/.test(word)
+  })
+}
+
 function isDocsMetadataSegment(segment: Segment): boolean {
   const lines = segment.targetLines
     ?.map((line) => line.lineText.trim())
     .filter((line) => line !== '') ?? []
   if (lines.length === 0) return false
   if (lines.some(isMetadataLabel)) return true
+  const identityDetails = lines.slice(1)
+  if (
+    lines.length >= 2 &&
+    isTitleCaseLine(lines[0] ?? '') &&
+    identityDetails.some(isSentenceCaseRoleLine) &&
+    identityDetails.every(
+      (line) => isTitleCaseLine(line) || isSentenceCaseRoleLine(line)
+    )
+  ) {
+    return true
+  }
   return (
     titleWords(lines.join(' ')).length >= 2 &&
     lines.every(isTitleCaseLine)

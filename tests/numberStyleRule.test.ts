@@ -207,4 +207,16 @@ describe("numberStyleRule", () => {
     expect(findings).toHaveLength(1)
     expect(findings[0]?.token).toBe("5")
   })
+
+  it("allows digits in hyphenated measurement adjectives", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "They worked beside a 10-meter-deep pit.",
+    ].join("\n")
+
+    const metrics = analyzeLines(text, [numberStyleRule()])
+    const findings = metrics.filter((m) => m.type === "NUMBER_STYLE")
+
+    expect(findings).toHaveLength(0)
+  })
 })

@@ -182,6 +182,17 @@ function isAgeAdjective(text: string, index: number, length: number) {
   return /^(?:\s*-|\s+)year(?:-|\s+)old\b/.test(tail)
 }
 
+function isHyphenatedMeasurementAdjective(
+  text: string,
+  index: number,
+  length: number
+) {
+  const tail = text.slice(index + length)
+  return /^-(?:millimeters?|centimeters?|meters?|kilometers?|inches?|feet|foot|yards?|miles?|grams?|kilograms?|pounds?|tons?|liters?|litres?)-[A-Za-z]+\b/i.test(
+    tail
+  )
+}
+
 function isPercentToken(text: string, index: number, length: number) {
   const tail = text.slice(index + length)
   return /^\s*(%|percent\b)/i.test(tail)
@@ -569,6 +580,15 @@ function collectMetrics(
       continue
     }
     if (isAgeAdjective(text, match.index, rawToken.length)) continue
+    if (
+      isHyphenatedMeasurementAdjective(
+        text,
+        match.index,
+        rawToken.length
+      )
+    ) {
+      continue
+    }
     if (isDigitRangeToken(text, match.index, rawToken.length)) continue
     if (isWithinAnySpan(coordinatedListSpans, match.index, rawToken.length)) continue
     if (isStatisticalRatioToken(text, match.index, rawToken.length)) continue

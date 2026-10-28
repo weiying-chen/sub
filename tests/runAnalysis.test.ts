@@ -169,6 +169,40 @@ describe("runAnalysis output", () => {
     expect(output).toEqual([])
   })
 
+  it("ignores standalone docs roles and colonless credit cards", async () => {
+    const baseline = [
+      "00:00:01:00\t00:00:04:00",
+      "工程人員",
+      "",
+      "00:00:05:00\t00:00:08:00",
+      "片尾感謝",
+    ].join("\n")
+    const text = [
+      "00:00:01:00\t00:00:04:00",
+      "工程人員",
+      "Reconstruction worker",
+      "",
+      "00:00:05:00\t00:00:08:00",
+      "片尾感謝",
+      "Special Thanks to",
+      "Tzu Chi Germany",
+      "Video Support",
+      "Alex Chen",
+      "Music Provided by",
+      "SONY Music Publishing",
+      "Asia Records / Pure Mind Co.",
+    ].join("\n")
+
+    const output = (await runAnalysis(text, {
+      type: "docs",
+      mode: "findings",
+      baselineText: baseline,
+      ruleFilters: ["PUNCTUATION"],
+    })) as Metric[]
+
+    expect(output).toEqual([])
+  })
+
   it("reports missing translations in untimed docs using baseline blocks", async () => {
     const baseline = [
       "片名：測試節目",

@@ -23,6 +23,9 @@ const TITLE_CONNECTORS = new Set([
   'the',
   'to',
 ])
+const STANDALONE_ROLE_RE =
+  /\b(?:chairperson|coordinator|director|doctor|engineer|founder|interpreter|manager|member|nurse|official|physician|presenter|president|professor|refugee|representative|resident|staff|student|supervisor|survivor|teacher|volunteer|worker)$/i
+const TITLE_ABBREVIATION_END_RE = /\b(?:Co|Corp|Inc|Ltd)\.$/i
 
 function titleWords(text: string): string[] {
   return text.match(/[A-Za-z]+(?:-[A-Za-z]+)*/g) ?? []
@@ -35,7 +38,11 @@ function isMetadataLabel(text: string): boolean {
 }
 
 function isTitleCaseLine(text: string): boolean {
-  if (/[.!?]$/.test(text.trim())) return false
+  const trimmed = text.trim()
+  if (/[!?]$/.test(trimmed)) return false
+  if (/\.$/.test(trimmed) && !TITLE_ABBREVIATION_END_RE.test(trimmed)) {
+    return false
+  }
   const words = titleWords(text)
   if (words.length === 0) return false
   return words.every((word) => {
@@ -63,6 +70,13 @@ function isDocsMetadataSegment(segment: Segment): boolean {
     .filter((line) => line !== '') ?? []
   if (lines.length === 0) return false
   if (lines.some(isMetadataLabel)) return true
+  if (
+    lines.length === 1 &&
+    isSentenceCaseRoleLine(lines[0] ?? '') &&
+    STANDALONE_ROLE_RE.test(lines[0] ?? '')
+  ) {
+    return true
+  }
   const identityDetails = lines.slice(1)
   if (
     lines.length >= 2 &&

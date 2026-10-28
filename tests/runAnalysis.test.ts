@@ -203,6 +203,38 @@ describe("runAnalysis output", () => {
     expect(output).toEqual([])
   })
 
+  it("ignores multiline docs display copy in punctuation checks", async () => {
+    const baseline = [
+      "00:00:01:00\t00:00:04:00",
+      "第一段畫面文字",
+      "",
+      "00:00:05:00\t00:00:08:00",
+      "第二段畫面文字",
+    ].join("\n")
+    const text = [
+      "00:00:01:00\t00:00:04:00",
+      "第一段畫面文字",
+      "A city name,",
+      "life has been difficult",
+      "since the beginning",
+      "",
+      "00:00:05:00\t00:00:08:00",
+      "第二段畫面文字",
+      "An organization rebuilt the community center",
+      "Residents repaired its exterior walls",
+      "October 2014",
+    ].join("\n")
+
+    const output = (await runAnalysis(text, {
+      type: "docs",
+      mode: "findings",
+      baselineText: baseline,
+      ruleFilters: ["PUNCTUATION"],
+    })) as Metric[]
+
+    expect(output).toEqual([])
+  })
+
   it("reports missing translations in untimed docs using baseline blocks", async () => {
     const baseline = [
       "片名：測試節目",

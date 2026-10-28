@@ -101,6 +101,7 @@ function isTimedTranslatedSegment(
     typeof segment.startFrames === 'number' &&
     typeof segment.endFrames === 'number' &&
     segment.translation.trim() !== '' &&
+    segment.targetLines?.length === 1 &&
     !isDocsMetadataSegment(segment)
   )
 }

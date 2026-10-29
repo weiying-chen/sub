@@ -10,6 +10,41 @@ function expectNoStyleRuleFindings(metrics: Metric[]) {
 }
 
 describe("runAnalysis output", () => {
+  it("keeps docs continuations that share an end time", async () => {
+    const baseline = [
+      "00:01:14:18\t00:01:18:29",
+      "第一段",
+      "",
+      "00:01:15:21\t00:01:18:29",
+      "第二段",
+      "",
+      "00:01:20:01\t00:01:27:19",
+      "第三段",
+    ].join("\n")
+    const text = [
+      "00:01:14:18\t00:01:18:29",
+      "第一段",
+      "The spirit behind every free clinic",
+      "",
+      "00:01:15:21\t00:01:18:29",
+      "第二段",
+      "is respect for life.",
+      "",
+      "00:01:20:01\t00:01:27:19",
+      "第三段",
+      "Every life is precious.",
+    ].join("\n")
+
+    const output = (await runAnalysis(text, {
+      type: "docs",
+      mode: "findings",
+      baselineText: baseline,
+      ruleFilters: ["PUNCTUATION"],
+    })) as Metric[]
+
+    expect(output).toEqual([])
+  })
+
   it("checks docs punctuation across blank lines and overlapping metadata", async () => {
     const baseline = [
       "00:00:03:01\t00:00:06:14",

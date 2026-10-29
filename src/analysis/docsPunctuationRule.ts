@@ -119,7 +119,10 @@ function selectDialogueSequence(segments: Segment[]): TimedTranslatedSegment[] {
   const selected: TimedTranslatedSegment[] = []
   let previousEnd = -1
   for (const segment of candidates) {
-    if (segment.startFrames < previousEnd) continue
+    if (
+      segment.startFrames < previousEnd &&
+      segment.endFrames !== previousEnd
+    ) continue
     selected.push(segment)
     previousEnd = segment.endFrames
   }

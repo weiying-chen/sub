@@ -89,6 +89,7 @@ describe("loadProperNouns", () => {
     expect(properNouns).toContain("YouTube")
     expect(properNouns).toContain("Standardisation")
     expect(properNouns).toContain("Level")
+    expect(properNouns).toContain("Dad")
   })
 })
 

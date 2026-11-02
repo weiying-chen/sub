@@ -1244,15 +1244,19 @@ export default function App({
                         <label className="rules-modal-checkbox">
                           <input
                             type="checkbox"
-                            checked={joinCompleteSentences}
+                            aria-label="Fragments only"
+                            checked={!joinCompleteSentences}
                             disabled={!enabledRuleTypes.has("JOINABLE_BREAK")}
                             onChange={(event) => {
                               suppressFindingMotionForRuleChange()
-                              setJoinCompleteSentences(event.target.checked)
+                              setJoinCompleteSentences(!event.target.checked)
                             }}
                           />
                           <span className="rules-modal-checkbox-label">
-                            Join complete sentences
+                            Fragments only
+                          </span>
+                          <span className="rules-modal-checkbox-help">
+                            Ignore pairs where both lines are complete sentences.
                           </span>
                         </label>
                       </div>

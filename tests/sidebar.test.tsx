@@ -1288,7 +1288,7 @@ describe("Sidebar", () => {
 
     expect(countJoinableBreaks()).toBeGreaterThan(0)
     fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
-    fireEvent.click(ui.getByLabelText("Join complete sentences"))
+    fireEvent.click(ui.getByLabelText("Fragments only"))
 
     await waitFor(() => expect(countJoinableBreaks()).toBe(0))
     expect(window.localStorage.getItem("subs.joinCompleteSentences")).toBe("false")

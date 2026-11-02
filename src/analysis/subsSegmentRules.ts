@@ -78,7 +78,10 @@ function createSubsCommonRules(
     rules.push(mergeCandidateRule({ ignoreEmptyLines: options.ignoreEmptyLines }))
   }
   if (isEnabled(enabled, "JOINABLE_BREAK")) {
-    rules.push(joinableBreakRule({ ignoreEmptyLines: options.ignoreEmptyLines }))
+    rules.push(joinableBreakRule({
+      ignoreEmptyLines: options.ignoreEmptyLines,
+      maxJoinedChars: Math.max(1, options.maxChars ?? DEFAULT_MAX_CHARS),
+    }))
   }
   if (isEnabled(enabled, "CAPITALIZATION")) {
     rules.push(capitalizationRule({ terms: options.capitalizationTerms }))

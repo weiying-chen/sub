@@ -32,6 +32,36 @@ describe("buildAnalysisOutput maxChars override", () => {
     expect(relaxedFindings.some((f) => f.type === "MAX_CHARS")).toBe(false)
   })
 
+  it("uses custom maxChars for joinable-break findings", () => {
+    const text = [
+      "00:00:01:00\t00:00:02:00\tMarker",
+      "The next morning,",
+      "00:00:02:00\t00:00:03:00\tMarker",
+      "my elderly friend said",
+    ].join("\n")
+
+    const strictFindings = buildAnalysisOutput({
+      text,
+      type: "subs",
+      ruleSet: "findings",
+      output: "findings",
+      enabledRuleTypes: ["JOINABLE_BREAK"],
+      maxChars: 35,
+    }) as Finding[]
+
+    const relaxedFindings = buildAnalysisOutput({
+      text,
+      type: "subs",
+      ruleSet: "findings",
+      output: "findings",
+      enabledRuleTypes: ["JOINABLE_BREAK"],
+      maxChars: 50,
+    }) as Finding[]
+
+    expect(strictFindings.some((f) => f.type === "JOINABLE_BREAK")).toBe(false)
+    expect(relaxedFindings.some((f) => f.type === "JOINABLE_BREAK")).toBe(true)
+  })
+
   it("uses stricter default maxChars for news than subs", () => {
     const text = [
       "/*SUPER:",

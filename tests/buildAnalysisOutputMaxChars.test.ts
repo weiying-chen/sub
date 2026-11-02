@@ -91,6 +91,36 @@ describe("buildAnalysisOutput maxChars override", () => {
     expect(excluded.some((f) => f.type === "JOINABLE_BREAK")).toBe(false)
   })
 
+  it("does not join consecutive dialogue in fragments-only mode", () => {
+    const text = [
+      "00:02:17:21\t00:02:19:04\t爸爸還是我的",
+      "He's still my dad.",
+      "00:02:19:04\t00:02:20:14\t妳不能叫他爸爸哦",
+      "You can't call him Dad.",
+      "00:02:20:14\t00:02:21:23\t我自己也有爸爸",
+      "I've got my own dad.",
+      "00:02:22:14\t00:02:24:14\t那你爸現在在哪",
+      "Then where is he now?",
+      "00:02:24:14\t00:02:26:05\t被關在監獄",
+      "He's in prison.",
+      "00:02:26:05\t00:02:27:14\t跟妳說",
+      "You know what?",
+      "00:02:27:14\t00:02:28:18\t我爸也被關過",
+      "My dad's been to prison too.",
+    ].join("\n")
+
+    const findings = buildAnalysisOutput({
+      text,
+      type: "subs",
+      ruleSet: "findings",
+      output: "findings",
+      enabledRuleTypes: ["JOINABLE_BREAK"],
+      joinCompleteSentences: false,
+    }) as Finding[]
+
+    expect(findings).toEqual([])
+  })
+
   it("uses stricter default maxChars for news than subs", () => {
     const text = [
       "/*SUPER:",

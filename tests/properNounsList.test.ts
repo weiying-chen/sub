@@ -90,6 +90,7 @@ describe("loadProperNouns", () => {
     expect(properNouns).toContain("Standardisation")
     expect(properNouns).toContain("Level")
     expect(properNouns).toContain("Dad")
+    expect(properNouns).toContain("Mommy")
   })
 })
 

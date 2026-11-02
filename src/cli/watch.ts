@@ -17,7 +17,7 @@ type WatchOptions = {
 }
 
 // Parse CLI args once
-const USAGE = 'Usage: watch <file> [--type subs|news|dramas|docs|text] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines] [--max-cps number] [--min-cps number] [--no-join-complete-sentences]'
+const USAGE = 'Usage: watch <file> [--type subs|news|dramas|docs|text] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines] [--max-cps number] [--min-cps number] [--join-fragments-only]'
 
 // Usage: watch <file> [--type subs|news|dramas|docs|text] [--rule NAME] [--no-warn] [--baseline path] [--ignore-empty-lines] [--max-cps number] [--min-cps number]
 const args = process.argv.slice(2)

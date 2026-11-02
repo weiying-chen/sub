@@ -50,8 +50,8 @@ describe("watch parseArgs", () => {
     expect(result.once).toBe(true)
   })
 
-  it("parses --no-join-complete-sentences", () => {
-    const result = parseArgs(["--no-join-complete-sentences", "file.txt"])
+  it("parses --join-fragments-only", () => {
+    const result = parseArgs(["--join-fragments-only", "file.txt"])
     expect(result.joinCompleteSentences).toBe(false)
   })
 })

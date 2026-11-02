@@ -35,7 +35,7 @@ export function parseSharedCliFlags(args: string[]): SharedCliFlags {
       continue
     }
 
-    if (arg === '--no-join-complete-sentences') {
+    if (arg === '--join-fragments-only') {
       joinCompleteSentences = false
       consumedIndexes.add(i)
       continue

@@ -5,6 +5,7 @@ export type SharedCliFlags = {
   ruleFilters: string[]
   maxCps: number | null
   minCps: number | null
+  joinCompleteSentences: boolean
   consumedIndexes: Set<number>
 }
 
@@ -14,6 +15,7 @@ export function parseSharedCliFlags(args: string[]): SharedCliFlags {
   let ignoreEmptyLines = false
   let maxCps: number | null = null
   let minCps: number | null = null
+  let joinCompleteSentences = true
   const ruleFilters: string[] = []
   const consumedIndexes = new Set<number>()
 
@@ -29,6 +31,12 @@ export function parseSharedCliFlags(args: string[]): SharedCliFlags {
 
     if (arg === '--ignore-empty-lines') {
       ignoreEmptyLines = true
+      consumedIndexes.add(i)
+      continue
+    }
+
+    if (arg === '--no-join-complete-sentences') {
+      joinCompleteSentences = false
       consumedIndexes.add(i)
       continue
     }
@@ -109,6 +117,7 @@ export function parseSharedCliFlags(args: string[]): SharedCliFlags {
     ruleFilters,
     maxCps,
     minCps,
+    joinCompleteSentences,
     consumedIndexes,
   }
 }

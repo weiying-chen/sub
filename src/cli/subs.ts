@@ -27,6 +27,7 @@ type SubsOptions = {
   maxCps?: number
   minCps?: number
   maxChars?: number
+  joinCompleteSentences?: boolean
   analysisType?: 'subs' | 'docs' | 'text'
   useSiblingBaseline?: boolean
 }
@@ -277,6 +278,7 @@ async function printReport(
     maxCps: options.maxCps ?? DEFAULT_MAX_CPS,
     minCps: options.minCps ?? DEFAULT_MIN_CPS,
     maxChars: options.maxChars,
+    joinCompleteSentences: options.joinCompleteSentences,
   })) as Finding[]
 
   const scope = findMarkerScope(lines)

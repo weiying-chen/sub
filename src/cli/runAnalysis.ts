@@ -19,6 +19,7 @@ export type RunAnalysisOptions = {
   maxCps?: number
   minCps?: number
   maxChars?: number
+  joinCompleteSentences?: boolean
 }
 
 export async function runAnalysis(
@@ -64,5 +65,6 @@ export async function runAnalysis(
     maxCps: options.maxCps,
     minCps: options.minCps,
     maxChars: options.maxChars,
+    joinCompleteSentences: options.joinCompleteSentences,
   })
 }

@@ -1266,6 +1266,34 @@ describe("Sidebar", () => {
     })
   })
 
+  it("can exclude complete sentences from joinable-break findings", async () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+    const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement
+    const countJoinableBreaks = () =>
+      Array.from(container.querySelectorAll(".finding-row-button")).filter((el) =>
+        el.textContent?.includes("Translation lines can be joined")
+      ).length
+
+    fireEvent.change(editor, {
+      target: {
+        value: [
+          "00:00:01:00\t00:00:02:00\tMarker",
+          "Could you keep this from Auntie?",
+          "00:00:02:00\t00:00:03:00\tMarker",
+          "Okay, I get it.",
+        ].join("\n"),
+      },
+    })
+
+    expect(countJoinableBreaks()).toBeGreaterThan(0)
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+    fireEvent.click(ui.getByLabelText("Join complete sentences"))
+
+    await waitFor(() => expect(countJoinableBreaks()).toBe(0))
+    expect(window.localStorage.getItem("subs.joinCompleteSentences")).toBe("false")
+  })
+
   it("saves subtitle text to localStorage when editor content changes", async () => {
     render(<App />)
     const editor = screen.getAllByLabelText("Code editor")[0] as HTMLTextAreaElement

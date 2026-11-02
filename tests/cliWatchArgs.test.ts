@@ -49,4 +49,9 @@ describe("watch parseArgs", () => {
     const result = parseArgs(["--once", "file.txt"])
     expect(result.once).toBe(true)
   })
+
+  it("parses --no-join-complete-sentences", () => {
+    const result = parseArgs(["--no-join-complete-sentences", "file.txt"])
+    expect(result.joinCompleteSentences).toBe(false)
+  })
 })

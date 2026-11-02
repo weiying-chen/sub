@@ -32,6 +32,7 @@ export type CreateSubsSegmentRulesOptions = {
   maxCps?: number
   minCps?: number
   maxChars?: number
+  joinCompleteSentences?: boolean
   enabledFindingTypes?: Iterable<Metric["type"]>
 }
 
@@ -81,6 +82,7 @@ function createSubsCommonRules(
     rules.push(joinableBreakRule({
       ignoreEmptyLines: options.ignoreEmptyLines,
       maxJoinedChars: Math.max(1, options.maxChars ?? DEFAULT_MAX_CHARS),
+      joinCompleteSentences: options.joinCompleteSentences,
     }))
   }
   if (isEnabled(enabled, "CAPITALIZATION")) {

@@ -39,6 +39,7 @@ const EDITOR_TEXT_STORAGE_KEY = "subs.editorText"
 const MAX_CPS_STORAGE_KEY = "subs.maxCps"
 const MIN_CPS_STORAGE_KEY = "subs.minCps"
 const MAX_CHARS_STORAGE_KEY = "subs.maxChars"
+const JOIN_COMPLETE_SENTENCES_STORAGE_KEY = "subs.joinCompleteSentences"
 const THEME_STORAGE_KEY = "subs.theme"
 const FINDINGS_MOTION_SUPPRESS_MS = 220
 type AppAnalysisType = "subs" | "text" | "news"
@@ -232,6 +233,18 @@ function loadStoredCpsThreshold(storageKey: string, fallback: number): number {
     const parsed = Number(raw)
     if (!Number.isFinite(parsed) || parsed <= 0) return fallback
     return parsed
+  } catch {
+    return fallback
+  }
+}
+
+function loadStoredBoolean(storageKey: string, fallback: boolean): boolean {
+  if (typeof window === "undefined") return fallback
+  try {
+    const raw = window.localStorage.getItem(storageKey)
+    if (raw === "true") return true
+    if (raw === "false") return false
+    return fallback
   } catch {
     return fallback
   }
@@ -602,6 +615,9 @@ export default function App({
   const [maxChars, setMaxChars] = useState(() =>
     loadStoredCpsThreshold(MAX_CHARS_STORAGE_KEY, DEFAULT_MAX_CHARS)
   )
+  const [joinCompleteSentences, setJoinCompleteSentences] = useState(() =>
+    loadStoredBoolean(JOIN_COMPLETE_SENTENCES_STORAGE_KEY, true)
+  )
   const [maxCpsDraft, setMaxCpsDraft] = useState(() => String(loadStoredCpsThreshold(MAX_CPS_STORAGE_KEY, MAX_CPS)))
   const [minCpsDraft, setMinCpsDraft] = useState(() => String(loadStoredCpsThreshold(MIN_CPS_STORAGE_KEY, MIN_CPS)))
   const [maxCharsDraft, setMaxCharsDraft] = useState(() =>
@@ -664,6 +680,14 @@ export default function App({
     window.localStorage.setItem(MIN_CPS_STORAGE_KEY, String(minCps))
     window.localStorage.setItem(MAX_CHARS_STORAGE_KEY, String(maxChars))
   }, [maxCps, minCps, maxChars])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(
+      JOIN_COMPLETE_SENTENCES_STORAGE_KEY,
+      String(joinCompleteSentences)
+    )
+  }, [joinCompleteSentences])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -786,12 +810,13 @@ export default function App({
       maxCps,
       minCps,
       maxChars,
+      joinCompleteSentences,
       capitalizationTerms,
       termVariants,
       properNouns,
       abbreviations: punctuationAbbreviations,
     }) as Metric[]
-  }, [value, analysisEnabledRuleTypes, maxCps, minCps, maxChars, analysisType])
+  }, [value, analysisEnabledRuleTypes, maxCps, minCps, maxChars, joinCompleteSentences, analysisType])
 
   const findings = useMemo<Finding[]>(() => {
     return getFindings(rawRuleOutputs, { includeWarnings })
@@ -816,12 +841,13 @@ export default function App({
       maxCps,
       minCps,
       maxChars,
+      joinCompleteSentences,
       capitalizationTerms,
       termVariants,
       properNouns,
       abbreviations: punctuationAbbreviations,
     }) as Metric[]
-  }, [value, maxCps, minCps, maxChars, analysisType])
+  }, [value, maxCps, minCps, maxChars, joinCompleteSentences, analysisType])
 
   useEffect(() => {
     console.log("[analysis] cps metrics", cpsMetrics)
@@ -1211,6 +1237,24 @@ export default function App({
                             }}
                             className="rules-modal-threshold-input"
                           />
+                      </div>
+                    ) : null}
+                    {rule.type === "JOINABLE_BREAK" ? (
+                      <div className="rules-modal-threshold">
+                        <label className="rules-modal-checkbox">
+                          <input
+                            type="checkbox"
+                            checked={joinCompleteSentences}
+                            disabled={!enabledRuleTypes.has("JOINABLE_BREAK")}
+                            onChange={(event) => {
+                              suppressFindingMotionForRuleChange()
+                              setJoinCompleteSentences(event.target.checked)
+                            }}
+                          />
+                          <span className="rules-modal-checkbox-label">
+                            Join complete sentences
+                          </span>
+                        </label>
                       </div>
                     ) : null}
                   </div>

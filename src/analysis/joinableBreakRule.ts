@@ -9,6 +9,7 @@ import { looksLikeSentenceFragment } from "../shared/sentenceFragments"
 type JoinableBreakRuleOptions = ParseBlockOptions & {
   maxGapFrames?: number
   maxJoinedChars?: number
+  joinCompleteSentences?: boolean
 }
 
 const DEFAULT_MAX_GAP_FRAMES = 0
@@ -141,6 +142,7 @@ export function joinableBreakRule(
   const ignoreEmptyLines = options.ignoreEmptyLines ?? false
   const maxGapFrames = options.maxGapFrames ?? DEFAULT_MAX_GAP_FRAMES
   const maxJoinedChars = Math.max(1, options.maxJoinedChars ?? DEFAULT_MAX_CHARS)
+  const joinCompleteSentences = options.joinCompleteSentences ?? true
 
   return (ctx: SegmentCtx) => {
     const cur = ctx.segment
@@ -172,6 +174,11 @@ export function joinableBreakRule(
     if (isSameTranslationText(curText, nextText)) return []
 
     const boundaryInfo = getBoundaryInfo(prev, cur, next, next2, curText, nextText)
+    if (
+      !joinCompleteSentences &&
+      boundaryInfo.curFullSentence &&
+      boundaryInfo.nextFullSentence
+    ) return []
     const boundaryClass = classifyBoundary(boundaryInfo, next2)
     if (boundaryClass !== "join_candidate") {
       return []

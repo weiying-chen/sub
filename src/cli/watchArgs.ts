@@ -10,6 +10,7 @@ type WatchArgs = {
   ignoreEmptyLines: boolean
   maxCps: number | null
   minCps: number | null
+  joinCompleteSentences: boolean
   once: boolean
 }
 
@@ -55,6 +56,7 @@ export function parseArgs(argv: string[]): WatchArgs {
     ignoreEmptyLines: shared.ignoreEmptyLines,
     maxCps: shared.maxCps,
     minCps: shared.minCps,
+    joinCompleteSentences: shared.joinCompleteSentences,
     once,
   }
 }

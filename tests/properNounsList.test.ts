@@ -93,6 +93,7 @@ describe("loadProperNouns", () => {
     expect(properNouns).toContain("Mommy")
     expect(properNouns).toContain("Brazil")
     expect(properNouns).toContain("São Paulo")
+    expect(properNouns).toContain("Americans")
   })
 })
 

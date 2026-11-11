@@ -581,7 +581,7 @@ describe("runAnalysis output", () => {
 
   it("checks news SUPER CPS using seconds before or after the block", async () => {
     const text = [
-      "(2)",
+      "(2，Lana Mahmoud Haidar AISwaferi)",
       "/*SUPER:",
       "第一個字卡//",
       "*/",
@@ -597,7 +597,7 @@ describe("runAnalysis output", () => {
     const output = (await runAnalysis(text, {
       type: "news",
       mode: "findings",
-      ruleFilters: ["MAX_CPS"],
+      ruleFilters: ["MAX_CPS", "NUMBER_STYLE"],
       maxCps: 10,
     })) as Metric[]
 
@@ -613,6 +613,7 @@ describe("runAnalysis output", () => {
         text: "This second translated SUPER is deliberately long.",
       }),
     ])
+    expect(output.some((metric) => metric.type === "NUMBER_STYLE")).toBe(false)
   })
 
   it("returns missing-translation findings for untranslated news blocks", async () => {

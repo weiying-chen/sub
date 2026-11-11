@@ -628,7 +628,11 @@ export function parseNews(text: string): Segment[] {
     const trimmed = raw.trim()
 
     const generatedSeconds = trimmed.match(/^\(\s*(\d{1,3})\s*s\s*\)$/i)
-    const parenthesizedSeconds = trimmed.match(/^\(\s*(\d{1,3})\s*\)$/)
+    const stationNamedSeconds = trimmed.match(
+      /^[（(]\s*(\d{1,3})\s*[，,]\s*[^）)]+[）)]$/
+    )
+    const parenthesizedSeconds = trimmed.match(/^[（(]\s*(\d{1,3})\s*[）)]$/)
+    const stationSeconds = stationNamedSeconds ?? parenthesizedSeconds
     const plainSeconds = trimmed.match(/^(\d{1,3})$/)
     if (!inComment && generatedSeconds) {
       const seconds = Number(generatedSeconds[1])
@@ -643,9 +647,9 @@ export function parseNews(text: string): Segment[] {
       superActive = false
       continue
     }
-    if (!inComment && parenthesizedSeconds) {
+    if (!inComment && stationSeconds) {
       flush()
-      const seconds = Number(parenthesizedSeconds[1])
+      const seconds = Number(stationSeconds[1])
       if (seconds > 0) pendingSuperDuration = { seconds, lineIndex: i }
       superActive = false
       continue

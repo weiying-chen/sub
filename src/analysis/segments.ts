@@ -627,8 +627,22 @@ export function parseNews(text: string): Segment[] {
     const raw = lines[i]
     const trimmed = raw.trim()
 
+    const generatedSeconds = trimmed.match(/^\(\s*(\d{1,3})\s*s\s*\)$/i)
     const parenthesizedSeconds = trimmed.match(/^\(\s*(\d{1,3})\s*\)$/)
     const plainSeconds = trimmed.match(/^(\d{1,3})$/)
+    if (!inComment && generatedSeconds) {
+      const seconds = Number(generatedSeconds[1])
+      if (
+        seconds > 0 &&
+        currentBlock === 'super' &&
+        targetBuffer.length > 0
+      ) {
+        currentSuperDuration = { seconds, lineIndex: i }
+        flush()
+      }
+      superActive = false
+      continue
+    }
     if (!inComment && parenthesizedSeconds) {
       flush()
       const seconds = Number(parenthesizedSeconds[1])

@@ -591,7 +591,7 @@ describe("runAnalysis output", () => {
       "第二個字卡//",
       "*/",
       "This second translated SUPER is deliberately long.",
-      "2",
+      "(2s)",
     ].join("\n")
 
     const output = (await runAnalysis(text, {

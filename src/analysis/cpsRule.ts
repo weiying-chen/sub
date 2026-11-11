@@ -26,6 +26,12 @@ function hasTiming(
   )
 }
 
+function visibleCharacterCount(segment: Segment): number {
+  const targetLines = segment.targetLines ?? []
+  if (targetLines.length === 0) return segment.translation.length
+  return targetLines.reduce((total, line) => total + line.lineText.length, 0)
+}
+
 function hasSegmentGap(
   lines: string[] | undefined,
   prev: Segment,
@@ -85,6 +91,7 @@ function mergeForwardSegments(
     startFrames: first.startFrames,
     endFrames,
     translation: first.translation,
+    charCount: visibleCharacterCount(first),
     tsIndex: first.tsIndex,
     lineIndex: first.lineIndex,
     suppressCps,
@@ -121,7 +128,7 @@ export function cpsRule(
       if (!run) return []
 
       const durationFrames = run.endFrames - run.startFrames
-      const charCount = run.translation.length
+      const charCount = run.charCount
       const rawCps =
         durationFrames === 0 ? Infinity : (charCount * FPS) / durationFrames
       const cps = roundCpsToOneDecimal(rawCps)

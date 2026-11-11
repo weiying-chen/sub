@@ -156,4 +156,27 @@ describe("cpsRule (segments)", () => {
     expect(metrics[0]?.charCount).toBe(8)
     expect(metrics[0]?.cps).toBe(8)
   })
+
+  it("does not count line breaks as spaces in multi-line SUPER text", () => {
+    const text = [
+      "(13，Speaker Name)",
+      "/*SUPER:",
+      "受訪者｜姓名//",
+      "中文內容",
+      "*/",
+      "Lana has struggled with health problems,",
+      "especially during the war,",
+      "when medicine was scarce.",
+      "She developed anemia, weakened immunity,",
+      "and rashes and blisters all over her body.",
+      "Her health has suffered,",
+      "leaving her constantly tired and sick.",
+    ].join("\n")
+
+    const metrics = analyzeTextByType(text, "news", [cpsRule(99, 0)])
+
+    expect(metrics).toHaveLength(1)
+    expect(metrics[0]?.charCount).toBe(235)
+    expect(metrics[0]?.cps).toBe(18.1)
+  })
 })

@@ -130,6 +130,7 @@ const APPLICABLE_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Set<Findin
     "TERM_VARIANT",
   ]),
   news: new Set<Finding["type"]>([
+    "MAX_CPS",
     "MAX_CHARS",
     "MISSING_TRANSLATION",
     "NEWS_MARKER",
@@ -159,6 +160,7 @@ const DEFAULT_UI_ENABLED_RULE_TYPES_BY_ANALYSIS_TYPE: Record<AppAnalysisType, Fi
     "QUOTE_STYLE",
   ],
   news: [
+    "MAX_CPS",
     "MAX_CHARS",
     "MISSING_TRANSLATION",
     "NEWS_MARKER",

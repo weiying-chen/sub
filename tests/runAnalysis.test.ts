@@ -579,6 +579,42 @@ describe("runAnalysis output", () => {
     expect(maxChars.map((metric) => metric.lineIndex)).toEqual([4, 5])
   })
 
+  it("checks news SUPER CPS using seconds before or after the block", async () => {
+    const text = [
+      "(2)",
+      "/*SUPER:",
+      "第一個字卡//",
+      "*/",
+      "This first translated SUPER is deliberately long.",
+      "",
+      "/*SUPER:",
+      "第二個字卡//",
+      "*/",
+      "This second translated SUPER is deliberately long.",
+      "2",
+    ].join("\n")
+
+    const output = (await runAnalysis(text, {
+      type: "news",
+      mode: "findings",
+      ruleFilters: ["MAX_CPS"],
+      maxCps: 10,
+    })) as Metric[]
+
+    expect(output).toEqual([
+      expect.objectContaining({
+        type: "MAX_CPS",
+        durationFrames: 60,
+        text: "This first translated SUPER is deliberately long.",
+      }),
+      expect.objectContaining({
+        type: "MAX_CPS",
+        durationFrames: 60,
+        text: "This second translated SUPER is deliberately long.",
+      }),
+    ])
+  })
+
   it("returns missing-translation findings for untranslated news blocks", async () => {
     const text = [
       "1_0001",

@@ -6,6 +6,7 @@ import { dashStyleRule } from './dashStyleRule'
 import { docsPunctuationRule } from './docsPunctuationRule'
 import { quoteStyleRule } from './quoteStyleRule'
 import { maxCharsRule } from './maxCharsRule'
+import { maxCpsRule } from './maxCpsRule'
 import { missingTranslationRule } from './missingTranslationRule'
 import { newsMarkerRule } from './newsMarkerRule'
 import { numberStyleRule } from './numberStyleRule'
@@ -135,6 +136,14 @@ function buildRules(options: BuildAnalysisOutputOptions) {
     const enabled = enabledRuleTypes ? new Set<Metric['type']>(enabledRuleTypes) : null
     const rules = []
     const maxCharsLimit = Math.max(1, maxChars ?? NEWS_MAX_CHARS)
+    if (!enabled || enabled.has('MAX_CPS')) {
+      rules.push(
+        filterSegments(
+          (segment) => segment.blockType === 'super',
+          maxCpsRule(maxCps, minCps)
+        )
+      )
+    }
     if (!enabled || enabled.has('MAX_CHARS')) {
       rules.push(filterSegments((segment) => segment.blockType === 'super', maxCharsRule(maxCharsLimit)))
     }

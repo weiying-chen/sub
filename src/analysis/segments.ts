@@ -2,7 +2,7 @@ import type { Metric } from './types'
 
 import { isCaptionBlock, type CaptionLine } from './caption'
 import { type ParseBlockOptions, isSubsCommentLine, parseBlockAt } from '../shared/tsvRuns'
-import { TSV_RE, parseTimecodeToFrames } from '../shared/subtitles'
+import { FPS, TSV_RE, parseTimecodeToFrames } from '../shared/subtitles'
 import { stripSuppressionMarker } from '../shared/suppressionMarker'
 
 export type CandidateLine = CaptionLine & {
@@ -550,6 +550,8 @@ export function parseNews(text: string): Segment[] {
   let superPeopleBuffer: CandidateLine[] = []
   let superActive = false
   let skipNextNonEmptyAfterUrl = false
+  let pendingSuperDuration: { seconds: number; lineIndex: number } | undefined
+  let currentSuperDuration: { seconds: number; lineIndex: number } | undefined
 
   const flush = () => {
     if (!currentBlock || (sourceBuffer.length === 0 && targetBuffer.length === 0)) {
@@ -579,12 +581,20 @@ export function parseNews(text: string): Segment[] {
       rawTargetLines: targetBuffer,
       blockType: currentBlock,
       skipTranslation: currentSkipTranslation,
+      ...(currentBlock === 'super' && currentSuperDuration
+        ? {
+            tsIndex: currentSuperDuration.lineIndex,
+            startFrames: 0,
+            endFrames: currentSuperDuration.seconds * FPS,
+          }
+        : {}),
     })
     sourceBuffer = []
     targetBuffer = []
     currentBlock = null
     currentSkipTranslation = false
     currentMarker = undefined
+    currentSuperDuration = undefined
   }
 
   const flushSuperPeople = () => {
@@ -616,6 +626,30 @@ export function parseNews(text: string): Segment[] {
   for (let i = 0; i < lines.length; i += 1) {
     const raw = lines[i]
     const trimmed = raw.trim()
+
+    const parenthesizedSeconds = trimmed.match(/^\(\s*(\d{1,3})\s*\)$/)
+    const plainSeconds = trimmed.match(/^(\d{1,3})$/)
+    if (!inComment && parenthesizedSeconds) {
+      flush()
+      const seconds = Number(parenthesizedSeconds[1])
+      if (seconds > 0) pendingSuperDuration = { seconds, lineIndex: i }
+      superActive = false
+      continue
+    }
+    if (
+      !inComment &&
+      plainSeconds &&
+      currentBlock === 'super' &&
+      targetBuffer.length > 0
+    ) {
+      const seconds = Number(plainSeconds[1])
+      if (seconds > 0) {
+        currentSuperDuration = { seconds, lineIndex: i }
+        flush()
+      }
+      superActive = false
+      continue
+    }
 
     if (isReferenceUrlLine(trimmed)) {
       skipNextNonEmptyAfterUrl = true
@@ -665,6 +699,8 @@ export function parseNews(text: string): Segment[] {
       flush()
       if (isSuperStart) {
         pendingVoMarker = undefined
+        currentSuperDuration = pendingSuperDuration
+        pendingSuperDuration = undefined
       }
       inComment = true
       inSuperComment = isSuperStart

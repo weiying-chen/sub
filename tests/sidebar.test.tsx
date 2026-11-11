@@ -1051,6 +1051,16 @@ describe("Sidebar", () => {
     })
   })
 
+  it("shows the max CPS option for news checks", () => {
+    const { container } = render(<App />)
+    const ui = within(container)
+
+    fireEvent.click(ui.getByRole("button", { name: "News" }))
+    fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
+
+    expect(ui.getByLabelText("Max CPS")).toBeEnabled()
+  })
+
   it("stores news rule selections separately from subtitle rules", async () => {
     const { container } = render(<App />)
     const ui = within(container)

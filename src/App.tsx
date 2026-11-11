@@ -26,7 +26,7 @@ import { mergedRunTranslationIndices, parseBlockAt, type LineSource } from "./sh
 import { sampleSubtitles } from "./fixtures/subtitles"
 import { RULE_MODAL_EXPLANATIONS } from "./shared/wording"
 import { MAX_CPS, MIN_CPS } from "./shared/subtitles"
-import { DEFAULT_MAX_CHARS } from "./shared/maxChars"
+import { DEFAULT_MAX_CHARS, NEWS_MAX_CHARS } from "./shared/maxChars"
 import capitalizationTermsText from "../capitalization-terms.txt?raw"
 import punctuationAbbreviationsText from "../punctuation-abbreviations.txt?raw"
 import properNounsText from "../punctuation-proper-nouns.txt?raw"
@@ -39,6 +39,7 @@ const EDITOR_TEXT_STORAGE_KEY = "subs.editorText"
 const MAX_CPS_STORAGE_KEY = "subs.maxCps"
 const MIN_CPS_STORAGE_KEY = "subs.minCps"
 const MAX_CHARS_STORAGE_KEY = "subs.maxChars"
+const NEWS_MAX_CHARS_STORAGE_KEY = "subs.maxChars.news"
 const JOIN_COMPLETE_SENTENCES_STORAGE_KEY = "subs.joinCompleteSentences"
 const THEME_STORAGE_KEY = "subs.theme"
 const FINDINGS_MOTION_SUPPRESS_MS = 220
@@ -617,6 +618,9 @@ export default function App({
   const [maxChars, setMaxChars] = useState(() =>
     loadStoredCpsThreshold(MAX_CHARS_STORAGE_KEY, DEFAULT_MAX_CHARS)
   )
+  const [newsMaxChars, setNewsMaxChars] = useState(() =>
+    loadStoredCpsThreshold(NEWS_MAX_CHARS_STORAGE_KEY, NEWS_MAX_CHARS)
+  )
   const [joinCompleteSentences, setJoinCompleteSentences] = useState(() =>
     loadStoredBoolean(JOIN_COMPLETE_SENTENCES_STORAGE_KEY, true)
   )
@@ -624,6 +628,9 @@ export default function App({
   const [minCpsDraft, setMinCpsDraft] = useState(() => String(loadStoredCpsThreshold(MIN_CPS_STORAGE_KEY, MIN_CPS)))
   const [maxCharsDraft, setMaxCharsDraft] = useState(() =>
     String(loadStoredCpsThreshold(MAX_CHARS_STORAGE_KEY, DEFAULT_MAX_CHARS))
+  )
+  const [newsMaxCharsDraft, setNewsMaxCharsDraft] = useState(() =>
+    String(loadStoredCpsThreshold(NEWS_MAX_CHARS_STORAGE_KEY, NEWS_MAX_CHARS))
   )
   const [view, setView] = useState<EditorView | null>(null)
   const [activeFindingId, setActiveFindingId] = useState<string | null>(null)
@@ -681,7 +688,8 @@ export default function App({
     window.localStorage.setItem(MAX_CPS_STORAGE_KEY, String(maxCps))
     window.localStorage.setItem(MIN_CPS_STORAGE_KEY, String(minCps))
     window.localStorage.setItem(MAX_CHARS_STORAGE_KEY, String(maxChars))
-  }, [maxCps, minCps, maxChars])
+    window.localStorage.setItem(NEWS_MAX_CHARS_STORAGE_KEY, String(newsMaxChars))
+  }, [maxCps, minCps, maxChars, newsMaxChars])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -712,6 +720,10 @@ export default function App({
   useEffect(() => {
     setMaxCharsDraft(String(maxChars))
   }, [maxChars])
+
+  useEffect(() => {
+    setNewsMaxCharsDraft(String(newsMaxChars))
+  }, [newsMaxChars])
 
   const openRulesModal = useCallback(() => {
     if (rulesModalCloseTimerRef.current !== null) {
@@ -754,8 +766,9 @@ export default function App({
   }, [])
 
   const handleMaxCharsChange = useCallback((raw: string) => {
-    setMaxCharsDraft(raw)
-  }, [])
+    if (analysisType === "news") setNewsMaxCharsDraft(raw)
+    else setMaxCharsDraft(raw)
+  }, [analysisType])
 
   const commitMaxCpsDraft = useCallback(() => {
     const parsed = Number(maxCpsDraft)
@@ -784,15 +797,19 @@ export default function App({
   }, [minCpsDraft, minCps, maxCps, suppressFindingMotionForRuleChange])
 
   const commitMaxCharsDraft = useCallback(() => {
-    const parsed = Number(maxCharsDraft)
+    const activeDraft = analysisType === "news" ? newsMaxCharsDraft : maxCharsDraft
+    const activeMax = analysisType === "news" ? newsMaxChars : maxChars
+    const parsed = Number(activeDraft)
     if (!Number.isFinite(parsed) || parsed <= 0) {
-      setMaxCharsDraft(String(maxChars))
+      if (analysisType === "news") setNewsMaxCharsDraft(String(activeMax))
+      else setMaxCharsDraft(String(activeMax))
       return
     }
 
     suppressFindingMotionForRuleChange()
-    setMaxChars(parsed)
-  }, [maxCharsDraft, maxChars, suppressFindingMotionForRuleChange])
+    if (analysisType === "news") setNewsMaxChars(parsed)
+    else setMaxChars(parsed)
+  }, [analysisType, newsMaxCharsDraft, maxCharsDraft, newsMaxChars, maxChars, suppressFindingMotionForRuleChange])
 
   const analysisEnabledRuleTypes = useMemo(() => {
     const applicable = APPLICABLE_RULE_TYPES_BY_ANALYSIS_TYPE[analysisType]
@@ -801,6 +818,9 @@ export default function App({
       ? filtered
       : filtered.filter((type) => !WARNING_RULE_TYPES.includes(type))
   }, [enabledRuleTypes, includeWarnings, analysisType])
+
+  const activeMaxChars = analysisType === "news" ? newsMaxChars : maxChars
+  const activeMaxCharsDraft = analysisType === "news" ? newsMaxCharsDraft : maxCharsDraft
 
   const rawRuleOutputs = useMemo<Metric[]>(() => {
     return buildAnalysisOutput({
@@ -811,14 +831,14 @@ export default function App({
       enabledRuleTypes: analysisEnabledRuleTypes,
       maxCps,
       minCps,
-      maxChars,
+      maxChars: activeMaxChars,
       joinCompleteSentences,
       capitalizationTerms,
       termVariants,
       properNouns,
       abbreviations: punctuationAbbreviations,
     }) as Metric[]
-  }, [value, analysisEnabledRuleTypes, maxCps, minCps, maxChars, joinCompleteSentences, analysisType])
+  }, [value, analysisEnabledRuleTypes, maxCps, minCps, activeMaxChars, joinCompleteSentences, analysisType])
 
   const findings = useMemo<Finding[]>(() => {
     return getFindings(rawRuleOutputs, { includeWarnings })
@@ -842,14 +862,14 @@ export default function App({
       enabledRuleTypes: enabledMetricTypes,
       maxCps,
       minCps,
-      maxChars,
+      maxChars: activeMaxChars,
       joinCompleteSentences,
       capitalizationTerms,
       termVariants,
       properNouns,
       abbreviations: punctuationAbbreviations,
     }) as Metric[]
-  }, [value, maxCps, minCps, maxChars, joinCompleteSentences, analysisType])
+  }, [value, maxCps, minCps, activeMaxChars, joinCompleteSentences, analysisType])
 
   useEffect(() => {
     console.log("[analysis] cps metrics", cpsMetrics)
@@ -1171,7 +1191,7 @@ export default function App({
                           type="number"
                           min={1}
                           step={1}
-                          value={maxCharsDraft}
+                            value={activeMaxCharsDraft}
                           aria-label="Max chars"
                           placeholder="Max chars"
                           disabled={

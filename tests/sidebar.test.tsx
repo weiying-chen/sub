@@ -1059,6 +1059,7 @@ describe("Sidebar", () => {
     fireEvent.click(ui.getByRole("button", { name: "Open rules modal" }))
 
     expect(ui.getByLabelText("Max CPS")).toBeEnabled()
+    expect((ui.getByLabelText("Max chars") as HTMLInputElement).value).toBe("45")
   })
 
   it("stores news rule selections separately from subtitle rules", async () => {

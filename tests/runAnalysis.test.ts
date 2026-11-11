@@ -577,6 +577,7 @@ describe("runAnalysis output", () => {
 
     const maxChars = output.filter((metric) => metric.type === "MAX_CHARS")
     expect(maxChars.map((metric) => metric.lineIndex)).toEqual([4, 5])
+    expect(maxChars.every((metric) => metric.maxAllowed === 45)).toBe(true)
   })
 
   it("checks news SUPER CPS using seconds before or after the block", async () => {

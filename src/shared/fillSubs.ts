@@ -1529,6 +1529,22 @@ function normalizeTrailingNumericAlternative(
   return { line: left, rest: `${firstNumber} or ${trimmedRest}` }
 }
 
+function normalizeTrailingNumericRange(
+  line: string,
+  rest: string
+): { line: string; rest: string } {
+  const trimmedRest = rest.trimStart()
+  if (!/^\d+(?:[,.]\d+)?\b/.test(trimmedRest)) return { line, rest }
+
+  const match = line.trimEnd().match(/^(.*?)\b(\d+(?:[,.]\d+)?)\s+to$/i)
+  if (!match) return { line, rest }
+
+  const left = (match[1] ?? '').trimEnd()
+  const firstNumber = match[2] ?? ''
+  if (!left || !firstNumber) return { line, rest }
+  return { line: left, rest: `${firstNumber} to ${trimmedRest}` }
+}
+
 function normalizeTrailingNumberedLabel(
   line: string,
   rest: string
@@ -1823,9 +1839,13 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     quoteNormalized.line,
     quoteNormalized.rest
   )
-  const numberedLabelNormalized = normalizeTrailingNumberedLabel(
+  const numericRangeNormalized = normalizeTrailingNumericRange(
     numericAlternativeNormalized.line,
     numericAlternativeNormalized.rest
+  )
+  const numberedLabelNormalized = normalizeTrailingNumberedLabel(
+    numericRangeNormalized.line,
+    numericRangeNormalized.rest
   )
   const numericQuantifierNormalized = normalizeTrailingNumericQuantifier(
     numberedLabelNormalized.line,

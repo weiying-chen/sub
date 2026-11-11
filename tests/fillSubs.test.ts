@@ -715,6 +715,26 @@ describe("fillSelectedTimestampLines", () => {
   expect(translations.some((line) => /aged 70 to 105/.test(line))).toBe(true)
   })
 
+  it("does not split a numeric range after to", () => {
+    const lines = [
+      "00:08:47:23\t00:08:51:11\t十六到二十五歲之間的年輕人",
+      "00:08:51:11\t00:08:54:16\t彷彿成為了制度的遺漏",
+    ]
+    const paragraph =
+      "Young people aged 16 to 25 seemed to fall through the cracks."
+
+    const result = fillSelectedTimestampLines(
+      lines,
+      new Set([0, 1]),
+      paragraph,
+      { maxChars: 54, inline: true }
+    )
+    const translations = result.lines.filter((line) => !line.includes("\t"))
+
+    expect(translations).not.toContain("Young people aged 16 to")
+    expect(translations.some((line) => line.includes("16 to 25"))).toBe(true)
+  })
+
   it("keeps numeric quantifiers with their amounts", () => {
     const split = __testTakeLine(
       "Each year, over 40,000 people seek treatment abroad.",

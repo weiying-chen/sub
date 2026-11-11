@@ -1859,9 +1859,13 @@ function normalizeSplit(line: string, rest: string): { line: string; rest: strin
     conjunctionNormalized.line,
     conjunctionNormalized.rest
   )
-  const possessiveNormalized = normalizeTrailingPossessiveHead(
+  const postArticleConjunctionNormalized = normalizeTrailingConjunctionHead(
     articleNormalized.line,
     articleNormalized.rest
+  )
+  const possessiveNormalized = normalizeTrailingPossessiveHead(
+    postArticleConjunctionNormalized.line,
+    postArticleConjunctionNormalized.rest
   )
   const subordinatorNormalized = normalizeTrailingSubordinatorHead(
     possessiveNormalized.line,

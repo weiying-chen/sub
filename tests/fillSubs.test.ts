@@ -2903,6 +2903,18 @@ describe("fillSelectedTimestampLines", () => {
   expect(split.rest.toLowerCase().startsWith("a little ")).toBe(true)
   })
 
+  it("moves a conjunction exposed by trailing article cleanup", () => {
+    const split = __testTakeLine(
+      "bringing compassion to this city of innovation and a human touch to technology.",
+      52,
+      null,
+      false
+    )
+
+    expect(split.line).toBe("bringing compassion to this city of innovation")
+    expect(split.rest).toBe("and a human touch to technology.")
+  })
+
   it("moves trailing 'before' to the next split chunk", () => {
   const split = __testTakeLine(
     "acid reflux, heart palpitations, or insomnia before they do anything about it.",

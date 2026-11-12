@@ -282,8 +282,26 @@ function findAddedEnglishLines(
   currentLines: CandidateLine[],
   baselineLines: CandidateLine[]
 ): CandidateLine[] {
+  const sourceNumbers = new Set(
+    currentLines
+      .filter((line) => hasHan(line.lineText))
+      .flatMap((line) => line.lineText.match(/\d[\d,.]*/g) ?? [])
+      .map((value) => value.replace(/[,.]/g, ''))
+  )
+
   return subtractBaselineLines(currentLines, baselineLines).filter(
-    (line) => !hasHan(line.lineText) && /[A-Za-z]/.test(line.lineText)
+    (line) => {
+      if (hasHan(line.lineText)) return false
+      if (/[A-Za-z]/.test(line.lineText)) return true
+      if (!/^\s*\d[\d,.:%/\-–—\s]*\s*$/.test(line.lineText)) return false
+
+      const targetNumbers = (line.lineText.match(/\d[\d,.]*/g) ?? [])
+        .map((value) => value.replace(/[,.]/g, ''))
+      return (
+        targetNumbers.length > 0 &&
+        targetNumbers.every((value) => sourceNumbers.has(value))
+      )
+    }
   )
 }
 

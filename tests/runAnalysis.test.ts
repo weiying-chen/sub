@@ -364,6 +364,23 @@ describe("runAnalysis output", () => {
     )
   })
 
+  it("accepts numeric-only docs translations matching the source", async () => {
+    const baselineText = [
+      "00:01:08:21\t00:01:19:29 **",
+      "1993年",
+    ].join("\n")
+    const text = [baselineText, "1993"].join("\n")
+
+    const output = (await runAnalysis(text, {
+      type: "docs",
+      mode: "findings",
+      ruleFilters: ["MISSING_TRANSLATION"],
+      baselineText,
+    })) as Metric[]
+
+    expect(output.some((metric) => metric.type === "MISSING_TRANSLATION")).toBe(false)
+  })
+
   it("recognizes a space-separated docs timestamp as a range boundary", async () => {
     const text = [
       "00:00:00:00\t00:00:01:00 *",
